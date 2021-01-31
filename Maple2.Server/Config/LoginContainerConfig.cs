@@ -1,11 +1,12 @@
 ﻿using Autofac;
 using Maple2.Server.Network;
 using Maple2.Server.PacketHandlers;
+using Maple2.Server.Servers.Login;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 
-namespace Maple2.Server.Servers.Game {
-    internal static class GameContainerConfig {
+namespace Maple2.Server.Config {
+    internal static class LoginContainerConfig {
         public static IContainer Configure() {
             var builder = new ContainerBuilder();
 
@@ -22,19 +23,19 @@ namespace Maple2.Server.Servers.Game {
                 .SingleInstance();
 
             // Server
-            builder.RegisterType<GameServer>()
+            builder.RegisterType<LoginServer>()
                 .AsSelf()
                 .SingleInstance();
-            builder.RegisterType<PacketRouter<GameSession>>()
-                .As<PacketRouter<GameSession>>()
+            builder.RegisterType<PacketRouter<LoginSession>>()
+                .As<PacketRouter<LoginSession>>()
                 .SingleInstance();
-            builder.RegisterType<GameSession>()
+            builder.RegisterType<LoginSession>()
                 .AsSelf();
 
             // Make all packet handlers available to PacketRouter
             builder.RegisterAssemblyTypes(typeof(IPacketHandler<>).Assembly)
-                .Where(type => typeof(IPacketHandler<GameSession>).IsAssignableFrom(type))
-                .As<IPacketHandler<GameSession>>()
+                .Where(type => typeof(IPacketHandler<LoginSession>).IsAssignableFrom(type))
+                .As<IPacketHandler<LoginSession>>()
                 .SingleInstance();
 
             return builder.Build();
