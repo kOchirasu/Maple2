@@ -10,10 +10,17 @@
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
       <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="5.0.0" />
       <PackageReference Include="NLog.Extensions.Logging" Version="1.7.0" />
+      <PackageReference Include="System.IO.Pipelines" Version="5.0.1" />
     </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Maple2.PacketLib\Maple2.PacketLib.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="nlog.config">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>
