@@ -9,12 +9,14 @@
       <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
       <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="5.0.0" />
-      <PackageReference Include="NLog.Extensions.Logging" Version="1.7.0" />
-      <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.20574.7" />
+      <PackageReference Include="NLog.Extensions.Logging" Version="1.7.2" />
+      <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.0" />
+      <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21216.1" />
       <PackageReference Include="System.IO.Pipelines" Version="5.0.1" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Maple2.Database\Maple2.Database.csproj" />
       <ProjectReference Include="..\Maple2.PacketLib\Maple2.PacketLib.csproj" />
     </ItemGroup>
 

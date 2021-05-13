@@ -4,6 +4,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.Server", "Maple2.Ser
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.PacketLib", "Maple2.PacketLib\Maple2.PacketLib.csproj", "{44184FD5-FDFF-4EFE-80FC-0139C28D4082}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.Database", "Maple2.Database\Maple2.Database.csproj", "{B2B4EC86-164D-4723-A0AA-428810D761D9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.Model", "Maple2.Model\Maple2.Model.csproj", "{21491E48-28A7-4643-B1D9-A9330581395D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.Tools", "Maple2.Tools\Maple2.Tools.csproj", "{40400AA8-36E6-4704-969F-447ECFFDBE0B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +24,17 @@ Global
 		{44184FD5-FDFF-4EFE-80FC-0139C28D4082}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{44184FD5-FDFF-4EFE-80FC-0139C28D4082}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{44184FD5-FDFF-4EFE-80FC-0139C28D4082}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2B4EC86-164D-4723-A0AA-428810D761D9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2B4EC86-164D-4723-A0AA-428810D761D9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2B4EC86-164D-4723-A0AA-428810D761D9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2B4EC86-164D-4723-A0AA-428810D761D9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{21491E48-28A7-4643-B1D9-A9330581395D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{21491E48-28A7-4643-B1D9-A9330581395D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{21491E48-28A7-4643-B1D9-A9330581395D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{21491E48-28A7-4643-B1D9-A9330581395D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40400AA8-36E6-4704-969F-447ECFFDBE0B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40400AA8-36E6-4704-969F-447ECFFDBE0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40400AA8-36E6-4704-969F-447ECFFDBE0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40400AA8-36E6-4704-969F-447ECFFDBE0B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
