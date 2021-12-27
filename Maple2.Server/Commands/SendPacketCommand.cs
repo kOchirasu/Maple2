@@ -1,50 +1,52 @@
 ﻿using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
+using System.CommandLine.IO;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Servers.Game;
 
-namespace Maple2.Server.Commands {
-    public class SendPacketCommand : Command, ILoggableCommand {
-        private const string NAME = "send";
-        private const string DESCRIPTION = "Sends a packet to connected clients.";
+namespace Maple2.Server.Commands;
 
-        private readonly GameServer gameServer;
-        private string error;
+public class SendPacketCommand : Command {
+    private const string NAME = "send";
+    private const string DESCRIPTION = "Sends a packet to connected clients.";
 
-        public SendPacketCommand(GameServer gameServer) : base(NAME, DESCRIPTION) {
-            this.gameServer = gameServer;
+    private readonly GameServer gameServer;
 
-            AddOption(new Option<string>(new []{"--id", "-i"}, "ID of session to send packet to."));
-            AddOption(new Option<bool>(new []{"--verbose", "-v"}, "Prints packets being sent."));
-            AddArgument(new Argument<string[]>("packet", "Packet to send (as hex)."));
-            Handler = CommandHandler.Create<string, bool, string[]>(Handle);
-        }
+    public SendPacketCommand(GameServer gameServer) : base(NAME, DESCRIPTION) {
+        this.gameServer = gameServer;
 
-        private int Handle(string id, bool verbose, string[] packet) {
-            try {
-                using var pWriter = new PoolByteWriter();
-                foreach (string hexStr in packet) {
-                    // This currently does not fail even if string contains invalid hex chars.
-                    pWriter.WriteBytes(hexStr.ToByteArray());
-                }
+        var id = new Option<string>(new[] { "--id", "-i" }, "ID of session to send packet to.");
+        var verbose = new Option<bool>(new[] { "--verbose", "-v" }, "Prints packets being sent.");
+        var packet = new Argument<string[]>("packet", "Packet to send (as hex).");
 
-                if (verbose) {
-                    Console.WriteLine($"Sending packets to: {id}");
-                    Console.WriteLine(pWriter);
-                }
+        AddOption(id);
+        AddOption(verbose);
+        AddArgument(packet);
+        this.SetHandler<InvocationContext, string, bool, string[]>(Handle, id, verbose, packet);
+    }
 
-                foreach (GameSession session in gameServer.GetSessions()) {
-                    session.Send(pWriter);
-                }
-
-                return 0;
-            } catch (SystemException ex) {
-                error = ex.Message;
-                return 1;
+    private void Handle(InvocationContext ctx, string id, bool verbose, string[] packet) {
+        try {
+            using var pWriter = new PoolByteWriter();
+            foreach (string hexStr in packet) {
+                // This currently does not fail even if string contains invalid hex chars.
+                pWriter.WriteBytes(hexStr.ToByteArray());
             }
-        }
 
-        public string GetErrorString() => error;
+            if (verbose) {
+                ctx.Console.Out.WriteLine($"Sending packets to: {id}");
+                ctx.Console.Out.WriteLine(pWriter.ToString());
+            }
+
+            foreach (GameSession session in gameServer.GetSessions()) {
+                session.Send(pWriter);
+            }
+
+            ctx.ExitCode = 0;
+        } catch (SystemException ex) {
+            ctx.Console.Error.WriteLine(ex.Message);
+            ctx.ExitCode = 1;
+        }
     }
 }

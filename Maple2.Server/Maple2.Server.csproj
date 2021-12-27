@@ -2,17 +2,22 @@
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
-        <TargetFramework>net5.0</TargetFramework>
+        <TargetFramework>net6.0</TargetFramework>
+        <LangVersion>10</LangVersion>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.1.0" />
-      <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
-      <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="5.0.0" />
-      <PackageReference Include="NLog.Extensions.Logging" Version="1.7.2" />
-      <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="5.0.0" />
-      <PackageReference Include="System.CommandLine" Version="2.0.0-beta1.21216.1" />
-      <PackageReference Include="System.IO.Pipelines" Version="5.0.1" />
+      <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="6.0.0" />
+      <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
+      <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.0" />
+      <PackageReference Include="System.CommandLine" Version="2.0.0-beta2.21617.1" />
+      <PackageReference Include="System.IO.Pipelines" Version="6.0.1" />
     </ItemGroup>
 
     <ItemGroup>

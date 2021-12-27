@@ -4,26 +4,26 @@ using Maple2.Server.Servers.Game;
 using Maple2.Server.Servers.Login;
 using Microsoft.Extensions.Logging;
 
-namespace Maple2.Server.PacketHandlers.Common {
-    public abstract class CommonPacketHandler : IPacketHandler<LoginSession>, IPacketHandler<GameSession> {
-        public abstract ushort OpCode { get; }
+namespace Maple2.Server.PacketHandlers.Common; 
 
-        protected readonly ILogger logger;
+public abstract class CommonPacketHandler : IPacketHandler<LoginSession>, IPacketHandler<GameSession> {
+    public abstract ushort OpCode { get; }
 
-        protected CommonPacketHandler(ILogger logger) {
-            this.logger = logger;
-        }
+    protected readonly ILogger logger;
 
-        public virtual void Handle(GameSession session, IByteReader packet) {
-            HandleCommon(session, packet);
-        }
-
-        public virtual void Handle(LoginSession session, IByteReader packet) {
-            HandleCommon(session, packet);
-        }
-
-        protected abstract void HandleCommon(Session session, IByteReader packet);
-
-        public override string ToString() => $"[0x{OpCode:X4}] Common.{GetType().Name}";
+    protected CommonPacketHandler(ILogger logger) {
+        this.logger = logger;
     }
+
+    public virtual void Handle(GameSession session, IByteReader packet) {
+        HandleCommon(session, packet);
+    }
+
+    public virtual void Handle(LoginSession session, IByteReader packet) {
+        HandleCommon(session, packet);
+    }
+
+    protected abstract void HandleCommon(Session session, IByteReader packet);
+
+    public override string ToString() => $"[0x{OpCode:X4}] Common.{GetType().Name}";
 }

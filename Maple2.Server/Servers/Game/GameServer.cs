@@ -3,30 +3,30 @@ using Autofac;
 using Maple2.Server.Network;
 using Microsoft.Extensions.Logging;
 
-namespace Maple2.Server.Servers.Game {
-    public class GameServer : Server<GameSession> {
-        public const int PORT = 21001;
+namespace Maple2.Server.Servers.Game;
 
-        private readonly List<GameSession> sessions;
+public class GameServer : Server<GameSession> {
+    public const int PORT = 21001;
 
-        public GameServer(PacketRouter<GameSession> router, ILogger<GameServer> logger, IComponentContext context)
-            : base(router, logger, context) {
-            this.sessions = new List<GameSession>();
-        }
+    private readonly List<GameSession> sessions;
 
-        public void Start() {
-            base.Start(PORT);
-        }
+    public GameServer(PacketRouter<GameSession> router, ILogger<GameServer> logger, IComponentContext context)
+        : base(router, logger, context) {
+        this.sessions = new List<GameSession>();
+    }
 
-        public IEnumerable<GameSession> GetSessions() {
-            sessions.RemoveAll(session => !session.Connected());
-            return sessions;
-        }
+    public void Start() {
+        base.Start(PORT);
+    }
 
-        public override void AddSession(GameSession session) {
-            sessions.Add(session);
-            logger.LogInformation($"Game client connected: {session}");
-            session.Start();
-        }
+    public IEnumerable<GameSession> GetSessions() {
+        sessions.RemoveAll(session => !session.Connected());
+        return sessions;
+    }
+
+    public override void AddSession(GameSession session) {
+        sessions.Add(session);
+        logger.LogInformation($"Game client connected: {session}");
+        session.Start();
     }
 }

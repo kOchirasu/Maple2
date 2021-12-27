@@ -2,18 +2,18 @@
 using Maple2.Server.Servers.Game;
 using Microsoft.Extensions.Logging;
 
-namespace Maple2.Server.PacketHandlers.Game {
-    public abstract class GamePacketHandler : IPacketHandler<GameSession> {
-        public abstract ushort OpCode { get; }
+namespace Maple2.Server.PacketHandlers.Game; 
 
-        protected readonly ILogger logger;
+public abstract class GamePacketHandler : IPacketHandler<GameSession> {
+    public abstract ushort OpCode { get; }
 
-        protected GamePacketHandler(ILogger logger) {
-            this.logger = logger;
-        }
+    protected readonly ILogger logger;
 
-        public abstract void Handle(GameSession session, IByteReader packet);
-
-        public override string ToString() => $"[0x{OpCode:X4}] Game.{GetType().Name}";
+    protected GamePacketHandler(ILogger logger) {
+        this.logger = logger;
     }
+
+    public abstract void Handle(GameSession session, IByteReader packet);
+
+    public override string ToString() => $"[0x{OpCode:X4}] Game.{GetType().Name}";
 }

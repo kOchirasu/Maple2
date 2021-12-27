@@ -4,27 +4,27 @@ using Maple2.Server.Commands;
 using Maple2.Server.Servers.Game;
 using Maple2.Server.Servers.Login;
 
-namespace Maple2.Server.Config {
-    internal static class Maple2ContainerConfig {
-        public static IContainer Configure(LoginServer loginServer, GameServer gameServer) {
-            var builder = new ContainerBuilder();
+namespace Maple2.Server.Config; 
 
-            builder.RegisterInstance(loginServer)
-                .AsSelf();
-            builder.RegisterInstance(gameServer)
-                .AsSelf();
+internal static class Maple2ContainerConfig {
+    public static IContainer Configure(LoginServer loginServer, GameServer gameServer) {
+        var builder = new ContainerBuilder();
 
-            builder.RegisterType<CommandRouter>()
-                .AsSelf()
-                .SingleInstance();
+        builder.RegisterInstance(loginServer)
+            .AsSelf();
+        builder.RegisterInstance(gameServer)
+            .AsSelf();
 
-            builder.RegisterAssemblyTypes(typeof(CommandRouter).Assembly)
-                .PublicOnly()
-                .Where(type => typeof(Command).IsAssignableFrom(type))
-                .As<Command>()
-                .SingleInstance();
+        builder.RegisterType<CommandRouter>()
+            .AsSelf()
+            .SingleInstance();
 
-            return builder.Build();
-        }
+        builder.RegisterAssemblyTypes(typeof(CommandRouter).Assembly)
+            .PublicOnly()
+            .Where(type => typeof(Command).IsAssignableFrom(type))
+            .As<Command>()
+            .SingleInstance();
+
+        return builder.Build();
     }
 }

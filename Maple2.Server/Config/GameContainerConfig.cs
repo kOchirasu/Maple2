@@ -5,40 +5,40 @@ using Maple2.Server.Servers.Game;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 
-namespace Maple2.Server.Config {
-    internal static class GameContainerConfig {
-        public static IContainer Configure() {
-            var builder = new ContainerBuilder();
+namespace Maple2.Server.Config; 
 
-            // Logger
-            builder.Register(_ => {
-                    var factory = new LoggerFactory();
-                    factory.AddProvider(new NLogLoggerProvider());
-                    return factory;
-                })
-                .As<ILoggerFactory>()
-                .SingleInstance();
-            builder.RegisterGeneric(typeof(Logger<>))
-                .As(typeof(ILogger<>))
-                .SingleInstance();
+internal static class GameContainerConfig {
+    public static IContainer Configure() {
+        var builder = new ContainerBuilder();
 
-            // Server
-            builder.RegisterType<GameServer>()
-                .AsSelf()
-                .SingleInstance();
-            builder.RegisterType<PacketRouter<GameSession>>()
-                .As<PacketRouter<GameSession>>()
-                .SingleInstance();
-            builder.RegisterType<GameSession>()
-                .AsSelf();
+        // Logger
+        builder.Register(_ => {
+                var factory = new LoggerFactory();
+                factory.AddProvider(new NLogLoggerProvider());
+                return factory;
+            })
+            .As<ILoggerFactory>()
+            .SingleInstance();
+        builder.RegisterGeneric(typeof(Logger<>))
+            .As(typeof(ILogger<>))
+            .SingleInstance();
 
-            // Make all packet handlers available to PacketRouter
-            builder.RegisterAssemblyTypes(typeof(IPacketHandler<>).Assembly)
-                .Where(type => typeof(IPacketHandler<GameSession>).IsAssignableFrom(type))
-                .As<IPacketHandler<GameSession>>()
-                .SingleInstance();
+        // Server
+        builder.RegisterType<GameServer>()
+            .AsSelf()
+            .SingleInstance();
+        builder.RegisterType<PacketRouter<GameSession>>()
+            .As<PacketRouter<GameSession>>()
+            .SingleInstance();
+        builder.RegisterType<GameSession>()
+            .AsSelf();
 
-            return builder.Build();
-        }
+        // Make all packet handlers available to PacketRouter
+        builder.RegisterAssemblyTypes(typeof(IPacketHandler<>).Assembly)
+            .Where(type => typeof(IPacketHandler<GameSession>).IsAssignableFrom(type))
+            .As<IPacketHandler<GameSession>>()
+            .SingleInstance();
+
+        return builder.Build();
     }
 }

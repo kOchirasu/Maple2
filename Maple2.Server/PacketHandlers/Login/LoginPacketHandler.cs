@@ -2,18 +2,18 @@
 using Maple2.Server.Servers.Login;
 using Microsoft.Extensions.Logging;
 
-namespace Maple2.Server.PacketHandlers.Login {
-    public abstract class LoginPacketHandler : IPacketHandler<LoginSession> {
-        public abstract ushort OpCode { get; }
+namespace Maple2.Server.PacketHandlers.Login; 
 
-        protected readonly ILogger logger;
+public abstract class LoginPacketHandler : IPacketHandler<LoginSession> {
+    public abstract ushort OpCode { get; }
 
-        protected LoginPacketHandler(ILogger logger) {
-            this.logger = logger;
-        }
+    protected readonly ILogger logger;
 
-        public abstract void Handle(LoginSession session, IByteReader packet);
-
-        public override string ToString() => $"[0x{OpCode:X4}] Login.{GetType().Name}";
+    protected LoginPacketHandler(ILogger logger) {
+        this.logger = logger;
     }
+
+    public abstract void Handle(LoginSession session, IByteReader packet);
+
+    public override string ToString() => $"[0x{OpCode:X4}] Login.{GetType().Name}";
 }

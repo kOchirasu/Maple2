@@ -5,40 +5,40 @@ using Maple2.Server.Servers.Login;
 using Microsoft.Extensions.Logging;
 using NLog.Extensions.Logging;
 
-namespace Maple2.Server.Config {
-    internal static class LoginContainerConfig {
-        public static IContainer Configure() {
-            var builder = new ContainerBuilder();
+namespace Maple2.Server.Config; 
 
-            // Logger
-            builder.Register(_ => {
-                    var factory = new LoggerFactory();
-                    factory.AddProvider(new NLogLoggerProvider());
-                    return factory;
-                })
-                .As<ILoggerFactory>()
-                .SingleInstance();
-            builder.RegisterGeneric(typeof(Logger<>))
-                .As(typeof(ILogger<>))
-                .SingleInstance();
+internal static class LoginContainerConfig {
+    public static IContainer Configure() {
+        var builder = new ContainerBuilder();
 
-            // Server
-            builder.RegisterType<LoginServer>()
-                .AsSelf()
-                .SingleInstance();
-            builder.RegisterType<PacketRouter<LoginSession>>()
-                .As<PacketRouter<LoginSession>>()
-                .SingleInstance();
-            builder.RegisterType<LoginSession>()
-                .AsSelf();
+        // Logger
+        builder.Register(_ => {
+                var factory = new LoggerFactory();
+                factory.AddProvider(new NLogLoggerProvider());
+                return factory;
+            })
+            .As<ILoggerFactory>()
+            .SingleInstance();
+        builder.RegisterGeneric(typeof(Logger<>))
+            .As(typeof(ILogger<>))
+            .SingleInstance();
 
-            // Make all packet handlers available to PacketRouter
-            builder.RegisterAssemblyTypes(typeof(IPacketHandler<>).Assembly)
-                .Where(type => typeof(IPacketHandler<LoginSession>).IsAssignableFrom(type))
-                .As<IPacketHandler<LoginSession>>()
-                .SingleInstance();
+        // Server
+        builder.RegisterType<LoginServer>()
+            .AsSelf()
+            .SingleInstance();
+        builder.RegisterType<PacketRouter<LoginSession>>()
+            .As<PacketRouter<LoginSession>>()
+            .SingleInstance();
+        builder.RegisterType<LoginSession>()
+            .AsSelf();
 
-            return builder.Build();
-        }
+        // Make all packet handlers available to PacketRouter
+        builder.RegisterAssemblyTypes(typeof(IPacketHandler<>).Assembly)
+            .Where(type => typeof(IPacketHandler<LoginSession>).IsAssignableFrom(type))
+            .As<IPacketHandler<LoginSession>>()
+            .SingleInstance();
+
+        return builder.Build();
     }
 }
