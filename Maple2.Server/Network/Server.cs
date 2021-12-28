@@ -7,7 +7,7 @@ using Autofac;
 using Microsoft.Extensions.Logging;
 using ThreadState = System.Threading.ThreadState;
 
-namespace Maple2.Server.Network; 
+namespace Maple2.Server.Network;
 
 public abstract class Server<T> where T : Session {
     private TcpListener listener;
@@ -37,7 +37,7 @@ public abstract class Server<T> where T : Session {
         serverThread = new Thread(() => {
             while (!source.IsCancellationRequested) {
                 clientConnected.Reset();
-                logger.LogInformation($"{GetType().Name} started on Port:{port}");
+                logger.LogInformation("{type} started on Port:{port}", GetType().Name, port);
                 listener.BeginAcceptTcpClient(AcceptTcpClient, null);
                 clientConnected.WaitOne();
             }
@@ -48,16 +48,16 @@ public abstract class Server<T> where T : Session {
     public void Stop() {
         switch (serverThread.ThreadState) {
             case ThreadState.Unstarted:
-                logger.LogInformation($"{GetType().Name} has not been started.");
+                logger.LogInformation("{type} has not been started.", GetType().Name);
                 break;
             case ThreadState.Stopped:
-                logger.LogInformation($"{GetType().Name} has already been stopped.");
+                logger.LogInformation("{type} has already been stopped.", GetType().Name);
                 break;
             default:
                 source.Cancel();
                 clientConnected.Set();
                 serverThread.Join();
-                logger.LogInformation($"{GetType().Name} was stopped.");
+                logger.LogInformation("{type} was stopped.", GetType().Name);
                 break;
         }
     }

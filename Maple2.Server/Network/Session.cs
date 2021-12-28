@@ -11,7 +11,7 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Constants;
 using Microsoft.Extensions.Logging;
 
-namespace Maple2.Server.Network; 
+namespace Maple2.Server.Network;
 
 public enum PatchType : byte {
     Delete = 0,
@@ -46,8 +46,6 @@ public abstract class Session : IDisposable {
     protected abstract PatchType Type { get; }
     protected readonly ILogger logger;
 
-    private static readonly RNGCryptoServiceProvider rng = new();
-
     protected Session(ILogger logger) {
         this.logger = logger;
 
@@ -70,10 +68,8 @@ public abstract class Session : IDisposable {
         client.LingerState = new LingerOption(true, 0);
         name = client.Client.RemoteEndPoint?.ToString();
 
-        byte[] sivBytes = new byte[4];
-        byte[] rivBytes = new byte[4];
-        rng.GetBytes(sivBytes);
-        rng.GetBytes(rivBytes);
+        byte[] sivBytes = RandomNumberGenerator.GetBytes(4);
+        byte[] rivBytes = RandomNumberGenerator.GetBytes(4);
         this.siv = BitConverter.ToUInt32(sivBytes);
         this.riv = BitConverter.ToUInt32(rivBytes);
 
@@ -102,7 +98,7 @@ public abstract class Session : IDisposable {
     public void Disconnect() {
         if (disposed) return;
 
-        logger.LogInformation($"Disconnected {this}");
+        logger.LogInformation("Disconnected {session}", this);
         Dispose();
     }
 
@@ -147,7 +143,7 @@ public abstract class Session : IDisposable {
             }
         } catch (Exception ex) {
             if (!disposed) {
-                logger.LogError("Exception on session thread: ", ex);
+                logger.LogError("Exception on session thread: {exception}", ex);
             }
         } finally {
             Disconnect();
@@ -165,7 +161,7 @@ public abstract class Session : IDisposable {
 
         // No encryption for handshake
         using PoolByteWriter packet = sendCipher.WriteHeader(handshake.Buffer, 0, handshake.Length);
-        logger.LogDebug($"Handshake: {packet}");
+        logger.LogDebug("Handshake: {packet}", packet);
         SendRaw(packet);
     }
 
@@ -210,7 +206,7 @@ public abstract class Session : IDisposable {
             } while (!disposed && !result.IsCompleted);
         } catch (Exception ex) {
             if (!disposed) {
-                logger.LogError("Exception reading recv packet: ", ex);
+                logger.LogError("Exception reading recv packet: {exception}", ex);
             }
         } finally {
             Disconnect();
@@ -247,7 +243,7 @@ public abstract class Session : IDisposable {
         // Filtering sync from logs
         short opcode = (short) (packet[1] << 8 | packet[0]);
         if (opcode != 0x1C && opcode != 0x59 && opcode != 0x80 && opcode != 0x11) {
-            logger.LogTrace($"SEND ({length}): {packet.ToHexString(length, ' ')}");
+            logger.LogTrace("SEND ({length}): {packet}", length, packet.ToHexString(length, ' '));
         }
     }
 
@@ -255,7 +251,7 @@ public abstract class Session : IDisposable {
         short opcode = (short) (packet.Buffer[1] << 8 | packet.Buffer[0]);
         if (opcode != 0x12 && opcode != 0x0B && opcode != 0x35) {
             // Filtering sync from logs
-            logger.LogTrace($"RECV ({packet.Length}): {packet}");
+            logger.LogTrace("RECV ({length}): {packet}", packet.Length, packet);
         }
     }
 }

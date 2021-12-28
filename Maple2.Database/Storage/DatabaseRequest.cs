@@ -26,7 +26,7 @@ public abstract class DatabaseRequest<TContext> : IDisposable where TContext : D
             context.SaveChanges();
             logger.LogWarning("Saved...");
         } catch (Exception ex) {
-            logger.LogCritical("Exception while saving", ex);
+            logger.LogCritical("Exception while saving: {exception}", ex);
             throw;
         }
     }

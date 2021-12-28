@@ -2,7 +2,7 @@
 using Maple2.Server.Network;
 using Microsoft.Extensions.Logging;
 
-namespace Maple2.Server.Servers.Login; 
+namespace Maple2.Server.Servers.Login;
 
 public class LoginServer : Server<LoginSession> {
     public const int PORT = 20001;
@@ -15,7 +15,7 @@ public class LoginServer : Server<LoginSession> {
     }
 
     public override void AddSession(LoginSession session) {
-        logger.LogInformation($"Login client connected: {session}");
+        logger.LogInformation("Login client connected: {session}", session);
         session.Start();
     }
 }

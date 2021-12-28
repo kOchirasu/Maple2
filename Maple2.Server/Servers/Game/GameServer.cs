@@ -26,7 +26,7 @@ public class GameServer : Server<GameSession> {
 
     public override void AddSession(GameSession session) {
         sessions.Add(session);
-        logger.LogInformation($"Game client connected: {session}");
+        logger.LogInformation("Game client connected: {session}", session);
         session.Start();
     }
 }
