@@ -1,6 +1,7 @@
 ﻿using System;
 using Autofac;
 using Maple2.Database.Context;
+using Maple2.Database.Storage;
 using Maple2.Model.User;
 using Maple2.Server.Commands;
 using Maple2.Server.Config;
@@ -39,13 +40,17 @@ if (!initContext.Initialize()) {
 }
 
 using var testContext = new TestContext(options);
-var account = new Account();
-testContext.Account.Add(account);
-testContext.SaveChanges();
-Console.WriteLine($"Write {account.Id}");
+var writeAccount = new Account();
+var userStorage = new UserStorage(options, null);
+using (UserStorage.Request request = userStorage.Context()) {
+    writeAccount = request.CreateAccount(writeAccount);
+    Console.WriteLine($"Write {writeAccount.Id}");
+}
 
-Account readAccount = testContext.Account.Find(account.Id);
-Console.WriteLine($"Read {readAccount.Id}");
+using (UserStorage.Request request = userStorage.Context()) {
+    Account readAccount = request.GetAccount(writeAccount.Id);
+    Console.WriteLine($"Read {readAccount.Id}");
+}
 
 while (true) {
     string command = Console.ReadLine() ?? string.Empty;

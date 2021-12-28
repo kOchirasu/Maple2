@@ -2,22 +2,20 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
 
-namespace Maple2.Model.Common; 
+namespace Maple2.Model.Common;
 
-[ProtoContract, StructLayout(LayoutKind.Sequential, Pack = 2, Size = 6)]
-public readonly struct Vector3S {
-    public readonly short X;
-    public readonly short Y;
-    public readonly short Z;
+[StructLayout(LayoutKind.Sequential, Pack = 1, Size = 4)]
+public readonly record struct Vector3B(sbyte X, sbyte Y, sbyte Z);
 
-    public Vector3S(short x, short y, short z) {
-        this.X = x;
-        this.Y = y;
-        this.Z = z;
-    }
 
+[StructLayout(LayoutKind.Sequential, Pack = 2, Size = 6)]
+public readonly record struct Vector3S(short X, short Y, short Z) {
     public static implicit operator Vector3S(Vector3 vector) {
-        return new Vector3S((short) vector.X, (short) vector.Y, (short) vector.Z);
+        return new Vector3S(
+            (short) MathF.Round(vector.X),
+            (short) MathF.Round(vector.Y),
+            (short) MathF.Round(vector.Z)
+        );
     }
 
     public static implicit operator Vector3(Vector3S vector) {
@@ -35,5 +33,3 @@ public readonly struct Vector3S {
 
     public override string ToString() => $"<{X}, {Y}, {Z}>";
 }
-
-public class ProtoContractAttribute : Attribute { }

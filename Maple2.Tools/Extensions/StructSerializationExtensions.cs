@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using Maple2.PacketLib.Tools;
 
-namespace Maple2.Tools.Extensions; 
+namespace Maple2.Tools.Extensions;
 
 // Separate class to avoid name conflicts
 public static class StructSerializationExtensions {

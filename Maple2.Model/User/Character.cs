@@ -2,16 +2,18 @@
 using Maple2.Model.Common;
 using Maple2.Model.Enum;
 
-namespace Maple2.Model.User; 
+namespace Maple2.Model.User;
 
 public class Character {
-    public DateTime LastModified { get; set; }
-        
-    public long Id { get; set; }
-    public long AccountId { get; set; }
-    public string Name { get; set; }
+    #region Immutable
+    public DateTime CreationTime { get; init; }
+    public DateTime LastModified { get; init; }
 
-    public DateTime CreationTime { get; set; }
+    public long Id { get; init; }
+    public long AccountId { get; init; }
+    #endregion
+
+    public string Name { get; set; }
     public Gender Gender { get; set; }
     public Job Job { get; set; }
     public short Level { get; set; }

@@ -1,0 +1,50 @@
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Maple2.Database.Schema;
+
+internal class Account {
+    public long Id { get; set; }
+    public DateTime LastModified { get; set; }
+    public long Merets { get; set; }
+    public int MaxCharacters { get; set; }
+    public int PrestigeLevel { get; set; }
+    public long PrestigeExp { get; set; }
+    public long PremiumTime { get; set; }
+
+    public ICollection<Character> Characters { get; set; }
+
+    public static implicit operator Account(Maple2.Model.User.Account other) {
+        return new Account {
+            Id = other.Id,
+            LastModified = other.LastModified,
+            Merets = other.Merets,
+            MaxCharacters = other.MaxCharacters,
+            PrestigeLevel = other.PrestigeLevel,
+            PrestigeExp = other.PrestigeExp,
+            PremiumTime = other.PremiumTime,
+        };
+    }
+
+    public static implicit operator Maple2.Model.User.Account(Account other) {
+        return new Maple2.Model.User.Account {
+            Id = other.Id,
+            LastModified = other.LastModified,
+            Merets = other.Merets,
+            MaxCharacters = other.MaxCharacters,
+            PrestigeLevel = other.PrestigeLevel,
+            PrestigeExp = other.PrestigeExp,
+            PremiumTime = other.PremiumTime,
+        };
+    }
+
+    public static void Configure(EntityTypeBuilder<Account> builder) {
+        builder.Property(account => account.LastModified).IsRowVersion();
+        builder.HasKey(account => account.Id);
+        builder.Property(account => account.MaxCharacters)
+            .HasDefaultValue(4);
+        builder.HasMany(account => account.Characters);
+    }
+}
