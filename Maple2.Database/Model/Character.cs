@@ -4,7 +4,7 @@ using Maple2.Model.Common;
 using Maple2.Model.Enum;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Maple2.Database.Schema;
+namespace Maple2.Database.Model;
 
 internal class Character {
     public DateTime LastModified { get; set; }

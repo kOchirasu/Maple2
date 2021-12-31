@@ -1,6 +1,6 @@
 ﻿using System;
 using Autofac;
-using Maple2.Database.Context;
+using Maple2.Database.Data;
 using Maple2.Database.Storage;
 using Maple2.Model.User;
 using Maple2.Server.Commands;
@@ -29,7 +29,7 @@ var commandRouter = mapleScope.Resolve<CommandRouter>();
 loginServer.Start();
 gameServer.Start();
 
-const string connectionString = "Server=localhost;Database=maple-data;User=root;Password=maplestory";
+const string connectionString = "Server=localhost;Database=server-data;User=root;Password=maplestory";
 
 DbContextOptions options = new DbContextOptionsBuilder()
     .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)).Options;

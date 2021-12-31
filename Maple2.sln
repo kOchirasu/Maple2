@@ -10,6 +10,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.Model", "Maple2.Mode
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.Tools", "Maple2.Tools\Maple2.Tools.csproj", "{40400AA8-36E6-4704-969F-447ECFFDBE0B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.File.Ingest", "Maple2.File.Ingest\Maple2.File.Ingest.csproj", "{A7478B44-723D-447C-9533-0BABDD9BD1FF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{40400AA8-36E6-4704-969F-447ECFFDBE0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40400AA8-36E6-4704-969F-447ECFFDBE0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40400AA8-36E6-4704-969F-447ECFFDBE0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A7478B44-723D-447C-9533-0BABDD9BD1FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A7478B44-723D-447C-9533-0BABDD9BD1FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A7478B44-723D-447C-9533-0BABDD9BD1FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A7478B44-723D-447C-9533-0BABDD9BD1FF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

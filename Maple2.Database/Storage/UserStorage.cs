@@ -1,4 +1,4 @@
-﻿using Maple2.Database.Context;
+﻿using Maple2.Database.Data;
 using Maple2.Database.Extensions;
 using Maple2.Model.User;
 using Microsoft.EntityFrameworkCore;
@@ -31,7 +31,7 @@ public partial class UserStorage {
         }
 
         public Account CreateAccount(Account account) {
-            Maple2.Database.Schema.Account model = account;
+            Model.Account model = account;
             model.Id = 0;
             context.Account.Add(model);
             return context.TrySaveChanges() ? model : null;

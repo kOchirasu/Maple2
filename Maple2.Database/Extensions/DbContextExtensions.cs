@@ -1,11 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace Maple2.Database.Extensions;
 
 public static class DbContextExtensions {
+    public static string GetTableName<T>(this DbContext context) where T : class {
+        IEntityType entityType = context.Model.GetEntityTypes().First(type => type.ClrType == typeof(T));
+
+        IAnnotation tableNameAnnotation = entityType.GetAnnotation("Relational:TableName");
+        return tableNameAnnotation.Value?.ToString();
+    }
+
     public static bool TrySaveChanges(this DbContext context, bool autoAccept = true) {
         try {
             Console.WriteLine($"> Begin Save... {context.ContextId}");

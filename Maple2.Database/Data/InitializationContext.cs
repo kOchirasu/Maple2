@@ -1,7 +1,7 @@
-﻿using Maple2.Database.Schema;
+﻿using Maple2.Database.Model;
 using Microsoft.EntityFrameworkCore;
 
-namespace Maple2.Database.Context;
+namespace Maple2.Database.Data;
 
 public class InitializationContext : DbContext {
     internal DbSet<Account> Account { get; set; }
@@ -11,8 +11,8 @@ public class InitializationContext : DbContext {
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);
-        modelBuilder.Entity<Account>(Schema.Account.Configure);
-        modelBuilder.Entity<Character>(Schema.Character.Configure);
+        modelBuilder.Entity<Account>(Maple2.Database.Model.Account.Configure);
+        modelBuilder.Entity<Character>(Maple2.Database.Model.Character.Configure);
     }
 
     public bool Initialize() {

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Maple2.Database.Schema;
+namespace Maple2.Database.Model;
 
 internal class Account {
     public long Id { get; set; }
