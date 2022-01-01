@@ -98,7 +98,7 @@ public abstract class Session : IDisposable {
     public void Disconnect() {
         if (disposed) return;
 
-        logger.LogInformation("Disconnected {session}", this);
+        logger.LogInformation("Disconnected {Session}", this);
         Dispose();
     }
 
@@ -143,7 +143,7 @@ public abstract class Session : IDisposable {
             }
         } catch (Exception ex) {
             if (!disposed) {
-                logger.LogError("Exception on session thread: {exception}", ex);
+                logger.LogError(ex, "Exception on session thread");
             }
         } finally {
             Disconnect();
@@ -161,7 +161,7 @@ public abstract class Session : IDisposable {
 
         // No encryption for handshake
         using PoolByteWriter packet = sendCipher.WriteHeader(handshake.Buffer, 0, handshake.Length);
-        logger.LogDebug("Handshake: {packet}", packet);
+        logger.LogDebug("Handshake: {Packet}", packet);
         SendRaw(packet);
     }
 
@@ -206,7 +206,7 @@ public abstract class Session : IDisposable {
             } while (!disposed && !result.IsCompleted);
         } catch (Exception ex) {
             if (!disposed) {
-                logger.LogError("Exception reading recv packet: {exception}", ex);
+                logger.LogError(ex, "Exception reading recv packet");
             }
         } finally {
             Disconnect();
@@ -243,7 +243,7 @@ public abstract class Session : IDisposable {
         // Filtering sync from logs
         short opcode = (short) (packet[1] << 8 | packet[0]);
         if (opcode != 0x1C && opcode != 0x59 && opcode != 0x80 && opcode != 0x11) {
-            logger.LogTrace("SEND ({length}): {packet}", length, packet.ToHexString(length, ' '));
+            logger.LogTrace("SEND ({Length}): {Packet}", length, packet.ToHexString(length, ' '));
         }
     }
 
@@ -251,7 +251,7 @@ public abstract class Session : IDisposable {
         short opcode = (short) (packet.Buffer[1] << 8 | packet.Buffer[0]);
         if (opcode != 0x12 && opcode != 0x0B && opcode != 0x35) {
             // Filtering sync from logs
-            logger.LogTrace("RECV ({length}): {packet}", packet.Length, packet);
+            logger.LogTrace("RECV ({Length}): {Packet}", packet.Length, packet);
         }
     }
 }

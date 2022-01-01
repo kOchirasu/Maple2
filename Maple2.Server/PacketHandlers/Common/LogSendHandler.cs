@@ -32,7 +32,7 @@ public class LogSendHandler : CommonPacketHandler {
                 if (message.Contains("exception")) {
                     // Read remaining string
                     string debug = packet.ReadUnicodeString();
-                    logger.LogError("[{message}] {debug}", message, debug);
+                    logger.LogError("[{Message}] {Debug}", message, debug);
 
                     session.OnError?.Invoke(session, debug);
                     return;
@@ -41,7 +41,7 @@ public class LogSendHandler : CommonPacketHandler {
                     builder.Append(message);
                 }
 
-                logger.LogInformation("Client Log: {builder}", builder);
+                logger.LogInformation("Client Log: {Builder}", builder);
                 break;
             case Type.Metric:
                 byte count = packet.ReadByte();

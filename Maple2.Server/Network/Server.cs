@@ -37,7 +37,7 @@ public abstract class Server<T> where T : Session {
         serverThread = new Thread(() => {
             while (!source.IsCancellationRequested) {
                 clientConnected.Reset();
-                logger.LogInformation("{type} started on Port:{port}", GetType().Name, port);
+                logger.LogInformation("{Type} started on Port:{Port}", GetType().Name, port);
                 listener.BeginAcceptTcpClient(AcceptTcpClient, null);
                 clientConnected.WaitOne();
             }
@@ -48,16 +48,16 @@ public abstract class Server<T> where T : Session {
     public void Stop() {
         switch (serverThread.ThreadState) {
             case ThreadState.Unstarted:
-                logger.LogInformation("{type} has not been started.", GetType().Name);
+                logger.LogInformation("{Type} has not been started", GetType().Name);
                 break;
             case ThreadState.Stopped:
-                logger.LogInformation("{type} has already been stopped.", GetType().Name);
+                logger.LogInformation("{Type} has already been stopped", GetType().Name);
                 break;
             default:
                 source.Cancel();
                 clientConnected.Set();
                 serverThread.Join();
-                logger.LogInformation("{type} was stopped.", GetType().Name);
+                logger.LogInformation("{Type} was stopped", GetType().Name);
                 break;
         }
     }

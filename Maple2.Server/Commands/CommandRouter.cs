@@ -46,7 +46,7 @@ public class CommandRouter {
             console.Error.WriteLine($"Unrecognized command '{args[0]}'");
         }
 
-        console.Out.WriteLine(GetCommandList());
+        console.Out.Write(GetCommandList());
         return 0;
     }
 
@@ -61,6 +61,7 @@ public class CommandRouter {
             builder.Append($"  {command.Name.PadRight(width)}  {command.Description}\n");
         }
 
+        builder.AppendLine();
         return builder.ToString();
     }
 }

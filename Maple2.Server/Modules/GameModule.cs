@@ -2,27 +2,11 @@
 using Maple2.Server.Network;
 using Maple2.Server.PacketHandlers;
 using Maple2.Server.Servers.Game;
-using Microsoft.Extensions.Logging;
-using NLog.Extensions.Logging;
 
-namespace Maple2.Server.Config; 
+namespace Maple2.Server.Modules;
 
-internal static class GameContainerConfig {
-    public static IContainer Configure() {
-        var builder = new ContainerBuilder();
-
-        // Logger
-        builder.Register(_ => {
-                var factory = new LoggerFactory();
-                factory.AddProvider(new NLogLoggerProvider());
-                return factory;
-            })
-            .As<ILoggerFactory>()
-            .SingleInstance();
-        builder.RegisterGeneric(typeof(Logger<>))
-            .As(typeof(ILogger<>))
-            .SingleInstance();
-
+internal class GameModule : Module {
+    protected override void Load(ContainerBuilder builder) {
         // Server
         builder.RegisterType<GameServer>()
             .AsSelf()
@@ -38,7 +22,5 @@ internal static class GameContainerConfig {
             .Where(type => typeof(IPacketHandler<GameSession>).IsAssignableFrom(type))
             .As<IPacketHandler<GameSession>>()
             .SingleInstance();
-
-        return builder.Build();
     }
 }

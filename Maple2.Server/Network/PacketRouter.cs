@@ -27,7 +27,7 @@ public class PacketRouter<T> where T : Session {
     }
 
     private void Register(ImmutableDictionary<ushort, IPacketHandler<T>>.Builder builder, IPacketHandler<T> packetHandler) {
-        logger.LogDebug("Registered {handler}", packetHandler);
+        logger.LogDebug("Registered {Handler}", packetHandler);
         builder.Add(packetHandler.OpCode, packetHandler);
     }
 }

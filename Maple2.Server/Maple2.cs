@@ -4,7 +4,7 @@ using Maple2.Database.Data;
 using Maple2.Database.Storage;
 using Maple2.Model.User;
 using Maple2.Server.Commands;
-using Maple2.Server.Config;
+using Maple2.Server.Modules;
 using Maple2.Server.Servers.Game;
 using Maple2.Server.Servers.Login;
 using Microsoft.EntityFrameworkCore;
@@ -14,17 +14,23 @@ using NLog;
 ILogger logger = LogManager.GetCurrentClassLogger();
 logger.Info($"MapleServer started with {args.Length} args: {string.Join(", ", args)}");
 
-IContainer loginContainer = LoginContainerConfig.Configure();
-using ILifetimeScope loginScope = loginContainer.BeginLifetimeScope();
+var rootBuilder = new ContainerBuilder();
+rootBuilder.RegisterModule<LogModule>();
+using ILifetimeScope rootScope = rootBuilder.Build().BeginLifetimeScope();
+using ILifetimeScope loginScope = rootScope.BeginLifetimeScope(builder => {
+    builder.RegisterModule<LoginModule>();
+});
+using ILifetimeScope gameScope = rootScope.BeginLifetimeScope(builder => {
+    builder.RegisterModule<GameModule>();
+});
+
 var loginServer = loginScope.Resolve<LoginServer>();
-
-IContainer gameContainer = GameContainerConfig.Configure();
-using ILifetimeScope gameScope = gameContainer.BeginLifetimeScope();
 var gameServer = gameScope.Resolve<GameServer>();
-
-IContainer maple2Container = Maple2ContainerConfig.Configure(loginServer, gameServer);
-using ILifetimeScope mapleScope = maple2Container.BeginLifetimeScope();
-var commandRouter = mapleScope.Resolve<CommandRouter>();
+using ILifetimeScope mapleScope = rootScope.BeginLifetimeScope(builder => {
+    builder.RegisterInstance(loginServer);
+    builder.RegisterInstance(gameServer);
+    builder.RegisterModule<CliModule>();
+});
 
 loginServer.Start();
 gameServer.Start();
@@ -52,12 +58,13 @@ using (UserStorage.Request request = userStorage.Context()) {
     Console.WriteLine($"Read {readAccount.Id}");
 }
 
+var commandRouter = mapleScope.Resolve<CommandRouter>();
 while (true) {
     string command = Console.ReadLine() ?? string.Empty;
 
     try {
         commandRouter.Invoke(command);
     } catch (SystemException ex) {
-        logger.Error($"Uncaught exception handling command: '{command}'", ex);
+        logger.Error(ex, "Uncaught exception handling command");
     }
 }

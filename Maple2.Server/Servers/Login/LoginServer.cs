@@ -15,7 +15,7 @@ public class LoginServer : Server<LoginSession> {
     }
 
     public override void AddSession(LoginSession session) {
-        logger.LogInformation("Login client connected: {session}", session);
+        logger.LogInformation("Login client connected: {Session}", session);
         session.Start();
     }
 }

@@ -12,6 +12,6 @@ public class SystemInfoHandler : CommonPacketHandler {
 
     protected override void HandleCommon(Session session, IByteReader packet) {
         string info = packet.ReadUnicodeString();
-        logger.LogDebug("System Info: {info}", info);
+        logger.LogDebug("System Info: {Info}", info);
     }
 }
