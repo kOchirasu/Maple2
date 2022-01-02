@@ -12,6 +12,14 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.Tools", "Maple2.Tool
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.File.Ingest", "Maple2.File.Ingest\Maple2.File.Ingest.csproj", "{A7478B44-723D-447C-9533-0BABDD9BD1FF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.Server.World", "Maple2.Server.World\Maple2.Server.World.csproj", "{0D7A7D52-CA81-40FD-ADA4-F94C61991809}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.Server.Core", "Maple2.Server.Core\Maple2.Server.Core.csproj", "{1AE01DB0-C088-4CC1-8B5E-B6734A5F7FC4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.Server.Login", "Maple2.Server.Login\Maple2.Server.Login.csproj", "{71EF6666-0E40-4AD5-82F7-9C4AB61663C7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.Server.Game", "Maple2.Server.Game\Maple2.Server.Game.csproj", "{43DBD813-5041-4054-8366-69004E2A931C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -42,5 +50,21 @@ Global
 		{A7478B44-723D-447C-9533-0BABDD9BD1FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A7478B44-723D-447C-9533-0BABDD9BD1FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A7478B44-723D-447C-9533-0BABDD9BD1FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0D7A7D52-CA81-40FD-ADA4-F94C61991809}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0D7A7D52-CA81-40FD-ADA4-F94C61991809}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0D7A7D52-CA81-40FD-ADA4-F94C61991809}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0D7A7D52-CA81-40FD-ADA4-F94C61991809}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1AE01DB0-C088-4CC1-8B5E-B6734A5F7FC4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1AE01DB0-C088-4CC1-8B5E-B6734A5F7FC4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1AE01DB0-C088-4CC1-8B5E-B6734A5F7FC4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1AE01DB0-C088-4CC1-8B5E-B6734A5F7FC4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{71EF6666-0E40-4AD5-82F7-9C4AB61663C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{71EF6666-0E40-4AD5-82F7-9C4AB61663C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{71EF6666-0E40-4AD5-82F7-9C4AB61663C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{71EF6666-0E40-4AD5-82F7-9C4AB61663C7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{43DBD813-5041-4054-8366-69004E2A931C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{43DBD813-5041-4054-8366-69004E2A931C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{43DBD813-5041-4054-8366-69004E2A931C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{43DBD813-5041-4054-8366-69004E2A931C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

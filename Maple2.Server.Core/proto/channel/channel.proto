@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package maple2.server.channel.service;
+
+import "google/protobuf/empty.proto";
+
+// The channel service definition.
+service Channel {
+  // Checks the health of this service
+  rpc Health(google.protobuf.Empty) returns (HealthResponse);
+}
+
+message HealthResponse {
+  bool ok = 1;
+}

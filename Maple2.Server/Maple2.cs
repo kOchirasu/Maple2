@@ -1,74 +1,60 @@
 ﻿using System;
-using System.Diagnostics;
 using Autofac;
-using Autofac.Extensions.DependencyInjection;
+using Maple2.Database.Data;
+using Maple2.Database.Storage;
+using Maple2.Model.User;
 using Maple2.Server.Commands;
-using Maple2.Server.Constants;
+using Maple2.Server.Core.Modules;
 using Maple2.Server.Modules;
-using Maple2.Server.Servers.Game;
-using Maple2.Server.Servers.Login;
-using Maple2.Server.Servers.World;
-using Maple2.Server.Servers.World.Service;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
-var rootBuilder = new ContainerBuilder();
-rootBuilder.RegisterModule<NLogModule>();
-using ILifetimeScope rootScope = rootBuilder.Build().BeginLifetimeScope();
+var builder = new ContainerBuilder();
+builder.RegisterModule<NLogModule>();
+builder.RegisterModule<CliModule>();
+using ILifetimeScope mapleScope = builder.Build().BeginLifetimeScope();
 
-ILogger logger = rootScope.Resolve<ILogger<Program>>();
+ILogger logger = mapleScope.Resolve<ILogger<Program>>();
 logger.LogInformation("MapleServer started with {Length} args: {Args}", args.Length, string.Join(", ", args));
 
-IHost worldHost = CreateStartupHost<WorldStartup>();
-IHost loginHost = CreateStartupHost<LoginStartup>();
-IHost gameHost = CreateStartupHost<GameStartup>();
-using ILifetimeScope mapleScope = rootScope.BeginLifetimeScope(builder => {
-    builder.Register(_ => worldHost)
-        .Keyed<IHost>(HostType.World);
-    builder.Register(_ => loginHost)
-        .Keyed<IHost>(HostType.Login);
-    builder.Register(_ => gameHost)
-        .Keyed<IHost>(HostType.Game);
-    builder.RegisterModule<CliModule>();
-});
-
-worldHost.StartAsync();
-loginHost.StartAsync();
-gameHost.StartAsync();
-
-var client = loginHost.Services.GetAutofacRoot().Resolve<Greeter.GreeterClient>();
-Debug.Assert(client != null);
-
-HelloReply reply = client.SayHello(new HelloRequest { Name = "user" });
-Console.WriteLine($"Greeting: {reply.Message}");
-
-reply = client.SayHelloAgain(new HelloRequest { Name = "user" });
-Console.WriteLine($"Greeting: {reply.Message}");
-
-
-// const string connectionString = "Server=localhost;Database=server-data;User=root;Password=maplestory";
+// var worldClient = loginHost.Services.GetAutofacRoot().Resolve<World.WorldClient>();
+// Debug.Assert(worldClient != null);
 //
-// DbContextOptions options = new DbContextOptionsBuilder()
-//     .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)).Options;
-// using var initContext = new InitializationContext(options);
-// // Initialize database if needed
-// if (!initContext.Initialize()) {
-//     logger.Info("Database has already been initialized.");
-// }
+// HealthResponse health = worldClient.Health(new Empty(), new CallOptions().WithWaitForReady());
+// Debug.Assert(health.Ok, "Maple2.Server.World is not healthy.");
 //
-// using var testContext = new TestContext(options);
-// var writeAccount = new Account();
-// var userStorage = new UserStorage(options, null);
-// using (UserStorage.Request request = userStorage.Context()) {
-//     writeAccount = request.CreateAccount(writeAccount);
-//     Console.WriteLine($"Write {writeAccount.Id}");
-// }
+// HelloResponse reply = worldClient.SayHello(new HelloRequest { Name = "user" });
+// Console.WriteLine($"Greeting: {reply.Message}");
+
+// var tester = loginHost.Services.GetAutofacRoot().Resolve<Tester.TesterClient>();
+// Debug.Assert(tester != null);
 //
-// using (UserStorage.Request request = userStorage.Context()) {
-//     Account readAccount = request.GetAccount(writeAccount.Id);
-//     Console.WriteLine($"Read {readAccount.Id}");
-// }
+// TestReply testReply = tester.SayTest(new TestRequest { Name = "user" });
+// Console.WriteLine($"Testing: {testReply.Message}");
+
+
+const string connectionString = "Server=localhost;Database=server-data;User=root;Password=maplestory";
+
+DbContextOptions options = new DbContextOptionsBuilder()
+    .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)).Options;
+using var initContext = new InitializationContext(options);
+// Initialize database if needed
+if (!initContext.Initialize()) {
+    logger.LogInformation("Database has already been initialized");
+}
+
+using var testContext = new TestContext(options);
+var writeAccount = new Account();
+var userStorage = new UserStorage(options, null);
+using (UserStorage.Request request = userStorage.Context()) {
+    writeAccount = request.CreateAccount(writeAccount);
+    Console.WriteLine($"Write {writeAccount.Id}");
+}
+
+using (UserStorage.Request request = userStorage.Context()) {
+    Account readAccount = request.GetAccount(writeAccount.Id);
+    Console.WriteLine($"Read {readAccount.Id}");
+}
 
 var commandRouter = mapleScope.Resolve<CommandRouter>();
 while (true) {
@@ -79,11 +65,4 @@ while (true) {
     } catch (SystemException ex) {
         logger.LogError(ex, "Uncaught exception handling command");
     }
-}
-
-static IHost CreateStartupHost<T>() where T : class {
-    return Host.CreateDefaultBuilder()
-        .UseServiceProviderFactory(new AutofacServiceProviderFactory())
-        .ConfigureWebHostDefaults(builder => builder.UseStartup<T>())
-        .Build();
 }

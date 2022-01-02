@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <AssemblyName>Maple2.Server.Core</AssemblyName>
+        <RootNamespace>Maple2.Server.Core</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
+      <PackageReference Include="Google.Protobuf" Version="3.19.1" />
+      <PackageReference Include="Grpc.AspNetCore.Server" Version="2.41.0" />
+      <PackageReference Include="Grpc.Tools" Version="2.42.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+      <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
+      <PackageReference Include="System.IO.Pipelines" Version="6.0.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Protobuf Include="proto/**/*.proto" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Maple2.PacketLib\Maple2.PacketLib.csproj" />
+    </ItemGroup>
+
+</Project>
