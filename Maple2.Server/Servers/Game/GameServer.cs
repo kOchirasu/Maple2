@@ -11,12 +11,8 @@ public class GameServer : Server<GameSession> {
     private readonly List<GameSession> sessions;
 
     public GameServer(PacketRouter<GameSession> router, ILogger<GameServer> logger, IComponentContext context)
-        : base(router, logger, context) {
+        : base(PORT, router, logger, context) {
         this.sessions = new List<GameSession>();
-    }
-
-    public void Start() {
-        base.Start(PORT);
     }
 
     public IEnumerable<GameSession> GetSessions() {

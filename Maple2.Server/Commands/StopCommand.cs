@@ -1,6 +1,10 @@
 ﻿using System.CommandLine;
+using Autofac.Features.AttributeFilters;
+using Maple2.Server.Constants;
 using Maple2.Server.Servers.Game;
 using Maple2.Server.Servers.Login;
+using Microsoft.EntityFrameworkCore.ValueGeneration;
+using Microsoft.Extensions.Hosting;
 
 namespace Maple2.Server.Commands;
 
@@ -8,28 +12,34 @@ public class StopCommand : Command {
     private const string NAME = "stop";
     private const string DESCRIPTION = "Safely stops specified server.";
 
-    private enum ServerType { Login, Game }
+    private readonly IHost worldHost;
+    private readonly IHost loginHost;
+    private readonly IHost gameHost;
 
-    private readonly LoginServer loginServer;
-    private readonly GameServer gameServer;
+    public StopCommand(
+            [KeyFilter(HostType.World)] IHost worldHost,
+            [KeyFilter(HostType.Login)] IHost loginHost,
+            [KeyFilter(HostType.Game)] IHost gameHost) : base(NAME, DESCRIPTION) {
+        this.worldHost = worldHost;
+        this.loginHost = loginHost;
+        this.gameHost = gameHost;
 
-    public StopCommand(LoginServer loginServer, GameServer gameServer) : base(NAME, DESCRIPTION) {
-        this.loginServer = loginServer;
-        this.gameServer = gameServer;
-
-        var server = new Argument<ServerType>("server", "Server type.");
+        var server = new Argument<HostType>("server", "Server type.");
 
         AddArgument(server);
-        this.SetHandler<ServerType>(Handle, server);
+        this.SetHandler<HostType>(Handle, server);
     }
 
-    private void Handle(ServerType server) {
-        switch (server) {
-            case ServerType.Login:
-                loginServer.Stop();
+    private void Handle(HostType host) {
+        switch (host) {
+            case HostType.World:
+                worldHost.StopAsync().Wait();
                 break;
-            case ServerType.Game:
-                gameServer.Stop();
+            case HostType.Login:
+                loginHost.StopAsync().Wait();
+                break;
+            case HostType.Game:
+                gameHost.StopAsync().Wait();
                 break;
         }
     }

@@ -2,8 +2,11 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
+using Autofac.Features.AttributeFilters;
 using Maple2.PacketLib.Tools;
+using Maple2.Server.Constants;
 using Maple2.Server.Servers.Game;
+using Microsoft.Extensions.Hosting;
 
 namespace Maple2.Server.Commands;
 
@@ -13,8 +16,8 @@ public class SendPacketCommand : Command {
 
     private readonly GameServer gameServer;
 
-    public SendPacketCommand(GameServer gameServer) : base(NAME, DESCRIPTION) {
-        this.gameServer = gameServer;
+    public SendPacketCommand([KeyFilter(HostType.Game)] IHost gameHost) : base(NAME, DESCRIPTION) {
+        this.gameServer = gameHost.Services.GetService(typeof(GameServer)) as GameServer;
 
         var id = new Option<string>(new[] { "--id", "-i" }, "ID of session to send packet to.");
         var verbose = new Option<bool>(new[] { "--verbose", "-v" }, "Prints packets being sent.");

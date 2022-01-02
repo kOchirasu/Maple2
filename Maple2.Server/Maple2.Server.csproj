@@ -12,6 +12,14 @@
 
     <ItemGroup>
       <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
+      <PackageReference Include="Google.Protobuf" Version="3.19.1" />
+      <PackageReference Include="Grpc.AspNetCore.Server" Version="2.41.0" />
+      <PackageReference Include="Grpc.Net.Client" Version="2.41.0" />
+      <PackageReference Include="Grpc.Net.ClientFactory" Version="2.41.0" />
+      <PackageReference Include="Grpc.Tools" Version="2.42.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
       <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="6.0.0" />
       <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
@@ -29,6 +37,13 @@
       <None Update="nlog.config">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
+      <None Update="appsettings.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Protobuf Include="**/World/Service/*.proto" />
     </ItemGroup>
 
 </Project>
