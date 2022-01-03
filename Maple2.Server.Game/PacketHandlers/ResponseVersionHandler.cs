@@ -20,6 +20,4 @@ public class ResponseVersionHandler : ResponseVersionHandler<GameSession> {
         session.Send(pWriter);
         session.Send(RequestPacket.Key());
     }
-
-    public override string ToString() => $"[0x{OpCode:X4}] Game.{GetType().Name}";
 }

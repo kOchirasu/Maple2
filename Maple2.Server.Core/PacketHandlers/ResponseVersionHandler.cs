@@ -5,16 +5,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Core.PacketHandlers;
 
-public abstract class ResponseVersionHandler<T> : IPacketHandler<T> where T : Session {
-    public ushort OpCode => RecvOp.RESPONSE_VERSION;
+public abstract class ResponseVersionHandler<T> : PacketHandler<T> where T : Session {
+    public override ushort OpCode => RecvOp.RESPONSE_VERSION;
 
-    private readonly ILogger logger;
+    protected ResponseVersionHandler(ILogger logger) : base(logger) { }
 
-    protected ResponseVersionHandler(ILogger logger) {
-        this.logger = logger;
-    }
-
-    public virtual void Handle(T session, IByteReader packet) {
+    public override void Handle(T session, IByteReader packet) {
         uint version = packet.Read<uint>();
         // +4 Bytes Short(2F 00) Short(02 00)
 
@@ -22,6 +18,4 @@ public abstract class ResponseVersionHandler<T> : IPacketHandler<T> where T : Se
             session.Disconnect();
         }
     }
-
-    public abstract override string ToString();
 }

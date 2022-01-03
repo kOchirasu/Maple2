@@ -13,6 +13,4 @@ public class ResponseKeyHandler : ResponseKeyHandler<GameSession> {
 
         // TODO: GameServer specific logic
     }
-
-    public override string ToString() => $"[0x{OpCode:X4}] Game.{GetType().Name}";
 }

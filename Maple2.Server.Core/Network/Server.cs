@@ -33,29 +33,22 @@ public abstract class Server<T> : BackgroundService where T : Session {
 
     protected abstract void AddSession(T session);
 
-    protected override Task ExecuteAsync(CancellationToken stoppingToken) {
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
         var listener = new TcpListener(IPAddress.Any, port);
         listener.Start();
         state = ServerState.Running;
 
-        async void AcceptClients() {
-            logger.LogInformation("{Type} started on Port:{Port}", GetType().Name, port);
+        logger.LogInformation("{Type} started on Port:{Port}", GetType().Name, port);
+        await using CancellationTokenRegistration registry = stoppingToken.Register(() => listener.Stop());
+        while (!stoppingToken.IsCancellationRequested) {
+            TcpClient client = await listener.AcceptTcpClientAsync(stoppingToken);
 
-            await using CancellationTokenRegistration registry = stoppingToken.Register(() => listener.Stop());
-            try {
-                while (!stoppingToken.IsCancellationRequested) {
-                    TcpClient client = await listener.AcceptTcpClientAsync(stoppingToken);
+            var session = context.Resolve<T>();
+            session.Init(client);
+            session.OnPacket += router.OnPacket;
 
-                    var session = context.Resolve<T>();
-                    session.Init(client);
-                    session.OnPacket += router.OnPacket;
-
-                    AddSession(session);
-                }
-            } catch (OperationCanceledException) { }
+            AddSession(session);
         }
-
-        return Task.Factory.StartNew(AcceptClients, stoppingToken);
     }
 
     public override Task StopAsync(CancellationToken cancellationToken) {

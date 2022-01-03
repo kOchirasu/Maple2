@@ -1,5 +1,4 @@
-﻿using System;
-using Maple2.PacketLib.Tools;
+﻿using Maple2.PacketLib.Tools;
 using Maple2.Server.Constants;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
@@ -8,16 +7,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Core.PacketHandlers;
 
-public abstract class ResponseKeyHandler<T> : IPacketHandler<T> where T : Session {
-    public ushort OpCode => RecvOp.RESPONSE_KEY;
+public abstract class ResponseKeyHandler<T> : PacketHandler<T> where T : Session {
+    public override ushort OpCode => RecvOp.RESPONSE_KEY;
 
-    private readonly ILogger logger;
+    protected ResponseKeyHandler(ILogger logger) : base(logger) { }
 
-    protected ResponseKeyHandler(ILogger logger) {
-        this.logger = logger;
-    }
-
-    public virtual void Handle(T session, IByteReader packet) {
+    public override void Handle(T session, IByteReader packet) {
         long accountId = packet.ReadLong();
         int tokenA = packet.ReadInt();
         int tokenB = packet.ReadInt();
@@ -36,6 +31,4 @@ public abstract class ResponseKeyHandler<T> : IPacketHandler<T> where T : Sessio
         moveResultPacket.WriteByte();
         session.Send(moveResultPacket);
     }
-
-    public abstract override string ToString();
 }

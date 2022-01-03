@@ -1,4 +1,5 @@
-﻿using Autofac;
+﻿using System.Reflection;
+using Autofac;
 using Maple2.Server.Core.Modules;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.PacketHandlers;
@@ -39,9 +40,9 @@ public static class Startup {
             .AsSelf();
 
         // Make all packet handlers available to PacketRouter
-        builder.RegisterAssemblyTypes(typeof(LoginPacketHandler).Assembly)
-            .Where(type => typeof(IPacketHandler<LoginSession>).IsAssignableFrom(type))
-            .As<IPacketHandler<LoginSession>>()
+        builder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
+            .Where(type => typeof(PacketHandler<LoginSession>).IsAssignableFrom(type))
+            .As<PacketHandler<LoginSession>>()
             .SingleInstance();
     }
 }

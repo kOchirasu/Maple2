@@ -7,21 +7,17 @@ using Microsoft.Extensions.Logging;
 namespace Maple2.Server.Core.PacketHandlers;
 
 // Note: socket_exception debug offset includes +6 bytes from encrypted header
-public abstract class LogSendHandler<T> : IPacketHandler<T> where T : Session {
-    public ushort OpCode => RecvOp.LOG_SEND;
-
-    private readonly ILogger logger;
+public abstract class LogSendHandler<T> : PacketHandler<T> where T : Session {
+    public override ushort OpCode => RecvOp.LOG_SEND;
 
     private enum Type : byte {
         Log = 0,
         Metric = 1,
     }
 
-    protected LogSendHandler(ILogger logger) {
-        this.logger = logger;
-    }
+    protected LogSendHandler(ILogger logger) : base(logger) { }
 
-    public virtual void Handle(T session, IByteReader packet) {
+    public override void Handle(T session, IByteReader packet) {
         byte unknown = packet.ReadByte();
         if (unknown != 0) {
             return;
@@ -60,6 +56,4 @@ public abstract class LogSendHandler<T> : IPacketHandler<T> where T : Session {
                 break;
         }
     }
-
-    public abstract override string ToString();
 }

@@ -6,6 +6,4 @@ namespace Maple2.Server.Login.PacketHandlers;
 
 public class ResponseVersionHandler : ResponseVersionHandler<LoginSession> {
     public ResponseVersionHandler(ILogger<ResponseVersionHandler> logger) : base(logger) { }
-
-    public override string ToString() => $"[0x{OpCode:X4}] Login.{GetType().Name}";
 }

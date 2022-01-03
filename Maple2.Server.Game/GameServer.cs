@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace Maple2.Server.Game;
 
 public class GameServer : Server<GameSession> {
-    public const int PORT = 21001;
+    public const int PORT = 22001;
 
     private readonly List<GameSession> sessions;
 

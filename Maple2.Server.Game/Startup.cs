@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Net.Http;
+using System.Reflection;
 using Autofac;
 using Maple2.Server.Core.Modules;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.PacketHandlers;
+using Maple2.Server.Game.PacketHandlers;
 using Maple2.Server.Game.Service;
 using Maple2.Server.Game.Session;
 using Microsoft.AspNetCore.Builder;
@@ -51,9 +53,9 @@ public class Startup {
             .AsSelf();
 
         // Make all packet handlers available to PacketRouter
-        builder.RegisterAssemblyTypes(typeof(IPacketHandler<>).Assembly)
-            .Where(type => typeof(IPacketHandler<GameSession>).IsAssignableFrom(type))
-            .As<IPacketHandler<GameSession>>()
+        builder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
+            .Where(type => typeof(PacketHandler<GameSession>).IsAssignableFrom(type))
+            .As<PacketHandler<GameSession>>()
             .SingleInstance();
     }
 

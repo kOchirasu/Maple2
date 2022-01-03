@@ -6,6 +6,4 @@ namespace Maple2.Server.Game.PacketHandlers;
 
 public class RequestTimeSyncHandler : RequestTimeSyncHandler<GameSession> {
     public RequestTimeSyncHandler(ILogger<RequestTimeSyncHandler> logger) : base(logger) { }
-
-    public override string ToString() => $"[0x{OpCode:X4}] Game.{GetType().Name}";
 }
