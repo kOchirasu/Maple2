@@ -5,18 +5,22 @@ using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Core.PacketHandlers;
 
-public abstract class SystemInfoHandler<T> : IPacketHandler<T> where T : Session {
-    public ushort OpCode => RecvOp.SYSTEM_INFO;
+public abstract class ResponseVersionHandler<T> : IPacketHandler<T> where T : Session {
+    public ushort OpCode => RecvOp.RESPONSE_VERSION;
 
     private readonly ILogger logger;
 
-    public SystemInfoHandler(ILogger logger) {
+    protected ResponseVersionHandler(ILogger logger) {
         this.logger = logger;
     }
 
     public virtual void Handle(T session, IByteReader packet) {
-        string info = packet.ReadUnicodeString();
-        logger.LogDebug("System Info: {Info}", info);
+        uint version = packet.Read<uint>();
+        // +4 Bytes Short(2F 00) Short(02 00)
+
+        if (version != Session.VERSION) {
+            session.Disconnect();
+        }
     }
 
     public abstract override string ToString();

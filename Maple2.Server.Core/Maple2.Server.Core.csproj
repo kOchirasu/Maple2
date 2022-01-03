@@ -24,6 +24,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Maple2.Model\Maple2.Model.csproj" />
       <ProjectReference Include="..\Maple2.PacketLib\Maple2.PacketLib.csproj" />
     </ItemGroup>
 

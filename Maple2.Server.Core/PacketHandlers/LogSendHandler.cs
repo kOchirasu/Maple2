@@ -21,7 +21,7 @@ public abstract class LogSendHandler<T> : IPacketHandler<T> where T : Session {
         this.logger = logger;
     }
 
-    public void Handle(T session, IByteReader packet) {
+    public virtual void Handle(T session, IByteReader packet) {
         byte unknown = packet.ReadByte();
         if (unknown != 0) {
             return;
