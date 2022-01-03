@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Autofac;
+using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Game.Session;
 using Microsoft.Extensions.Logging;
@@ -7,12 +8,10 @@ using Microsoft.Extensions.Logging;
 namespace Maple2.Server.Game;
 
 public class GameServer : Server<GameSession> {
-    public const int PORT = 22001;
-
     private readonly List<GameSession> sessions;
 
     public GameServer(PacketRouter<GameSession> router, ILogger<GameServer> logger, IComponentContext context)
-        : base(PORT, router, logger, context) {
+        : base(Target.GAME_PORT, router, logger, context) {
         this.sessions = new List<GameSession>();
     }
 

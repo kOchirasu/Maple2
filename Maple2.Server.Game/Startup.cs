@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Reflection;
 using Autofac;
+using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Modules;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.PacketHandlers;
@@ -9,6 +10,7 @@ using Maple2.Server.Game.PacketHandlers;
 using Maple2.Server.Game.Service;
 using Maple2.Server.Game.Session;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -26,15 +28,7 @@ public class Startup {
     // ConfigureContainer method, below.
     public void ConfigureServices(IServiceCollection services) {
         services.AddGrpc();
-        services.AddGrpcClient<World.Service.World.WorldClient>(options => {
-            options.Address = new Uri("https://localhost:5001");
-            options.ChannelOptionsActions.Add(options => {
-                // Return "true" to allow certificates that are untrusted/invalid
-                options.HttpHandler = new HttpClientHandler {
-                    ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                };
-            });
-        });
+        services.RegisterModule<WorldClientModule>();
 
         services.AddSingleton<GameServer>();
         services.AddHostedService<GameServer>(provider => provider.GetService<GameServer>());

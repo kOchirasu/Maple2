@@ -19,6 +19,7 @@ public class Startup {
     // ConfigureContainer method, below.
     public void ConfigureServices(IServiceCollection services) {
         services.AddGrpc();
+        services.RegisterModule<ChannelClientModule>();
     }
 
     // ConfigureContainer is where you can register things directly with Autofac. This runs after
