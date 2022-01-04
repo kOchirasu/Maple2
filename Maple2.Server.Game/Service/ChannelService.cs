@@ -14,6 +14,6 @@ public class ChannelService : Channel.Service.Channel.ChannelBase {
     }
 
     public override Task<HealthResponse> Health(Empty request, ServerCallContext context) {
-        return Task.FromResult(new HealthResponse { Ok = true });
+        return Task.FromResult(new HealthResponse());
     }
 }

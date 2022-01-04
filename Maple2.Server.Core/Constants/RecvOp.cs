@@ -1,6 +1,6 @@
 ﻿namespace Maple2.Server.Core.Constants;
 
-internal static class RecvOp {
+public static class RecvOp {
     public const ushort
         NULL = 0x000,
         RESPONSE_VERSION = 0x0001,

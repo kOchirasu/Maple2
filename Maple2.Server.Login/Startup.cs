@@ -13,15 +13,7 @@ public static class Startup {
     // ConfigureServices is where you register dependencies. This gets called by the runtime before the
     // ConfigureContainer method, below.
     public static void ConfigureServices(IServiceCollection services) {
-        // services.AddGrpcClient<World.Service.World.WorldClient>(options => {
-        //     options.Address = new Uri("https://localhost:5001");
-        //     options.ChannelOptionsActions.Add(options => {
-        //         // Return "true" to allow certificates that are untrusted/invalid
-        //         options.HttpHandler = new HttpClientHandler {
-        //             ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        //         };
-        //     });
-        // });
+        services.RegisterModule<WorldClientModule>();
 
         services.AddSingleton<LoginServer>();
         services.AddHostedService<LoginServer>(provider => provider.GetService<LoginServer>());

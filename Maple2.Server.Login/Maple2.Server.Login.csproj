@@ -8,7 +8,6 @@
     <ItemGroup>
       <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
       <PackageReference Include="Grpc.Net.Client" Version="2.41.0" />
-      <PackageReference Include="Grpc.Net.ClientFactory" Version="2.41.0" />
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
       <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
     </ItemGroup>

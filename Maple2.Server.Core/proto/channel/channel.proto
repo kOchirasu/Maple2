@@ -10,6 +10,4 @@ service Channel {
   rpc Health(google.protobuf.Empty) returns (HealthResponse);
 }
 
-message HealthResponse {
-  bool ok = 1;
-}
+message HealthResponse {}

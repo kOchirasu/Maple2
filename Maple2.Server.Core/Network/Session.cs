@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Maple2.PacketLib.Crypto;
 using Maple2.PacketLib.Tools;
-using Maple2.Server.Constants;
+using Maple2.Server.Core.Constants;
 using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Core.Network;
@@ -41,6 +41,9 @@ public abstract class Session : IDisposable {
     private readonly Thread thread;
     private readonly QueuedPipeScheduler pipeScheduler;
     private readonly Pipe recvPipe;
+
+    public long AccountId { get; internal set; }
+    public long CharacterId { get; internal set; }
 
     protected abstract PatchType Type { get; }
     protected readonly ILogger logger;

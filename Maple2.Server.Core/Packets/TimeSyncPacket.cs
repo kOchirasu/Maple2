@@ -1,6 +1,6 @@
 ﻿using System;
 using Maple2.PacketLib.Tools;
-using Maple2.Server.Constants;
+using Maple2.Server.Core.Constants;
 
 namespace Maple2.Server.Core.Packets;
 

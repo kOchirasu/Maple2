@@ -1,6 +1,6 @@
-﻿namespace Maple2.Server.Constants; 
+﻿namespace Maple2.Server.Core.Constants;
 
-internal static class SendOp {
+public static class SendOp {
     public const ushort
         NULL = 0x0000,
         REQUEST_VERSION = 0x0001,
