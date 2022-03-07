@@ -23,7 +23,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
 
     private readonly WorldClient world;
 
-    public CharacterManagementHandler(WorldClient world, ILogger logger) : base(logger) {
+    public CharacterManagementHandler(WorldClient world, ILogger<CharacterManagementHandler> logger) : base(logger) {
         this.world = world;
     }
 
@@ -54,7 +54,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
         };
         logger.LogInformation("Logging in to game as {Request}", request);
 
-        var response = world.MigrateOut(request);
+        MigrateOutResponse response = world.MigrateOut(request);
         var endpoint = new IPEndPoint(IPAddress.Parse(response.IpAddress), response.Port);
         session.Send(MigrationPacket.LoginToGame(endpoint, response.Token, 2000062));
         session.Disconnect();
