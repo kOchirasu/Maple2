@@ -1,0 +1,70 @@
+﻿syntax = "proto3";
+
+package maple2.server.global.service;
+
+import "google/protobuf/empty.proto";
+
+// The global service definition.
+service Global {
+  // Checks the health of this service
+  rpc Health(google.protobuf.Empty) returns (HealthResponse);
+  
+  rpc Login(LoginRequest) returns (LoginResponse);
+}
+
+message HealthResponse {}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  enum Code {
+    reserved 2, 5, 12;
+    
+    OK = 0;
+    // s_login_err_id
+    ERROR_ID = 1; // 2
+    // s_login_err_pwd
+    ERROR_PASSWORD = 3;
+    // s_alreadyloginuser_response_kick
+    ALREADY_LOGIN = 4; // 5
+    // s_login_err_full_server
+    FULL_SERVER = 6;
+    // s_login_err_restrict
+    RESTRICTED = 7;
+    // s_login_err_db
+    ERROR_DB = 8;
+    // s_login_err_full_ch
+    FULL_CHANNEL = 10;
+    // AuthFailed_Maintenance
+    MAINTENANCE = 11; // 12
+    // s_login_err_external_block_nsn
+    BLOCK_NEXON_SN = 14;
+    // s_login_err_external_block_ip
+    BLOCK_IP = 15;
+    // s_login_err_check_passport
+    ERROR_PASSPORT = 16;
+    // s_login_err_alphatester
+    NOT_ALPHA_TESTER = 18;
+    // s_login_err_main_atl
+    MAIN_ATL = 19;
+    // s_login_err_auto_external_block
+    AUTO_BLOCK = 20;
+    // s_login_err_session_error
+    SESSION_ERROR = 21;
+    // s_login_err_tencent_signature
+    ERROR_TENCENT_SIGNATURE = 22;
+    // s_login_err_admin_ip
+    ADMIN_IP = 24;
+    // s_login_err_nxa_ticket
+    TICKET = 25;
+    // s_founderspack_need
+    NO_FOUNDERS = 26;
+  }
+
+  Code code = 1;
+  string message = 2;
+  int64 account_id = 3;
+}

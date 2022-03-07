@@ -17,9 +17,4 @@ public partial class WorldService : World.WorldBase {
     public override Task<HealthResponse> Health(Empty request, ServerCallContext context) {
         return Task.FromResult(new HealthResponse());
     }
-
-    // Server side handler of the SayHello RPC
-    public override Task<HelloResponse> SayHello(HelloRequest request, ServerCallContext context) {
-        return Task.FromResult(new HelloResponse { Message = "Hello " + request.Name });
-    }
 }

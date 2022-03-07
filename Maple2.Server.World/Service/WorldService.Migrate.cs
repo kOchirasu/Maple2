@@ -22,7 +22,7 @@ public partial class WorldService {
 
         // TODO: Dynamic ip/port
         return Task.FromResult(new MigrateOutResponse {
-            IpAddress = IPAddress.Loopback.ToString(),
+            IpAddress = Target.GAME_IP.ToString(),
             Port = Target.GAME_PORT,
             Token = token
         });

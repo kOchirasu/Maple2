@@ -1,5 +1,6 @@
 ﻿using Autofac;
 using Maple2.Server.Core.Modules;
+using Maple2.Server.Global.Service;
 using Maple2.Server.World.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -38,6 +39,7 @@ public class Startup {
         app.UseEndpoints(builder => {
             builder.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client.");
             builder.MapGrpcService<WorldService>();
+            builder.MapGrpcService<GlobalService>();
         });
     }
 }
