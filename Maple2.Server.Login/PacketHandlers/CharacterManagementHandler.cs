@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Net;
+using Grpc.Core;
+using Maple2.Model.Error;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
@@ -34,10 +36,13 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
                 HandleSelect(session, packet);
                 break;
             case Type.Create:
+                HandleCreate(session, packet);
                 break;
             case Type.Delete:
+                HandleDelete(session, packet);
                 break;
             case Type.CancelDelete:
+                HandleCancelDelete(session, packet);
                 break;
             default:
                 throw new ArgumentException($"Invalid CHARACTER_MANAGEMENT type {type}");
@@ -48,16 +53,33 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
         long characterId = packet.ReadLong();
         packet.ReadShort(); // 01 00
 
-        var request = new MigrateOutRequest {
-            AccountId = session.AccountId,
-            CharacterId = characterId
-        };
-        logger.LogInformation("Logging in to game as {Request}", request);
+        try {
+            var request = new MigrateOutRequest {
+                AccountId = session.AccountId,
+                CharacterId = characterId
+            };
+            
+            logger.LogInformation("Logging in to game as {Request}", request);
+            
+            MigrateOutResponse response = world.MigrateOut(request);
+            var endpoint = new IPEndPoint(IPAddress.Parse(response.IpAddress), response.Port);
+            
+            session.Send(MigrationPacket.LoginToGame(endpoint, response.Token, 2000062));
+            session.Disconnect();
+        } catch (RpcException ex) {
+            session.Send(MigrationPacket.LoginToGameError(MigrationError.s_move_err_default, ex.Message));
+        }
+    }
 
-        MigrateOutResponse response = world.MigrateOut(request);
-        var endpoint = new IPEndPoint(IPAddress.Parse(response.IpAddress), response.Port);
-        session.Send(MigrationPacket.LoginToGame(endpoint, response.Token, 2000062));
-        session.Disconnect();
-        //LoginPacket.LoginError("message?");
+    private void HandleCreate(LoginSession session, IByteReader packet) {
+        
+    }
+    
+    private void HandleDelete(LoginSession session, IByteReader packet) {
+        
+    }
+    
+    private void HandleCancelDelete(LoginSession session, IByteReader packet) {
+        
     }
 }

@@ -1,4 +1,6 @@
-﻿using Maple2.PacketLib.Tools;
+﻿using Grpc.Core;
+using Maple2.Model.Error;
+using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
@@ -21,18 +23,20 @@ public abstract class ResponseKeyHandler<T> : PacketHandler<T> where T : Session
         session.AccountId = packet.ReadLong();
         ulong token = packet.Read<ulong>();
 
-        logger.LogInformation("LOGIN USER TO GAME: {AccountId}", session.AccountId);
+        try {
+            logger.LogInformation("LOGIN USER TO GAME: {AccountId}", session.AccountId);
+            
+            var request = new MigrateInRequest {
+                AccountId = session.AccountId,
+                Token = token,
+            };
+            MigrateInResponse response = worldClient.MigrateIn(request);
+            session.CharacterId = response.CharacterId;
 
-        var request = new MigrateInRequest {
-            AccountId = session.AccountId,
-            Token = token,
-        };
-        var response = worldClient.MigrateIn(request);
-        session.CharacterId = response.CharacterId;
-
-        session.Send(Packet.Of(SendOp.REQUEST_SYSTEM_INFO));
-        ByteWriter moveResultPacket = Packet.Of(SendOp.MOVE_RESULT);
-        moveResultPacket.WriteByte();
-        session.Send(moveResultPacket);
+            session.Send(Packet.Of(SendOp.REQUEST_SYSTEM_INFO));
+            session.Send(MigrationPacket.MoveResult(MigrationError.ok));
+        } catch (RpcException) {
+            session.Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
+        }
     }
 }

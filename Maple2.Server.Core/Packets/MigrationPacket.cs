@@ -1,4 +1,5 @@
 ﻿using System.Net;
+using Maple2.Model.Error;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 
@@ -7,7 +8,7 @@ namespace Maple2.Server.Core.Packets;
 public static class MigrationPacket {
     public static ByteWriter LoginToGame(IPEndPoint endpoint, ulong token, int mapId) {
         var pWriter = Packet.Of(SendOp.LOGIN_TO_GAME);
-        pWriter.WriteByte(); // 0 = Success
+        pWriter.Write<MigrationError>(MigrationError.ok);
         pWriter.WriteBytes(endpoint.Address.GetAddressBytes()); // ip
         pWriter.Write<ushort>((ushort)endpoint.Port); // port
         pWriter.Write<ulong>(token);
@@ -16,9 +17,9 @@ public static class MigrationPacket {
         return pWriter;
     }
 
-    public static ByteWriter LoginToGameError(string message) {
+    public static ByteWriter LoginToGameError(MigrationError error, string message) {
         var pWriter = Packet.Of(SendOp.LOGIN_TO_GAME);
-        pWriter.WriteByte(1); // !0 = Error
+        pWriter.Write<MigrationError>(error);
         pWriter.WriteUnicodeString(message);
 
         return pWriter;
@@ -26,7 +27,7 @@ public static class MigrationPacket {
 
     public static ByteWriter GameToLogin(IPEndPoint endpoint, ulong token) {
         var pWriter = Packet.Of(SendOp.GAME_TO_LOGIN);
-        pWriter.WriteByte(); // 0 = Success
+        pWriter.Write<MigrationError>(MigrationError.ok);
         pWriter.WriteBytes(endpoint.Address.GetAddressBytes()); // ip
         pWriter.Write<ushort>((ushort)endpoint.Port); // port
         pWriter.Write<ulong>(token);
@@ -34,16 +35,16 @@ public static class MigrationPacket {
         return pWriter;
     }
 
-    public static ByteWriter GameToLoginError() {
+    public static ByteWriter GameToLoginError(MigrationError error) {
         var pWriter = Packet.Of(SendOp.GAME_TO_LOGIN);
-        pWriter.WriteByte(1); // !0 = Error
+        pWriter.Write<MigrationError>(error);
 
         return pWriter;
     }
 
     public static ByteWriter GameToGame(IPEndPoint endpoint, ulong token) {
         var pWriter = Packet.Of(SendOp.GAME_TO_GAME);
-        pWriter.WriteByte(); // 0 = Success
+        pWriter.Write<MigrationError>(MigrationError.ok);
         pWriter.Write<ulong>(token);
         pWriter.WriteBytes(endpoint.Address.GetAddressBytes());
         pWriter.Write<ushort>((ushort)endpoint.Port);
@@ -53,9 +54,16 @@ public static class MigrationPacket {
         return pWriter;
     }
 
-    public static ByteWriter GameToGameError() {
+    public static ByteWriter GameToGameError(MigrationError error) {
         var pWriter = Packet.Of(SendOp.GAME_TO_GAME);
-        pWriter.WriteByte(1); // !0 = Error
+        pWriter.Write<MigrationError>(error);
+
+        return pWriter;
+    }
+
+    public static ByteWriter MoveResult(MigrationError error) {
+        var pWriter = Packet.Of(SendOp.MOVE_RESULT);
+        pWriter.Write<MigrationError>(error);
 
         return pWriter;
     }

@@ -10,6 +10,9 @@ public readonly record struct Vector3B(sbyte X, sbyte Y, sbyte Z);
 
 [StructLayout(LayoutKind.Sequential, Pack = 2, Size = 6)]
 public readonly record struct Vector3S(short X, short Y, short Z) {
+    // This offset is used to correct rounding errors due to floating point arithmetic.
+    private const float OFFSET = 0.001f;
+
     public static implicit operator Vector3S(Vector3 vector) {
         return new Vector3S(
             (short) MathF.Round(vector.X),
@@ -19,7 +22,11 @@ public readonly record struct Vector3S(short X, short Y, short Z) {
     }
 
     public static implicit operator Vector3(Vector3S vector) {
-        return new Vector3(vector.X, vector.Y, vector.Z);
+        return new Vector3(
+            vector.X + (vector.X >= 0 ? OFFSET : -OFFSET),
+            vector.Y + (vector.Y >= 0 ? OFFSET : -OFFSET),
+            vector.Z + OFFSET
+        );
     }
 
     public static Vector3S operator +(in Vector3S a, in Vector3S b) =>
