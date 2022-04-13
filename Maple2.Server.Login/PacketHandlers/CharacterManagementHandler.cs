@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Net;
 using Grpc.Core;
+using Maple2.Model.Common;
+using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -72,14 +74,20 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
     }
 
     private void HandleCreate(LoginSession session, IByteReader packet) {
-        
+        var gender = packet.Read<Gender>();
+        var jobCode = packet.Read<JobCode>();
+        var job = (Job) ((int)jobCode * 10);
+        string name = packet.ReadUnicodeString();
+
+        var skinColor = packet.Read<SkinColor>();
+        packet.Skip(2); // Unknown
     }
-    
+
     private void HandleDelete(LoginSession session, IByteReader packet) {
-        
+        long characterId = packet.ReadLong();
     }
-    
+
     private void HandleCancelDelete(LoginSession session, IByteReader packet) {
-        
+        long characterId = packet.ReadLong();
     }
 }
