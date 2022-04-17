@@ -35,7 +35,7 @@ public enum MigrationError : byte {
     s_move_err_ExpireEnterTime = 33,
     [Description("A party member is still in Mushking Royale. Please try again after all party members have exited.")]
     s_move_err_InsideSurvivalSquad = 34,
-    [Description("")]
+    [Description("Cannot enter because the wedding has completed.")]
     s_move_err_wedding_complete = 35,
     
     [Description("An unknown error has occurred while moving the server. Code={0}")]

@@ -25,6 +25,10 @@ internal class Character {
     public short Insignia { get; set; }
 
     public static implicit operator Character(Maple2.Model.User.Character other) {
+        if (other == null) {
+            return null;
+        }
+        
         return new Character {
             LastModified = other.LastModified,
             Id = other.Id,
@@ -44,6 +48,10 @@ internal class Character {
     }
 
     public static implicit operator Maple2.Model.User.Character(Character other) {
+        if (other == null) {
+            return null;
+        }
+        
         return new Maple2.Model.User.Character {
             LastModified = other.LastModified,
             Id = other.Id,

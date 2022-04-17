@@ -29,6 +29,9 @@ public class Startup {
     // Don't build the container; that gets done for you by the factory.
     public void ConfigureContainer(ContainerBuilder builder) {
         builder.RegisterModule<NLogModule>();
+        
+        // Database
+        builder.RegisterModule<GameDbModule>();
     }
 
     // Configure is where you add middleware. This is called after ConfigureContainer. You can use

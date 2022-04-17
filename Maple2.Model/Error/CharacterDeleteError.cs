@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace Maple2.Model.Error; 
 
-public enum CharacterDeleteError : byte {
+public enum CharacterDeleteError : int {
     ok = 0,
     [Description("This character has already been deleted.")]
     s_char_err_already_destroy = 1,
@@ -27,7 +27,7 @@ public enum CharacterDeleteError : byte {
     // {0}: 2018-01-00 00:00:00 Time Format
     [Description("You cannot delete this character until {0}.")]
     s_char_err_next_delete_char_date = 10,
-    [Description("")]
+    [Description("The character cannot be deleted because they are engaged, married, or in process of divorce.")]
     s_char_err_wedding = 11,
     
     [Description("System Error: Can't delete character [code = {0}]")]

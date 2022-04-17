@@ -1,4 +1,6 @@
-﻿using Maple2.Database.Data;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Maple2.Database.Data;
 using Maple2.Database.Extensions;
 using Maple2.Model.User;
 using Microsoft.EntityFrameworkCore;
@@ -30,11 +32,24 @@ public partial class UserStorage {
             return context.Account.Find(accountId);
         }
 
+        public Account GetAccount(string username) {
+            return context.Account.AsQueryable()
+                .SingleOrDefault(account => account.Username == username);
+        }
+
         public Account CreateAccount(Account account) {
             Model.Account model = account;
             model.Id = 0;
             context.Account.Add(model);
             return context.TrySaveChanges() ? model : null;
+        }
+        
+        public List<Character> ListCharacters(long accountId) {
+            return context.Character.AsQueryable()
+                .Where(character => character.AccountId == accountId)
+                .AsEnumerable()
+                .Select(character => (Character) character)
+                .ToList();
         }
 
         public Character GetCharacter(long characterId) {

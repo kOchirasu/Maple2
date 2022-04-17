@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using Autofac;
 using Maple2.Database.Data;
 using Maple2.Database.Storage;
@@ -17,11 +18,11 @@ using ILifetimeScope mapleScope = builder.Build().BeginLifetimeScope();
 ILogger logger = mapleScope.Resolve<ILogger<Program>>();
 logger.LogInformation("MapleServer started with {Length} args: {Args}", args.Length, string.Join(", ", args));
 
-// var worldClient = loginHost.Services.GetAutofacRoot().Resolve<World.WorldClient>();
-// Debug.Assert(worldClient != null);
+// using var channel = GrpcChannel.ForAddress("https://localhost:20101");
+// var worldClient = new World.WorldClient(channel);
 //
 // HealthResponse health = worldClient.Health(new Empty(), new CallOptions().WithWaitForReady());
-// Debug.Assert(health.Ok, "Maple2.Server.World is not healthy.");
+// Console.WriteLine("HEALTHY");
 //
 // HelloResponse reply = worldClient.SayHello(new HelloRequest { Name = "user" });
 // Console.WriteLine($"Greeting: {reply.Message}");
