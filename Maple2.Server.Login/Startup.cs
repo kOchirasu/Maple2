@@ -3,7 +3,6 @@ using Autofac;
 using Maple2.Server.Core.Modules;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.PacketHandlers;
-using Maple2.Server.Login.PacketHandlers;
 using Maple2.Server.Login.Session;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -31,6 +30,10 @@ public static class Startup {
         builder.RegisterType<LoginSession>()
             .AsSelf();
 
+        // Database
+        builder.RegisterModule<GameDbModule>();
+        builder.RegisterModule<DataDbModule>();
+        
         // Make all packet handlers available to PacketRouter
         builder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
             .Where(type => typeof(PacketHandler<LoginSession>).IsAssignableFrom(type))

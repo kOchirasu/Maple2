@@ -38,7 +38,7 @@ public class Item : IByteSerializable {
     public ItemBinding Binding;
 
     #region Special Types
-    public ItemUgc? Ugc;
+    public UgcItemLook? Template;
     public ItemBlueprint? Blueprint;
     public ItemPet? Pet;
     public ItemCustomMusicScore? Music;
@@ -81,7 +81,7 @@ public class Item : IByteSerializable {
         
         // Template? or Blueprint
         if (Metadata.Property.SkinType == 99 || Metadata.Property.Type == 22) {
-            Ugc = new ItemUgc();
+            Template = new UgcItemLook();
             Blueprint = new ItemBlueprint();
         }
         if (Inventory == InventoryType.Pets) {
@@ -116,8 +116,8 @@ public class Item : IByteSerializable {
         writer.WriteClass<ItemEnchant>(Enchant);
         writer.WriteClass<ItemLimitBreak>(LimitBreak);
         
-        if (Ugc != null && Blueprint != null) {
-            writer.WriteClass<ItemUgc>(Ugc);
+        if (Template != null && Blueprint != null) {
+            writer.WriteClass<UgcItemLook>(Template);
             writer.WriteClass<ItemBlueprint>(Blueprint);
         }
         if (Pet != null) {
@@ -156,8 +156,8 @@ public class Item : IByteSerializable {
         Enchant = reader.ReadClass<ItemEnchant>();
         LimitBreak = reader.ReadClass<ItemLimitBreak>();
         
-        if (Ugc != null && Blueprint != null) {
-            Ugc = reader.ReadClass<ItemUgc>();
+        if (Template != null && Blueprint != null) {
+            Template = reader.ReadClass<UgcItemLook>();
             Blueprint = reader.ReadClass<ItemBlueprint>();
         }
         if (Pet != null) {

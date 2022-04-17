@@ -33,7 +33,7 @@ logger.LogInformation("MapleServer started with {Length} args: {Args}", args.Len
 // Console.WriteLine($"Testing: {testReply.Message}");
 
 
-const string connectionString = "Server=localhost;Database=server-data;User=root;Password=maplestory";
+const string connectionString = "Server=localhost;Database=game-server;User=root;Password=maplestory";
 
 DbContextOptions options = new DbContextOptionsBuilder()
     .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)).Options;
@@ -43,7 +43,7 @@ if (!initContext.Initialize()) {
     logger.LogInformation("Database has already been initialized");
 }
 
-using var testContext = new TestContext(options);
+using var testContext = new Ms2Context(options);
 var writeAccount = new Account();
 var userStorage = new UserStorage(options, null);
 using (UserStorage.Request request = userStorage.Context()) {

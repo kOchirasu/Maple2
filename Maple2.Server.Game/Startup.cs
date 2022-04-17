@@ -1,16 +1,11 @@
-﻿using System;
-using System.Net.Http;
-using System.Reflection;
+﻿using System.Reflection;
 using Autofac;
-using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Modules;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.PacketHandlers;
-using Maple2.Server.Game.PacketHandlers;
 using Maple2.Server.Game.Service;
 using Maple2.Server.Game.Session;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -21,7 +16,7 @@ public class Startup {
     public IConfiguration Configuration { get; }
 
     public Startup(IConfiguration configuration) {
-        this.Configuration = configuration;
+        Configuration = configuration;
     }
 
     // ConfigureServices is where you register dependencies. This gets called by the runtime before the
@@ -45,6 +40,10 @@ public class Startup {
             .SingleInstance();
         builder.RegisterType<GameSession>()
             .AsSelf();
+        
+        // Database
+        builder.RegisterModule<GameDbModule>();
+        builder.RegisterModule<DataDbModule>();
 
         // Make all packet handlers available to PacketRouter
         builder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())

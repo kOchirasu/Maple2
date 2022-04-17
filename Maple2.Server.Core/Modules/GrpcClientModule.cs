@@ -1,5 +1,4 @@
 ﻿using System;
-using Grpc.Core;
 using Grpc.Net.ClientFactory;
 using Microsoft.Extensions.DependencyInjection;
 

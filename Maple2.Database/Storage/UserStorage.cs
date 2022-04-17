@@ -16,13 +16,13 @@ public partial class UserStorage {
     }
 
     public Request Context()  {
-        return new Request(this, new TestContext(options), logger);
+        return new Request(this, new Ms2Context(options), logger);
     }
 
-    public partial class Request : DatabaseRequest<TestContext> {
+    public partial class Request : DatabaseRequest<Ms2Context> {
         private readonly UserStorage storage;
 
-        public Request(UserStorage storage, TestContext context, ILogger logger) : base(context, logger) {
+        public Request(UserStorage storage, Ms2Context context, ILogger logger) : base(context, logger) {
             this.storage = storage;
         }
 
@@ -35,6 +35,32 @@ public partial class UserStorage {
             model.Id = 0;
             context.Account.Add(model);
             return context.TrySaveChanges() ? model : null;
+        }
+
+        public Character GetCharacter(long characterId) {
+            return context.Character.Find(characterId);
+        }
+
+        public Character CreateCharacter(Character character) {
+            Model.Character model = character;
+            model.Id = 0;
+            context.Character.Add(model);
+            return context.TrySaveChanges() ? model : null;
+        }
+
+        // This does not commit the change, just stages the update.
+        public void UpdateCharacter(Character character) {
+            context.Character.Update(character);
+        }
+
+        public bool DeleteCharacter(long characterId, bool force = false) {
+            Model.Character character = context.Character.Find(characterId);
+            if (character == null) {
+                return false;
+            }
+
+            character.AccountId = 0;
+            return context.TrySaveChanges();
         }
     }
 }
