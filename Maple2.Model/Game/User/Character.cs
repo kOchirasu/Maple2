@@ -2,7 +2,7 @@
 using Maple2.Model.Common;
 using Maple2.Model.Enum;
 
-namespace Maple2.Model.User;
+namespace Maple2.Model.Game;
 
 public class Character {
     #region Immutable
@@ -13,6 +13,8 @@ public class Character {
     public long AccountId { get; init; }
     #endregion
 
+    public DateTimeOffset DeleteTime { get; set; }
+    
     public string Name { get; set; }
     public Gender Gender { get; set; }
     public Job Job { get; set; }

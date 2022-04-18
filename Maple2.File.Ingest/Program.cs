@@ -1,16 +1,19 @@
 ﻿using System.Diagnostics;
+using System.Text.Json;
 using Maple2.Database.Data;
 using Maple2.Database.Extensions;
+using Maple2.Database.Model;
 using Maple2.Database.Model.Metadata;
 using Maple2.File.Ingest.Mapper;
 using Maple2.File.IO;
 using Maple2.File.Parser.Tools;
+using Maple2.Model.Common;
 using Microsoft.EntityFrameworkCore;
 
 const string locale = "NA";
 const string env = "Live";
-const string xmlPath = @"C:\Nexon\Library\maplestory2\appdata\Data\Xml.m2d";
-const string exportedPath = @"C:\Nexon\Library\maplestory2\appdata\Data\Resource\Exported.m2d";
+const string xmlPath = @"C:\Nexon\Library\Library\maplestory2\appdata\Data\Xml.m2d";
+const string exportedPath = @"C:\Nexon\Library\Library\maplestory2\appdata\Data\Resource\Exported.m2d";
 const string connectionString = "Server=localhost;Database=maple-data;User=root;Password=maplestory";
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;

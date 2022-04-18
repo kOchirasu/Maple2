@@ -2,7 +2,7 @@
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
-namespace Maple2.Server.Core.Data; 
+namespace Maple2.Model.Game; 
 
 public class ItemBadge : IByteSerializable {
     public readonly int Id;
@@ -10,7 +10,7 @@ public class ItemBadge : IByteSerializable {
     public readonly bool[] Transparency;
     public int PetSkinId;
 
-    public ItemBadge(int id) {
+    public ItemBadge(int id, bool[]? transparency = null) {
         Id = id;
         Type = (Id / 100000) switch {
             701 => (Id % 10) switch {
@@ -28,8 +28,10 @@ public class ItemBadge : IByteSerializable {
             709 => BadgeType.Effect,
             _ => BadgeType.None
         };
-        
-        Transparency = new bool[10];
+
+        if (transparency is not {Length: 10}) {
+            Transparency = new bool[10];
+        }
     }
     
     public void WriteTo(IByteWriter writer) {

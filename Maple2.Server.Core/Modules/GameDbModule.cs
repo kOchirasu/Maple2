@@ -22,7 +22,7 @@ public class GameDbModule : Module {
         builder.RegisterInstance(options)
             .Named<DbContextOptions>(NAME);
 
-        builder.RegisterType<UserStorage>()
+        builder.RegisterType<GameStorage>()
             .WithParameter(Condition, Resolve)
             .SingleInstance();
     }

@@ -2,9 +2,11 @@
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
-namespace Maple2.Server.Core.Data; 
+namespace Maple2.Model.Game; 
 
 public class ItemLimitBreak : IByteSerializable {
+    public static readonly ItemLimitBreak Default = new ItemLimitBreak();
+    
     public int Level { get; private set; }
     public readonly IList<StatOption> StatOptions;
     public readonly IList<SpecialOption> SpecialOptions;
@@ -12,6 +14,12 @@ public class ItemLimitBreak : IByteSerializable {
     public ItemLimitBreak() {
         StatOptions = new List<StatOption>();
         SpecialOptions = new List<SpecialOption>();
+    }
+    
+    public ItemLimitBreak(int level, IList<StatOption> statOptions, IList<SpecialOption> specialOptions) {
+        Level = level;
+        StatOptions = statOptions;
+        SpecialOptions = specialOptions;
     }
     
     public void WriteTo(IByteWriter writer) {

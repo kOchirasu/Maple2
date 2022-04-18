@@ -6,6 +6,7 @@ namespace Maple2.Database.Data;
 public class Ms2Context : DbContext {
     internal DbSet<Account> Account { get; set; }
     internal DbSet<Character> Character { get; set; }
+    internal DbSet<Item> Item { get; set; }
 
     public Ms2Context(DbContextOptions options) : base(options) { }
 
@@ -13,5 +14,6 @@ public class Ms2Context : DbContext {
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<Account>(Maple2.Database.Model.Account.Configure);
         modelBuilder.Entity<Character>(Maple2.Database.Model.Character.Configure);
+        modelBuilder.Entity<Item>(Maple2.Database.Model.Item.Configure);
     }
 }

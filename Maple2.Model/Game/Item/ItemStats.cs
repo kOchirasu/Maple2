@@ -2,10 +2,13 @@
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
-namespace Maple2.Server.Core.Data;
+namespace Maple2.Model.Game;
 
 public class ItemStats : IByteSerializable {
+    public static readonly ItemStats Default = new ItemStats();
+    
     private const int TYPE_COUNT = 9;
+    
     public enum Type {
         Constant = 0,
         Static = 1,
@@ -28,6 +31,11 @@ public class ItemStats : IByteSerializable {
             statOption[i] = new List<StatOption>();
             specialOption[i] = new List<SpecialOption>();
         }
+    }
+
+    public ItemStats(IList<StatOption>[] statOption, IList<SpecialOption>[] specialOption) {
+        this.statOption = statOption;
+        this.specialOption = specialOption;
     }
 
     public ItemStats(ItemStats other) {

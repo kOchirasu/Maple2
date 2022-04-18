@@ -2,18 +2,15 @@
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
-namespace Maple2.Server.Core.Data; 
+namespace Maple2.Model.Game; 
 
 public class ItemBinding : IByteSerializable {
+    public static readonly ItemBinding Default = new ItemBinding();
+    
     public long CharacterId { get; private set; }
     public string Name { get; private set; }
 
-    public ItemBinding() {
-        CharacterId = 0;
-        Name = string.Empty;
-    }
-
-    public ItemBinding(long characterId, string name) {
+    public ItemBinding(long characterId = 0, string name = "") {
         CharacterId = characterId;
         Name = name;
     }

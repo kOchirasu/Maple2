@@ -237,7 +237,7 @@ public abstract class Session : IDisposable {
 
     private void CloseClient() {
         // Must close socket before network stream to prevent lingering
-        client?.Client.Close();
+        client?.Client?.Close();
         client?.Close();
     }
 

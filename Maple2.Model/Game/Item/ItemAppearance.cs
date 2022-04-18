@@ -3,9 +3,11 @@ using Maple2.Model.Common;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
-namespace Maple2.Server.Core.Data; 
+namespace Maple2.Model.Game; 
 
 public class ItemAppearance : IByteSerializable {
+    public static readonly ItemAppearance Default = new ItemAppearance(default);
+    
     public EquipColor Color;
 
     public ItemAppearance(EquipColor color) {
@@ -33,7 +35,16 @@ public class HairAppearance : ItemAppearance {
     public Vector3 FrontPosition1 { get; private set; }
     public Vector3 FrontPosition2 { get; private set; }
 
-    public HairAppearance(EquipColor color) : base(color) { }
+    public HairAppearance(EquipColor color, float backLength = default, Vector3 backPosition1 = default,
+            Vector3 backPosition2 = default, float frontLength = default, Vector3 frontPosition1 = default,
+            Vector3 frontPosition2 = default) : base(color) {
+        BackLength = backLength;
+        BackPosition1 = backPosition1;
+        BackPosition2 = backPosition2;
+        FrontLength = frontLength;
+        FrontPosition1 = frontPosition1;
+        FrontPosition2 = frontPosition2;
+    }
 
     public override void WriteTo(IByteWriter writer) {
         writer.Write<EquipColor>(Color);
@@ -57,27 +68,33 @@ public class HairAppearance : ItemAppearance {
 }
 
 public class DecalAppearance : ItemAppearance {
-    public float Unknown1 { get; private set; }
-    public float Unknown2 { get; private set; }
-    public float Unknown3 { get; private set; }
-    public float Unknown4 { get; private set; }
+    public float Position1 { get; private set; }
+    public float Position2 { get; private set; }
+    public float Position3 { get; private set; }
+    public float Position4 { get; private set; }
 
-    public DecalAppearance(EquipColor color) : base(color) { }
+    public DecalAppearance(EquipColor color, float position1 = default, float position2 = default,
+            float position3 = default, float position4 = default) : base(color) {
+        Position1 = position1;
+        Position2 = position2;
+        Position3 = position3;
+        Position4 = position4;
+    }
 
     public override void WriteTo(IByteWriter writer) {
         writer.Write<EquipColor>(Color);
-        writer.WriteFloat(Unknown1);
-        writer.WriteFloat(Unknown2);
-        writer.WriteFloat(Unknown3);
-        writer.WriteFloat(Unknown4);
+        writer.WriteFloat(Position1);
+        writer.WriteFloat(Position2);
+        writer.WriteFloat(Position3);
+        writer.WriteFloat(Position4);
     }
 
     public override void ReadFrom(IByteReader reader) {
         Color = reader.Read<EquipColor>();
-        Unknown1 = reader.ReadFloat();
-        Unknown2 = reader.ReadFloat();
-        Unknown3 = reader.ReadFloat();
-        Unknown4 = reader.ReadFloat();
+        Position1 = reader.ReadFloat();
+        Position2 = reader.ReadFloat();
+        Position3 = reader.ReadFloat();
+        Position4 = reader.ReadFloat();
     }
 }
 
@@ -88,7 +105,14 @@ public class CapAppearance : ItemAppearance {
     public Vector3 Position4 { get; private set; }
     public float Unknown { get; private set; }
 
-    public CapAppearance(EquipColor color) : base(color) { }
+    public CapAppearance(EquipColor color, Vector3 position1 = default, Vector3 position2 = default,
+            Vector3 position3 = default, Vector3 position4 = default, float unknown = default) : base(color) {
+        Position1 = position1;
+        Position2 = position2;
+        Position3 = position3;
+        Position4 = position4;
+        Unknown = unknown;
+    }
 
     public override void WriteTo(IByteWriter writer) {
         writer.Write<EquipColor>(Color);

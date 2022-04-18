@@ -1,11 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
   </PropertyGroup>
   <ItemGroup>
     <Protobuf Include="**/*.proto" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Game" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Maple2.Tools\Maple2.Tools.csproj" />
   </ItemGroup>
 </Project>

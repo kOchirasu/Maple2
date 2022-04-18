@@ -1,7 +1,7 @@
 ﻿using Caching;
 using Microsoft.EntityFrameworkCore;
 
-namespace Maple2.Database.Storage.Metadata;
+namespace Maple2.Database.Storage;
 
 public abstract class MetadataStorage<TK, TV> {
     protected readonly DbContextOptions Options;

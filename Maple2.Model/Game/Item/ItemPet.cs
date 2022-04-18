@@ -1,7 +1,7 @@
 ﻿using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
-namespace Maple2.Server.Core.Data; 
+namespace Maple2.Model.Game; 
 
 public class ItemPet : IByteSerializable {
     public string Name;

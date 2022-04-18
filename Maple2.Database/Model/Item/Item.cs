@@ -1,0 +1,178 @@
+﻿using System;
+using System.Text.Json;
+using Maple2.Database.Extensions;
+using Maple2.Model.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
+
+namespace Maple2.Database.Model; 
+
+internal class Item {
+    public DateTime LastModified { get; set; }
+
+    public long Id { get; set; }
+    public int ItemId { get; set; }
+    public int Rarity { get; set; }
+    public short Slot { get; set; }
+    public int Amount { get; set; }
+
+    public DateTime CreationTime { get; set; }
+    public DateTime ExpiryTime { get; set; }
+    
+    public int TimeChangedOption { get; set; }
+    public int RemainUses { get; set; }
+    public bool IsLocked { get; set; }
+    public long UnlockTime { get; set; }
+    public short GlamorForges { get; set; }
+    
+    public ItemAppearance Appearance { get; set; }
+    public ItemStats Stats { get; set; }
+    public ItemEnchant Enchant { get; set; }
+    public ItemLimitBreak LimitBreak { get; set; }
+    
+    public ItemTransfer Transfer { get; set; }
+    public ItemSocket Socket { get; set; }
+    public ItemCoupleInfo CoupleInfo { get; set; }
+    public ItemBinding Binding { get; set; }
+
+    public ItemSubType SubType { get; set; }
+    
+    public static implicit operator Item(Maple2.Model.Game.Item other) {
+        if (other == null) {
+            return null;
+        }
+        
+        var item = new Item {
+            Id = other.Uid,
+            ItemId = other.Id,
+            Rarity = other.Rarity,
+            Slot = other.Slot,
+            Amount = other.Amount,
+            CreationTime = other.CreationTime.FromEpochSeconds(),
+            ExpiryTime = other.ExpiryTime.FromEpochSeconds(),
+            TimeChangedOption = other.TimeChangedOption,
+            RemainUses = other.RemainUses,
+            IsLocked = other.IsLocked,
+            UnlockTime = other.UnlockTime,
+            GlamorForges = other.GlamorForges,
+            Appearance = other.Appearance switch {
+                Maple2.Model.Game.HairAppearance hair => (HairAppearance) hair,
+                Maple2.Model.Game.DecalAppearance decal => (DecalAppearance) decal,
+                Maple2.Model.Game.CapAppearance cap => (CapAppearance) cap,
+                _ => (ColorAppearance) other.Appearance
+            },
+            Stats = other.Stats,
+            Enchant = other.Enchant,
+            LimitBreak = other.LimitBreak,
+            Transfer = other.Transfer,
+            Socket = other.Socket,
+            CoupleInfo = other.CoupleInfo,
+            Binding = other.Binding,
+        };
+
+        if (other.Template != null && other.Blueprint != null) {
+            item.SubType = new ItemUgc(other.Template, other.Blueprint);
+        } else if (other.Pet != null) {
+            item.SubType = (ItemPet) other.Pet;
+        } else if (other.Music != null) {
+            item.SubType = (ItemCustomMusicScore) other.Music;
+        } else if (other.Badge != null) {
+            item.SubType = (ItemBadge) other.Badge;
+        }
+
+        return item;
+    }
+
+    // Use explicit Convert() here because we need metadata to construct Item.
+    public Maple2.Model.Game.Item Convert(ItemMetadata metadata) {
+        var item = new Maple2.Model.Game.Item(metadata, false) {
+            Uid = Id,
+            Rarity = Rarity,
+            Slot = Slot,
+            Amount = Amount,
+            CreationTime = CreationTime.ToEpochSeconds(),
+            ExpiryTime = ExpiryTime.ToEpochSeconds(),
+            TimeChangedOption = TimeChangedOption,
+            RemainUses = RemainUses,
+            IsLocked = IsLocked,
+            UnlockTime = UnlockTime,
+            GlamorForges = GlamorForges,
+            Appearance = Appearance switch {
+                HairAppearance hair => hair,
+                DecalAppearance decal => decal,
+                CapAppearance cap => cap,
+                ColorAppearance color => color,
+                _ => new Maple2.Model.Game.ItemAppearance(default),
+            },
+            Stats = Stats,
+            Enchant = Enchant,
+            LimitBreak = LimitBreak,
+            Transfer = Transfer,
+            Socket = Socket,
+            CoupleInfo = CoupleInfo,
+            Binding = Binding,
+        };
+            
+        switch (SubType) {
+            case ItemUgc(var ugcItemLook, var itemBlueprint):
+                item.Template = ugcItemLook;
+                item.Blueprint = itemBlueprint;
+                break;
+            case ItemPet pet:
+                item.Pet = pet;
+                break;
+            case ItemCustomMusicScore music:
+                item.Music = music;
+                break;
+            case ItemBadge badge:
+                item.Badge = badge;
+                break;
+        }
+
+        return item;
+    }
+    
+    public static void Configure(EntityTypeBuilder<Item> builder) {
+        builder.Property(item => item.LastModified).IsRowVersion();
+        builder.HasKey(item => item.Id);
+        builder.Property(character => character.CreationTime)
+            .ValueGeneratedOnAdd();
+        
+        // JSON serialization
+        builder.Property(item => item.Appearance).HasConversion(
+            appearance => JsonSerializer.Serialize(appearance, (JsonSerializerOptions) null),
+            value => JsonSerializer.Deserialize<ItemAppearance>(value, (JsonSerializerOptions) null)
+        );
+        builder.Property(item => item.Stats).HasConversion(
+            stats => JsonSerializer.Serialize(stats, (JsonSerializerOptions) null),
+            value => JsonSerializer.Deserialize<ItemStats>(value, (JsonSerializerOptions) null)
+        );
+        builder.Property(item => item.Enchant).HasConversion(
+            enchant => JsonSerializer.Serialize(enchant, (JsonSerializerOptions) null),
+            value => JsonSerializer.Deserialize<ItemEnchant>(value, (JsonSerializerOptions) null)
+        );
+        builder.Property(item => item.LimitBreak).HasConversion(
+            limitBreak => JsonSerializer.Serialize(limitBreak, (JsonSerializerOptions) null),
+            value => JsonSerializer.Deserialize<ItemLimitBreak>(value, (JsonSerializerOptions) null)
+        );
+        builder.Property(item => item.Transfer).HasConversion(
+            transfer => JsonSerializer.Serialize(transfer, (JsonSerializerOptions) null),
+            value => JsonSerializer.Deserialize<ItemTransfer>(value, (JsonSerializerOptions) null)
+        );
+        builder.Property(item => item.Socket).HasConversion(
+            socket => JsonSerializer.Serialize(socket, (JsonSerializerOptions) null),
+            value => JsonSerializer.Deserialize<ItemSocket>(value, (JsonSerializerOptions) null)
+        );
+        builder.Property(item => item.CoupleInfo).HasConversion(
+            coupleInfo => JsonSerializer.Serialize(coupleInfo, (JsonSerializerOptions) null),
+            value => JsonSerializer.Deserialize<ItemCoupleInfo>(value, (JsonSerializerOptions) null)
+        );
+        builder.Property(item => item.Binding).HasConversion(
+            binding => JsonSerializer.Serialize(binding, (JsonSerializerOptions) null),
+            value => JsonSerializer.Deserialize<ItemBinding>(value, (JsonSerializerOptions) null)
+        );
+        builder.Property(item => item.SubType).HasConversion(
+            subType => JsonSerializer.Serialize(subType, (JsonSerializerOptions) null),
+            value => JsonSerializer.Deserialize<ItemSubType>(value, (JsonSerializerOptions) null)
+        );
+    }
+}

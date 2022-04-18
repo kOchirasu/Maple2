@@ -32,6 +32,7 @@ public class Startup {
         
         // Database
         builder.RegisterModule<GameDbModule>();
+        builder.RegisterModule<DataDbModule>();
     }
 
     // Configure is where you add middleware. This is called after ConfigureContainer. You can use

@@ -3,9 +3,11 @@ using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 using Maple2.Tools.Extensions;
 
-namespace Maple2.Server.Core.Data; 
+namespace Maple2.Model.Game; 
 
 public class ItemSocket : IByteSerializable {
+    public static readonly ItemSocket Default = new ItemSocket(0, 0);
+    
     public byte MaxSlots;
     public byte UnlockSlots {
         get => (byte) Sockets.Length;
@@ -17,6 +19,11 @@ public class ItemSocket : IByteSerializable {
     public ItemSocket(byte maxSlots, byte unlocked) {
         MaxSlots = maxSlots;
         Sockets = new ItemGemstone[unlocked];
+    }
+
+    public ItemSocket(byte maxSlots, ItemGemstone[] sockets) {
+        MaxSlots = maxSlots;
+        Sockets = sockets;
     }
     
     public void WriteTo(IByteWriter writer) {
@@ -48,6 +55,13 @@ public class ItemGemstone : IByteSerializable {
     public ItemBinding? Binding;
     public bool IsLocked;
     public long UnlockTime;
+
+    public ItemGemstone(int itemId = 0, ItemBinding? binding = null, bool isLocked = false, long unlockTime = 0) {
+        ItemId = itemId;
+        Binding = binding;
+        IsLocked = isLocked;
+        UnlockTime = unlockTime;
+    }
     
     public void WriteTo(IByteWriter writer) {
         writer.WriteInt(ItemId);

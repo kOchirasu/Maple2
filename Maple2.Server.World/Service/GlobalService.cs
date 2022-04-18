@@ -2,7 +2,7 @@
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Maple2.Database.Storage;
-using Maple2.Model.User;
+using Maple2.Model.Game;
 using Microsoft.Extensions.Logging;
 
 // TODO: Move this to a Global server
@@ -10,12 +10,12 @@ using Microsoft.Extensions.Logging;
 namespace Maple2.Server.Global.Service;
 
 public partial class GlobalService : Global.GlobalBase {
-    private readonly UserStorage userStorage;
+    private readonly GameStorage gameStorage;
     
     private readonly ILogger logger;
 
-    public GlobalService(UserStorage userStorage, ILogger<GlobalService> logger) {
-        this.userStorage = userStorage;
+    public GlobalService(GameStorage gameStorage, ILogger<GlobalService> logger) {
+        this.gameStorage = gameStorage;
         this.logger = logger;
     }
 
@@ -33,7 +33,7 @@ public partial class GlobalService : Global.GlobalBase {
         // Normalize username
         string username = request.Username.Trim().ToLower();
 
-        using UserStorage.Request db = userStorage.Context();
+        using GameStorage.Request db = gameStorage.Context();
         Account account = db.GetAccount(username);
         // Create account if not exists.
         if (account == null) {

@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Maple2.Model.Enum;
 
-namespace Maple2.Server.Core.Data; 
+namespace Maple2.Model.Game; 
 
 [StructLayout(LayoutKind.Sequential, Pack=2, Size = 10)]
 public readonly struct StatOption {

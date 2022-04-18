@@ -3,7 +3,7 @@ using System.Diagnostics;
 using Autofac;
 using Maple2.Database.Data;
 using Maple2.Database.Storage;
-using Maple2.Model.User;
+using Maple2.Model.Game;
 using Maple2.Server.Commands;
 using Maple2.Server.Core.Modules;
 using Maple2.Server.Modules;
@@ -46,13 +46,13 @@ if (!initContext.Initialize()) {
 
 using var testContext = new Ms2Context(options);
 var writeAccount = new Account();
-var userStorage = new UserStorage(options, null);
-using (UserStorage.Request request = userStorage.Context()) {
+var userStorage = new GameStorage(options, null, null);
+using (GameStorage.Request request = userStorage.Context()) {
     writeAccount = request.CreateAccount(writeAccount);
     Console.WriteLine($"Write {writeAccount.Id}");
 }
 
-using (UserStorage.Request request = userStorage.Context()) {
+using (GameStorage.Request request = userStorage.Context()) {
     Account readAccount = request.GetAccount(writeAccount.Id);
     Console.WriteLine($"Read {readAccount.Id}");
 }

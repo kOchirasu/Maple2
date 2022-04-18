@@ -17,7 +17,7 @@ internal class Account {
 
     public ICollection<Character> Characters { get; set; }
 
-    public static implicit operator Account(Maple2.Model.User.Account other) {
+    public static implicit operator Account(Maple2.Model.Game.Account other) {
         if (other == null) {
             return null;
         }
@@ -34,12 +34,12 @@ internal class Account {
         };
     }
 
-    public static implicit operator Maple2.Model.User.Account(Account other) {
+    public static implicit operator Maple2.Model.Game.Account(Account other) {
         if (other == null) {
             return null;
         }
         
-        return new Maple2.Model.User.Account {
+        return new Maple2.Model.Game.Account {
             Id = other.Id,
             Username = other.Username,
             LastModified = other.LastModified,

@@ -2,20 +2,28 @@
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
-namespace Maple2.Server.Core.Data; 
+namespace Maple2.Model.Game; 
 
 public class ItemEnchant : IByteSerializable {
+    public static readonly ItemEnchant Default = new ItemEnchant();
+    
     public int Enchants { get; private set; }
     public int EnchantExp { get; private set; }
     // Enchant based peachy charges, otherwise always require 10 charges
-    public byte EnchantCharges { get; set; } = 1;
+    public byte EnchantCharges { get; private set; }
     public bool CanRepack { get; private set; }
     public int Charges { get; private set; }
 
     public readonly IList<StatOption> StatOptions;
 
-    public ItemEnchant() {
-        StatOptions = new List<StatOption>();
+    public ItemEnchant(int enchants = 0, int enchantExp = 0, byte enchantCharges = 1, bool canRepack = false, 
+            int charges = 0, IList<StatOption>? statOptions = null) {
+        Enchants = enchants;
+        EnchantExp = enchantExp;
+        EnchantCharges = enchantCharges;
+        CanRepack = canRepack;
+        Charges = charges;
+        StatOptions = statOptions ?? new List<StatOption>();
     }
     
     public void WriteTo(IByteWriter writer) {

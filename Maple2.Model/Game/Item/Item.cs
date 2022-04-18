@@ -1,21 +1,22 @@
 ﻿using System;
-using Maple2.Database.Model.Metadata;
+using System.Linq;
 using Maple2.Model.Enum;
+using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 using Maple2.Tools.Extensions;
 
-namespace Maple2.Server.Core.Data; 
+namespace Maple2.Model.Game; 
 
 public class Item : IByteSerializable {
     public readonly ItemMetadata Metadata;
     public readonly InventoryType Inventory;
 
-    public readonly int Id;
-    public readonly long Uid;
-    public int Rarity;
-    
+    public long Uid { get; init; } = -1;
+    public int Rarity { get; init; } = 1;
     public short Slot;
+
+    public int Id => Metadata.Id;
     public int Amount;
 
     public long CreationTime;
@@ -27,15 +28,15 @@ public class Item : IByteSerializable {
     public long UnlockTime;
     public short GlamorForges;
 
-    public ItemAppearance Appearance;
-    public ItemStats Stats;
-    public ItemEnchant Enchant;
-    public ItemLimitBreak LimitBreak;
+    public ItemAppearance? Appearance;
+    public ItemStats? Stats;
+    public ItemEnchant? Enchant;
+    public ItemLimitBreak? LimitBreak;
 
-    public ItemTransfer Transfer;
-    public ItemSocket Socket;
-    public ItemCoupleInfo CoupleInfo;
-    public ItemBinding Binding;
+    public ItemTransfer? Transfer;
+    public ItemSocket? Socket;
+    public ItemCoupleInfo? CoupleInfo;
+    public ItemBinding? Binding;
 
     #region Special Types
     public UgcItemLook? Template;
@@ -45,7 +46,7 @@ public class Item : IByteSerializable {
     public ItemBadge? Badge;
     #endregion
 
-    public Item(ItemMetadata metadata, long uid, int rarity) {
+    public Item(ItemMetadata metadata, bool initialize = true) {
         Metadata = metadata;
         Inventory = Metadata.Property.Type switch {
             0 => Metadata.Property.SubType == 2 ? InventoryType.Consumable : InventoryType.Misc, // Unknown
@@ -74,24 +75,29 @@ public class Item : IByteSerializable {
             _ => throw new ArgumentException(
                 $"Unknown Tab for: {Metadata.Property.Type},{Metadata.Property.SubType}")
         };
-        
-        Uid = uid;
-        Id = metadata.Id;
-        Rarity = rarity;
-        
+
+        // Skip initialization of fields, this is done if we will initialize separately.
+        if (!initialize) {
+            return;
+        }
+
+        Appearance = Metadata.SlotNames.FirstOrDefault(EquipSlot.NONE) switch {
+            EquipSlot.HR => new HairAppearance(default),
+            EquipSlot.FD => new DecalAppearance(default),
+            EquipSlot.CP => new CapAppearance(default),
+            _ => new ItemAppearance(default)
+        };
+
         // Template? or Blueprint
         if (Metadata.Property.SkinType == 99 || Metadata.Property.Type == 22) {
             Template = new UgcItemLook();
             Blueprint = new ItemBlueprint();
-        }
-        if (Inventory == InventoryType.Pets) {
+        } else if (Inventory == InventoryType.Pets) {
             Pet = new ItemPet();
-        }
-        // From IDA, this exists for all type 12.
-        if (Id / 100000 == 351) { // 350 is also score, but doesn't have extra data?
+        } else if (Id / 100000 == 351) { // 350 is also score, but doesn't have extra data?
+            // From IDA, this exists for all type 12.
             Music = new ItemCustomMusicScore();
-        }
-        if (Inventory == InventoryType.Badge) {
+        } else if (Inventory == InventoryType.Badge) {
             Badge = new ItemBadge(Id);
         }
     }
@@ -111,29 +117,26 @@ public class Item : IByteSerializable {
         writer.WriteBool(false);
         writer.WriteInt();
 
-        writer.WriteClass<ItemAppearance>(Appearance);
-        writer.WriteClass<ItemStats>(Stats);
-        writer.WriteClass<ItemEnchant>(Enchant);
-        writer.WriteClass<ItemLimitBreak>(LimitBreak);
+        writer.WriteClass<ItemAppearance>(Appearance ?? ItemAppearance.Default);
+        writer.WriteClass<ItemStats>(Stats ?? ItemStats.Default);
+        writer.WriteClass<ItemEnchant>(Enchant ?? ItemEnchant.Default);
+        writer.WriteClass<ItemLimitBreak>(LimitBreak ?? ItemLimitBreak.Default);
         
         if (Template != null && Blueprint != null) {
             writer.WriteClass<UgcItemLook>(Template);
             writer.WriteClass<ItemBlueprint>(Blueprint);
-        }
-        if (Pet != null) {
+        } else if (Pet != null) {
             writer.WriteClass<ItemPet>(Pet);
-        }
-        if (Music != null) {
+        } else if (Music != null) {
             writer.WriteClass<ItemCustomMusicScore>(Music);
-        }
-        if (Badge != null) {
+        } else if (Badge != null) {
             writer.WriteClass<ItemBadge>(Badge);
         }
         
-        writer.WriteClass<ItemTransfer>(Transfer);
-        writer.WriteClass<ItemSocket>(Socket);
-        writer.WriteClass<ItemCoupleInfo>(CoupleInfo);
-        writer.WriteClass<ItemBinding>(Binding);
+        writer.WriteClass<ItemTransfer>(Transfer ?? ItemTransfer.Default);
+        writer.WriteClass<ItemSocket>(Socket ?? ItemSocket.Default);
+        writer.WriteClass<ItemCoupleInfo>(CoupleInfo ?? ItemCoupleInfo.Default);
+        writer.WriteClass<ItemBinding>(Binding ?? ItemBinding.Default);
     }
 
     public void ReadFrom(IByteReader reader) {
@@ -159,14 +162,11 @@ public class Item : IByteSerializable {
         if (Template != null && Blueprint != null) {
             Template = reader.ReadClass<UgcItemLook>();
             Blueprint = reader.ReadClass<ItemBlueprint>();
-        }
-        if (Pet != null) {
+        } else if (Pet != null) {
             Pet = reader.ReadClass<ItemPet>();
-        }
-        if (Music != null) {
+        } else if (Music != null) {
             Music = reader.ReadClass<ItemCustomMusicScore>();
-        }
-        if (Badge != null) {
+        } else if (Badge != null) {
             Badge = reader.ReadClass<ItemBadge>();
         }
         

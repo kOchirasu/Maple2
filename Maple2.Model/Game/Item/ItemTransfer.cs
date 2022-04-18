@@ -3,17 +3,21 @@ using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 using Maple2.Tools.Extensions;
 
-namespace Maple2.Server.Core.Data; 
+namespace Maple2.Model.Game; 
 
 public class ItemTransfer : IByteSerializable {
+    public static readonly ItemTransfer Default = new ItemTransfer();
+    
     public int Flag { get; private set; }
     public int RemainTrades { get; private set; }
     public int RemainRepackage { get; private set; }
     
     public ItemBinding? Binding { get; private set; }
 
-    public ItemTransfer(int flag, ItemBinding? binding = null) {
+    public ItemTransfer(int flag = 0, int remainTrades = 0, int remainRepackage = 0, ItemBinding? binding = null) {
         Flag = flag;
+        RemainTrades = remainTrades;
+        RemainRepackage = remainRepackage;
         Binding = binding;
     }
 

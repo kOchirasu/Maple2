@@ -1,8 +1,8 @@
 ﻿using Maple2.Database.Data;
-using Maple2.Database.Model.Metadata;
+using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
 
-namespace Maple2.Database.Storage.Metadata;
+namespace Maple2.Database.Storage;
 
 public class ItemMetadataStorage : MetadataStorage<int, ItemMetadata> {
     private const int CACHE_SIZE = 40000; // ~34k total items

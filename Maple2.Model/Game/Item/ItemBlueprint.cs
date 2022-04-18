@@ -1,16 +1,15 @@
 ﻿using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
-namespace Maple2.Server.Core.Data; 
+namespace Maple2.Model.Game; 
 
-public class UgcItemMusicScore : IByteSerializable {
+public class ItemBlueprint : IByteSerializable {
     public void WriteTo(IByteWriter writer) {
         writer.WriteLong();
         writer.WriteInt();
         writer.WriteInt();
-        writer.WriteUnicodeString();
-        writer.WriteUnicodeString();
-        writer.WriteString();
+        writer.WriteInt();
+        writer.WriteLong();
         writer.WriteInt();
         writer.WriteLong();
         writer.WriteLong();
@@ -21,9 +20,8 @@ public class UgcItemMusicScore : IByteSerializable {
         reader.ReadLong();
         reader.ReadInt();
         reader.ReadInt();
-        reader.ReadUnicodeString();
-        reader.ReadUnicodeString();
-        reader.ReadString();
+        reader.ReadInt();
+        reader.ReadLong();
         reader.ReadInt();
         reader.ReadLong();
         reader.ReadLong();

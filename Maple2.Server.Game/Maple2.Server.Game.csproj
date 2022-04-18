@@ -12,6 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Maple2.Database\Maple2.Database.csproj" />
       <ProjectReference Include="..\Maple2.Server.Core\Maple2.Server.Core.csproj" />
     </ItemGroup>
 

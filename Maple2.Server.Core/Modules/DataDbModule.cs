@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 using Autofac;
-using Maple2.Database.Storage.Metadata;
+using Maple2.Database.Storage;
 using Maple2.Server.Core.Constants;
 using Microsoft.EntityFrameworkCore;
 using Module = Autofac.Module;

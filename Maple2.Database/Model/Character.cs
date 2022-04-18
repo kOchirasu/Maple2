@@ -24,7 +24,7 @@ internal class Character {
     public int Title { get; set; }
     public short Insignia { get; set; }
 
-    public static implicit operator Character(Maple2.Model.User.Character other) {
+    public static implicit operator Character(Maple2.Model.Game.Character other) {
         if (other == null) {
             return null;
         }
@@ -47,12 +47,12 @@ internal class Character {
         };
     }
 
-    public static implicit operator Maple2.Model.User.Character(Character other) {
+    public static implicit operator Maple2.Model.Game.Character(Character other) {
         if (other == null) {
             return null;
         }
         
-        return new Maple2.Model.User.Character {
+        return new Maple2.Model.Game.Character {
             LastModified = other.LastModified,
             Id = other.Id,
             AccountId = other.AccountId,
@@ -79,7 +79,6 @@ internal class Character {
         builder.HasIndex(character => character.Name).IsUnique();
         builder.Property(character => character.CreationTime)
             .ValueGeneratedOnAdd();
-        JsonSerializer.Serialize(new SkinColor());
         builder.Property(character => character.SkinColor).HasConversion(
             color => JsonSerializer.Serialize(color, (JsonSerializerOptions) null),
             value => JsonSerializer.Deserialize<SkinColor>(value, (JsonSerializerOptions) null)
