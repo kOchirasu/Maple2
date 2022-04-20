@@ -2,7 +2,7 @@
 using System.Net;
 using Grpc.Core;
 using Maple2.Database.Storage;
-using Maple2.Model.User;
+using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
@@ -17,21 +17,23 @@ namespace Maple2.Server.Login.PacketHandlers;
 public class LoginHandler : PacketHandler<LoginSession> {
     public override ushort OpCode => RecvOp.RESPONSE_LOGIN;
 
-    private enum Type : byte {
-        ServerList,
-        CharacterList,
+    private const int ServerMaxCharacters = 8;
+
+    private enum Command : byte {
+        ServerList = 1,
+        CharacterList = 2,
     }
 
     private readonly GlobalClient global;
-    private readonly UserStorage userStorage;
+    private readonly GameStorage gameStorage;
 
-    public LoginHandler(GlobalClient global, UserStorage userStorage, ILogger<LoginHandler> logger) : base(logger) {
+    public LoginHandler(GlobalClient global, GameStorage gameStorage, ILogger<LoginHandler> logger) : base(logger) {
         this.global = global;
-        this.userStorage = userStorage;
+        this.gameStorage = gameStorage;
     }
 
     public override void Handle(LoginSession session, IByteReader packet) {
-        var type = packet.Read<Type>();
+        var command = packet.Read<Command>();
         string user = packet.ReadUnicodeString();
         string pass = packet.ReadUnicodeString();
 
@@ -44,32 +46,31 @@ public class LoginHandler : PacketHandler<LoginSession> {
                 return;
             }
 
-            switch (type) {
-                case Type.ServerList:
+            switch (command) {
+                case Command.ServerList:
                     session.Send(BannerListPacket.SetBanner());
                     session.Send(ServerListPacket.Load(Target.SEVER_NAME, 
                         new []{new IPEndPoint(Target.LOGIN_IP, Target.LOGIN_PORT)}, 1));
                     return;
-                case Type.CharacterList: {
-                    using UserStorage.Request db = userStorage.Context();
-                    Account account = db.GetAccount(response.AccountId);
-                    List<Character> characters = db.ListCharacters(account.Id);
+                case Command.CharacterList: {
+                    using GameStorage.Request db = gameStorage.Context();
+                    (Account account, IList<Character> characters) = db.ListCharacters(response.AccountId);
                     // TODO:
                     // Load Players by accountId+World?
                     //
                     // Console.WriteLine("Initializing login with " + session.Account.Id);
-                    logger.LogDebug("Loading character list TODO");
                     session.Send(LoginResultPacket.Success(account.Id));
                     //session.Send(UgcPacket.SetEndpoint("http://127.0.0.1/ws.asmx?wsdl", "http://127.0.0.1"));
-                    session.Send(CharacterListPacket.SetMax(characters.Count, account.MaxCharacters));
+                    session.Send(CharacterListPacket.SetMax(account.MaxCharacters, ServerMaxCharacters));
                     session.Send(CharacterListPacket.StartList());
                     // Send each character data
-                    //session.Send(CharacterListPacket.AddEntries(players));
+                    logger.LogDebug("Loading character list TODO");
+                    session.Send(CharacterListPacket.AddEntries(new List<Character>()));
                     session.Send(CharacterListPacket.EndList());
                     return;
                 }
                 default:
-                    logger.LogError("Invalid type: {Type}", type);
+                    logger.LogError("Invalid type: {Type}", command);
                     break;
             }
         } catch (RpcException ex) {

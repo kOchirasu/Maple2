@@ -6,9 +6,21 @@ using Maple2.Server.Core.Constants;
 namespace Maple2.Server.Core.Packets; 
 
 public static class ServerListPacket {
-    public static ByteWriter SetServers(string serverName, IList<IPEndPoint> serverIps, ushort channels) {
+    private enum Command : byte {
+        Error = 0,
+        Load = 1,
+    }
+
+    public static ByteWriter Error() {
         var pWriter = Packet.Of(SendOp.SERVER_LIST);
-        pWriter.WriteByte(0x01); // If 0 -> s_login_err_connect
+        pWriter.Write<Command>(Command.Error);
+        
+        return pWriter;
+    }
+    
+    public static ByteWriter Load(string serverName, IList<IPEndPoint> serverIps, ushort channels) {
+        var pWriter = Packet.Of(SendOp.SERVER_LIST);
+        pWriter.Write<Command>(Command.Load);
         pWriter.WriteInt(1); // Unknown
         pWriter.WriteUnicodeString(serverName);
         pWriter.WriteByte(4); // IPv4?

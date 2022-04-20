@@ -10,7 +10,7 @@ namespace Maple2.Server.Core.PacketHandlers;
 public abstract class LogSendHandler<T> : PacketHandler<T> where T : Session {
     public override ushort OpCode => RecvOp.LOG_SEND;
 
-    private enum Type : byte {
+    private enum Command : byte {
         Log = 0,
         Metric = 1,
     }
@@ -23,9 +23,9 @@ public abstract class LogSendHandler<T> : PacketHandler<T> where T : Session {
             return;
         }
 
-        var type = packet.Read<Type>();
-        switch (type) {
-            case Type.Log:
+        var command = packet.Read<Command>();
+        switch (command) {
+            case Command.Log:
                 var builder = new StringBuilder();
                 string message = packet.ReadUnicodeString();
                 builder.Append(message);
@@ -43,7 +43,7 @@ public abstract class LogSendHandler<T> : PacketHandler<T> where T : Session {
 
                 logger.LogInformation("Client Log: {Builder}", builder);
                 break;
-            case Type.Metric:
+            case Command.Metric:
                 byte count = packet.ReadByte();
                 for (byte i = 0; i < count; i++) {
                     packet.ReadString(); // StatisticType

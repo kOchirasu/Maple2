@@ -9,25 +9,32 @@ namespace Maple2.Server.Core.Packets;
 // 01 and 03 seem to be the first ones sent after entering game
 // perhaps setting some initial state?
 public static class TimeSyncPacket {
-    public static ByteWriter Response(int key) {
+    private enum Command : byte {
+        Response = 0,
+        Reset = 1,
+        Request = 2,
+        Set = 3,
+    }
+    
+    public static ByteWriter Response(DateTimeOffset time, int key) {
         var pWriter = Packet.Of(SendOp.RESPONSE_TIME_SYNC);
-        pWriter.WriteByte(0x00);
+        pWriter.Write<Command>(Command.Response);
         pWriter.WriteInt(Environment.TickCount);
-        pWriter.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-        pWriter.WriteByte();
-        pWriter.WriteInt();
+        pWriter.WriteLong(time.ToUnixTimeSeconds()); // CMainSystem[28], CMainSystem[30]
+        pWriter.WriteInt(time.Offset.Seconds);
+        pWriter.WriteByte(/*Timezone*/); // 0-24 Hours
         pWriter.WriteInt(key);
 
         return pWriter;
     }
 
-    public static ByteWriter SetInitial1() {
+    public static ByteWriter Reset(DateTimeOffset time) {
         var pWriter = Packet.Of(SendOp.RESPONSE_TIME_SYNC);
-        pWriter.WriteByte(0x01); // 1 and 2
+        pWriter.Write<Command>(Command.Reset);
         pWriter.WriteInt(Environment.TickCount);
-        pWriter.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-        pWriter.WriteByte();
-        pWriter.WriteInt();
+        pWriter.WriteLong(time.ToUnixTimeSeconds()); // CMainSystem[28], CMainSystem[30]
+        pWriter.WriteInt(time.Offset.Seconds);
+        pWriter.WriteByte(/*Timezone*/); // 0-24 Hours
 
         return pWriter;
     }
@@ -35,19 +42,15 @@ public static class TimeSyncPacket {
     // Request client to make a request
     public static ByteWriter Request() {
         var pWriter = Packet.Of(SendOp.RESPONSE_TIME_SYNC);
-        pWriter.WriteByte(0x02); // 1 and 2
-        pWriter.WriteInt(Environment.TickCount);
-        pWriter.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
-        pWriter.WriteByte();
-        pWriter.WriteInt();
+        pWriter.Write<Command>(Command.Request);
 
         return pWriter;
     }
 
-    public static ByteWriter SetInitial2() {
+    public static ByteWriter Set(DateTimeOffset time) {
         var pWriter = Packet.Of(SendOp.RESPONSE_TIME_SYNC);
-        pWriter.WriteByte(0x03);
-        pWriter.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+        pWriter.Write<Command>(Command.Set);
+        pWriter.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds()); // CMainSystem[32]
 
         return pWriter;
     }
