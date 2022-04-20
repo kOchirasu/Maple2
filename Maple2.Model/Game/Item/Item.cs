@@ -14,7 +14,9 @@ public class Item : IByteSerializable {
 
     public long Uid { get; init; } = -1;
     public int Rarity { get; init; } = 1;
-    public short Slot;
+    public short Slot = -1;
+    public EquipTab EquipTab = EquipTab.None;
+    public EquipSlot EquipSlot = EquipSlot.Unknown;
 
     public int Id => Metadata.Id;
     public int Amount;
@@ -81,7 +83,7 @@ public class Item : IByteSerializable {
             return;
         }
 
-        Appearance = Metadata.SlotNames.FirstOrDefault(EquipSlot.NONE) switch {
+        Appearance = Metadata.SlotNames.FirstOrDefault(EquipSlot.Unknown) switch {
             EquipSlot.HR => new HairAppearance(default),
             EquipSlot.FD => new DecalAppearance(default),
             EquipSlot.CP => new CapAppearance(default),

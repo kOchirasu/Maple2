@@ -3,7 +3,7 @@
 namespace Maple2.Model.Metadata;
 
 public record ItemMetadata(int Id,
-    string Name,
+    string? Name,
     EquipSlot[] SlotNames,
     ItemMetadataProperty Property,
     ItemMetadataLimit Limit);

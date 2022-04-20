@@ -1,46 +1,59 @@
-﻿using System.ComponentModel;
+﻿// ReSharper disable InconsistentNaming
+
+using System.ComponentModel;
 
 namespace Maple2.Model.Enum;
 
 public enum EquipSlot : sbyte {
-    [Description("None")]
-    NONE = -1,
+    [Description("Skin")]
+    SK = 0, // Male Skin/Female Skin
     [Description("Hair")]
-    HR = 0,
+    HR = 1,
     [Description("Face")]
-    FA = 1,
+    FA = 2,
     [Description("Face Decal")]
-    FD = 2,
+    FD = 3,
     [Description("Left Hand")]
-    LH = 3,
+    LH = 4,
     [Description("Right Hand")]
-    RH = 4,
+    RH = 5,
     [Description("Cap")]
-    CP = 5,
+    CP = 6,
     [Description("Mantle")]
-    MT = 6,
+    MT = 7,
     [Description("Clothes")]
-    CL = 7,
+    CL = 8,
     [Description("Pants")]
-    PA = 8,
+    PA = 9,
     [Description("Gloves")]
-    GL = 9,
+    GL = 10,
     [Description("Shoes")]
-    SH = 10,
+    SH = 11,
     [Description("Face Accessory")]
-    FH = 11,
+    FH = 12,
     [Description("Eyewear")]
-    EY = 12,
+    EY = 13,
     [Description("Earring")]
-    EA = 13,
+    EA = 14,
     [Description("Pendant")]
-    PD = 14,
+    PD = 15,
     [Description("Ring")]
-    RI = 15,
+    RI = 16,
     [Description("Belt")]
-    BE = 16,
+    BE = 17,
     [Description("Ear")]
-    ER = 17,
+    ER = 18,
     [Description("Off Hand")]
-    OH = -2, // Cannot equip in off-hand
+    OH = 19, // Cannot equip in off-hand (LH/RH)
+    [Description("Unknown")]
+    Unknown = 20,
+}
+
+public enum EquipTab {
+    None = 0,
+    Gear = 1,
+    Outfit = 2,
+    Outfit2 = 3,
+    Badge = 4,
+    Lapenshard = 5,
 }

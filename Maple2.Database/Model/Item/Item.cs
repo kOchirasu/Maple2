@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.Json;
 using Maple2.Database.Extensions;
+using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,9 +11,12 @@ internal class Item {
     public DateTime LastModified { get; set; }
 
     public long Id { get; set; }
+    public long OwnerId { get; set; }
     public int ItemId { get; set; }
     public int Rarity { get; set; }
-    public short Slot { get; set; }
+    public short Slot { get; set; } = -1;
+    public EquipTab EquipTab { get; set; } = EquipTab.None;
+    public EquipSlot EquipSlot { get; set; } = EquipSlot.Unknown;
     public int Amount { get; set; }
 
     public DateTime CreationTime { get; set; }
@@ -46,6 +50,8 @@ internal class Item {
             ItemId = other.Id,
             Rarity = other.Rarity,
             Slot = other.Slot,
+            EquipTab = other.EquipTab,
+            EquipSlot = other.EquipSlot,
             Amount = other.Amount,
             CreationTime = other.CreationTime.FromEpochSeconds(),
             ExpiryTime = other.ExpiryTime.FromEpochSeconds(),
@@ -88,6 +94,8 @@ internal class Item {
             Uid = Id,
             Rarity = Rarity,
             Slot = Slot,
+            EquipTab = EquipTab,
+            EquipSlot = EquipSlot,
             Amount = Amount,
             CreationTime = CreationTime.ToEpochSeconds(),
             ExpiryTime = ExpiryTime.ToEpochSeconds(),
@@ -137,42 +145,14 @@ internal class Item {
         builder.Property(character => character.CreationTime)
             .ValueGeneratedOnAdd();
         
-        // JSON serialization
-        builder.Property(item => item.Appearance).HasConversion(
-            appearance => JsonSerializer.Serialize(appearance, (JsonSerializerOptions) null),
-            value => JsonSerializer.Deserialize<ItemAppearance>(value, (JsonSerializerOptions) null)
-        );
-        builder.Property(item => item.Stats).HasConversion(
-            stats => JsonSerializer.Serialize(stats, (JsonSerializerOptions) null),
-            value => JsonSerializer.Deserialize<ItemStats>(value, (JsonSerializerOptions) null)
-        );
-        builder.Property(item => item.Enchant).HasConversion(
-            enchant => JsonSerializer.Serialize(enchant, (JsonSerializerOptions) null),
-            value => JsonSerializer.Deserialize<ItemEnchant>(value, (JsonSerializerOptions) null)
-        );
-        builder.Property(item => item.LimitBreak).HasConversion(
-            limitBreak => JsonSerializer.Serialize(limitBreak, (JsonSerializerOptions) null),
-            value => JsonSerializer.Deserialize<ItemLimitBreak>(value, (JsonSerializerOptions) null)
-        );
-        builder.Property(item => item.Transfer).HasConversion(
-            transfer => JsonSerializer.Serialize(transfer, (JsonSerializerOptions) null),
-            value => JsonSerializer.Deserialize<ItemTransfer>(value, (JsonSerializerOptions) null)
-        );
-        builder.Property(item => item.Socket).HasConversion(
-            socket => JsonSerializer.Serialize(socket, (JsonSerializerOptions) null),
-            value => JsonSerializer.Deserialize<ItemSocket>(value, (JsonSerializerOptions) null)
-        );
-        builder.Property(item => item.CoupleInfo).HasConversion(
-            coupleInfo => JsonSerializer.Serialize(coupleInfo, (JsonSerializerOptions) null),
-            value => JsonSerializer.Deserialize<ItemCoupleInfo>(value, (JsonSerializerOptions) null)
-        );
-        builder.Property(item => item.Binding).HasConversion(
-            binding => JsonSerializer.Serialize(binding, (JsonSerializerOptions) null),
-            value => JsonSerializer.Deserialize<ItemBinding>(value, (JsonSerializerOptions) null)
-        );
-        builder.Property(item => item.SubType).HasConversion(
-            subType => JsonSerializer.Serialize(subType, (JsonSerializerOptions) null),
-            value => JsonSerializer.Deserialize<ItemSubType>(value, (JsonSerializerOptions) null)
-        );
+        builder.Property(item => item.Appearance).HasJsonConversion();
+        builder.Property(item => item.Stats).HasJsonConversion();
+        builder.Property(item => item.Enchant).HasJsonConversion();
+        builder.Property(item => item.LimitBreak).HasJsonConversion();
+        builder.Property(item => item.Transfer).HasJsonConversion();
+        builder.Property(item => item.Socket).HasJsonConversion();
+        builder.Property(item => item.CoupleInfo).HasJsonConversion();
+        builder.Property(item => item.Binding).HasJsonConversion();
+        builder.Property(item => item.SubType).HasJsonConversion();
     }
 }

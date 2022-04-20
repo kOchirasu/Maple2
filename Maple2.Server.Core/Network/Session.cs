@@ -163,7 +163,6 @@ public abstract class Session : IDisposable {
 
         // No encryption for handshake
         using PoolByteWriter packet = sendCipher.WriteHeader(handshake.Buffer, 0, handshake.Length);
-        logger.LogDebug("Handshake: {Packet}", packet);
         SendRaw(packet);
     }
 
@@ -196,7 +195,9 @@ public abstract class Session : IDisposable {
                 ReadOnlySequence<byte> buffer = result.Buffer;
                 while ((bytesRead = recvCipher.TryDecrypt(buffer, out PoolByteReader packet)) > 0) {
                     try {
+#if DEBUG
                         LogRecv(packet);
+#endif
                         OnPacket?.Invoke(this, packet); // handle packet
                     } finally {
                         packet.Dispose();
@@ -217,8 +218,9 @@ public abstract class Session : IDisposable {
 
     private void SendInternal(byte[] packet, int length) {
         if (disposed) return;
-
+#if DEBUG
         LogSend(packet, length);
+#endif
         lock (sendCipher) {
             using PoolByteWriter encryptedPacket = sendCipher.Encrypt(packet, 0, length);
             SendRaw(encryptedPacket);

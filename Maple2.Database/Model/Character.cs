@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Text.Json;
+using Maple2.Database.Extensions;
 using Maple2.Model.Common;
 using Maple2.Model.Enum;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -79,9 +79,6 @@ internal class Character {
         builder.HasIndex(character => character.Name).IsUnique();
         builder.Property(character => character.CreationTime)
             .ValueGeneratedOnAdd();
-        builder.Property(character => character.SkinColor).HasConversion(
-            color => JsonSerializer.Serialize(color, (JsonSerializerOptions) null),
-            value => JsonSerializer.Deserialize<SkinColor>(value, (JsonSerializerOptions) null)
-        );
+        builder.Property(character => character.SkinColor).HasJsonConversion();
     }
 }
