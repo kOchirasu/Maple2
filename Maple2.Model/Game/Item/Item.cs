@@ -91,7 +91,7 @@ public class Item : IByteSerializable {
         };
 
         // Template? or Blueprint
-        if (Metadata.Property.SkinType == 99 || Metadata.Property.Type == 22) {
+        if (Metadata.Mesh != string.Empty || Metadata.Property.Type == 22) {
             Template = new UgcItemLook();
             Blueprint = new ItemBlueprint();
         } else if (Inventory == InventoryType.Pets) {

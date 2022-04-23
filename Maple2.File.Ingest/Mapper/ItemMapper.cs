@@ -22,6 +22,7 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     .Where(slot => !string.IsNullOrEmpty(slot.name))
                     .Select(slot => Enum.Parse<EquipSlot>(slot.name, true))
                     .ToArray(),
+                Mesh: data.ucc.mesh,
                 Property:new ItemMetadataProperty(
                     IsSkin:data.property.skin != 0,
                     SkinType:data.property.skinType,

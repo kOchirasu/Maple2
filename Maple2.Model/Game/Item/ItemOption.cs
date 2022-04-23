@@ -1,35 +1,29 @@
 ﻿using System.Runtime.InteropServices;
-using Maple2.Model.Enum;
 
 namespace Maple2.Model.Game; 
 
-[StructLayout(LayoutKind.Sequential, Pack=2, Size = 10)]
+[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 8)]
 public readonly struct StatOption {
-    public readonly StatAttribute Type;
     public readonly int Value;
     public readonly float Percent;
 
-    public StatOption(StatAttribute type, int value) {
-        Type = type;
+    public StatOption(int value) {
         Value = value;
         Percent = 0;
     }
 
-    public StatOption(StatAttribute type, float percent) {
-        Type = type;
+    public StatOption(float percent) {
         Value = 0;
         Percent = percent;
     }
 }
 
-[StructLayout(LayoutKind.Sequential, Pack=2, Size = 10)]
+[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 8)]
 public readonly struct SpecialOption {
-    public readonly SpecialAttribute Type;
     public readonly float Value;
     public readonly float Unknown;
 
-    public SpecialOption(SpecialAttribute type, float value) {
-        Type = type;
+    public SpecialOption(float value) {
         Value = value;
         Unknown = 0;
     }

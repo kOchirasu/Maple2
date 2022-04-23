@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
@@ -8,15 +9,15 @@ public class ItemLimitBreak : IByteSerializable {
     public static readonly ItemLimitBreak Default = new ItemLimitBreak();
     
     public int Level { get; private set; }
-    public readonly IList<StatOption> StatOptions;
-    public readonly IList<SpecialOption> SpecialOptions;
+    public readonly IDictionary<StatAttribute, StatOption> StatOptions;
+    public readonly IDictionary<SpecialAttribute, SpecialOption> SpecialOptions;
 
     public ItemLimitBreak() {
-        StatOptions = new List<StatOption>();
-        SpecialOptions = new List<SpecialOption>();
+        StatOptions = new Dictionary<StatAttribute, StatOption>();
+        SpecialOptions = new Dictionary<SpecialAttribute, SpecialOption>();
     }
     
-    public ItemLimitBreak(int level, IList<StatOption> statOptions, IList<SpecialOption> specialOptions) {
+    public ItemLimitBreak(int level, IDictionary<StatAttribute, StatOption> statOptions, IDictionary<SpecialAttribute, SpecialOption> specialOptions) {
         Level = level;
         StatOptions = statOptions;
         SpecialOptions = specialOptions;
@@ -26,11 +27,13 @@ public class ItemLimitBreak : IByteSerializable {
         writer.WriteInt(Level);
         
         writer.WriteInt(StatOptions.Count);
-        foreach (StatOption option in StatOptions) {
+        foreach ((StatAttribute type, StatOption option) in StatOptions) {
+            writer.WriteShort((short)type);
             writer.Write<StatOption>(option);
         }
         writer.WriteInt(SpecialOptions.Count);
-        foreach (SpecialOption option in SpecialOptions) {
+        foreach ((SpecialAttribute type, SpecialOption option) in SpecialOptions) {
+            writer.WriteShort((short)type);
             writer.Write<SpecialOption>(option);
         }
     }
@@ -40,11 +43,13 @@ public class ItemLimitBreak : IByteSerializable {
         
         int statCount = reader.ReadInt();
         for (int i = 0; i < statCount; i++) {
-            StatOptions.Add(reader.Read<StatOption>());
+            var type = (StatAttribute)reader.ReadShort();
+            StatOptions[type] = reader.Read<StatOption>();
         }
         int specialCount = reader.ReadInt();
         for (int i = 0; i < specialCount; i++) {
-            SpecialOptions.Add(reader.Read<SpecialOption>());
+            var type = (SpecialAttribute)reader.ReadShort();
+            SpecialOptions[type] = reader.Read<SpecialOption>();
         }
     }
 }

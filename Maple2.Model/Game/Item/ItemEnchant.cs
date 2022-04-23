@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
@@ -14,16 +15,16 @@ public class ItemEnchant : IByteSerializable {
     public bool CanRepack { get; private set; }
     public int Charges { get; private set; }
 
-    public readonly IList<StatOption> StatOptions;
+    public readonly IDictionary<StatAttribute, StatOption> StatOptions;
 
     public ItemEnchant(int enchants = 0, int enchantExp = 0, byte enchantCharges = 1, bool canRepack = false, 
-            int charges = 0, IList<StatOption>? statOptions = null) {
+            int charges = 0, IDictionary<StatAttribute, StatOption>? statOptions = null) {
         Enchants = enchants;
         EnchantExp = enchantExp;
         EnchantCharges = enchantCharges;
         CanRepack = canRepack;
         Charges = charges;
-        StatOptions = statOptions ?? new List<StatOption>();
+        StatOptions = statOptions ?? new Dictionary<StatAttribute, StatOption>();
     }
     
     public void WriteTo(IByteWriter writer) {
@@ -37,7 +38,8 @@ public class ItemEnchant : IByteSerializable {
         writer.WriteInt(Charges);
         
         writer.WriteByte((byte)StatOptions.Count);
-        foreach (StatOption option in StatOptions) {
+        foreach ((StatAttribute type, StatOption option) in StatOptions) {
+            writer.WriteInt((int)type);
             writer.Write<StatOption>(option);
         }
     }
@@ -54,7 +56,8 @@ public class ItemEnchant : IByteSerializable {
 
         byte count = reader.ReadByte();
         for (int i = 0; i < count; i++) {
-            StatOptions.Add(reader.Read<StatOption>());
+            var type = (StatAttribute)reader.ReadInt();
+            StatOptions[type] = reader.Read<StatOption>();
         }
     }
 }

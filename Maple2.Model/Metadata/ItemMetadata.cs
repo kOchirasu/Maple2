@@ -5,6 +5,7 @@ namespace Maple2.Model.Metadata;
 public record ItemMetadata(int Id,
     string? Name,
     EquipSlot[] SlotNames,
+    string Mesh,
     ItemMetadataProperty Property,
     ItemMetadataLimit Limit);
 

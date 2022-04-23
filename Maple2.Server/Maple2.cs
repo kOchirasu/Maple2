@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Autofac;
 using Maple2.Database.Data;
 using Maple2.Database.Storage;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Server.Commands;
 using Maple2.Server.Core.Modules;
