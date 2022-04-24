@@ -7,7 +7,6 @@ using Maple2.Database.Model.Metadata;
 using Maple2.File.Ingest.Mapper;
 using Maple2.File.IO;
 using Maple2.File.Parser.Tools;
-using Maple2.Model.Common;
 using Microsoft.EntityFrameworkCore;
 
 const string locale = "NA";
@@ -31,6 +30,7 @@ metadataContext.Database.EnsureCreated();
 Filter.Load(xmlReader, locale, env);
 
 UpdateDatabase(metadataContext, new ItemMapper(xmlReader));
+UpdateDatabase(metadataContext, new NpcMapper(xmlReader));
 
 // new MusicScoreParser(xmlReader).Parse().ToList();
 // new MusicScoreParser(xmlReader).Parse().ToList();
