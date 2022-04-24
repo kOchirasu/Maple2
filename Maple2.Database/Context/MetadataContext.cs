@@ -4,7 +4,7 @@ using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Maple2.Database.Data;
+namespace Maple2.Database.Context;
 
 public sealed class MetadataContext : DbContext {
     public DbSet<TableChecksum> TableChecksum { get; set; }

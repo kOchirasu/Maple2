@@ -1,6 +1,6 @@
 ﻿using System;
 using Autofac.Extensions.DependencyInjection;
-using Maple2.Database.Data;
+using Maple2.Database.Context;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.World;
 using Microsoft.AspNetCore.Hosting;

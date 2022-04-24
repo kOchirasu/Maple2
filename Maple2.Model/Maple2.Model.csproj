@@ -10,9 +10,6 @@
     <Protobuf Include="**/*.proto" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Game" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Maple2.Tools\Maple2.Tools.csproj" />
   </ItemGroup>
 </Project>

@@ -48,7 +48,7 @@ public partial class GameStorage {
             context.Character.Update(character);
         }
 
-        public bool DeleteCharacter(long characterId, bool force = false) {
+        public bool DeleteCharacter(long characterId) {
             Model.Character character = context.Character.Find(characterId);
             if (character == null) {
                 return false;

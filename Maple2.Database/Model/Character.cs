@@ -25,11 +25,7 @@ internal class Character {
     public short Insignia { get; set; }
 
     public static implicit operator Character(Maple2.Model.Game.Character other) {
-        if (other == null) {
-            return null;
-        }
-        
-        return new Character {
+        return other == null ? null : new Character {
             LastModified = other.LastModified,
             Id = other.Id,
             AccountId = other.AccountId,
@@ -48,11 +44,7 @@ internal class Character {
     }
 
     public static implicit operator Maple2.Model.Game.Character(Character other) {
-        if (other == null) {
-            return null;
-        }
-        
-        return new Maple2.Model.Game.Character {
+        return other == null ? null : new Maple2.Model.Game.Character {
             LastModified = other.LastModified,
             Id = other.Id,
             AccountId = other.AccountId,

@@ -1,4 +1,4 @@
-﻿using Maple2.Database.Data;
+﻿using Maple2.Database.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
