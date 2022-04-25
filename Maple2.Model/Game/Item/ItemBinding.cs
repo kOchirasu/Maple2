@@ -4,7 +4,7 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game; 
 
-public class ItemBinding : IByteSerializable {
+public class ItemBinding : IByteSerializable, IByteDeserializable {
     public static readonly ItemBinding Default = new ItemBinding();
     
     public long CharacterId { get; private set; }

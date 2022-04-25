@@ -3,7 +3,7 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game; 
 
-public class UgcItemLook : IByteSerializable {
+public class UgcItemLook : IByteSerializable, IByteDeserializable {
     public string FileName;
     public string Name;
     public long AccountId;

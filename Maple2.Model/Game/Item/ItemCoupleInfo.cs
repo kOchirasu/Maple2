@@ -3,7 +3,7 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game; 
 
-public class ItemCoupleInfo : IByteSerializable {
+public class ItemCoupleInfo : IByteSerializable, IByteDeserializable {
     public static readonly ItemCoupleInfo Default = new ItemCoupleInfo();
     
     public long CharacterId { get; private set; }

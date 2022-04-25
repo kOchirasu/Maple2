@@ -4,7 +4,9 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game; 
 
-public class ItemBadge : IByteSerializable {
+public class ItemBadge : IByteSerializable, IByteDeserializable {
+    private const int TRANSPARENCY_COUNT = 10;
+    
     public readonly int Id;
     public readonly BadgeType Type;
     public readonly bool[] Transparency;
@@ -29,8 +31,10 @@ public class ItemBadge : IByteSerializable {
             _ => BadgeType.None
         };
 
-        if (transparency is not {Length: 10}) {
-            Transparency = new bool[10];
+        if (transparency is not {Length: TRANSPARENCY_COUNT}) {
+            Transparency = new bool[TRANSPARENCY_COUNT];
+        } else {
+            Transparency = transparency;
         }
     }
     
@@ -52,6 +56,19 @@ public class ItemBadge : IByteSerializable {
     }
 
     public void ReadFrom(IByteReader reader) {
-        throw new System.NotImplementedException();
+        reader.ReadByte();
+        reader.ReadByte(); // Type
+        reader.ReadUnicodeString(); // String ItemId
+        
+        switch (Type) {
+            case BadgeType.Transparency: // Flags for each slot
+                for (int i = 0; i < TRANSPARENCY_COUNT; i++) {
+                    Transparency[i] = reader.ReadBool();
+                }
+                break;
+            case BadgeType.PetSkin: // PetId for skin
+                PetSkinId = reader.ReadInt();
+                break;
+        }
     }
 }

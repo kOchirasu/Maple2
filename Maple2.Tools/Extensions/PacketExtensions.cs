@@ -69,14 +69,14 @@ public static class PacketExtensions {
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T ReadClass<T>(this IByteReader packet) where T : IByteSerializable {
+    public static T ReadClass<T>(this IByteReader packet) where T : IByteDeserializable {
         var type = (T) FormatterServices.GetSafeUninitializedObject(typeof(T));
         type.ReadFrom(packet);
         return type;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static T ReadClassWithNew<T>(this IByteReader packet) where T : IByteSerializable, new() {
+    public static T ReadClassWithNew<T>(this IByteReader packet) where T : IByteDeserializable, new() {
         var type = new T();
         type.ReadFrom(packet);
         return type;

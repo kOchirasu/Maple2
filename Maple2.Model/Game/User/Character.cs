@@ -102,8 +102,4 @@ public class Character : IByteSerializable {
         writer.WriteShort(); // Survival related?
         writer.WriteLong();
     }
-
-    public void ReadFrom(IByteReader reader) {
-        throw new NotImplementedException();
-    }
 }

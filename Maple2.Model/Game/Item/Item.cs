@@ -8,7 +8,7 @@ using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game; 
 
-public class Item : IByteSerializable {
+public class Item : IByteSerializable, IByteDeserializable {
     public readonly ItemMetadata Metadata;
     public readonly InventoryType Inventory;
 

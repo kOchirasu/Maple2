@@ -3,7 +3,7 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game; 
 
-public class ItemPet : IByteSerializable {
+public class ItemPet : IByteSerializable, IByteDeserializable {
     public string Name;
     public long Exp;
     public int Level;

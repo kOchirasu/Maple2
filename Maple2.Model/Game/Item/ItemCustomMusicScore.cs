@@ -3,7 +3,7 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game; 
 
-public class ItemCustomMusicScore : IByteSerializable {
+public class ItemCustomMusicScore : IByteSerializable, IByteDeserializable {
     public int Length;
     public int Instrument;
     public string Title;

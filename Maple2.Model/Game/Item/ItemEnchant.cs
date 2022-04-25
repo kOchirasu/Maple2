@@ -5,7 +5,7 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game; 
 
-public class ItemEnchant : IByteSerializable {
+public class ItemEnchant : IByteSerializable, IByteDeserializable {
     public static readonly ItemEnchant Default = new ItemEnchant();
     
     public int Enchants { get; private set; }

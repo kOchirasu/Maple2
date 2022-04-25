@@ -3,7 +3,7 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game; 
 
-public class UgcItemMusicScore : IByteSerializable {
+public class UgcItemMusicScore : IByteSerializable, IByteDeserializable {
     public void WriteTo(IByteWriter writer) {
         writer.WriteLong();
         writer.WriteInt();

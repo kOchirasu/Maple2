@@ -5,7 +5,7 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game;
 
-public class ItemStats : IByteSerializable {
+public class ItemStats : IByteSerializable, IByteDeserializable {
     public static readonly ItemStats Default = new ItemStats();
     
     private const int TYPE_COUNT = 9;

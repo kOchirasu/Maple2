@@ -4,5 +4,8 @@ namespace Maple2.Tools;
 
 public interface IByteSerializable {
     public void WriteTo(IByteWriter writer);
+}
+
+public interface IByteDeserializable {
     public void ReadFrom(IByteReader reader);
 }

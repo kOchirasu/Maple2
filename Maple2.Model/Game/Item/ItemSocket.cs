@@ -5,7 +5,7 @@ using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game; 
 
-public class ItemSocket : IByteSerializable {
+public class ItemSocket : IByteSerializable, IByteDeserializable {
     public static readonly ItemSocket Default = new ItemSocket(0, 0);
     
     public byte MaxSlots;
@@ -50,7 +50,7 @@ public class ItemSocket : IByteSerializable {
     }
 }
 
-public class ItemGemstone : IByteSerializable {
+public class ItemGemstone : IByteSerializable, IByteDeserializable {
     public int ItemId;
     public ItemBinding? Binding;
     public bool IsLocked;

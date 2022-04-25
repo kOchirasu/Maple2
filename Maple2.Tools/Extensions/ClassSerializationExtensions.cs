@@ -10,7 +10,7 @@ public static class ClassSerializationExtensions {
         return writer.ToArray();
     }
 
-    public static T Deserialize<T>(this byte[] bytes) where T : IByteSerializable {
+    public static T Deserialize<T>(this byte[] bytes) where T : IByteDeserializable {
         var reader = new ByteReader(bytes);
         return reader.ReadClass<T>();
     }

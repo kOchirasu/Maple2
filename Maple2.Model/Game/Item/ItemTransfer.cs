@@ -5,7 +5,7 @@ using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game; 
 
-public class ItemTransfer : IByteSerializable {
+public class ItemTransfer : IByteSerializable, IByteDeserializable {
     public static readonly ItemTransfer Default = new ItemTransfer();
     
     public int Flag { get; private set; }
