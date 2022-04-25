@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
+using Maple2.Server.Core.Packets.Helper;
+using Maple2.Tools.Extensions;
+using Equips = System.Collections.Generic.IDictionary<Maple2.Model.Enum.EquipTab,
+    System.Collections.Generic.List<Maple2.Model.Game.Item>>;
 
-namespace Maple2.Server.Core.Packets; 
+namespace Maple2.Server.Core.Packets;
 
 public static class CharacterListPacket {
     private enum Command : byte {
@@ -18,23 +22,23 @@ public static class CharacterListPacket {
         BeginDelete = 5,
         CancelDelete = 6,
     }
-    
-    public static ByteWriter AddEntries(ICollection<Character> characters) {
+
+    public static ByteWriter AddEntries(Account account, ICollection<(Character, Equips)> entry) {
         var pWriter = Packet.Of(SendOp.CHARACTER_LIST);
         pWriter.Write<Command>(Command.List);
-        pWriter.WriteByte((byte)characters.Count); // CharCount
-        foreach (Character character in characters) {
-            pWriter.WriteEntry(character);
+        pWriter.WriteByte((byte) entry.Count); // CharCount
+        foreach ((Character character, Equips equips) in entry) {
+            pWriter.WriteEntry(account, character, equips);
         }
 
         return pWriter;
     }
 
     // Sent after creating a character to append to list
-    public static ByteWriter AppendEntry(Character character) {
+    public static ByteWriter AppendEntry(Account account, Character character, Equips equips) {
         var pWriter = Packet.Of(SendOp.CHARACTER_LIST);
         pWriter.Write<Command>(Command.AppendEntry);
-        pWriter.WriteEntry(character);
+        pWriter.WriteEntry(account, character, equips);
         return pWriter;
     }
 
@@ -83,38 +87,48 @@ public static class CharacterListPacket {
         pWriter.WriteBool(false);
         return pWriter;
     }
-    
-    private static void WriteEntry(this IByteWriter pWriter, Character character) {
-        /*pWriter.WriteCharacter(character);
-        pWriter.WriteUnicodeString(character.Character.DisplayPicture);
-        pWriter.WriteLong(); // Deletion timer
 
-        pWriter.WriteByte((byte) (character.GearEquip.Count + character.OutfitEquip.Count));
-        foreach (Item gear in character.GearEquip) {
-            pWriter.WriteEquip(gear);
-        }
-        foreach (Item outfit in character.OutfitEquip) {
-            pWriter.WriteEquip(outfit);
+    private static void WriteEntry(this IByteWriter pWriter, Account account, Character character, Equips equips) {
+        pWriter.WriteCharacter(account, character);
+        pWriter.WriteUnicodeString(character.Picture);
+        pWriter.WriteLong(character.DeleteTime);
+
+        equips.TryGetValue(EquipTab.Gear, out List<Item>? gears);
+        gears ??= new List<Item>();
+        equips.TryGetValue(EquipTab.Outfit, out List<Item>? outfits);
+        outfits ??= new List<Item>();
+        pWriter.WriteByte((byte) (gears.Count + outfits.Count));
+        foreach (Item gear in gears) {
+            pWriter.WriteInt(gear.Id);
+            pWriter.WriteLong(gear.Uid);
+            pWriter.WriteUnicodeString(gear.EquipSlot.ToString());
+            pWriter.WriteInt(gear.Rarity);
+            pWriter.WriteClass<Item>(gear);
         }
 
-        pWriter.WriteByte((byte) character.BadgeEquip.Count);
-        foreach (Item badge in character.BadgeEquip) {
-            pWriter.WriteBadge(badge as BadgeItem);
+        foreach (Item outfit in outfits) {
+            pWriter.WriteInt(outfit.Id);
+            pWriter.WriteLong(outfit.Uid);
+            pWriter.WriteUnicodeString(outfit.EquipSlot.ToString());
+            pWriter.WriteInt(outfit.Rarity);
+            pWriter.WriteClass<Item>(outfit);
         }
 
-        var boolValue = false;
-        pWriter.WriteBool(boolValue);
-        if (boolValue) {
-            pWriter.WriteLong();
-            pWriter.WriteLong();
-            var otherBoolValue = true;
-            pWriter.WriteBool(otherBoolValue);
-            if (otherBoolValue) {
-                pWriter.WriteInt();
-                pWriter.WriteLong();
-                pWriter.WriteUnicodeString("abc");
-                pWriter.WriteInt();
+        equips.TryGetValue(EquipTab.Badge, out List<Item>? badges);
+        badges ??= new List<Item>();
+        pWriter.WriteByte((byte) badges.Count);
+        foreach (Item badge in badges) {
+            if (badge.Badge == null) {
+                throw new ArgumentNullException(nameof(badge.Badge));
             }
-        }*/
+
+            pWriter.Write<BadgeType>(badge.Badge.Type);
+            pWriter.WriteInt(badge.Id);
+            pWriter.WriteLong(badge.Uid);
+            pWriter.WriteInt(badge.Rarity);
+            pWriter.WriteClass<Item>(badge);
+        }
+
+        pWriter.WriteByte(); // Outfit2
     }
 }

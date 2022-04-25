@@ -54,8 +54,7 @@ internal class Account {
             .IsUnique();
         builder.Property(account => account.MaxCharacters)
             .HasDefaultValue(4);
-        builder.HasMany(account => account.Characters)
-            .WithOne(character => character.Account);
+        builder.HasMany(account => account.Characters);
         builder.Property(account => account.Trophy).HasJsonConversion();
     }
 }

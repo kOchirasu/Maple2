@@ -25,8 +25,12 @@ public partial class GameStorage {
 
         public IList<Tuple<long, string>> ListClubs(long characterId) {
             return context.ClubMember.Where(member => member.CharacterId == characterId)
-                .Join(context.Club, member => member.ClubId, club => club.Id, 
-                    (member, club) => new Tuple<long, string>(club.Id, club.Name)).ToList();
+                .Join(
+                    context.Club, 
+                    member => member.ClubId, 
+                    club => club.Id, 
+                    (member, club) => new Tuple<long, string>(club.Id, club.Name)
+                ).ToList();
         }
         
         public Club CreateClub(Club club) {
@@ -44,25 +48,28 @@ public partial class GameStorage {
         public IList<ClubMember> GetClubMembers(long clubId) {
             return context.ClubMember.Where(member => member.ClubId == clubId)
                 .Include(member => member.Character)
-                .Include(member => member.Character.Account)
-                .Select(member => new ClubMember(
-                    new CharacterInfo(
-                        member.Character.Account.Id,
-                        member.Character.Id,
-                        member.Character.Name,
-                        member.Character.Gender,
-                        member.Character.Job,
-                        member.Character.Level,
-                        member.Character.MapId,
-                        member.Character.Profile.Picture,
-                        0,
-                        0,
-                        0,
-                        0,
-                        member.Character.Account.Trophy),
-                    member.CreationTime.ToEpochSeconds(),
-                    member.Character.LastModified.ToEpochSeconds(),
-                    false)
+                .Join(
+                    context.Account,
+                    member => member.Character.AccountId,
+                    account => account.Id,
+                    (member, account) => new ClubMember(
+                        new CharacterInfo(
+                            account.Id,
+                            member.Character.Id,
+                            member.Character.Name,
+                            member.Character.Gender,
+                            member.Character.Job,
+                            member.Character.Level,
+                            member.Character.MapId,
+                            member.Character.Profile.Picture,
+                            0,
+                            0,
+                            0,
+                            0,
+                            account.Trophy),
+                        member.CreationTime.ToEpochSeconds(),
+                        member.Character.LastModified.ToEpochSeconds(),
+                        false)
                 ).ToList();
         }
     }

@@ -2,6 +2,7 @@
 using System.Net;
 using Grpc.Core;
 using Maple2.Database.Storage;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -55,6 +56,14 @@ public class LoginHandler : PacketHandler<LoginSession> {
                 case Command.CharacterList: {
                     using GameStorage.Request db = gameStorage.Context();
                     (Account account, IList<Character> characters) = db.ListCharacters(response.AccountId);
+
+                    var entries = new List<(Character, IDictionary<EquipTab, List<Item>>)>();
+                    foreach (Character character in characters) {
+                        IDictionary<EquipTab, List<Item>> equips =
+                            db.GetEquips(character.Id, EquipTab.Gear, EquipTab.Outfit, EquipTab.Badge);
+                        entries.Add((character, equips));
+                    }
+                    
                     // TODO:
                     // Load Players by accountId+World?
                     //
@@ -65,7 +74,7 @@ public class LoginHandler : PacketHandler<LoginSession> {
                     session.Send(CharacterListPacket.StartList());
                     // Send each character data
                     logger.LogDebug("Loading character list TODO");
-                    session.Send(CharacterListPacket.AddEntries(new List<Character>()));
+                    session.Send(CharacterListPacket.AddEntries(account, entries));
                     session.Send(CharacterListPacket.EndList());
                     return;
                 }

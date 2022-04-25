@@ -33,9 +33,7 @@ public partial class GameStorage {
         }
 
         public Character GetCharacter(long characterId) {
-            return context.Character
-                .Include(character => character.Account)
-                .SingleOrDefault(character => character.Id == characterId);
+            return context.Character.Find(characterId);
         }
 
         public Character CreateCharacter(Character character) {

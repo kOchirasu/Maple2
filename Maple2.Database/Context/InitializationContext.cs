@@ -64,14 +64,16 @@ public sealed class InitializationContext : DbContext {
                     Fishing = 100
                 }
             },
-            Profile = new Profile()
+            Profile = new Profile(),
+            Cooldown = new Cooldown(),
         };
         Character.Add(character);
         var character2 = new Character {
             AccountId = account.Id,
             Name = "Second",
             Experience = new Experience(),
-            Profile = new Profile()
+            Profile = new Profile(),
+            Cooldown = new Cooldown(),
         };
         Character.Add(character2);
         SaveChanges();

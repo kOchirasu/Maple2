@@ -12,7 +12,6 @@ internal class Character {
     public DateTime LastModified { get; set; }
 
     public long AccountId { get; set; }
-    public Account Account { get; set; }
     
     public long Id { get; set; }
     public string Name { get; set; }
@@ -23,11 +22,12 @@ internal class Character {
     public int MapId { get; set; }
     public Experience Experience { get; set; }
     public Profile Profile { get; set; }
+    public Cooldown Cooldown { get; set; }
+    public DateTime DeleteTime { get; set; }
 
     public static implicit operator Character(Maple2.Model.Game.Character other) {
         return other == null ? null : new Character {
             AccountId = other.AccountId,
-            Account = other.Account,
             Id = other.Id,
             Name = other.Name,
             Gender = other.Gender,
@@ -46,13 +46,17 @@ internal class Character {
                 Title = other.Title,
                 Insignia = other.Insignia,
             },
+            Cooldown = new Cooldown {
+                Doctor = other.DoctorCooldown,
+                Storage = other.StorageCooldown,
+            },
+            DeleteTime = other.DeleteTime.FromEpochSeconds(),
         };
     }
 
     public static implicit operator Maple2.Model.Game.Character(Character other) {
         return other == null ? null : new Maple2.Model.Game.Character {
             AccountId = other.AccountId,
-            Account = other.Account,
             Id = other.Id,
             Name = other.Name,
             CreationTime = other.CreationTime.ToEpochSeconds(),
@@ -69,13 +73,16 @@ internal class Character {
             Title = other.Profile.Title,
             Insignia = other.Profile.Insignia,
             Mastery = other.Experience.Mastery,
+            DoctorCooldown = other.Cooldown.Doctor,
+            StorageCooldown = other.Cooldown.Storage,
+            DeleteTime = other.DeleteTime.ToEpochSeconds(),
         };
     }
 
     public static void Configure(EntityTypeBuilder<Character> builder) {
         builder.Property(character => character.LastModified).IsRowVersion();
         builder.HasKey(character => character.Id);
-        builder.HasOne<Account>(character => character.Account)
+        builder.HasOne<Account>()
             .WithMany(account => account.Characters)
             .HasForeignKey(character => character.AccountId);
         builder.HasIndex(character => character.Name).IsUnique();
@@ -84,6 +91,7 @@ internal class Character {
         builder.Property(character => character.SkinColor).HasJsonConversion().IsRequired();
         builder.Property(character => character.Experience).HasJsonConversion().IsRequired();
         builder.Property(character => character.Profile).HasJsonConversion().IsRequired();
+        builder.Property(character => character.Cooldown).HasJsonConversion().IsRequired();
     }
 }
 
@@ -98,4 +106,9 @@ internal class Profile {
     public string Picture { get; set; }
     public int Title { get; set; }
     public short Insignia { get; set; }
+}
+
+internal class Cooldown {
+    public long Storage { get; set; }
+    public long Doctor { get; set; }
 }
