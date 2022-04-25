@@ -10,12 +10,12 @@ public record CharacterInfo(
         Job Job, 
         short Level,
         int MapId, 
-        string ProfileUrl, 
+        string Picture, 
         int PlotMapId, 
         int PlotId, 
         int ApartmentNumber, 
         long PlotExpiration, 
-        int[] Trophy) {
+        Trophy Trophy) {
     
     public JobCode JobCode => (JobCode)((int)Job / 10);
 }

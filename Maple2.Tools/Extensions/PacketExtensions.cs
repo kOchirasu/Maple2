@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using ICSharpCode.SharpZipLib.Zip.Compression;
@@ -55,6 +56,12 @@ public static class PacketExtensions {
         return writer;
     }
 
+    public static void WriteArray<T, TV>(this T writer, in TV[] values) where T : IByteWriter where TV : struct {
+        foreach (TV value in values) {
+            writer.Write<TV>(value);
+        }
+    }
+
     // Allows writing packet generically from class
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void WriteClass<T>(this IByteWriter writer, T type) where T : IByteSerializable {
@@ -92,7 +99,7 @@ public static class PacketExtensions {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static ICollection<T> ReadCollection<T>(this IByteReader packet) where T : struct {
         if (packet.Available < INT_SIZE) {
-            return new T[0];
+            return Array.Empty<T>();
         }
 
         int count = packet.ReadInt();

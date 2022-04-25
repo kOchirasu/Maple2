@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Maple2.Database.Extensions;
+using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -13,6 +15,7 @@ internal class Account {
     public int MaxCharacters { get; set; }
     public int PrestigeLevel { get; set; }
     public long PrestigeExp { get; set; }
+    public Trophy Trophy { get; set; }
     public long PremiumTime { get; set; }
 
     public ICollection<Character> Characters { get; set; }
@@ -21,11 +24,11 @@ internal class Account {
         return other == null ? null : new Account {
             Id = other.Id,
             Username = other.Username,
-            LastModified = other.LastModified,
             Merets = other.Merets,
             MaxCharacters = other.MaxCharacters,
             PrestigeLevel = other.PrestigeLevel,
             PrestigeExp = other.PrestigeExp,
+            Trophy = other.Trophy,
             PremiumTime = other.PremiumTime,
         };
     }
@@ -34,11 +37,11 @@ internal class Account {
         return other == null ? null : new Maple2.Model.Game.Account {
             Id = other.Id,
             Username = other.Username,
-            LastModified = other.LastModified,
             Merets = other.Merets,
             MaxCharacters = other.MaxCharacters,
             PrestigeLevel = other.PrestigeLevel,
             PrestigeExp = other.PrestigeExp,
+            Trophy = other.Trophy,
             PremiumTime = other.PremiumTime,
         };
     }
@@ -46,10 +49,13 @@ internal class Account {
     public static void Configure(EntityTypeBuilder<Account> builder) {
         builder.Property(account => account.LastModified).IsRowVersion();
         builder.HasKey(account => account.Id);
+        builder.Property(account => account.Username).IsRequired();
         builder.HasIndex(account => account.Username)
             .IsUnique();
         builder.Property(account => account.MaxCharacters)
             .HasDefaultValue(4);
-        builder.HasMany(account => account.Characters);
+        builder.HasMany(account => account.Characters)
+            .WithOne(character => character.Account);
+        builder.Property(account => account.Trophy).HasJsonConversion();
     }
 }

@@ -1,6 +1,12 @@
 ﻿using System.Collections.Generic;
 using Maple2.Database.Model;
+using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
+using Account = Maple2.Database.Model.Account;
+using Character = Maple2.Database.Model.Character;
+using Club = Maple2.Database.Model.Club;
+using ClubMember = Maple2.Database.Model.ClubMember;
+using Item = Maple2.Database.Model.Item;
 
 namespace Maple2.Database.Context;
 
@@ -43,17 +49,30 @@ public sealed class InitializationContext : DbContext {
     }
 
     public void TestTables() {
-        var account = new Account();
+        var account = new Account {
+            Username = "Username"
+        };
         Account.Add(account);
         SaveChanges();
         
-        var character = new Character();
-        character.AccountId = account.Id;
-        character.Name = "First";
+        var character = new Character {
+            AccountId = account.Id,
+            Name = "First",
+            Experience = new Experience {
+                Exp = 1000000,
+                Mastery = new Mastery {
+                    Fishing = 100
+                }
+            },
+            Profile = new Profile()
+        };
         Character.Add(character);
-        var character2 = new Character();
-        character2.AccountId = account.Id;
-        character2.Name = "Second";
+        var character2 = new Character {
+            AccountId = account.Id,
+            Name = "Second",
+            Experience = new Experience(),
+            Profile = new Profile()
+        };
         Character.Add(character2);
         SaveChanges();
 

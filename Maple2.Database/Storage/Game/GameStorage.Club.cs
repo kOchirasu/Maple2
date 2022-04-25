@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Model.Game;
+using Microsoft.EntityFrameworkCore;
 
 namespace Maple2.Database.Storage;
 
@@ -42,21 +43,23 @@ public partial class GameStorage {
 
         public IList<ClubMember> GetClubMembers(long clubId) {
             return context.ClubMember.Where(member => member.ClubId == clubId)
+                .Include(member => member.Character)
+                .Include(member => member.Character.Account)
                 .Select(member => new ClubMember(
                     new CharacterInfo(
-                        member.Character.AccountId,
+                        member.Character.Account.Id,
                         member.Character.Id,
                         member.Character.Name,
                         member.Character.Gender,
                         member.Character.Job,
                         member.Character.Level,
                         member.Character.MapId,
-                        "",
+                        member.Character.Profile.Picture,
                         0,
                         0,
                         0,
                         0,
-                        new int[3]),
+                        member.Character.Account.Trophy),
                     member.CreationTime.ToEpochSeconds(),
                     member.Character.LastModified.ToEpochSeconds(),
                     false)

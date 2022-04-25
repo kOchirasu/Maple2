@@ -9,11 +9,13 @@ namespace Maple2.Model.Game;
 
 public class Character : IByteSerializable {
     #region Immutable
-    public DateTime CreationTime { get; init; }
-    public DateTime LastModified { get; init; }
+    public long CreationTime { get; init; }
+    public long LastModified { get; init; }
 
     public long Id { get; init; }
     public long AccountId { get; init; }
+    
+    public Account Account { get; init; }
     #endregion
 
     public DateTimeOffset DeleteTime;
@@ -21,12 +23,12 @@ public class Character : IByteSerializable {
     public string Name;
     public Gender Gender;
     public int MapId;
-    public short Level;
     public JobCode JobCode => (JobCode)((int)Job / 10);
     public Job Job;
     
     public SkinColor SkinColor;
-    public long Experience;
+    public short Level;
+    public long Exp;
     public long RestExp;
     
     public int Title;
@@ -41,6 +43,10 @@ public class Character : IByteSerializable {
 
     public int ReturnMapId;
     public Vector3 ReturnPosition;
+    public Trophy Trophy;
+    public string Motto;
+    public string Picture;
+    public Mastery Mastery;
 
     public void WriteTo(IByteWriter writer) {
         writer.WriteLong(AccountId);
@@ -65,6 +71,36 @@ public class Character : IByteSerializable {
         writer.WriteLong(DoctorCooldown);
         writer.WriteInt(ReturnMapId);
         writer.Write<Vector3>(ReturnPosition);
+        writer.WriteInt(); // GearScore
+        writer.Write<SkinColor>(SkinColor);
+        writer.WriteLong(CreationTime);
+        writer.Write<Trophy>(Trophy);
+        writer.WriteLong(); // GuildId
+        writer.WriteUnicodeString(); // GuildName
+        writer.WriteUnicodeString(Motto);
+        writer.WriteUnicodeString(Picture);
+        writer.WriteByte(); // Club Count
+        writer.WriteByte(); // PCBang related?
+        writer.Write<Mastery>(Mastery);
+        #region Unknown
+        writer.WriteUnicodeString();
+        writer.WriteLong();
+        writer.WriteLong();
+        writer.WriteLong();
+        #endregion
+        writer.WriteInt(); // Unknown Count
+        writer.WriteByte();
+        writer.WriteBool(false);
+        writer.WriteLong(); // Birthday
+        writer.WriteInt();
+        writer.WriteInt();
+        writer.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+        writer.WriteInt(Account.PrestigeLevel); // PrestigeLevel
+        writer.WriteLong(LastModified);
+        writer.WriteInt(); // Unknown Count
+        writer.WriteInt(); // Unknown Count
+        writer.WriteShort(); // Survival related?
+        writer.WriteLong();
     }
 
     public void ReadFrom(IByteReader reader) {
