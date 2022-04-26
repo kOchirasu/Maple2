@@ -7,6 +7,7 @@ public class Account {
     public long Id { get; init; }
     
     public string Username { get; init; }
+    public Guid MachineId { get; set; }
     #endregion
 
     public long Merets { get; set; }

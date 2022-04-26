@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Net;
+using Google.Protobuf;
 using Grpc.Core;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
@@ -37,15 +39,23 @@ public class LoginHandler : PacketHandler<LoginSession> {
         var command = packet.Read<Command>();
         string user = packet.ReadUnicodeString();
         string pass = packet.ReadUnicodeString();
+        packet.ReadShort(); // 1
+        var machineId = packet.Read<Guid>();
 
         try {
             logger.LogDebug("Logging in with user:{User} pass:{Pass}", user, pass);
-            LoginResponse response = global.Login(new LoginRequest {Username = user, Password = pass});
+            LoginResponse response = global.Login(new LoginRequest {
+                Username = user,
+                Password = pass,
+                MachineId = machineId.ToString(),
+            });
             if (response.Code != LoginResponse.Types.Code.Ok) {
                 session.Send(LoginResultPacket.Error((byte) response.Code, response.Message, response.AccountId));
                 session.Disconnect();
                 return;
             }
+
+            session.AccountId = response.AccountId;
 
             switch (command) {
                 case Command.ServerList:
@@ -55,7 +65,7 @@ public class LoginHandler : PacketHandler<LoginSession> {
                     return;
                 case Command.CharacterList: {
                     using GameStorage.Request db = gameStorage.Context();
-                    (Account account, IList<Character> characters) = db.ListCharacters(response.AccountId);
+                    (Account account, IList<Character> characters) = db.ListCharacters(session.AccountId);
 
                     var entries = new List<(Character, IDictionary<EquipTab, List<Item>>)>();
                     foreach (Character character in characters) {
@@ -73,7 +83,6 @@ public class LoginHandler : PacketHandler<LoginSession> {
                     session.Send(CharacterListPacket.SetMax(account.MaxCharacters, ServerMaxCharacters));
                     session.Send(CharacterListPacket.StartList());
                     // Send each character data
-                    logger.LogDebug("Loading character list TODO");
                     session.Send(CharacterListPacket.AddEntries(account, entries));
                     session.Send(CharacterListPacket.EndList());
                     return;

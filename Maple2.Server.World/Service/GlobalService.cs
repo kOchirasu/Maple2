@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
+using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Maple2.Database.Storage;
@@ -32,13 +34,24 @@ public partial class GlobalService : Global.GlobalBase {
 
         // Normalize username
         string username = request.Username.Trim().ToLower();
+        var machineId = new Guid(request.MachineId);
 
         using GameStorage.Request db = gameStorage.Context();
         Account account = db.GetAccount(username);
         // Create account if not exists.
         if (account == null) {
-            account = new Account {Username = username};
+            account = new Account {
+                Username = username,
+                MachineId = machineId,
+            };
             account = db.CreateAccount(account);
+        } else {
+            if (account.MachineId == default) {
+                account.MachineId = machineId;
+                db.UpdateAccount(account, true);
+            } else if (account.MachineId != machineId) {
+                return Task.FromResult(new LoginResponse {Code = LoginResponse.Types.Code.BlockNexonSn});
+            }
         }
         
         return Task.FromResult(new LoginResponse{AccountId = account.Id});

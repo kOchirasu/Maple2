@@ -42,9 +42,6 @@ public abstract class Session : IDisposable {
     private readonly QueuedPipeScheduler pipeScheduler;
     private readonly Pipe recvPipe;
 
-    public long AccountId { get; internal set; }
-    public long CharacterId { get; internal set; }
-
     protected abstract PatchType Type { get; }
     protected readonly ILogger logger;
 

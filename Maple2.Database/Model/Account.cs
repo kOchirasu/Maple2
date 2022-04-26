@@ -10,6 +10,7 @@ namespace Maple2.Database.Model;
 internal class Account {
     public long Id { get; set; }
     public string Username { get; set; }
+    public Guid MachineId { get; set; }
     public DateTime LastModified { get; set; }
     public long Merets { get; set; }
     public int MaxCharacters { get; set; }
@@ -24,6 +25,7 @@ internal class Account {
         return other == null ? null : new Account {
             Id = other.Id,
             Username = other.Username,
+            MachineId = other.MachineId,
             Merets = other.Merets,
             MaxCharacters = other.MaxCharacters,
             PrestigeLevel = other.PrestigeLevel,
@@ -37,6 +39,7 @@ internal class Account {
         return other == null ? null : new Maple2.Model.Game.Account {
             Id = other.Id,
             Username = other.Username,
+            MachineId = other.MachineId,
             Merets = other.Merets,
             MaxCharacters = other.MaxCharacters,
             PrestigeLevel = other.PrestigeLevel,

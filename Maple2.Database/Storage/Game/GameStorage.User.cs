@@ -23,6 +23,15 @@ public partial class GameStorage {
             context.Account.Add(model);
             return context.TrySaveChanges() ? model : null;
         }
+
+        public bool UpdateAccount(Account account, bool commit = false) {
+            context.Account.Update(account);
+            if (commit) {
+                return context.TrySaveChanges();
+            }
+
+            return true;
+        }
         
         public (Account, IList<Character>) ListCharacters(long accountId) {
             Model.Account model = context.Account
