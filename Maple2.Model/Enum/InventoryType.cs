@@ -18,14 +18,4 @@ public enum InventoryType : byte {
     //Mushtopia = 14,
     Lapenshard = 15,
     Fragment = 16,
-    // Equip
-    GearEquip = 20,
-    OutfitEquip = 21,
-    BadgeEquip = 22,
-    LapenshardEquip = 23,
-    // Storage
-    Trade = 30,
-    Storage = 31,
-    PetStorage = 32,
-    FurnishingStorage = 33,
 }

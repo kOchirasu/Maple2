@@ -13,11 +13,16 @@ public readonly record struct Color(byte Blue, byte Green, byte Red, byte Alpha)
 public readonly struct SkinColor {
     public Color Primary { get; }
     public Color Secondary { get; }
-
-    [JsonConstructor]
+    
     public SkinColor(Color color) {
-        this.Primary = color;
-        this.Secondary = color;
+        Primary = color;
+        Secondary = color;
+    }
+    
+    [JsonConstructor]
+    public SkinColor(Color primary, Color secondary) {
+        Primary = primary;
+        Secondary = secondary;
     }
 
     public override string ToString() => $"Primary:{Primary}|Secondary:{Secondary}";

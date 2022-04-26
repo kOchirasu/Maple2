@@ -23,7 +23,7 @@ public class Character {
     public Job Job;
     
     public SkinColor SkinColor;
-    public short Level;
+    public short Level = 1;
     public long Exp;
     public long RestExp;
     
@@ -39,7 +39,7 @@ public class Character {
 
     public int ReturnMapId;
     public Vector3 ReturnPosition;
-    public string Motto;
-    public string Picture;
+    public string Motto = string.Empty;
+    public string Picture = string.Empty;
     public Mastery Mastery;
 }

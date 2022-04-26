@@ -144,7 +144,7 @@ internal class Item {
         builder.Property(character => character.CreationTime)
             .ValueGeneratedOnAdd();
         
-        builder.Property(item => item.Appearance).HasJsonConversion();
+        builder.Property(item => item.Appearance).HasJsonConversion().IsRequired();
         builder.Property(item => item.Stats).HasJsonConversion();
         builder.Property(item => item.Enchant).HasJsonConversion();
         builder.Property(item => item.LimitBreak).HasJsonConversion();

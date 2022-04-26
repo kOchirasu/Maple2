@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Net;
 using Grpc.Core;
+using Maple2.Database.Storage;
 using Maple2.Model.Common;
 using Maple2.Model.Enum;
-using Maple2.Model.Error;
+using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
@@ -11,6 +14,11 @@ using Maple2.Server.Core.Packets;
 using Maple2.Server.Login.Session;
 using Maple2.Server.World.Service;
 using Microsoft.Extensions.Logging;
+using static Maple2.Model.Enum.EquipSlot;
+using static Maple2.Model.Error.CharacterCreateError;
+using static Maple2.Model.Error.CharacterDeleteError;
+using static Maple2.Model.Error.MigrationError;
+using Enum = System.Enum;
 using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
 namespace Maple2.Server.Login.PacketHandlers;
@@ -18,7 +26,11 @@ namespace Maple2.Server.Login.PacketHandlers;
 public class CharacterManagementHandler : PacketHandler<LoginSession> {
     public override ushort OpCode => RecvOp.CHARACTER_MANAGEMENT;
 
-    private enum Type : byte {
+    // From contants.xml
+    private const int CharacterDestroyDivisionLevel = 20;
+    private const int CharacterDestroyWaitSecond = 86400;
+
+    private enum Command : byte {
         Select = 0,
         Create = 1,
         Delete = 2,
@@ -26,38 +38,50 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
     }
 
     private readonly WorldClient world;
+    private readonly GameStorage gameStorage;
+    private readonly ItemMetadataStorage itemMetadata;
 
-    public CharacterManagementHandler(WorldClient world, ILogger<CharacterManagementHandler> logger) : base(logger) {
+    public CharacterManagementHandler(WorldClient world, GameStorage gameStorage, ItemMetadataStorage itemMetadata,
+            ILogger<CharacterManagementHandler> logger) : base(logger) {
         this.world = world;
+        this.gameStorage = gameStorage;
+        this.itemMetadata = itemMetadata;
     }
 
     public override void Handle(LoginSession session, IByteReader packet) {
-        var type = packet.Read<Type>();
-        switch (type) {
-            case Type.Select:
+        var command = packet.Read<Command>();
+        switch (command) {
+            case Command.Select:
                 HandleSelect(session, packet);
                 break;
-            case Type.Create:
+            case Command.Create:
                 HandleCreate(session, packet);
                 break;
-            case Type.Delete:
+            case Command.Delete:
                 HandleDelete(session, packet);
                 break;
-            case Type.CancelDelete:
+            case Command.CancelDelete:
                 HandleCancelDelete(session, packet);
                 break;
             default:
-                throw new ArgumentException($"Invalid CHARACTER_MANAGEMENT type {type}");
+                throw new ArgumentException($"Invalid CHARACTER_MANAGEMENT type {command}");
         }
     }
 
     private void HandleSelect(LoginSession session, IByteReader packet) {
         long characterId = packet.ReadLong();
-        packet.ReadShort(); // 01 00
+        packet.ReadShort(); // 01 00, world? channel?
 
         try {
+            using GameStorage.Request db = gameStorage.Context();
+            Character character = db.GetCharacter(characterId, session.Account.Id);
+            if (character == null) {
+                session.Send(MigrationPacket.LoginToGameError(s_move_err_default, "Invalid character"));
+                return;
+            }
+            
             var request = new MigrateOutRequest {
-                AccountId = session.AccountId,
+                AccountId = session.Account.Id,
                 CharacterId = characterId
             };
             
@@ -65,11 +89,11 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
             
             MigrateOutResponse response = world.MigrateOut(request);
             var endpoint = new IPEndPoint(IPAddress.Parse(response.IpAddress), response.Port);
-            
-            session.Send(MigrationPacket.LoginToGame(endpoint, response.Token, 2000062));
+
+            session.Send(MigrationPacket.LoginToGame(endpoint, response.Token, character.MapId));
             session.Disconnect();
         } catch (RpcException ex) {
-            session.Send(MigrationPacket.LoginToGameError(MigrationError.s_move_err_default, ex.Message));
+            session.Send(MigrationPacket.LoginToGameError(s_move_err_default, ex.Message));
         }
     }
 
@@ -81,13 +105,121 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
 
         var skinColor = packet.Read<SkinColor>();
         packet.Skip(2); // Unknown
+        
+        // TODO: Validate items table/defaultitems.xml
+        var outfits = new List<Item>();
+        int equipCount = packet.ReadByte();
+        for (int i = 0; i < equipCount; i++) {
+            int id = packet.ReadInt();
+            string slotStr = packet.ReadUnicodeString();
+            if (!Enum.TryParse(slotStr, out EquipSlot slot) || slot is SK or OH or Unknown) {
+                session.Send(CharacterCreatePacket.Error(s_char_err_invalid_def_item));
+                return;
+            }
+
+            var outfit = new Item(itemMetadata.Get(id)) {
+                EquipTab = EquipTab.Outfit,
+                EquipSlot = slot,
+            };
+            Debug.Assert(outfit.Appearance != null, "equip.Appearance == null");
+            outfit.Appearance.ReadFrom(packet);
+            outfits.Add(outfit);
+            //logger.LogInformation(" > {Slot} - id:{Id}, color:{Color}", slot, id, equip.Appearance.Color);
+        }
+
+        packet.Skip(4); // Unknown
+
+        var character = new Character {
+            AccountId = session.Account.Id,
+            Gender = gender,
+            Job = job,
+            Name = name,
+            SkinColor = skinColor,
+        };
+        
+        using GameStorage.Request db = gameStorage.Context();
+        character = db.CreateCharacter(character);
+        foreach (Item outfit in outfits) {
+            db.CreateItem(outfit, character.Id);
+        }
+        
+        session.Send(CharacterListPacket.SetMax(session.Account.MaxCharacters, 8));
+        session.Send(CharacterListPacket.AppendEntry(session.Account, character,
+            new Dictionary<EquipTab, List<Item>> {{EquipTab.Outfit, outfits}}));
     }
 
     private void HandleDelete(LoginSession session, IByteReader packet) {
         long characterId = packet.ReadLong();
+        
+        using GameStorage.Request db = gameStorage.Context();
+        Character character = db.GetCharacter(characterId, session.Account.Id);
+        if (!ValidateDeleteRequest(session, characterId, character)) {
+            return;
+        }
+
+        // Delete already pending
+        if (character.DeleteTime != default) {
+            if (character.DeleteTime <= DateTimeOffset.Now.ToUnixTimeSeconds()) {
+                DeleteCharacter(session, db, characterId);
+            } else {
+                session.Send(CharacterListPacket.BeginDelete(characterId, character.DeleteTime, 
+                    s_char_err_next_delete_char_date));
+            }
+            return;
+        }
+
+        if (character.Level >= CharacterDestroyDivisionLevel) {
+            character.DeleteTime = DateTimeOffset.UtcNow.AddSeconds(CharacterDestroyWaitSecond).ToUnixTimeSeconds();
+            db.UpdateCharacter(character);
+            db.Commit();
+            session.Send(CharacterListPacket.BeginDelete(characterId, character.DeleteTime));
+        } else {
+            DeleteCharacter(session, db, characterId);
+        }
     }
 
     private void HandleCancelDelete(LoginSession session, IByteReader packet) {
         long characterId = packet.ReadLong();
+        
+        using GameStorage.Request db = gameStorage.Context();
+        Character character = db.GetCharacter(characterId, session.Account.Id);
+        if (!ValidateDeleteRequest(session, characterId, character)) {
+            return;
+        }
+
+        if (character.DeleteTime == default) {
+            session.Send(CharacterListPacket.CancelDelete(characterId, s_char_err_no_destroy_wait));
+            return;
+        }
+
+        // Remove DeleteTime
+        character.DeleteTime = default;
+        db.UpdateCharacter(character);
+        db.Commit();
+        session.Send(CharacterListPacket.CancelDelete(characterId));
+    }
+
+    private static bool ValidateDeleteRequest(LoginSession session, long characterId, Character character) {
+        // This character does not exist or is not owned by session's account.
+        if (character == null || character.AccountId != session.Account.Id) {
+            session.Send(CharacterListPacket.DeleteEntry(characterId, s_char_err_destroy));
+            return false;
+        }
+
+        if (character.AccountId == 0) {
+            session.Send(CharacterListPacket.DeleteEntry(characterId, s_char_err_already_destroy));
+            return false;
+        }
+
+        return true;
+    }
+    
+    private static void DeleteCharacter(LoginSession session, GameStorage.Request db, long characterId) {
+        if (!db.DeleteCharacter(characterId)) {
+            session.Send(CharacterListPacket.DeleteEntry(characterId, s_char_err_destroy));
+            return;
+        }
+        
+        session.Send(CharacterListPacket.DeleteEntry(characterId));
     }
 }

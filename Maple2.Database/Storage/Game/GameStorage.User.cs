@@ -41,8 +41,15 @@ public partial class GameStorage {
             return (model, model?.Characters.Select<Model.Character, Character>(c => c).ToList());
         }
 
-        public Character GetCharacter(long characterId) {
-            return context.Character.Find(characterId);
+        //  If accountId is specified, only characters for the account will be returned.
+        public Character GetCharacter(long characterId, long accountId = -1) {
+            if (accountId < 0) {
+                return context.Character.Find(characterId);
+            }
+            
+            // Limit character fetching to those owned by account.
+            return context.Character.SingleOrDefault(character => 
+                character.Id == characterId && character.AccountId == accountId);
         }
 
         public Character CreateCharacter(Character character) {

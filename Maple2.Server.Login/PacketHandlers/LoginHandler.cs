@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
-using Google.Protobuf;
 using Grpc.Core;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
@@ -55,8 +54,6 @@ public class LoginHandler : PacketHandler<LoginSession> {
                 return;
             }
 
-            session.AccountId = response.AccountId;
-
             switch (command) {
                 case Command.ServerList:
                     session.Send(BannerListPacket.SetBanner());
@@ -65,7 +62,7 @@ public class LoginHandler : PacketHandler<LoginSession> {
                     return;
                 case Command.CharacterList: {
                     using GameStorage.Request db = gameStorage.Context();
-                    (Account account, IList<Character> characters) = db.ListCharacters(session.AccountId);
+                    (session.Account, IList<Character> characters) = db.ListCharacters(response.AccountId);
 
                     var entries = new List<(Character, IDictionary<EquipTab, List<Item>>)>();
                     foreach (Character character in characters) {
@@ -78,12 +75,12 @@ public class LoginHandler : PacketHandler<LoginSession> {
                     // Load Players by accountId+World?
                     //
                     // Console.WriteLine("Initializing login with " + session.Account.Id);
-                    session.Send(LoginResultPacket.Success(account.Id));
+                    session.Send(LoginResultPacket.Success(session.Account.Id));
                     //session.Send(UgcPacket.SetEndpoint("http://127.0.0.1/ws.asmx?wsdl", "http://127.0.0.1"));
-                    session.Send(CharacterListPacket.SetMax(account.MaxCharacters, ServerMaxCharacters));
+                    session.Send(CharacterListPacket.SetMax(session.Account.MaxCharacters, ServerMaxCharacters));
                     session.Send(CharacterListPacket.StartList());
                     // Send each character data
-                    session.Send(CharacterListPacket.AddEntries(account, entries));
+                    session.Send(CharacterListPacket.AddEntries(session.Account, entries));
                     session.Send(CharacterListPacket.EndList());
                     return;
                 }

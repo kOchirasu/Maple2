@@ -1,5 +1,6 @@
 ﻿using Grpc.Core;
 using Maple2.Database.Storage;
+using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -37,8 +38,9 @@ public class ResponseKeyHandler : PacketHandler<GameSession> {
             MigrateInResponse response = worldClient.MigrateIn(request);
             using (GameStorage.Request db = gameStorage.Context()) {
                 var Account = db.GetAccount(accountId);
+                var Character = db.GetCharacter(response.CharacterId, accountId);
+                db.GetEquips(Character.Id, EquipTab.Gear, EquipTab.Outfit, EquipTab.Badge);
             }
-            var CharacterId = response.CharacterId;
 
             session.Send(Packet.Of(SendOp.REQUEST_SYSTEM_INFO));
             session.Send(MigrationPacket.MoveResult(MigrationError.ok));

@@ -8,8 +8,9 @@ namespace Maple2.Database.Storage;
 
 public partial class GameStorage {
     public partial class Request {
-        public Item CreateItem(Item item) {
+        public Item CreateItem(Item item, long ownerId = -1) {
             Model.Item model = item;
+            model.OwnerId = ownerId;
             model.Id = 0;
             context.Item.Add(model);
             if (!context.TrySaveChanges()) {
@@ -26,6 +27,7 @@ public partial class GameStorage {
 
         public IDictionary<EquipTab, List<Item>> GetEquips(long characterId, params EquipTab[] tab) {
             return context.Item.Where(item => item.OwnerId == characterId && tab.Contains(item.EquipTab))
+                .AsEnumerable()
                 .GroupBy(item => item.EquipTab)
                 .ToDictionary(
                     group => group.Key,
