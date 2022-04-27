@@ -64,13 +64,14 @@ public partial class GameStorage {
             context.Character.Update(character);
         }
 
-        public bool DeleteCharacter(long characterId) {
-            Model.Character character = context.Character.Find(characterId);
+        public bool DeleteCharacter(long characterId, long accountId) {
+            Model.Character character = context.Character.SingleOrDefault(character => 
+                character.Id == characterId && character.AccountId == accountId);
             if (character == null) {
                 return false;
             }
 
-            character.AccountId = 0;
+            context.Remove(character);
             return context.TrySaveChanges();
         }
     }

@@ -10,9 +10,7 @@ public class Ms2Context : DbContext {
     internal DbSet<Club> Club { get; set; }
     internal DbSet<ClubMember> ClubMember { get; set; }
 
-    public Ms2Context(DbContextOptions options) : base(options) {
-        ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-    }
+    public Ms2Context(DbContextOptions options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);

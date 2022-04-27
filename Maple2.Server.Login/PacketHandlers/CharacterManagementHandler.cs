@@ -136,13 +136,12 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
             Name = name,
             SkinColor = skinColor,
         };
-        
-        using GameStorage.Request db = gameStorage.Context();
-        character = db.CreateCharacter(character);
-        foreach (Item outfit in outfits) {
-            db.CreateItem(outfit, character.Id);
+
+        using (GameStorage.Request db = gameStorage.Transaction()) {
+            character = db.CreateCharacter(character);
+            outfits = db.CreateItems(character.Id, outfits.ToArray());
         }
-        
+
         session.Send(CharacterListPacket.SetMax(session.Account.MaxCharacters, 8));
         session.Send(CharacterListPacket.AppendEntry(session.Account, character,
             new Dictionary<EquipTab, List<Item>> {{EquipTab.Outfit, outfits}}));
@@ -195,18 +194,14 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
         // Remove DeleteTime
         character.DeleteTime = default;
         db.UpdateCharacter(character);
-        db.Commit();
-        session.Send(CharacterListPacket.CancelDelete(characterId));
+        if (db.SaveChanges()) {
+            session.Send(CharacterListPacket.CancelDelete(characterId));
+        }
     }
 
     private static bool ValidateDeleteRequest(LoginSession session, long characterId, Character character) {
         // This character does not exist or is not owned by session's account.
-        if (character == null || character.AccountId != session.Account.Id) {
-            session.Send(CharacterListPacket.DeleteEntry(characterId, s_char_err_destroy));
-            return false;
-        }
-
-        if (character.AccountId == 0) {
+        if (character == null) {
             session.Send(CharacterListPacket.DeleteEntry(characterId, s_char_err_already_destroy));
             return false;
         }
@@ -215,7 +210,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
     }
     
     private static void DeleteCharacter(LoginSession session, GameStorage.Request db, long characterId) {
-        if (!db.DeleteCharacter(characterId)) {
+        if (!db.DeleteCharacter(characterId, session.Account.Id)) {
             session.Send(CharacterListPacket.DeleteEntry(characterId, s_char_err_destroy));
             return;
         }

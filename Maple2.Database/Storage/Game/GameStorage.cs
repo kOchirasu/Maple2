@@ -19,6 +19,12 @@ public partial class GameStorage {
         return new Request(this, new Ms2Context(options), logger);
     }
 
+    public Request Transaction() {
+        var request = new Request(this, new Ms2Context(options), logger);
+        request.BeginTransaction();
+        return request;
+    }
+
     public partial class Request : DatabaseRequest<Ms2Context> {
         private readonly GameStorage game;
 
