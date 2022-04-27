@@ -26,10 +26,6 @@ namespace Maple2.Server.Login.PacketHandlers;
 public class CharacterManagementHandler : PacketHandler<LoginSession> {
     public override ushort OpCode => RecvOp.CHARACTER_MANAGEMENT;
 
-    // From contants.xml
-    private const int CharacterDestroyDivisionLevel = 20;
-    private const int CharacterDestroyWaitSecond = 86400;
-
     private enum Command : byte {
         Select = 0,
         Create = 1,
@@ -142,7 +138,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
             outfits = db.CreateItems(character.Id, outfits.ToArray());
         }
 
-        session.Send(CharacterListPacket.SetMax(session.Account.MaxCharacters, 8));
+        session.Send(CharacterListPacket.SetMax(session.Account.MaxCharacters, Constant.ServerMaxCharacters));
         session.Send(CharacterListPacket.AppendEntry(session.Account, character,
             new Dictionary<EquipTab, List<Item>> {{EquipTab.Outfit, outfits}}));
     }
@@ -167,8 +163,8 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
             return;
         }
 
-        if (character.Level >= CharacterDestroyDivisionLevel) {
-            character.DeleteTime = DateTimeOffset.UtcNow.AddSeconds(CharacterDestroyWaitSecond).ToUnixTimeSeconds();
+        if (character.Level >= Constant.CharacterDestroyDivisionLevel) {
+            character.DeleteTime = DateTimeOffset.UtcNow.AddSeconds(Constant.CharacterDestroyWaitSecond).ToUnixTimeSeconds();
             db.UpdateCharacter(character);
             db.Commit();
             session.Send(CharacterListPacket.BeginDelete(characterId, character.DeleteTime));

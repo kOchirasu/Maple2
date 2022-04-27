@@ -19,8 +19,6 @@ namespace Maple2.Server.Login.PacketHandlers;
 public class LoginHandler : PacketHandler<LoginSession> {
     public override ushort OpCode => RecvOp.RESPONSE_LOGIN;
 
-    private const int ServerMaxCharacters = 8;
-
     private enum Command : byte {
         ServerList = 1,
         CharacterList = 2,
@@ -55,11 +53,12 @@ public class LoginHandler : PacketHandler<LoginSession> {
             }
 
             switch (command) {
-                case Command.ServerList:
+                case Command.ServerList: {
                     session.Send(BannerListPacket.SetBanner());
                     session.Send(ServerListPacket.Load(Target.SEVER_NAME, 
                         new []{new IPEndPoint(Target.LOGIN_IP, Target.LOGIN_PORT)}, 1));
                     return;
+                }
                 case Command.CharacterList: {
                     using GameStorage.Request db = gameStorage.Context();
                     (session.Account, IList<Character> characters) = db.ListCharacters(response.AccountId);
@@ -71,13 +70,9 @@ public class LoginHandler : PacketHandler<LoginSession> {
                         entries.Add((character, equips));
                     }
                     
-                    // TODO:
-                    // Load Players by accountId+World?
-                    //
-                    // Console.WriteLine("Initializing login with " + session.Account.Id);
                     session.Send(LoginResultPacket.Success(session.Account.Id));
                     //session.Send(UgcPacket.SetEndpoint("http://127.0.0.1/ws.asmx?wsdl", "http://127.0.0.1"));
-                    session.Send(CharacterListPacket.SetMax(session.Account.MaxCharacters, ServerMaxCharacters));
+                    session.Send(CharacterListPacket.SetMax(session.Account.MaxCharacters, Constant.ServerMaxCharacters));
                     session.Send(CharacterListPacket.StartList());
                     // Send each character data
                     session.Send(CharacterListPacket.AddEntries(session.Account, entries));
