@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Model.Game;
@@ -73,6 +74,43 @@ public partial class GameStorage {
 
             context.Remove(character);
             return context.TrySaveChanges();
+        }
+
+        public Player LoadPlayer(long accountId, long characterId) {
+            Model.Account account = context.Account.Find(accountId);
+            if (account == null) {
+                return null;
+            }
+            
+            Model.Character character = context.Character.SingleOrDefault(character => 
+                character.Id == characterId && character.AccountId == accountId);
+            if (character == null) {
+                return null;
+            }
+            
+            var player = new Player(account, character) {
+                Currency = new Currency(
+                    account.Currency.Meret,
+                    account.Currency.GameMeret,
+                    character.Currency.Meso,
+                    character.Currency.EventMeret,
+                    character.Currency.ValorToken,
+                    character.Currency.Treva,
+                    character.Currency.Rue,
+                    character.Currency.HaviFruit,
+                    character.Currency.ReverseCoin,
+                    character.Currency.MentorToken,
+                    character.Currency.MenteeToken,
+                    character.Currency.StarPoint,
+                    account.Currency.MesoToken),
+                Unlock = (Unlock)context.CharacterUnlock.Find(characterId),
+            };
+
+            return player;
+        }
+
+        public bool SavePlayer(Player player) {
+            throw new NotImplementedException("cannot save player...");
         }
     }
 }

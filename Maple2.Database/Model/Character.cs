@@ -3,6 +3,7 @@ using Maple2.Database.Extensions;
 using Maple2.Model.Common;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Maple2.Database.Model;
@@ -23,6 +24,7 @@ internal class Character {
     public Experience Experience { get; set; }
     public Profile Profile { get; set; }
     public Cooldown Cooldown { get; set; }
+    public CharacterCurrency Currency { get; set; }
     public DateTime DeleteTime { get; set; }
 
     public static implicit operator Character(Maple2.Model.Game.Character other) {
@@ -88,10 +90,13 @@ internal class Character {
         builder.HasIndex(character => character.Name).IsUnique();
         builder.Property(character => character.CreationTime)
             .ValueGeneratedOnAdd();
+        builder.Property(character => character.Level)
+            .HasDefaultValue(1);
         builder.Property(character => character.SkinColor).HasJsonConversion().IsRequired();
         builder.Property(character => character.Experience).HasJsonConversion().IsRequired();
         builder.Property(character => character.Profile).HasJsonConversion().IsRequired();
         builder.Property(character => character.Cooldown).HasJsonConversion().IsRequired();
+        builder.Property(character => character.Currency).HasJsonConversion().IsRequired();
     }
 }
 
@@ -111,4 +116,17 @@ internal class Profile {
 internal class Cooldown {
     public long Storage { get; set; }
     public long Doctor { get; set; }
+}
+
+internal class CharacterCurrency {
+    public long Meso { get; set; }
+    public long EventMeret { get; set; }
+    public long ValorToken { get; set; }
+    public long Treva { get; set; }
+    public long Rue { get; set; }
+    public long HaviFruit { get; set; }
+    public long ReverseCoin { get; set; }
+    public long MentorToken { get; set; }
+    public long MenteeToken { get; set; }
+    public long StarPoint { get; set; }
 }

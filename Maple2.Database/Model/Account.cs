@@ -12,12 +12,12 @@ internal class Account {
     public string Username { get; set; }
     public Guid MachineId { get; set; }
     public DateTime LastModified { get; set; }
-    public long Merets { get; set; }
     public int MaxCharacters { get; set; }
     public int PrestigeLevel { get; set; }
     public long PrestigeExp { get; set; }
     public Trophy Trophy { get; set; }
     public long PremiumTime { get; set; }
+    public AccountCurrency Currency { get; set; }
 
     public ICollection<Character> Characters { get; set; }
 
@@ -26,7 +26,6 @@ internal class Account {
             Id = other.Id,
             Username = other.Username,
             MachineId = other.MachineId,
-            Merets = other.Merets,
             MaxCharacters = other.MaxCharacters,
             PrestigeLevel = other.PrestigeLevel,
             PrestigeExp = other.PrestigeExp,
@@ -40,7 +39,6 @@ internal class Account {
             Id = other.Id,
             Username = other.Username,
             MachineId = other.MachineId,
-            Merets = other.Merets,
             MaxCharacters = other.MaxCharacters,
             PrestigeLevel = other.PrestigeLevel,
             PrestigeExp = other.PrestigeExp,
@@ -58,6 +56,13 @@ internal class Account {
         builder.Property(account => account.MaxCharacters)
             .HasDefaultValue(4);
         builder.HasMany(account => account.Characters);
-        builder.Property(account => account.Trophy).HasJsonConversion();
+        builder.Property(account => account.Trophy).HasJsonConversion().IsRequired();
+        builder.Property(account => account.Currency).HasJsonConversion().IsRequired();
     }
+}
+
+internal class AccountCurrency {
+    public long Meret { get; set; }
+    public long GameMeret { get; set; }
+    public long MesoToken { get; set; }
 }

@@ -13,6 +13,7 @@ public static class Target {
 
     public static readonly IPAddress GAME_IP = IPAddress.Loopback;
     public const ushort GAME_PORT = 22001;
+    public const ushort GAME_CHANNEL = 1;
 
     public static readonly IPAddress GRPC_WORLD_IP = IPAddress.Loopback;
     public const ushort GRPC_WORLD_PORT = 20101;

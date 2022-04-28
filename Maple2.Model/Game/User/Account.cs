@@ -10,7 +10,6 @@ public class Account {
     public Guid MachineId { get; set; }
     #endregion
 
-    public long Merets { get; set; }
     public int MaxCharacters { get; set; }
     public int PrestigeLevel { get; set; }
     public long PrestigeExp { get; set; }

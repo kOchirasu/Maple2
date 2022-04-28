@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Maple2.Database.Extensions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Maple2.Database.Model; 
@@ -66,6 +67,7 @@ internal class ClubMember {
     }
 
     public static void Configure(EntityTypeBuilder<ClubMember> builder) {
+        builder.ToTable("club-member");
         builder.HasKey(member => new {member.ClubId, member.CharacterId});
         builder.Property(member => member.CreationTime)
             .ValueGeneratedOnAdd();

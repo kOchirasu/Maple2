@@ -11,4 +11,9 @@ internal static class PropertyBuilderExtensions {
             value => JsonSerializer.Deserialize<TProperty>(value, (JsonSerializerOptions) null)
         ).HasColumnType("json");
     }
+
+    public static ReferenceReferenceBuilder<TEntity, TRelatedEntity> OneToOne<TEntity, TRelatedEntity>(
+            this EntityTypeBuilder<TEntity> builder) where TEntity : class where TRelatedEntity : class {
+        return builder.HasOne<TRelatedEntity>().WithOne();
+    }
 }

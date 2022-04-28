@@ -34,7 +34,9 @@ public sealed class InitializationContext : Ms2Context {
 
     public void TestTables() {
         var account = new Account {
-            Username = "Username"
+            Username = "Username",
+            Trophy = new Trophy(),
+            Currency = new AccountCurrency(),
         };
         Account.Add(account);
         SaveChanges();
@@ -50,6 +52,7 @@ public sealed class InitializationContext : Ms2Context {
             },
             Profile = new Profile(),
             Cooldown = new Cooldown(),
+            Currency = new CharacterCurrency(),
         };
         Character.Add(character);
         var character2 = new Character {
@@ -58,6 +61,7 @@ public sealed class InitializationContext : Ms2Context {
             Experience = new Experience(),
             Profile = new Profile(),
             Cooldown = new Cooldown(),
+            Currency = new CharacterCurrency(),
         };
         Character.Add(character2);
         SaveChanges();
