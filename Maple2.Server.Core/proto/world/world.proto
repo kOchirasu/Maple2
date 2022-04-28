@@ -20,6 +20,7 @@ message HealthResponse {}
 message MigrateOutRequest {
   int64 account_id = 1;
   int64 character_id = 2;
+  string machine_id = 3;
 }
 
 message MigrateOutResponse {
@@ -31,6 +32,7 @@ message MigrateOutResponse {
 message MigrateInRequest {
   int64 account_id = 1;
   fixed64 token = 3;
+  string machine_id = 4;
 }
 
 message MigrateInResponse {

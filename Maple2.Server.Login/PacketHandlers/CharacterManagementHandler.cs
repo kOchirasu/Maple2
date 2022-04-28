@@ -78,7 +78,8 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
             
             var request = new MigrateOutRequest {
                 AccountId = session.Account.Id,
-                CharacterId = characterId
+                CharacterId = characterId,
+                MachineId = session.MachineId.ToString(),
             };
             
             logger.LogInformation("Logging in to game as {Request}", request);
@@ -109,7 +110,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
             int id = packet.ReadInt();
             string slotStr = packet.ReadUnicodeString();
             if (!Enum.TryParse(slotStr, out EquipSlot slot) || slot is SK or OH or Unknown) {
-                session.Send(CharacterCreatePacket.Error(s_char_err_invalid_def_item));
+                session.Send(CharacterListPacket.CreateError(s_char_err_invalid_def_item));
                 return;
             }
 
@@ -120,7 +121,6 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
             Debug.Assert(outfit.Appearance != null, "equip.Appearance == null");
             outfit.Appearance.ReadFrom(packet);
             outfits.Add(outfit);
-            //logger.LogInformation(" > {Slot} - id:{Id}, color:{Color}", slot, id, equip.Appearance.Color);
         }
 
         packet.Skip(4); // Unknown
@@ -154,7 +154,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
 
         // Delete already pending
         if (character.DeleteTime != default) {
-            if (character.DeleteTime <= DateTimeOffset.Now.ToUnixTimeSeconds()) {
+            if (character.DeleteTime <= DateTimeOffset.UtcNow.ToUnixTimeSeconds()) {
                 DeleteCharacter(session, db, characterId);
             } else {
                 session.Send(CharacterListPacket.BeginDelete(characterId, character.DeleteTime, 

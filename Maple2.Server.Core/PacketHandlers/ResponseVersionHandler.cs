@@ -1,4 +1,5 @@
-﻿using Maple2.PacketLib.Tools;
+﻿using Maple2.Model.Enum;
+using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Microsoft.Extensions.Logging;
@@ -12,9 +13,10 @@ public abstract class ResponseVersionHandler<T> : PacketHandler<T> where T : Ses
 
     public override void Handle(T session, IByteReader packet) {
         uint version = packet.Read<uint>();
-        // +4 Bytes Short(2F 00) Short(02 00)
+        packet.ReadShort(); // 47
+        var locale = packet.Read<Locale>();
 
-        if (version != Session.VERSION) {
+        if (version != Session.VERSION || locale != Locale.NA) {
             session.Disconnect();
         }
     }

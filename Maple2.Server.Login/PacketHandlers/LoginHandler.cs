@@ -37,14 +37,14 @@ public class LoginHandler : PacketHandler<LoginSession> {
         string user = packet.ReadUnicodeString();
         string pass = packet.ReadUnicodeString();
         packet.ReadShort(); // 1
-        var machineId = packet.Read<Guid>();
+        session.MachineId = packet.Read<Guid>();
 
         try {
             logger.LogDebug("Logging in with user:{User} pass:{Pass}", user, pass);
             LoginResponse response = global.Login(new LoginRequest {
                 Username = user,
                 Password = pass,
-                MachineId = machineId.ToString(),
+                MachineId = session.MachineId.ToString(),
             });
             if (response.Code != LoginResponse.Types.Code.Ok) {
                 session.Send(LoginResultPacket.Error((byte) response.Code, response.Message, response.AccountId));

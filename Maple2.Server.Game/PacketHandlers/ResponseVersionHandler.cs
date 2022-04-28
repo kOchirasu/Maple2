@@ -12,12 +12,7 @@ public class ResponseVersionHandler : ResponseVersionHandler<GameSession> {
 
     public override void Handle(GameSession session, IByteReader packet) {
         base.Handle(session, packet);
-
-        // No idea what this is, but server sends it when logging into game server
-        var pWriter = Packet.Of(0x132);
-        pWriter.WriteByte();
-        pWriter.WriteInt(Environment.TickCount);
-        session.Send(pWriter);
+        
         session.Send(RequestPacket.Key());
     }
 }

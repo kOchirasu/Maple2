@@ -8,7 +8,7 @@ using Microsoft.Extensions.Caching.Memory;
 namespace Maple2.Server.World.Service;
 
 public partial class WorldService {
-    private readonly record struct TokenEntry(long AccountId, long CharacterId);
+    private readonly record struct TokenEntry(long AccountId, long CharacterId, Guid MachineId);
 
     // Duration for which a token remains valid.
     private static readonly TimeSpan AuthExpiry = TimeSpan.FromSeconds(30);
@@ -17,7 +17,8 @@ public partial class WorldService {
 
     public override Task<MigrateOutResponse> MigrateOut(MigrateOutRequest request, ServerCallContext context) {
         ulong token = UniqueToken();
-        tokenCache.Set(token, new TokenEntry(request.AccountId, request.CharacterId), AuthExpiry);
+        var entry = new TokenEntry(request.AccountId, request.CharacterId, new Guid(request.MachineId));
+        tokenCache.Set(token, entry, AuthExpiry);
 
         // TODO: Dynamic ip/port
         return Task.FromResult(new MigrateOutResponse {
@@ -33,6 +34,9 @@ public partial class WorldService {
         }
         if (data.AccountId != request.AccountId) {
             throw new RpcException(new Status(StatusCode.PermissionDenied, "Invalid token for account"));
+        }
+        if (data.MachineId != new Guid(request.MachineId)) {
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, "Mismatched machineId for account"));
         }
 
         tokenCache.Remove(request.Token);

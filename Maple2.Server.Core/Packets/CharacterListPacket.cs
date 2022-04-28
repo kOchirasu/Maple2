@@ -67,13 +67,6 @@ public static class CharacterListPacket {
         return pWriter;
     }
 
-    public static ByteWriter SetMax(int unlocked, int total) {
-        var pWriter = Packet.Of(SendOp.CHAR_MAX_COUNT);
-        pWriter.WriteInt(unlocked);
-        pWriter.WriteInt(total);
-        return pWriter;
-    }
-
     public static ByteWriter StartList() {
         var pWriter = Packet.Of(SendOp.CHARACTER_LIST);
         pWriter.Write<Command>(Command.StartList);
@@ -85,6 +78,21 @@ public static class CharacterListPacket {
         var pWriter = Packet.Of(SendOp.CHARACTER_LIST);
         pWriter.Write<Command>(Command.EndList);
         pWriter.WriteBool(false);
+        return pWriter;
+    }
+    
+    public static ByteWriter CreateError(CharacterCreateError error, string message = "") {
+        var pWriter = Packet.Of(SendOp.CHARACTER_CREATE);
+        pWriter.Write<CharacterCreateError>(error);
+        pWriter.WriteUnicodeString(message);
+
+        return pWriter;
+    }
+    
+    public static ByteWriter SetMax(int unlocked, int total) {
+        var pWriter = Packet.Of(SendOp.CHAR_MAX_COUNT);
+        pWriter.WriteInt(unlocked);
+        pWriter.WriteInt(total);
         return pWriter;
     }
 

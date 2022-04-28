@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using System;
+using Grpc.Core;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
@@ -19,7 +20,8 @@ public class ResponseKeyHandler : PacketHandler<GameSession> {
     private readonly WorldClient worldClient;
     private readonly GameStorage gameStorage;
 
-    public ResponseKeyHandler(WorldClient worldClient, GameStorage gameStorage, ILogger<ResponseKeyHandler> logger) : base(logger) {
+    public ResponseKeyHandler(WorldClient worldClient, GameStorage gameStorage, ILogger<ResponseKeyHandler> logger) 
+            : base(logger) {
         this.worldClient = worldClient;
         this.gameStorage = gameStorage;
     }
@@ -27,6 +29,7 @@ public class ResponseKeyHandler : PacketHandler<GameSession> {
     public override void Handle(GameSession session, IByteReader packet) {
         long accountId = packet.ReadLong();
         ulong token = packet.Read<ulong>();
+        var machineId = packet.Read<Guid>();
 
         try {
             logger.LogInformation("LOGIN USER TO GAME: {AccountId}", accountId);
@@ -34,18 +37,32 @@ public class ResponseKeyHandler : PacketHandler<GameSession> {
             var request = new MigrateInRequest {
                 AccountId = accountId,
                 Token = token,
+                MachineId = machineId.ToString(),
             };
             MigrateInResponse response = worldClient.MigrateIn(request);
-            using (GameStorage.Request db = gameStorage.Context()) {
-                var Account = db.GetAccount(accountId);
-                var Character = db.GetCharacter(response.CharacterId, accountId);
-                db.GetEquips(Character.Id, EquipTab.Gear, EquipTab.Outfit, EquipTab.Badge);
-            }
-
-            session.Send(Packet.Of(SendOp.REQUEST_SYSTEM_INFO));
-            session.Send(MigrationPacket.MoveResult(MigrationError.ok));
+            
+            using GameStorage.Request db = gameStorage.Context();
+            session.Account = db.GetAccount(accountId);
+            session.Character = db.GetCharacter(response.CharacterId, accountId);
         } catch (RpcException) {
             session.Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
+            session.Disconnect();
+            return;
+        }
+        
+        //session.Send(Packet.Of(SendOp.REQUEST_SYSTEM_INFO));
+        session.Send(MigrationPacket.MoveResult(MigrationError.ok));
+            
+        session.Send(TimeSyncPacket.Reset(DateTimeOffset.UtcNow));
+        session.Send(TimeSyncPacket.Request());
+        session.Send(RequestPacket.TickSync(Environment.TickCount));
+        
+        Initialize(session);
+    }
+
+    private void Initialize(GameSession session) {
+        using (GameStorage.Request db = gameStorage.Context()) {
+            db.GetEquips(session.Character.Id, EquipTab.Gear, EquipTab.Outfit, EquipTab.Badge);
         }
     }
 }
