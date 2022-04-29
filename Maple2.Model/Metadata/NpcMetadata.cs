@@ -3,7 +3,8 @@ using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
 
-public record NpcMetadata(int Id,
+public record NpcMetadata(
+    int Id,
     string? Name,
     string Model,
     NpcMetadataStat Stat,

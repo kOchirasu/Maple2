@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
+using Maple2.Database.Model;
 using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
+using Account = Maple2.Model.Game.Account;
+using Character = Maple2.Model.Game.Character;
 
 namespace Maple2.Database.Storage; 
 
@@ -21,6 +24,7 @@ public partial class GameStorage {
         public Account CreateAccount(Account account) {
             Model.Account model = account;
             model.Id = 0;
+            model.Currency = new AccountCurrency();
             context.Account.Add(model);
             return context.TrySaveChanges() ? model : null;
         }
@@ -55,6 +59,7 @@ public partial class GameStorage {
 
         public Character CreateCharacter(Character character) {
             Model.Character model = character;
+            model.Currency = new CharacterCurrency();
             model.Id = 0;
             context.Character.Add(model);
             return context.TrySaveChanges() ? model : null;

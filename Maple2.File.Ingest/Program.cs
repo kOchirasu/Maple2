@@ -31,6 +31,7 @@ Filter.Load(xmlReader, locale, env);
 
 UpdateDatabase(metadataContext, new ItemMapper(xmlReader));
 UpdateDatabase(metadataContext, new NpcMapper(xmlReader));
+UpdateDatabase(metadataContext, new MapMapper(xmlReader));
 
 // new MusicScoreParser(xmlReader).Parse().ToList();
 // new MusicScoreParser(xmlReader).Parse().ToList();

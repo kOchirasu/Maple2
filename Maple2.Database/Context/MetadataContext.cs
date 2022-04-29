@@ -10,6 +10,7 @@ public sealed class MetadataContext : DbContext {
     public DbSet<TableChecksum> TableChecksum { get; set; }
     public DbSet<ItemMetadata> ItemMetadata { get; set; }
     public DbSet<NpcMetadata> NpcMetadata { get; set; }
+    public DbSet<MapMetadata> MapMetadata { get; set; }
 
     public MetadataContext(DbContextOptions options) : base(options) {
         ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
@@ -20,6 +21,7 @@ public sealed class MetadataContext : DbContext {
         modelBuilder.Entity<TableChecksum>(Maple2.Database.Model.Metadata.TableChecksum.Configure);
         modelBuilder.Entity<ItemMetadata>(ConfigureItemMetadata);
         modelBuilder.Entity<NpcMetadata>(ConfigureNpcMetadata);
+        modelBuilder.Entity<MapMetadata>(ConfigureMapMetadata);
     }
     
     private static void ConfigureItemMetadata(EntityTypeBuilder<ItemMetadata> builder) {
@@ -37,5 +39,14 @@ public sealed class MetadataContext : DbContext {
         builder.Property(npc => npc.Basic).HasJsonConversion();
         builder.Property(npc => npc.Action).HasJsonConversion();
         builder.Property(npc => npc.Dead).HasJsonConversion();
+    }
+    
+    private static void ConfigureMapMetadata(EntityTypeBuilder<MapMetadata> builder) {
+        builder.ToTable("map");
+        builder.HasKey(map => map.Id);
+        builder.Property(map => map.Property).HasJsonConversion();
+        builder.Property(map => map.Limit).HasJsonConversion();
+        builder.Property(map => map.CashCall).HasJsonConversion();
+        builder.Property(map => map.EntranceBuffs).HasJsonConversion();
     }
 }
