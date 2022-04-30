@@ -5,10 +5,16 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace Maple2.Database.Extensions;
 
 internal static class PropertyBuilderExtensions {
+    private static readonly JsonSerializerOptions Options = new JsonSerializerOptions();
+
+    static PropertyBuilderExtensions() {
+        Options.Converters.Add(new Vector3Converter());
+    }
+
     public static PropertyBuilder<TProperty> HasJsonConversion<TProperty>(this PropertyBuilder<TProperty> builder) {
         return builder.HasConversion(
-            property => JsonSerializer.Serialize(property, (JsonSerializerOptions) null),
-            value => JsonSerializer.Deserialize<TProperty>(value, (JsonSerializerOptions) null)
+            property => JsonSerializer.Serialize(property, Options),
+            value => JsonSerializer.Deserialize<TProperty>(value, Options)
         ).HasColumnType("json");
     }
 
