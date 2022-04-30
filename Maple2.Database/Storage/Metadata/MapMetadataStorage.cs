@@ -9,19 +9,18 @@ public class MapMetadataStorage : MetadataStorage<int, MapMetadata> {
     
     public MapMetadataStorage(DbContextOptions options) : base(options, CACHE_SIZE) { }
     
-    public MapMetadata Get(int id) {
-        if (Cache.TryGet(id, out MapMetadata Map)) {
-            return Map;
+    public bool TryGet(int id, out MapMetadata map) {
+        if (Cache.TryGet(id, out map)) {
+            return true;
         }
 
         using var context = new MetadataContext(Options);
-        Map = context.MapMetadata.Find(id);
-        Cache.AddReplace(id, Map);
-
-        return Map;
-    }
-    
-    public bool Contains(int id) {
-        return Get(id) != null;
+        map = context.MapMetadata.Find(id);
+        if (map == null) {
+            return false;
+        }
+        
+        Cache.AddReplace(id, map);
+        return true;
     }
 }

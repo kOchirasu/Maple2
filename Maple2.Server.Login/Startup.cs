@@ -28,6 +28,7 @@ public static class Startup {
             .As<PacketRouter<LoginSession>>()
             .SingleInstance();
         builder.RegisterType<LoginSession>()
+            .PropertiesAutowired()
             .AsSelf();
 
         // Database
@@ -38,6 +39,7 @@ public static class Startup {
         builder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
             .Where(type => typeof(PacketHandler<LoginSession>).IsAssignableFrom(type))
             .As<PacketHandler<LoginSession>>()
+            .PropertiesAutowired()
             .SingleInstance();
     }
 }

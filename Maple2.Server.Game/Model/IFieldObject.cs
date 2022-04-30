@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Maple2.Server.Game.Field; 
+namespace Maple2.Server.Game.Model; 
 
 public interface IFieldObject {
     public int ObjectId { get; init; }

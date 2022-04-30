@@ -3,6 +3,7 @@ using Autofac;
 using Maple2.Server.Core.Modules;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.PacketHandlers;
+using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Service;
 using Maple2.Server.Game.Session;
 using Microsoft.AspNetCore.Builder;
@@ -39,6 +40,7 @@ public class Startup {
             .As<PacketRouter<GameSession>>()
             .SingleInstance();
         builder.RegisterType<GameSession>()
+            .PropertiesAutowired()
             .AsSelf();
         
         // Database
@@ -49,6 +51,11 @@ public class Startup {
         builder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
             .Where(type => typeof(PacketHandler<GameSession>).IsAssignableFrom(type))
             .As<PacketHandler<GameSession>>()
+            .PropertiesAutowired()
+            .SingleInstance();
+        
+        // Managers
+        builder.RegisterType<FieldManager.Factory>()
             .SingleInstance();
     }
 

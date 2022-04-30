@@ -1,8 +1,6 @@
 ﻿using System;
 using Grpc.Core;
 using Maple2.Database.Storage;
-using Maple2.Model.Enum;
-using Maple2.Model.Error;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
@@ -10,6 +8,7 @@ using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Server.World.Service;
 using Microsoft.Extensions.Logging;
+using static Maple2.Model.Error.MigrationError;
 using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
 namespace Maple2.Server.Game.PacketHandlers;
@@ -40,29 +39,15 @@ public class ResponseKeyHandler : PacketHandler<GameSession> {
                 MachineId = machineId.ToString(),
             };
             MigrateInResponse response = worldClient.MigrateIn(request);
+            if (!session.EnterServer(accountId, response.CharacterId)) {
+                throw new InvalidOperationException($"Invalid player: {accountId}, {response.CharacterId}");
+            }
             
-            using GameStorage.Request db = gameStorage.Context();
-            session.Account = db.GetAccount(accountId);
-            session.Character = db.GetCharacter(response.CharacterId, accountId);
-        } catch (RpcException) {
-            session.Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
+            // Finalize
+            session.Send(Packet.Of(SendOp.WORLD));
+        } catch (Exception ex) when (ex is RpcException or InvalidOperationException) {
+            session.Send(MigrationPacket.MoveResult(s_move_err_default));
             session.Disconnect();
-            return;
-        }
-        
-        //session.Send(Packet.Of(SendOp.REQUEST_SYSTEM_INFO));
-        session.Send(MigrationPacket.MoveResult(MigrationError.ok));
-            
-        session.Send(TimeSyncPacket.Reset(DateTimeOffset.UtcNow));
-        session.Send(TimeSyncPacket.Request());
-        session.Send(RequestPacket.TickSync(Environment.TickCount));
-        
-        Initialize(session);
-    }
-
-    private void Initialize(GameSession session) {
-        using (GameStorage.Request db = gameStorage.Context()) {
-            db.GetEquips(session.Character.Id, EquipTab.Gear, EquipTab.Outfit, EquipTab.Badge);
         }
     }
 }

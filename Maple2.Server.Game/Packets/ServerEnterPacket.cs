@@ -1,56 +1,56 @@
 ﻿using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
+using Maple2.Server.Core.Packets;
+using Maple2.Server.Game.Model;
 
-namespace Maple2.Server.Core.Packets; 
+namespace Maple2.Server.Game.Packets; 
 
 public static class ServerEnterPacket {
-    public static ByteWriter Request(Account account, Character character) {
+    public static ByteWriter Request(IActor<Player> fieldPlayer) {
+        Player player = fieldPlayer.Value;
+        
         var pWriter = Packet.Of(SendOp.SERVER_ENTER);
-        pWriter.WriteInt(session.FieldPlayer.ObjectId);
-        pWriter.WriteLong(character.Id);
+        pWriter.WriteInt(fieldPlayer.ObjectId);
+        pWriter.WriteLong(player.Character.Id);
         pWriter.WriteShort();
-        pWriter.WriteLong(character.Exp);
-        pWriter.WriteLong(character.RestExp);
-        pWriter.WriteLong(session.Player.Character.Mesos);
+        pWriter.WriteLong(player.Character.Exp);
+        pWriter.WriteLong(player.Character.RestExp);
+        pWriter.WriteLong(player.Currency.Meso);
         // These Merets are added up
-        pWriter.WriteLong(account.Merets); // Merets
-        pWriter.WriteLong(); // Merets
-        pWriter.WriteLong(); // Game Merets
+        pWriter.WriteLong(player.Currency.Meret);
+        pWriter.WriteLong(); // Merets2
+        pWriter.WriteLong(player.Currency.GameMeret);
         // These Merets are added up. If set, previous are ignored.
-        pWriter.WriteLong(); // Game Merets
+        pWriter.WriteLong(); // Game Merets2
         pWriter.WriteLong(); // Event Merets
 
-        pWriter.WriteLong(session.Player.Character.ValorToken);
-        pWriter.WriteLong(session.Player.Character.Treva);
-        pWriter.WriteLong(session.Player.Character.Rue);
-        pWriter.WriteLong(session.Player.Character.HaviFruit);
-        pWriter.WriteLong(); // Unknown Currency (Type 9)
-        pWriter.WriteLong(); // Unknown Currency (Type 10)
-        pWriter.WriteLong(); // Unknown Currency (Type 11)
-        pWriter.WriteLong(); // Unknown Currency (Type 12)
-        pWriter.WriteLong(session.Player.Character.MesoToken);
-        pWriter.WriteUnicodeString(character.Picture);
+        pWriter.WriteLong(player.Currency.ValorToken);
+        pWriter.WriteLong(player.Currency.Treva);
+        pWriter.WriteLong(player.Currency.Rue);
+        pWriter.WriteLong(player.Currency.HaviFruit);
+        pWriter.WriteLong(player.Currency.ReverseCoin);
+        pWriter.WriteLong(player.Currency.MentorToken);
+        pWriter.WriteLong(player.Currency.MenteeToken);
+        pWriter.WriteLong(player.Currency.StarPoint);
+        pWriter.WriteLong(player.Currency.MesoToken);
+        pWriter.WriteUnicodeString(player.Character.Picture);
         pWriter.WriteByte();
         pWriter.WriteByte();
-        // REQUIRED OR CRASH
-        // Unlocked Hidden Maps (Not on WorldMap)
-        pWriter.WriteShort((short) session.Player.Progress.VisitedMaps.Count);
-        foreach (int mapId in session.Player.Progress.VisitedMaps) {
+        pWriter.WriteShort((short) player.Unlock.Maps.Count);
+        foreach (int mapId in player.Unlock.Maps) {
             pWriter.WriteInt(mapId);
         }
-        // Unlocked Maps (On WorldMap)
-        pWriter.WriteShort((short) session.Player.Progress.Taxis.Count);
-        foreach (int mapId in session.Player.Progress.Taxis) {
+        pWriter.WriteShort((short) player.Unlock.Taxis.Count);
+        foreach (int mapId in player.Unlock.Taxis) {
             pWriter.WriteInt(mapId);
         }
         pWriter.WriteLong();
         pWriter.WriteUnicodeString();
-        pWriter.WriteUnicodeString("http://nxcache.nexon.net/maplestory2/maplenews/index.html");
         pWriter.WriteUnicodeString();
-        pWriter.WriteUnicodeString(@"^https?://test-nxcache\.nexon\.net ^https?://nxcache\.nexon\.net");
         pWriter.WriteUnicodeString();
-
+        pWriter.WriteUnicodeString();
+        pWriter.WriteUnicodeString();
 
         return pWriter;
     }

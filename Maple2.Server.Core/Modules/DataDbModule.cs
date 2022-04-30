@@ -22,7 +22,14 @@ public class DataDbModule : Module {
         builder.RegisterInstance(options)
             .Named<DbContextOptions>(NAME);
         
-        builder.RegisterType<ItemMetadataStorage>()
+        Register<ItemMetadataStorage>(builder);
+        Register<MapMetadataStorage>(builder);
+        Register<MapEntityStorage>(builder);
+        Register<NpcMetadataStorage>(builder);
+    }
+
+    private static void Register<T>(ContainerBuilder builder) where T : notnull {
+        builder.RegisterType<T>()
             .WithParameter(Condition, Resolve)
             .SingleInstance();
     }
