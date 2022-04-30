@@ -123,21 +123,21 @@ public class NpcMapper : TypeMapper<NpcMetadata> {
             [StatAttribute.PetBonusAtk] = stat.bap_pet
         };
 
-        if (FeatureLocaleFilter.Features.Contains("HiddenStatAdd01")) {
+        if (FeatureLocaleFilter.FeatureEnabled("HiddenStatAdd01")) {
             stats[StatAttribute.Health] += stat.hiddenhpadd;
             stats[StatAttribute.Defense] += stat.hiddennddadd;
         }
-        if (FeatureLocaleFilter.Features.Contains("HiddenStatAdd02")) {
+        if (FeatureLocaleFilter.FeatureEnabled("HiddenStatAdd02")) {
             stats[StatAttribute.PhysicalAtk] += stat.hiddenwapadd;
             stats[StatAttribute.MagicalAtk] += stat.hiddenwapadd;
         }
-        if (FeatureLocaleFilter.Features.Contains("HiddenStatAdd03")) {
+        if (FeatureLocaleFilter.FeatureEnabled("HiddenStatAdd03")) {
             stats[StatAttribute.Health] += stat.hiddenhpadd03;
             stats[StatAttribute.Defense] += stat.hiddennddadd03;
             stats[StatAttribute.PhysicalAtk] += stat.hiddenwapadd03;
             stats[StatAttribute.MagicalAtk] += stat.hiddenwapadd03;
         }
-        if (FeatureLocaleFilter.Features.Contains("HiddenStatAdd04")) {
+        if (FeatureLocaleFilter.FeatureEnabled("HiddenStatAdd04")) {
             stats[StatAttribute.Health] += stat.hiddenhpadd04;
             stats[StatAttribute.Defense] += stat.hiddennddadd04;
             stats[StatAttribute.PhysicalAtk] += stat.hiddenwapadd04;

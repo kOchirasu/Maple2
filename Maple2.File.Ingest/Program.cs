@@ -1,8 +1,6 @@
 ﻿using System.Diagnostics;
-using System.Text.Json;
 using Maple2.Database.Context;
 using Maple2.Database.Extensions;
-using Maple2.Database.Model;
 using Maple2.Database.Model.Metadata;
 using Maple2.File.Ingest.Mapper;
 using Maple2.File.IO;
@@ -32,6 +30,7 @@ Filter.Load(xmlReader, locale, env);
 UpdateDatabase(metadataContext, new ItemMapper(xmlReader));
 UpdateDatabase(metadataContext, new NpcMapper(xmlReader));
 UpdateDatabase(metadataContext, new MapMapper(xmlReader));
+UpdateDatabase(metadataContext, new MapEntityMapper(metadataContext, exportedReader));
 
 // new MusicScoreParser(xmlReader).Parse().ToList();
 // new MusicScoreParser(xmlReader).Parse().ToList();

@@ -12,4 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Maple2.Tools\Maple2.Tools.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Wivuu.JsonPolymorphism" Version="1.0.16" />
+  </ItemGroup>
 </Project>
