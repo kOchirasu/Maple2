@@ -31,6 +31,7 @@ UpdateDatabase(metadataContext, new ItemMapper(xmlReader));
 UpdateDatabase(metadataContext, new NpcMapper(xmlReader));
 UpdateDatabase(metadataContext, new MapMapper(xmlReader));
 UpdateDatabase(metadataContext, new MapEntityMapper(metadataContext, exportedReader));
+UpdateDatabase(metadataContext, new SkillMapper(xmlReader));
 
 UpdateDatabase(metadataContext, new TableMapper(xmlReader));
 

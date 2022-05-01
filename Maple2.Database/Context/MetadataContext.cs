@@ -12,6 +12,7 @@ public sealed class MetadataContext : DbContext {
     public DbSet<NpcMetadata> NpcMetadata { get; set; }
     public DbSet<MapMetadata> MapMetadata { get; set; }
     public DbSet<MapEntity> MapEntity { get; set; }
+    public DbSet<SkillMetadata> SkillMetadata { get; set; }
     public DbSet<TableMetadata> TableMetadata { get; set; }
 
     public MetadataContext(DbContextOptions options) : base(options) {
@@ -25,9 +26,10 @@ public sealed class MetadataContext : DbContext {
         modelBuilder.Entity<NpcMetadata>(ConfigureNpcMetadata);
         modelBuilder.Entity<MapMetadata>(ConfigureMapMetadata);
         modelBuilder.Entity<MapEntity>(ConfigureMapEntity);
+        modelBuilder.Entity<SkillMetadata>(ConfigureSkillMetadata);
         modelBuilder.Entity<TableMetadata>(ConfigureTableMetadata);
     }
-    
+
     private static void ConfigureItemMetadata(EntityTypeBuilder<ItemMetadata> builder) {
         builder.ToTable("item");
         builder.HasKey(item => item.Id);
@@ -35,7 +37,7 @@ public sealed class MetadataContext : DbContext {
         builder.Property(item => item.Property).HasJsonConversion();
         builder.Property(item => item.Limit).HasJsonConversion();
     }
-    
+
     private static void ConfigureNpcMetadata(EntityTypeBuilder<NpcMetadata> builder) {
         builder.ToTable("npc");
         builder.HasKey(npc => npc.Id);
@@ -44,7 +46,7 @@ public sealed class MetadataContext : DbContext {
         builder.Property(npc => npc.Action).HasJsonConversion();
         builder.Property(npc => npc.Dead).HasJsonConversion();
     }
-    
+
     private static void ConfigureMapMetadata(EntityTypeBuilder<MapMetadata> builder) {
         builder.ToTable("map");
         builder.HasKey(map => map.Id);
@@ -53,13 +55,21 @@ public sealed class MetadataContext : DbContext {
         builder.Property(map => map.CashCall).HasJsonConversion();
         builder.Property(map => map.EntranceBuffs).HasJsonConversion();
     }
-    
+
     private static void ConfigureMapEntity(EntityTypeBuilder<MapEntity> builder) {
         builder.ToTable("map-entity");
         builder.HasKey(entity => new {entity.XBlock, Id = entity.Guid});
         builder.Property(entity => entity.Block).HasJsonConversion().IsRequired();
     }
-    
+
+    private static void ConfigureSkillMetadata(EntityTypeBuilder<SkillMetadata> builder) {
+        builder.ToTable("skill");
+        builder.HasKey(skill => skill.Id);
+        builder.Property(skill => skill.Property).HasJsonConversion();
+        builder.Property(skill => skill.State).HasJsonConversion();
+        builder.Property(skill => skill.Levels).HasJsonConversion();
+    }
+
     private static void ConfigureTableMetadata(EntityTypeBuilder<TableMetadata> builder) {
         builder.ToTable("table");
         builder.HasKey(table => table.Name);
