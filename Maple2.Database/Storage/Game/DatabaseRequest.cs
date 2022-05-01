@@ -30,6 +30,7 @@ public abstract class DatabaseRequest<TContext> : IDisposable where TContext : D
         }
         
         transaction.Commit();
+        transaction = null; // transaction is completed.
         return true;
     }
 

@@ -52,6 +52,7 @@ internal class Character {
                 Doctor = other.DoctorCooldown,
                 Storage = other.StorageCooldown,
             },
+            Currency = new CharacterCurrency(),
             DeleteTime = other.DeleteTime.FromEpochSeconds(),
         };
     }

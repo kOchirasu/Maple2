@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Maple2.Database.Model; 
 
-public class CharacterUnlock {
+internal class CharacterUnlock {
     public DateTime LastModified { get; set; }
     
     public long CharacterId { get; set; }

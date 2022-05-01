@@ -21,14 +21,6 @@ public partial class GameStorage {
                 .SingleOrDefault(account => account.Username == username);
         }
 
-        public Account CreateAccount(Account account) {
-            Model.Account model = account;
-            model.Id = 0;
-            model.Currency = new AccountCurrency();
-            context.Account.Add(model);
-            return context.TrySaveChanges() ? model : null;
-        }
-
         public bool UpdateAccount(Account account, bool commit = false) {
             context.Account.Update(account);
             if (commit) {
@@ -55,30 +47,6 @@ public partial class GameStorage {
             // Limit character fetching to those owned by account.
             return context.Character.SingleOrDefault(character => 
                 character.Id == characterId && character.AccountId == accountId);
-        }
-
-        public Character CreateCharacter(Character character) {
-            Model.Character model = character;
-            model.Currency = new CharacterCurrency();
-            model.Id = 0;
-            context.Character.Add(model);
-            return context.TrySaveChanges() ? model : null;
-        }
-
-        // This does not commit the change, just stages the update.
-        public void UpdateCharacter(Character character) {
-            context.Character.Update(character);
-        }
-
-        public bool DeleteCharacter(long characterId, long accountId) {
-            Model.Character character = context.Character.SingleOrDefault(character => 
-                character.Id == characterId && character.AccountId == accountId);
-            if (character == null) {
-                return false;
-            }
-
-            context.Remove(character);
-            return context.TrySaveChanges();
         }
 
         public Player LoadPlayer(long accountId, long characterId) {
@@ -115,7 +83,81 @@ public partial class GameStorage {
         }
 
         public bool SavePlayer(Player player) {
-            throw new NotImplementedException("cannot save player...");
+            Model.Account account = player.Account;
+            account.Currency = new AccountCurrency {
+                Meret = player.Currency.Meret,
+                GameMeret = player.Currency.GameMeret,
+                MesoToken = player.Currency.MesoToken,
+            };
+            Model.Character character = player.Character;
+            character.Currency = new CharacterCurrency {
+                Meso = player.Currency.Meso,
+                EventMeret = player.Currency.EventMeret,
+                ValorToken = player.Currency.ValorToken,
+                Treva = player.Currency.Treva,
+                Rue = player.Currency.Rue,
+                HaviFruit = player.Currency.HaviFruit,
+                ReverseCoin = player.Currency.ReverseCoin,
+                MentorToken = player.Currency.MentorToken,
+                MenteeToken = player.Currency.MenteeToken,
+                StarPoint = player.Currency.StarPoint,
+            };
+            context.Account.Update(account);
+            context.Character.Update(character);
+
+            CharacterUnlock unlock = player.Unlock;
+            unlock.CharacterId = character.Id;
+            context.CharacterUnlock.Update(unlock);
+
+            return context.TrySaveChanges();
         }
+        
+        #region Create
+        public Account CreateAccount(Account account) {
+            Model.Account model = account;
+            model.Id = 0;
+            context.Account.Add(model);
+            return context.TrySaveChanges() ? model : null;
+        }
+        
+        public Character CreateCharacter(Character character) {
+            Model.Character model = character;
+            model.Id = 0;
+            context.Character.Add(model);
+            return context.TrySaveChanges() ? model : null;
+        }
+
+        public Unlock CreateUnlock(long characterId, Unlock unlock) {
+            CharacterUnlock model = unlock;
+            model.CharacterId = characterId;
+            context.CharacterUnlock.Add(model);
+            return context.TrySaveChanges() ? model : null;
+        }
+        #endregion
+        
+        #region Delete
+        public bool UpdateDelete(long accountId, long characterId, long time) {
+            Model.Character model = context.Character.SingleOrDefault(character => 
+                character.Id == characterId && character.AccountId == accountId);
+            if (model == null) {
+                return false;
+            }
+            
+            model.DeleteTime = time.FromEpochSeconds();
+            context.Update(model);
+            return context.TrySaveChanges();
+        }
+
+        public bool DeleteCharacter(long accountId, long characterId) {
+            Model.Character character = context.Character.SingleOrDefault(character => 
+                character.Id == characterId && character.AccountId == accountId);
+            if (character == null) {
+                return false;
+            }
+
+            context.Remove(character);
+            return context.TrySaveChanges();
+        }
+        #endregion
     }
 }

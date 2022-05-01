@@ -31,6 +31,7 @@ internal class Account {
             PrestigeExp = other.PrestigeExp,
             Trophy = other.Trophy,
             PremiumTime = other.PremiumTime,
+            Currency = new AccountCurrency(),
         };
     }
 
