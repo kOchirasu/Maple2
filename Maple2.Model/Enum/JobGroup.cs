@@ -1,5 +1,6 @@
 ﻿namespace Maple2.Model.Enum; 
 
+// table/jobgroup.xml
 public enum JobCode : short {
     Newbie = 1,
     Knight = 10,

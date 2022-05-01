@@ -26,6 +26,7 @@ public class DataDbModule : Module {
         Register<MapMetadataStorage>(builder);
         Register<MapEntityStorage>(builder);
         Register<NpcMetadataStorage>(builder);
+        Register<TableMetadataStorage>(builder);
     }
 
     private static void Register<T>(ContainerBuilder builder) where T : notnull {

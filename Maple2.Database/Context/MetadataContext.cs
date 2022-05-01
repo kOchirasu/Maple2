@@ -12,6 +12,7 @@ public sealed class MetadataContext : DbContext {
     public DbSet<NpcMetadata> NpcMetadata { get; set; }
     public DbSet<MapMetadata> MapMetadata { get; set; }
     public DbSet<MapEntity> MapEntity { get; set; }
+    public DbSet<TableMetadata> TableMetadata { get; set; }
 
     public MetadataContext(DbContextOptions options) : base(options) {
         ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
@@ -24,6 +25,7 @@ public sealed class MetadataContext : DbContext {
         modelBuilder.Entity<NpcMetadata>(ConfigureNpcMetadata);
         modelBuilder.Entity<MapMetadata>(ConfigureMapMetadata);
         modelBuilder.Entity<MapEntity>(ConfigureMapEntity);
+        modelBuilder.Entity<TableMetadata>(ConfigureTableMetadata);
     }
     
     private static void ConfigureItemMetadata(EntityTypeBuilder<ItemMetadata> builder) {
@@ -56,5 +58,11 @@ public sealed class MetadataContext : DbContext {
         builder.ToTable("map-entity");
         builder.HasKey(entity => new {entity.XBlock, Id = entity.Guid});
         builder.Property(entity => entity.Block).HasJsonConversion().IsRequired();
+    }
+    
+    private static void ConfigureTableMetadata(EntityTypeBuilder<TableMetadata> builder) {
+        builder.ToTable("table");
+        builder.HasKey(table => table.Name);
+        builder.Property(table => table.Table).HasJsonConversion().IsRequired();
     }
 }

@@ -32,6 +32,8 @@ UpdateDatabase(metadataContext, new NpcMapper(xmlReader));
 UpdateDatabase(metadataContext, new MapMapper(xmlReader));
 UpdateDatabase(metadataContext, new MapEntityMapper(metadataContext, exportedReader));
 
+UpdateDatabase(metadataContext, new TableMapper(xmlReader));
+
 // new MusicScoreParser(xmlReader).Parse().ToList();
 // new MusicScoreParser(xmlReader).Parse().ToList();
 // new AniKeyTextParser(xmlReader).Parse().ToList();
@@ -65,7 +67,7 @@ void UpdateDatabase<T>(DbContext context, TypeMapper<T> mapper) where T : class 
 
         checksum.Crc32C = crc32C;
         Console.WriteLine($"Table '{tableName}' outdated");
-        int result = context.Database.ExecuteSqlRaw($"DELETE FROM {tableName}");
+        int result = context.Database.ExecuteSqlRaw(@$"DELETE FROM `{tableName}`");
         Console.WriteLine($"Removed Table '{tableName}' rows: {result}");
     }
 
