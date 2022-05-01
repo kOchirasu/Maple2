@@ -8,27 +8,27 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0" />
-      <PackageReference Include="Google.Protobuf" Version="3.20.0" />
-      <PackageReference Include="Grpc.AspNetCore.Server" Version="2.44.0" />
-      <PackageReference Include="Grpc.Net.ClientFactory" Version="2.44.0" />
-      <PackageReference Include="Grpc.Tools" Version="2.45.0">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
-      <PackageReference Include="Maple2.PacketLib" Version="1.0.1" />
-      <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4" />
-      <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.1" />
-      <PackageReference Include="System.IO.Pipelines" Version="6.0.2" />
+        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0"/>
+        <PackageReference Include="Google.Protobuf" Version="3.20.0"/>
+        <PackageReference Include="Grpc.AspNetCore.Server" Version="2.44.0"/>
+        <PackageReference Include="Grpc.Net.ClientFactory" Version="2.44.0"/>
+        <PackageReference Include="Grpc.Tools" Version="2.45.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Maple2.PacketLib" Version="1.0.1"/>
+        <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4"/>
+        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.1"/>
+        <PackageReference Include="System.IO.Pipelines" Version="6.0.2"/>
     </ItemGroup>
 
     <ItemGroup>
-        <Protobuf Include="proto/**/*.proto" />
+        <Protobuf Include="proto/**/*.proto"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Maple2.Database\Maple2.Database.csproj" />
-      <ProjectReference Include="..\Maple2.Model\Maple2.Model.csproj" />
+        <ProjectReference Include="..\Maple2.Database\Maple2.Database.csproj"/>
+        <ProjectReference Include="..\Maple2.Model\Maple2.Model.csproj"/>
     </ItemGroup>
 
 </Project>

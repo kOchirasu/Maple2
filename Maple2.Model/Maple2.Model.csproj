@@ -1,18 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-  </PropertyGroup>
-  <ItemGroup>
-    <Protobuf Include="**/*.proto" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Maple2.Tools\Maple2.Tools.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Wivuu.JsonPolymorphism" Version="1.0.16" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    </PropertyGroup>
+    <ItemGroup>
+        <Protobuf Include="**/*.proto"/>
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Maple2.Tools\Maple2.Tools.csproj"/>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Wivuu.JsonPolymorphism" Version="1.0.16"/>
+    </ItemGroup>
 </Project>

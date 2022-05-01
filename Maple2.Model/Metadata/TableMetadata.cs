@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace Maple2.Model.Metadata; 
+namespace Maple2.Model.Metadata;
 
 public class TableMetadata {
     public string Name { get; set; }

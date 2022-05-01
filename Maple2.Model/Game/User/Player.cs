@@ -37,4 +37,3 @@ public record Currency(
     long MenteeToken,
     long StarPoint,
     long MesoToken);
-    

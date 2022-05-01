@@ -16,7 +16,7 @@ public partial class GameStorage {
 
             return context.TrySaveChanges() ? model.Convert(game.itemMetadata.Get(model.ItemId)) : null;
         }
-        
+
         public List<Item> CreateItems(long ownerId, params Item[] items) {
             var models = new Model.Item[items.Length];
             for (int i = 0; i < items.Length; i++) {
@@ -32,7 +32,7 @@ public partial class GameStorage {
 
             return models.Select(model => model.Convert(game.itemMetadata.Get(model.ItemId))).ToList();
         }
-        
+
         public Item GetItem(long itemUid) {
             Model.Item model = context.Item.Find(itemUid);
             return model?.Convert(game.itemMetadata.Get(model.ItemId));
@@ -53,7 +53,7 @@ public partial class GameStorage {
                 .Select(model => model.Convert(game.itemMetadata.Get(model.ItemId)))
                 .ToList();
         }
-        
+
         public List<Item> GetInventory(long characterId) {
             return context.Item.Where(item => item.OwnerId == characterId && item.EquipTab == EquipTab.None)
                 .Select(model => model.Convert(game.itemMetadata.Get(model.ItemId)))

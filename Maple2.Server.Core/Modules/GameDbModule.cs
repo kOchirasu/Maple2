@@ -5,19 +5,19 @@ using Maple2.Server.Core.Constants;
 using Microsoft.EntityFrameworkCore;
 using Module = Autofac.Module;
 
-namespace Maple2.Server.Core.Modules; 
+namespace Maple2.Server.Core.Modules;
 
 public class GameDbModule : Module {
     private const string NAME = "GameDbOptions";
-    
+
     private readonly DbContextOptions options;
-    
+
     public GameDbModule() {
         options = new DbContextOptionsBuilder()
             .UseMySql(Target.GAME_DB_CONNECTION, ServerVersion.AutoDetect(Target.GAME_DB_CONNECTION))
             .Options;
     }
-    
+
     protected override void Load(ContainerBuilder builder) {
         builder.RegisterInstance(options)
             .Named<DbContextOptions>(NAME);

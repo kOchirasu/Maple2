@@ -2,7 +2,7 @@
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 
-namespace Maple2.Server.Core.Packets; 
+namespace Maple2.Server.Core.Packets;
 
 public static class LoginResultPacket {
     public static ByteWriter Success(long accountId) {
@@ -14,7 +14,7 @@ public static class LoginResultPacket {
         pWriter.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds()); // SyncTime
         pWriter.WriteInt(); // TimeBase (This offsets time)
         pWriter.WriteByte(); // TimeZone
-        pWriter.WriteByte(); // BlockType (1 = 
+        pWriter.WriteByte(); // BlockType (1 =
         pWriter.WriteInt(); // Const
         pWriter.WriteLong(); // Const
         pWriter.WriteInt(2); // Const

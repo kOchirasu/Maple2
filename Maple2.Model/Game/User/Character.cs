@@ -21,19 +21,19 @@ public class Character {
     public int MapId;
     public JobCode JobCode => (JobCode)((int)Job / 10);
     public Job Job;
-    
+
     public SkinColor SkinColor;
     public short Level = 1;
     public long Exp;
     public long RestExp;
-    
+
     public int Title;
     public short Insignia;
 
     public int InstanceId;
     public int InstanceMapId;
     public short Channel;
-    
+
     public long StorageCooldown;
     public long DoctorCooldown;
 

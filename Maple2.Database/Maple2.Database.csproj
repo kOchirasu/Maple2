@@ -6,19 +6,19 @@
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+        <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Caching.dll" Version="2.0.0.1" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.4" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.4" />
-      <PackageReference Include="Wivuu.JsonPolymorphism" Version="1.0.16" />
+        <PackageReference Include="Caching.dll" Version="2.0.0.1"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.4"/>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.4"/>
+        <PackageReference Include="Wivuu.JsonPolymorphism" Version="1.0.16"/>
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Maple2.Model\Maple2.Model.csproj" />
-      <ProjectReference Include="..\Maple2.Tools\Maple2.Tools.csproj" />
+        <ProjectReference Include="..\Maple2.Model\Maple2.Model.csproj"/>
+        <ProjectReference Include="..\Maple2.Tools\Maple2.Tools.csproj"/>
     </ItemGroup>
 
 </Project>

@@ -4,19 +4,19 @@ using Maple2.Database.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Maple2.Database.Model; 
+namespace Maple2.Database.Model;
 
 internal class CharacterUnlock {
     public DateTime LastModified { get; set; }
-    
+
     public long CharacterId { get; set; }
-    
+
     public ISet<int> Maps { get; set; }
     public ISet<int> Taxis { get; set; }
     public ISet<int> Titles { get; set; }
     public ISet<int> Emotes { get; set; }
     public ISet<int> Stamps { get; set; }
-    
+
     public static implicit operator CharacterUnlock(Maple2.Model.Game.Unlock other) {
         return other == null ? new CharacterUnlock() : new CharacterUnlock {
             Maps = other.Maps,
@@ -26,7 +26,7 @@ internal class CharacterUnlock {
             Stamps = other.Stamps,
         };
     }
-    
+
     public static implicit operator Maple2.Model.Game.Unlock(CharacterUnlock other) {
         if (other == null) {
             return new Maple2.Model.Game.Unlock();
@@ -50,7 +50,7 @@ internal class CharacterUnlock {
         }
         return unlock;
     }
-    
+
     public static void Configure(EntityTypeBuilder<CharacterUnlock> builder) {
         builder.ToTable("character-unlock");
         builder.Property(character => character.LastModified).IsRowVersion();

@@ -4,7 +4,7 @@ using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Maple2.Database.Model; 
+namespace Maple2.Database.Model;
 
 internal class Item {
     public DateTime LastModified { get; set; }
@@ -20,30 +20,30 @@ internal class Item {
 
     public DateTime CreationTime { get; set; }
     public DateTime ExpiryTime { get; set; }
-    
+
     public int TimeChangedOption { get; set; }
     public int RemainUses { get; set; }
     public bool IsLocked { get; set; }
     public long UnlockTime { get; set; }
     public short GlamorForges { get; set; }
-    
+
     public ItemAppearance Appearance { get; set; }
     public ItemStats Stats { get; set; }
     public ItemEnchant Enchant { get; set; }
     public ItemLimitBreak LimitBreak { get; set; }
-    
+
     public ItemTransfer Transfer { get; set; }
     public ItemSocket Socket { get; set; }
     public ItemCoupleInfo CoupleInfo { get; set; }
     public ItemBinding Binding { get; set; }
 
     public ItemSubType SubType { get; set; }
-    
+
     public static implicit operator Item(Maple2.Model.Game.Item other) {
         if (other == null) {
             return null;
         }
-        
+
         var item = new Item {
             Id = other.Uid,
             ItemId = other.Id,
@@ -118,7 +118,7 @@ internal class Item {
             CoupleInfo = CoupleInfo,
             Binding = Binding,
         };
-            
+
         switch (SubType) {
             case ItemUgc(var ugcItemLook, var itemBlueprint):
                 item.Template = ugcItemLook;
@@ -137,13 +137,13 @@ internal class Item {
 
         return item;
     }
-    
+
     public static void Configure(EntityTypeBuilder<Item> builder) {
         builder.Property(item => item.LastModified).IsRowVersion();
         builder.HasKey(item => item.Id);
         builder.Property(character => character.CreationTime)
             .ValueGeneratedOnAdd();
-        
+
         builder.Property(item => item.Appearance).HasJsonConversion().IsRequired();
         builder.Property(item => item.Stats).HasJsonConversion();
         builder.Property(item => item.Enchant).HasJsonConversion();

@@ -73,15 +73,15 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
                 session.Send(MigrationPacket.LoginToGameError(s_move_err_default, "Invalid character"));
                 return;
             }
-            
+
             var request = new MigrateOutRequest {
                 AccountId = session.Account.Id,
                 CharacterId = characterId,
                 MachineId = session.MachineId.ToString(),
             };
-            
+
             logger.LogInformation("Logging in to game as {Request}", request);
-            
+
             MigrateOutResponse response = World.MigrateOut(request);
             var endpoint = new IPEndPoint(IPAddress.Parse(response.IpAddress), response.Port);
 
@@ -100,7 +100,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
 
         var skinColor = packet.Read<SkinColor>();
         packet.Skip(2); // Unknown
-        
+
         // TODO: Validate items table/defaultitems.xml
         var outfits = new List<Item>();
         int equipCount = packet.ReadByte();
@@ -122,7 +122,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
         }
 
         packet.Skip(4); // Unknown
-        
+
         JobTable.Entry entry = TableMetadata.JobTable.Entries[jobCode];
         var character = new Character {
             AccountId = session.Account.Id,
@@ -135,7 +135,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
 
         using (GameStorage.Request db = GameStorage.Transaction()) {
             character = db.CreateCharacter(character);
-            
+
             var unlock = new Unlock();
             unlock.Maps.Add(character.MapId);
             unlock.Emotes.UnionWith(new[] {
@@ -147,9 +147,9 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
                 90200043, // Epiphany
             });
             db.CreateUnlock(character.Id, unlock);
-            
+
             outfits = db.CreateItems(character.Id, outfits.ToArray());
-            
+
             if (!db.Commit()) {
                 session.Send(CharacterListPacket.CreateError(s_char_err_system));
                 return;
@@ -163,7 +163,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
 
     private void HandleDelete(LoginSession session, IByteReader packet) {
         long characterId = packet.ReadLong();
-        
+
         using GameStorage.Request db = GameStorage.Context();
         Character character = db.GetCharacter(characterId, session.Account.Id);
         if (!ValidateDeleteRequest(session, characterId, character)) {
@@ -175,7 +175,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
             if (character.DeleteTime <= DateTimeOffset.UtcNow.ToUnixTimeSeconds()) {
                 DeleteCharacter(session, db, characterId);
             } else {
-                session.Send(CharacterListPacket.BeginDelete(characterId, character.DeleteTime, 
+                session.Send(CharacterListPacket.BeginDelete(characterId, character.DeleteTime,
                     s_char_err_next_delete_char_date));
             }
             return;
@@ -195,7 +195,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
 
     private void HandleCancelDelete(LoginSession session, IByteReader packet) {
         long characterId = packet.ReadLong();
-        
+
         using GameStorage.Request db = GameStorage.Context();
         Character character = db.GetCharacter(characterId, session.Account.Id);
         if (!ValidateDeleteRequest(session, characterId, character)) {
@@ -223,13 +223,13 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
 
         return true;
     }
-    
+
     private static void DeleteCharacter(LoginSession session, GameStorage.Request db, long characterId) {
         if (!db.DeleteCharacter(session.Account.Id, characterId)) {
             session.Send(CharacterListPacket.DeleteEntry(characterId, s_char_err_destroy));
             return;
         }
-        
+
         session.Send(CharacterListPacket.DeleteEntry(characterId));
     }
 }

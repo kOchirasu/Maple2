@@ -4,12 +4,12 @@ using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Model;
 
-namespace Maple2.Server.Game.Packets; 
+namespace Maple2.Server.Game.Packets;
 
 public static class ServerEnterPacket {
     public static ByteWriter Request(IActor<Player> fieldPlayer) {
         Player player = fieldPlayer.Value;
-        
+
         var pWriter = Packet.Of(SendOp.SERVER_ENTER);
         pWriter.WriteInt(fieldPlayer.ObjectId);
         pWriter.WriteLong(player.Character.Id);

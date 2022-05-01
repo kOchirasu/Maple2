@@ -2,7 +2,7 @@
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 
-namespace Maple2.Server.Core.Packets; 
+namespace Maple2.Server.Core.Packets;
 
 public static class UgcPacket {
     public static ByteWriter SetEndpoint(string unknownEndpoint, string resourceEndpoint, Locale locale = Locale.NA) {

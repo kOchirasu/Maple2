@@ -1,7 +1,7 @@
 ﻿using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 
-namespace Maple2.Server.Core.Packets; 
+namespace Maple2.Server.Core.Packets;
 
 public static class BannerListPacket {
     public static ByteWriter SetBanner() {

@@ -1,4 +1,4 @@
-﻿namespace Maple2.Model.Enum; 
+﻿namespace Maple2.Model.Enum;
 
 public enum BadgeType : byte {
     None = 0,

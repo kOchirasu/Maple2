@@ -5,7 +5,7 @@ using Maple2.File.Parser.Xml.Npc;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 
-namespace Maple2.File.Ingest.Mapper; 
+namespace Maple2.File.Ingest.Mapper;
 
 public class NpcMapper : TypeMapper<NpcMetadata> {
     private readonly NpcParser parser;
@@ -13,7 +13,7 @@ public class NpcMapper : TypeMapper<NpcMetadata> {
     public NpcMapper(M2dReader xmlReader) {
         parser = new NpcParser(xmlReader);
     }
-    
+
     protected override IEnumerable<NpcMetadata> Map() {
         foreach ((int id, string name, NpcData data, List<EffectDummy> _) in parser.Parse()) {
             float probDiv = data.normal.prob.Sum();
@@ -24,27 +24,27 @@ public class NpcMapper : TypeMapper<NpcMetadata> {
                 Stat:new NpcMetadataStat(
                     Stats:MapStats(data.stat),
                     ScaleStatRate:new [] {
-                        data.stat.scaleStatRate_1, 
-                        data.stat.scaleStatRate_2, 
-                        data.stat.scaleStatRate_3, 
+                        data.stat.scaleStatRate_1,
+                        data.stat.scaleStatRate_2,
+                        data.stat.scaleStatRate_3,
                         data.stat.scaleStatRate_4,
                     },
                     ScaleBaseTap:new [] {
-                        data.stat.scaleBaseTap_1, 
-                        data.stat.scaleBaseTap_2, 
-                        data.stat.scaleBaseTap_3, 
+                        data.stat.scaleBaseTap_1,
+                        data.stat.scaleBaseTap_2,
+                        data.stat.scaleBaseTap_3,
                         data.stat.scaleBaseTap_4,
                     },
                     ScaleBaseDef:new [] {
-                        data.stat.scaleBaseDef_1, 
-                        data.stat.scaleBaseDef_2, 
-                        data.stat.scaleBaseDef_3, 
+                        data.stat.scaleBaseDef_1,
+                        data.stat.scaleBaseDef_2,
+                        data.stat.scaleBaseDef_3,
                         data.stat.scaleBaseDef_4,
                     },
                     ScaleBaseSpaRate:new [] {
-                        data.stat.scaleBaseSpaRate_1, 
-                        data.stat.scaleBaseSpaRate_2, 
-                        data.stat.scaleBaseSpaRate_3, 
+                        data.stat.scaleBaseSpaRate_1,
+                        data.stat.scaleBaseSpaRate_2,
+                        data.stat.scaleBaseSpaRate_3,
                         data.stat.scaleBaseSpaRate_4,
                     }
                 ),
@@ -69,7 +69,7 @@ public class NpcMapper : TypeMapper<NpcMetadata> {
                     RotateSpeed:data.speed.rotation,
                     WalkSpeed:data.speed.walk,
                     RunSpeed:data.speed.run,
-                    Actions:data.normal.action.Zip(data.normal.prob, 
+                    Actions:data.normal.action.Zip(data.normal.prob,
                         (action, prob) => new NpcAction(action, prob/probDiv)).ToArray(),
                     MoveArea:data.normal.movearea,
                     MaidExpired:data.normal.maidExpired
@@ -145,5 +145,5 @@ public class NpcMapper : TypeMapper<NpcMetadata> {
         }
 
         return stats;
-    } 
+    }
 }
