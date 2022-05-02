@@ -23,9 +23,7 @@ public static class FieldPacket {
         pWriter.Write<Vector3>(session.Player.Position);
         pWriter.Write<Vector3>(session.Player.Rotation);
         pWriter.WriteByte();
-
-        // TODO: Stats
-
+        pWriter.WritePlayerStats(session.Player.Stats);
         pWriter.WriteBool(session.Player.InBattle);
 
         #region Unknown Cube Section
@@ -93,6 +91,13 @@ public static class FieldPacket {
         #endregion
 
         pWriter.WriteByte();
+
+        #region sub_5F1C30
+        pWriter.WriteInt();
+        pWriter.WriteByte();
+        pWriter.WriteByte();
+        #endregion
+
         pWriter.WriteInt(player.Character.Title);
         pWriter.WriteShort(player.Character.Insignia);
         pWriter.WriteByte(); // InsigniaValue
@@ -103,6 +108,8 @@ public static class FieldPacket {
         pWriter.WriteInt();
         pWriter.WriteByte();
         pWriter.WriteInt(); // Tail
+        pWriter.WriteInt();
+        pWriter.WriteShort();
 
         return pWriter;
     }

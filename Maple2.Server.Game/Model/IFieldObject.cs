@@ -14,6 +14,7 @@ public interface IFieldEntity : IFieldObject {
 
 public interface IActor : IFieldEntity {
     public IReadOnlyDictionary<int, Buff> Buffs { get; }
+    public Stats Stats { get; }
 
     // Syncs the object to the field
     public virtual void Sync() { }

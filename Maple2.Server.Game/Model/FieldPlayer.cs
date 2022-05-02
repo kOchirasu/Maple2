@@ -15,6 +15,7 @@ public class FieldPlayer : IActor<Player> {
     public Vector3 Rotation { get; set; }
 
     public IReadOnlyDictionary<int, Buff> Buffs => new Dictionary<int, Buff>();
+    public Stats Stats => new Stats();
     public bool InBattle;
 
     public FieldPlayer(int objectId, GameSession session, Player player) {

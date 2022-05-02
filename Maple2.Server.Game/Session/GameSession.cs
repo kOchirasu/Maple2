@@ -148,6 +148,7 @@ public sealed class GameSession : Core.Network.Session {
     public bool EnterField(Player player) {
         Field = FieldFactory.Get(player.Character.MapId);
         Player = Field.SpawnPlayer(this, player);
+        Field.OnAddPlayer(Player);
 
         using (GameStorage.Request db = GameStorage.Context()) {
             db.GetEquips(player.Character.Id, EquipTab.Gear, EquipTab.Outfit, EquipTab.Badge);

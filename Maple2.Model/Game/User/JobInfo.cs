@@ -44,7 +44,7 @@ public class JobInfo : IByteSerializable {
         passiveCount += AwakeningSkills.Passive.Sum(skill => skill.Count);
 
         writer.WriteInt((int) Job);
-        writer.WriteBool(true);
+        writer.WriteByte(1); // Count
         writer.WriteInt((int) Job.Code());
         writer.WriteByte((byte) activeCount);
         foreach (Skill skill in BasicSkills.Active) {
@@ -60,6 +60,9 @@ public class JobInfo : IByteSerializable {
         foreach (Skill skill in AwakeningSkills.Passive) {
             writer.WriteClass<Skill>(skill);
         }
+
+        writer.WriteByte(); // SkillType.Special
+        writer.WriteByte(); // SkillType.Consumable
     }
 
     public class Skill : IByteSerializable {
