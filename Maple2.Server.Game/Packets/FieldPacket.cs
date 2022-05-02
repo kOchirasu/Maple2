@@ -6,6 +6,7 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Core.Packets.Helper;
+using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Extensions;
 
@@ -22,19 +23,86 @@ public static class FieldPacket {
         pWriter.Write<Vector3>(session.Player.Position);
         pWriter.Write<Vector3>(session.Player.Rotation);
         pWriter.WriteByte();
-        // Stats
-        pWriter.WriteBool(false); // InBattle
-        // ...
+
+        // TODO: Stats
+
+        pWriter.WriteBool(session.Player.InBattle);
+
+        #region Unknown Cube Section
+        pWriter.WriteByte();
+        #region CubeItemInfo
+        pWriter.WriteInt(); // ItemId
+        pWriter.WriteLong(); // ItemUid
+        pWriter.WriteLong(); // Unknown
+        pWriter.WriteBool(false); // IsUgc
+        //pWriter.WriteClass<UgcItemLook>(...);
+        #endregion
+        pWriter.WriteInt();
+        #endregion
+
         pWriter.Write<SkinColor>(player.Character.SkinColor);
         pWriter.WriteUnicodeString(player.Character.Picture);
-        // Mount
+        pWriter.WriteBool(false); // TODO: Mount
         pWriter.WriteInt();
         pWriter.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds()); // ???
         pWriter.WriteInt(); // Weekly Architect Score
         pWriter.WriteInt(); // Architect Score
-        // Equips
-        // Buffs
-        // ...
+
+        using (var buffer = new PoolByteWriter()) {
+            int count = session.Item.Equips.Gear.Count + session.Item.Equips.Outfit.Count;
+            buffer.WriteByte((byte) count);
+            foreach (Item item in session.Item.Equips.Gear.Values) {
+                buffer.WriteEquip(item);
+            }
+            foreach (Item item in session.Item.Equips.Outfit.Values) {
+                buffer.WriteEquip(item);
+            }
+            // Don't know...
+            buffer.WriteBool(true);
+            buffer.WriteLong();
+            buffer.WriteLong();
+            // Outfit2
+            buffer.WriteByte(0);
+
+            pWriter.WriteDeflated(buffer.Buffer, 0, buffer.Length);
+        }
+
+        using (var buffer = new PoolByteWriter()) {
+            buffer.WriteByte(0); // Unknown
+
+            pWriter.WriteDeflated(buffer.Buffer, 0, buffer.Length);
+        }
+
+        using (var buffer = new PoolByteWriter()) {
+            buffer.WriteByte((byte) session.Item.Equips.Badge.Count);
+            foreach (Item item in session.Item.Equips.Badge.Values) {
+                buffer.WriteBadge(item);
+            }
+
+            pWriter.WriteDeflated(buffer.Buffer, 0, buffer.Length);
+        }
+
+        pWriter.WriteShort((short) session.Player.Buffs.Count);
+        foreach (Buff buff in session.Player.Buffs.Values) {
+            pWriter.WriteClass<Buff>(buff);
+        }
+
+        #region sub_BF6440
+        pWriter.WriteInt();
+        pWriter.WriteInt();
+        #endregion
+
+        pWriter.WriteByte();
+        pWriter.WriteInt(player.Character.Title);
+        pWriter.WriteShort(player.Character.Insignia);
+        pWriter.WriteByte(); // InsigniaValue
+
+        pWriter.WriteInt();
+        pWriter.WriteBool(false); // TODO: Pet
+        pWriter.WriteLong(player.Account.PremiumTime);
+        pWriter.WriteInt();
+        pWriter.WriteByte();
+        pWriter.WriteInt(); // Tail
 
         return pWriter;
     }

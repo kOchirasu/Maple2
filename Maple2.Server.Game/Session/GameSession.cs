@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Maple2.Database.Storage;
 using Maple2.Model;
 using Maple2.Model.Enum;
@@ -9,6 +10,7 @@ using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Manager;
 using Maple2.Server.Game.Manager.Field;
+using Maple2.Server.Game.Manager.Items;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Microsoft.Extensions.Logging;
@@ -28,6 +30,7 @@ public sealed class GameSession : Core.Network.Session {
     #endregion
 
     public FieldManager Field { get; set; }
+    public ItemManager Item { get; set; }
     public SkillManager Skill { get; set; }
     public FieldPlayer Player { get; private set; }
 
@@ -38,6 +41,25 @@ public sealed class GameSession : Core.Network.Session {
         Player player = db.LoadPlayer(accountId, characterId);
         if (player == null) {
             return false;
+        }
+
+        Item = new ItemManager(this);
+        foreach ((EquipTab tab, List<Item> items) in db.GetEquips(characterId, EquipTab.Gear, EquipTab.Outfit, EquipTab.Badge)) {
+            foreach (Item item in items) {
+                switch (tab) {
+                    case EquipTab.Gear:
+                        Item.Equips.Gear[item.EquipSlot] = item;
+                        break;
+                    case EquipTab.Outfit:
+                        Item.Equips.Outfit[item.EquipSlot] = item;
+                        break;
+                    case EquipTab.Badge:
+                        if (item.Badge != null) {
+                            Item.Equips.Badge[item.Badge.Type] = item;
+                        }
+                        break;
+                }
+            }
         }
 
         JobTable.Entry jobTableEntry = TableMetadata.JobTable.Entries[player.Character.Job.Code()];

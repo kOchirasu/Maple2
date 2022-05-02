@@ -1,17 +1,21 @@
-﻿using System.Numerics;
+﻿using System.Collections.Generic;
+using System.Numerics;
 using Maple2.Model.Game;
 using Maple2.Server.Game.Session;
 
-namespace Maple2.Server.Game.Model; 
+namespace Maple2.Server.Game.Model;
 
 public class FieldPlayer : IActor<Player> {
     public readonly GameSession Session;
-    
+
     public int ObjectId { get; init; }
     public Player Value { get; init; }
-    
+
     public Vector3 Position { get; set; }
     public Vector3 Rotation { get; set; }
+
+    public IReadOnlyDictionary<int, Buff> Buffs => new Dictionary<int, Buff>();
+    public bool InBattle;
 
     public FieldPlayer(int objectId, GameSession session, Player player) {
         ObjectId = objectId;

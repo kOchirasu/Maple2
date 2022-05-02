@@ -80,7 +80,7 @@ public static class CharacterListPacket {
         pWriter.WriteBool(false);
         return pWriter;
     }
-    
+
     public static ByteWriter CreateError(CharacterCreateError error, string message = "") {
         var pWriter = Packet.Of(SendOp.CHARACTER_CREATE);
         pWriter.Write<CharacterCreateError>(error);
@@ -88,7 +88,7 @@ public static class CharacterListPacket {
 
         return pWriter;
     }
-    
+
     public static ByteWriter SetMax(int unlocked, int total) {
         var pWriter = Packet.Of(SendOp.CHAR_MAX_COUNT);
         pWriter.WriteInt(unlocked);
@@ -107,34 +107,17 @@ public static class CharacterListPacket {
         outfits ??= new List<Item>();
         pWriter.WriteByte((byte) (gears.Count + outfits.Count));
         foreach (Item gear in gears) {
-            pWriter.WriteInt(gear.Id);
-            pWriter.WriteLong(gear.Uid);
-            pWriter.WriteUnicodeString(gear.EquipSlot.ToString());
-            pWriter.WriteInt(gear.Rarity);
-            pWriter.WriteClass<Item>(gear);
+            pWriter.WriteEquip(gear);
         }
-
         foreach (Item outfit in outfits) {
-            pWriter.WriteInt(outfit.Id);
-            pWriter.WriteLong(outfit.Uid);
-            pWriter.WriteUnicodeString(outfit.EquipSlot.ToString());
-            pWriter.WriteInt(outfit.Rarity);
-            pWriter.WriteClass<Item>(outfit);
+            pWriter.WriteEquip(outfit);
         }
 
         equips.TryGetValue(EquipTab.Badge, out List<Item>? badges);
         badges ??= new List<Item>();
         pWriter.WriteByte((byte) badges.Count);
         foreach (Item badge in badges) {
-            if (badge.Badge == null) {
-                throw new ArgumentNullException(nameof(badge.Badge));
-            }
-
-            pWriter.Write<BadgeType>(badge.Badge.Type);
-            pWriter.WriteInt(badge.Id);
-            pWriter.WriteLong(badge.Uid);
-            pWriter.WriteInt(badge.Rarity);
-            pWriter.WriteClass<Item>(badge);
+            pWriter.WriteBadge(badge);
         }
 
         pWriter.WriteByte(); // Outfit2
