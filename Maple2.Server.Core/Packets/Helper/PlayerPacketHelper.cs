@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Numerics;
+using Maple2.Model;
 using Maple2.Model.Common;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 
-namespace Maple2.Server.Core.Packets.Helper; 
+namespace Maple2.Server.Core.Packets.Helper;
 
 public static class PlayerPacketHelper {
     public static void WriteCharacter(this IByteWriter writer, Account account, Character character) {
@@ -21,7 +22,7 @@ public static class PlayerPacketHelper {
         writer.WriteInt(character.InstanceId);
         writer.WriteShort(character.Level);
         writer.WriteShort(character.Channel);
-        writer.WriteInt((int)character.JobCode);
+        writer.WriteInt((int)character.Job.Code());
         writer.Write<Job>(character.Job);
         writer.WriteInt(); // CurrentHp
         writer.WriteInt(); // MaxHp

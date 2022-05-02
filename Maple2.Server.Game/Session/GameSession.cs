@@ -1,10 +1,13 @@
 ﻿using System;
 using Maple2.Database.Storage;
+using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
+using Maple2.Server.Game.Manager;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
@@ -14,15 +17,18 @@ namespace Maple2.Server.Game.Session;
 
 public sealed class GameSession : Core.Network.Session {
     protected override PatchType Type => PatchType.Ignore;
-    
+
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global, UnusedAutoPropertyAccessor.Global
     public GameStorage GameStorage { private get; init; }
+    public SkillMetadataStorage SkillMetadata { private get; init; }
+    public TableMetadataStorage TableMetadata { private get; init; }
     public FieldManager.Factory FieldFactory { private get; init; }
     // ReSharper restore All
     #endregion
-    
+
     public FieldManager Field { get; set; }
+    public SkillManager Skill { get; set; }
     public FieldPlayer Player { get; private set; }
 
     public GameSession(ILogger<GameSession> logger) : base(logger) { }
@@ -33,7 +39,10 @@ public sealed class GameSession : Core.Network.Session {
         if (player == null) {
             return false;
         }
-        
+
+        JobTable.Entry jobTableEntry = TableMetadata.JobTable.Entries[player.Character.Job.Code()];
+        Skill = new SkillManager(player.Character.Job, SkillMetadata, jobTableEntry);
+
         //session.Send(Packet.Of(SendOp.REQUEST_SYSTEM_INFO));
         Send(MigrationPacket.MoveResult(MigrationError.ok));
 
@@ -43,23 +52,23 @@ public sealed class GameSession : Core.Network.Session {
         // UserConditionEvent
         // PCBangBonus
         // Buddy
-        
+
         Send(TimeSyncPacket.Reset(DateTimeOffset.UtcNow));
         Send(TimeSyncPacket.Request());
-        
+
         // Stat
         // Quest
-        
+
         Send(RequestPacket.TickSync(Environment.TickCount));
-        
+
         // DynamicChannel
 
         if (!EnterField(player)) {
             return false;
         }
-        
+
         Send(ServerEnterPacket.Request(Player));
-        
+
         // Ugc
         // Cash
         // Gvg
@@ -95,13 +104,13 @@ public sealed class GameSession : Core.Network.Session {
         // Mail
         // BypassKey
         // AH
-        
+
         return true;
     }
 
     public bool Temp() {
         // -> RequestMoveField
-        
+
         // <- RequestFieldEnter
         // -> RequestLoadUgcMap
         //   <- LoadUgcMap
@@ -109,7 +118,7 @@ public sealed class GameSession : Core.Network.Session {
         // -> Ugc
         //   <- Ugc
         // -> ResponseFieldEnter
-        
+
 
         return true;
     }

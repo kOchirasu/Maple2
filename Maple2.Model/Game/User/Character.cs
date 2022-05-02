@@ -19,7 +19,6 @@ public class Character {
     public string Name;
     public Gender Gender;
     public int MapId;
-    public JobCode JobCode => (JobCode)((int)Job / 10);
     public Job Job;
 
     public SkinColor SkinColor;
