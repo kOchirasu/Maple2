@@ -19,7 +19,7 @@ public sealed partial class FieldManager : IDisposable {
         this.entities = entities;
     }
 
-    public void Multicast(ByteWriter packet, GameSession sender = null) {
+    public void Multicast(ByteWriter packet, GameSession? sender = null) {
         foreach ((_, FieldPlayer other) in fieldPlayers) {
             if (other.Session == sender) continue;
             other.Session.Send(packet);

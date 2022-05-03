@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Maple2.Model.Game;
@@ -34,7 +33,7 @@ public partial class FieldManager {
         return fieldPlayer;
     }
 
-    public bool RemovePlayer(int objectId, out FieldPlayer fieldPlayer) {
+    public bool RemovePlayer(int objectId, out FieldPlayer? fieldPlayer) {
         return fieldPlayers.TryRemove(objectId, out fieldPlayer);
     }
 

@@ -143,7 +143,6 @@ public class ItemCollection : IEnumerable<Item> {
 
         mutex.EnterWriteLock();
         try {
-            short diff = (short) (newSize - Size);
             Array.Resize(ref items, newSize);
             return true;
         } finally {

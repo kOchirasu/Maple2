@@ -19,6 +19,7 @@ namespace Maple2.Server.Game.Session;
 
 public sealed class GameSession : Core.Network.Session {
     protected override PatchType Type => PatchType.Ignore;
+    public const int FIELD_KEY = 0x1234;
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global, UnusedAutoPropertyAccessor.Global
@@ -85,11 +86,13 @@ public sealed class GameSession : Core.Network.Session {
 
         // DynamicChannel
 
-        if (!EnterField(player)) {
+        FieldManager? fieldManager = FieldFactory.Get(player.Character.MapId);
+        if (fieldManager == null) {
             return false;
         }
 
-        Send(ServerEnterPacket.Request(Player));
+        Field = fieldManager;
+        Player = Field.SpawnPlayer(this, player);
 
         // Ugc
         // Cash
@@ -119,6 +122,7 @@ public sealed class GameSession : Core.Network.Session {
         // FieldEntrance
         // InGameRank
         // RequestFieldEnter
+        Send(FieldEnterPacket.Request(Player));
         // HomeCommand
         // ResponseCube
         // Mentor
@@ -141,14 +145,6 @@ public sealed class GameSession : Core.Network.Session {
         //   <- Ugc
         // -> ResponseFieldEnter
 
-
-        return true;
-    }
-
-    public bool EnterField(Player player) {
-        Field = FieldFactory.Get(player.Character.MapId);
-        Player = Field.SpawnPlayer(this, player);
-        Field.OnAddPlayer(Player);
 
         return true;
     }
