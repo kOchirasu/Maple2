@@ -150,10 +150,16 @@ public sealed class GameSession : Core.Network.Session {
         Player = Field.SpawnPlayer(this, player);
         Field.OnAddPlayer(Player);
 
-        using (GameStorage.Request db = GameStorage.Context()) {
-            db.GetEquips(player.Character.Id, EquipTab.Gear, EquipTab.Outfit, EquipTab.Badge);
-        }
-
         return true;
+    }
+
+    public override void Dispose() {
+        try {
+            Field?.RemovePlayer(Player.ObjectId, out FieldPlayer _);
+            base.Dispose();
+        } finally {
+            using GameStorage.Request db = GameStorage.Transaction();
+            db.SavePlayer(Player);
+        }
     }
 }

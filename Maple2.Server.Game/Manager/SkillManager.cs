@@ -12,10 +12,7 @@ public class SkillManager {
     public readonly JobInfo JobInfo;
 
     public SkillManager(Job job, SkillMetadataStorage storage, JobTable.Entry jobTable) {
-        var skills = new Dictionary<SkillRank, (List<JobInfo.Skill>, List<JobInfo.Skill>)> {
-            [SkillRank.Basic] = (new List<JobInfo.Skill>(), new List<JobInfo.Skill>()),
-            [SkillRank.Awakening] = (new List<JobInfo.Skill>(), new List<JobInfo.Skill>())
-        };
+        JobInfo = new JobInfo(job);
 
         var baseSkills = new HashSet<int>(jobTable.BaseSkills);
         foreach ((SkillRank rank, JobTable.Skill[] jobSkills) in jobTable.Skills) {
@@ -25,26 +22,17 @@ public class SkillManager {
                 if (!storage.TryGet(skill.Main, out SkillMetadata metadata)) {
                     throw new InvalidOperationException($"Nonexistent skillId:{skill.Main}");
                 }
-                Debug.Assert(metadata.Property.Type is SkillType.Active or SkillType.Passive);
 
                 short baseLevel = (short) (baseSkills.Contains(skill.Main) ? 1 : 0);
-                switch (metadata.Property.Type) {
-                    case SkillType.Active:
-                        skills[rank].Item1.Add(new JobInfo.Skill(skill.Main, skill.Sub, baseLevel));
-                        break;
-                    case SkillType.Passive:
-                        skills[rank].Item2.Add(new JobInfo.Skill(skill.Main, skill.Sub, baseLevel));
-                        break;
-                }
+                JobInfo.AddSkill(metadata.Property.Type, rank, new JobInfo.Skill(skill.Main, skill.Sub, baseLevel));
             }
         }
-
-        JobInfo = new JobInfo(job, skills[SkillRank.Basic], skills[SkillRank.Awakening]);
     }
 
     public void UpdateSkills(IList<(int, short)> skills) {
         foreach ((int skillId, short level) in skills) {
-            if (!JobInfo.Skills.TryGetValue(skillId, out JobInfo.Skill skill)) {
+            JobInfo.Skill? skill = JobInfo.GetSkill(skillId);
+            if (skill == null) {
                 continue;
             }
 
@@ -56,19 +44,8 @@ public class SkillManager {
     }
 
     public void ResetSkills(SkillRank rank = SkillRank.Both) {
-        if (rank is SkillRank.Basic or SkillRank.Both) {
-            foreach (JobInfo.Skill skill in JobInfo.BasicSkills.Active) {
-                skill.Level = skill.BaseLevel;
-            }
-            foreach (JobInfo.Skill skill in JobInfo.BasicSkills.Passive) {
-                skill.Level = skill.BaseLevel;
-            }
-        }
-        if (rank is SkillRank.Awakening or SkillRank.Both) {
-            foreach (JobInfo.Skill skill in JobInfo.AwakeningSkills.Active) {
-                skill.Level = skill.BaseLevel;
-            }
-            foreach (JobInfo.Skill skill in JobInfo.AwakeningSkills.Passive) {
+        foreach (SkillType type in Enum.GetValues(typeof(SkillType))) {
+            foreach (JobInfo.Skill skill in JobInfo.GetSkills(type, rank)) {
                 skill.Level = skill.BaseLevel;
             }
         }

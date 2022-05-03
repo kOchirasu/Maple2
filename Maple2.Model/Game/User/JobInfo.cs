@@ -8,61 +8,74 @@ using Maple2.Tools.Extensions;
 namespace Maple2.Model.Game;
 
 public class JobInfo : IByteSerializable {
-    public readonly Job Job;
+    private const int SKILL_TYPES = 4;
+    private const int SKILL_RANKS = 2;
 
-    public readonly IReadOnlyDictionary<int, Skill> Skills;
+    private readonly Job job;
+    private readonly Dictionary<int, Skill>[,] skills;
 
-    public readonly (IReadOnlyList<Skill> Active, IReadOnlyList<Skill> Passive) BasicSkills;
-    public readonly (IReadOnlyList<Skill> Active, IReadOnlyList<Skill> Passive) AwakeningSkills;
+    public JobInfo(Job job) {
+        this.job = job;
+        skills = new Dictionary<int, Skill>[SKILL_TYPES,SKILL_RANKS];
+        for (int i = 0; i < SKILL_TYPES; i++) {
+            for (int j = 0; j < SKILL_RANKS; j++) {
+                skills[i, j] = new Dictionary<int, Skill>();
+            }
+        }
+    }
 
-    public JobInfo(Job job, (List<Skill>, List<Skill>) basicSkills, (List<Skill>, List<Skill>) awakeningSkills) {
-        Job = job;
-        BasicSkills = basicSkills;
-        AwakeningSkills = awakeningSkills;
+    public void AddSkill(SkillType type, SkillRank rank, Skill skill) {
+        if (rank is not (SkillRank.Basic or SkillRank.Both)) {
+            return;
+        }
 
-        // Index from SkillId to Skill
-        var index = new Dictionary<int, Skill>();
-        foreach (Skill skill in BasicSkills.Active) {
-            index[skill.Id] = skill;
+        skills[(int) type, (int) rank].Add(skill.Id, skill);
+    }
+
+    public IEnumerable<Skill> GetSkills(SkillType type, SkillRank rank) {
+        if (rank is SkillRank.Basic or SkillRank.Both) {
+            foreach (Skill skill in skills[(int) type, (int) SkillRank.Basic].Values) {
+                yield return skill;
+            }
         }
-        foreach (Skill skill in BasicSkills.Passive) {
-            index[skill.Id] = skill;
+
+        if (rank is SkillRank.Awakening or SkillRank.Both) {
+            foreach (Skill skill in skills[(int) type, (int) SkillRank.Awakening].Values) {
+                yield return skill;
+            }
         }
-        foreach (Skill skill in AwakeningSkills.Active) {
-            index[skill.Id] = skill;
+    }
+
+    public Skill? GetSkill(int skillId) {
+        for (int i = 0; i < SKILL_TYPES; i++) {
+            for (int j = 0; j < SKILL_RANKS; j++) {
+                if (skills[i, j].TryGetValue(skillId, out Skill? skill)) {
+                    return skill;
+                }
+            }
         }
-        foreach (Skill skill in AwakeningSkills.Passive) {
-            index[skill.Id] = skill;
-        }
-        Skills = index;
+
+        return null;
     }
 
     public void WriteTo(IByteWriter writer) {
-        int activeCount = BasicSkills.Active.Sum(skill => skill.Count);
-        activeCount += AwakeningSkills.Active.Sum(skill => skill.Count);
-        int passiveCount = BasicSkills.Passive.Sum(skill => skill.Count);
-        passiveCount += AwakeningSkills.Passive.Sum(skill => skill.Count);
-
-        writer.WriteInt((int) Job);
+        writer.WriteInt((int) job);
         writer.WriteByte(1); // Count
-        writer.WriteInt((int) Job.Code());
-        writer.WriteByte((byte) activeCount);
-        foreach (Skill skill in BasicSkills.Active) {
-            writer.WriteClass<Skill>(skill);
-        }
-        foreach (Skill skill in AwakeningSkills.Active) {
-            writer.WriteClass<Skill>(skill);
-        }
-        writer.WriteByte((byte) passiveCount);
-        foreach (Skill skill in BasicSkills.Passive) {
-            writer.WriteClass<Skill>(skill);
-        }
-        foreach (Skill skill in AwakeningSkills.Passive) {
-            writer.WriteClass<Skill>(skill);
-        }
 
-        writer.WriteByte(); // SkillType.Special
-        writer.WriteByte(); // SkillType.Consumable
+        writer.WriteInt((int) job.Code());
+        for (int i = 0; i < SKILL_TYPES; i++) {
+            int count = 0;
+            for (int j = 0; j < SKILL_RANKS; j++) {
+                count += skills[i, j].Values.Sum(skill => skill.Count);
+            }
+            writer.WriteByte((byte) count);
+
+            for (int j = 0; j < SKILL_RANKS; j++) {
+                foreach (Skill skill in skills[i, j].Values) {
+                    writer.WriteClass<Skill>(skill);
+                }
+            }
+        }
     }
 
     public class Skill : IByteSerializable {
