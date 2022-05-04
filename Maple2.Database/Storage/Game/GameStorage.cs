@@ -15,14 +15,13 @@ public partial class GameStorage {
         this.logger = logger;
     }
 
-    public Request Context()  {
-        return new Request(this, new Ms2Context(options), logger);
-    }
+    public Request Context() {
+        // We use NoTracking by default since most requests are Read or Overwrite.
+        // If we need tracking for modifying data, we can set it individually as needed.
+        var context = new Ms2Context(options);
+        context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
-    public Request Transaction() {
-        var request = new Request(this, new Ms2Context(options), logger);
-        request.BeginTransaction();
-        return request;
+        return new Request(this, context, logger);
     }
 
     public partial class Request : DatabaseRequest<Ms2Context> {

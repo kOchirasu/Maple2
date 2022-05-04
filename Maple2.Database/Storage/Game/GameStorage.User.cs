@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model;
@@ -8,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Account = Maple2.Model.Game.Account;
 using Character = Maple2.Model.Game.Character;
 
-namespace Maple2.Database.Storage; 
+namespace Maple2.Database.Storage;
 
 public partial class GameStorage {
     public partial class Request {
@@ -29,7 +28,7 @@ public partial class GameStorage {
 
             return true;
         }
-        
+
         public (Account, IList<Character>) ListCharacters(long accountId) {
             Model.Account model = context.Account
                 .Include(account => account.Characters)
@@ -43,9 +42,9 @@ public partial class GameStorage {
             if (accountId < 0) {
                 return context.Character.Find(characterId);
             }
-            
+
             // Limit character fetching to those owned by account.
-            return context.Character.SingleOrDefault(character => 
+            return context.Character.SingleOrDefault(character =>
                 character.Id == characterId && character.AccountId == accountId);
         }
 
@@ -54,13 +53,13 @@ public partial class GameStorage {
             if (account == null) {
                 return null;
             }
-            
-            Model.Character character = context.Character.SingleOrDefault(character => 
+
+            Model.Character character = context.Character.SingleOrDefault(character =>
                 character.Id == characterId && character.AccountId == accountId);
             if (character == null) {
                 return null;
             }
-            
+
             var player = new Player(account, character) {
                 Currency = new Currency(
                     account.Currency.Meret,
@@ -102,16 +101,16 @@ public partial class GameStorage {
                 MenteeToken = player.Currency.MenteeToken,
                 StarPoint = player.Currency.StarPoint,
             };
-            context.Account.Update(account);
-            context.Character.Update(character);
+            context.Overwrite(account);
+            context.Overwrite(character);
 
             CharacterUnlock unlock = player.Unlock;
             unlock.CharacterId = character.Id;
-            context.CharacterUnlock.Update(unlock);
+            context.Overwrite(unlock);
 
             return context.TrySaveChanges();
         }
-        
+
         #region Create
         public Account CreateAccount(Account account) {
             Model.Account model = account;
@@ -119,7 +118,7 @@ public partial class GameStorage {
             context.Account.Add(model);
             return context.TrySaveChanges() ? model : null;
         }
-        
+
         public Character CreateCharacter(Character character) {
             Model.Character model = character;
             model.Id = 0;
@@ -134,22 +133,26 @@ public partial class GameStorage {
             return context.TrySaveChanges() ? model : null;
         }
         #endregion
-        
+
         #region Delete
         public bool UpdateDelete(long accountId, long characterId, long time) {
-            Model.Character model = context.Character.SingleOrDefault(character => 
+            context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
+
+            Model.Character model = context.Character.SingleOrDefault(character =>
                 character.Id == characterId && character.AccountId == accountId);
             if (model == null) {
                 return false;
             }
-            
+
             model.DeleteTime = time.FromEpochSeconds();
             context.Update(model);
             return context.TrySaveChanges();
         }
 
         public bool DeleteCharacter(long accountId, long characterId) {
-            Model.Character character = context.Character.SingleOrDefault(character => 
+            context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
+
+            Model.Character character = context.Character.SingleOrDefault(character =>
                 character.Id == characterId && character.AccountId == accountId);
             if (character == null) {
                 return false;

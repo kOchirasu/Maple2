@@ -161,7 +161,8 @@ public sealed class GameSession : Core.Network.Session {
             Field?.RemovePlayer(Player.ObjectId, out FieldPlayer _);
             base.Dispose();
         } finally {
-            using GameStorage.Request db = GameStorage.Transaction();
+            using GameStorage.Request db = GameStorage.Context();
+            db.BeginTransaction();
             db.SavePlayer(Player);
         }
     }

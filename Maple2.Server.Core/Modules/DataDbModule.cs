@@ -1,5 +1,5 @@
-﻿using System.Reflection;
-using Autofac;
+﻿using Autofac;
+using Maple2.Database.Context;
 using Maple2.Database.Storage;
 using Maple2.Server.Core.Constants;
 using Microsoft.EntityFrameworkCore;
@@ -8,8 +8,6 @@ using Module = Autofac.Module;
 namespace Maple2.Server.Core.Modules;
 
 public class DataDbModule : Module {
-    private const string NAME = "DataDbOptions";
-
     private readonly DbContextOptions options;
 
     public DataDbModule() {
@@ -19,28 +17,16 @@ public class DataDbModule : Module {
     }
 
     protected override void Load(ContainerBuilder builder) {
-        builder.RegisterInstance(options)
-            .Named<DbContextOptions>(NAME);
+        // NoTracking, Metadata is cached separately, and we use a single context for lifetime.
+        var context = new MetadataContext(options);
+        context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+        builder.RegisterInstance(context);
 
-        Register<ItemMetadataStorage>(builder);
-        Register<MapMetadataStorage>(builder);
-        Register<MapEntityStorage>(builder);
-        Register<NpcMetadataStorage>(builder);
-        Register<SkillMetadataStorage>(builder);
-        Register<TableMetadataStorage>(builder);
-    }
-
-    private static void Register<T>(ContainerBuilder builder) where T : notnull {
-        builder.RegisterType<T>()
-            .WithParameter(Condition, Resolve)
-            .SingleInstance();
-    }
-
-    private static bool Condition(ParameterInfo info, IComponentContext context) {
-        return info.Name == "options";
-    }
-
-    private static DbContextOptions Resolve(ParameterInfo info, IComponentContext context) {
-        return context.ResolveNamed<DbContextOptions>(NAME);
+        builder.RegisterType<ItemMetadataStorage>().SingleInstance();
+        builder.RegisterType<MapMetadataStorage>().SingleInstance();
+        builder.RegisterType<MapEntityStorage>().SingleInstance();
+        builder.RegisterType<NpcMetadataStorage>().SingleInstance();
+        builder.RegisterType<SkillMetadataStorage>().SingleInstance();
+        builder.RegisterType<TableMetadataStorage>().SingleInstance();
     }
 }

@@ -58,11 +58,11 @@ public class LoginSession : Core.Network.Session {
     }
 
     public void CreateCharacter(Character character, List<Item> outfits) {
-        using (GameStorage.Request db = GameStorage.Transaction()) {
+        using (GameStorage.Request db = GameStorage.Context()) {
+            db.BeginTransaction();
             character = db.CreateCharacter(character);
 
             var unlock = new Unlock();
-            unlock.Maps.Add(character.MapId);
             unlock.Emotes.UnionWith(new[] {
                 90200011, // Greet
                 90200004, // Scheme

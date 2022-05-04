@@ -57,10 +57,10 @@ internal class CharacterUnlock {
         builder.HasKey(unlock => unlock.CharacterId);
         builder.OneToOne<CharacterUnlock, Character>()
             .HasForeignKey<CharacterUnlock>(unlock => unlock.CharacterId);
-        builder.Property(unlock => unlock.Maps).HasJsonConversion();
-        builder.Property(unlock => unlock.Taxis).HasJsonConversion();
-        builder.Property(unlock => unlock.Titles).HasJsonConversion();
-        builder.Property(unlock => unlock.Emotes).HasJsonConversion();
-        builder.Property(unlock => unlock.Stamps).HasJsonConversion();
+        builder.Property(unlock => unlock.Maps).HasJsonConversion().IsRequired();
+        builder.Property(unlock => unlock.Taxis).HasJsonConversion().IsRequired();
+        builder.Property(unlock => unlock.Titles).HasJsonConversion().IsRequired();
+        builder.Property(unlock => unlock.Emotes).HasJsonConversion().IsRequired();
+        builder.Property(unlock => unlock.Stamps).HasJsonConversion().IsRequired();
     }
 }

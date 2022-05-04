@@ -10,9 +10,7 @@ using ClubMember = Maple2.Database.Model.ClubMember;
 namespace Maple2.Database.Context;
 
 public sealed class InitializationContext : Ms2Context {
-    public InitializationContext(DbContextOptions options) : base(options) {
-        ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-    }
+    public InitializationContext(DbContextOptions options) : base(options) { }
 
     public bool Initialize() {
         bool created = Database.EnsureCreated();
@@ -23,7 +21,7 @@ public sealed class InitializationContext : Ms2Context {
         Database.ExecuteSqlRaw("ALTER TABLE account AUTO_INCREMENT = 10000000000");
         Database.ExecuteSqlRaw("ALTER TABLE `character` AUTO_INCREMENT = 20000000000");
         Database.ExecuteSqlRaw("ALTER TABLE club AUTO_INCREMENT = 30000000000");
-        
+
         // item is the entity that could grow the most, so put it last
         Database.ExecuteSqlRaw("ALTER TABLE item AUTO_INCREMENT = 1000000000000");
 
@@ -40,7 +38,7 @@ public sealed class InitializationContext : Ms2Context {
         };
         Account.Add(account);
         SaveChanges();
-        
+
         var character = new Character {
             AccountId = account.Id,
             Name = "First",

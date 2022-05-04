@@ -35,4 +35,8 @@ public static class DbContextExtensions {
             Console.WriteLine($"Entity: {entry.Entity.GetType().Name}, State: {entry.State.ToString()} ");
         }
     }
+
+    public static void Overwrite<T>(this DbContext context, T entity) where T: class {
+        context.Entry(entity).State = EntityState.Modified;
+    }
 }

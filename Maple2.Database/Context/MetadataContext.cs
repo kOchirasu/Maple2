@@ -15,9 +15,7 @@ public sealed class MetadataContext : DbContext {
     public DbSet<SkillMetadata> SkillMetadata { get; set; }
     public DbSet<TableMetadata> TableMetadata { get; set; }
 
-    public MetadataContext(DbContextOptions options) : base(options) {
-        ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-    }
+    public MetadataContext(DbContextOptions options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);
