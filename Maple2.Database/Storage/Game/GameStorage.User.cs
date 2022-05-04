@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model;
@@ -101,12 +102,13 @@ public partial class GameStorage {
                 MenteeToken = player.Currency.MenteeToken,
                 StarPoint = player.Currency.StarPoint,
             };
-            context.Overwrite(account);
-            context.Overwrite(character);
+
+            context.Update(account);
+            context.Update(character);
 
             CharacterUnlock unlock = player.Unlock;
             unlock.CharacterId = character.Id;
-            context.Overwrite(unlock);
+            context.Update(unlock);
 
             return context.TrySaveChanges();
         }

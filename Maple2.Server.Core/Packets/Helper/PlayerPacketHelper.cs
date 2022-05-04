@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Maple2.Database.Extensions;
 using Maple2.Model;
 using Maple2.Model.Common;
 using Maple2.Model.Enum;
@@ -59,7 +60,7 @@ public static class PlayerPacketHelper {
         writer.WriteInt();
         writer.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
         writer.WriteInt(account.PrestigeLevel); // PrestigeLevel
-        writer.WriteLong(character.LastModified);
+        writer.WriteLong(character.LastModified.ToEpochSeconds());
         writer.WriteInt(); // Unknown Count
         writer.WriteInt(); // Unknown Count
         writer.WriteShort(); // Survival related?

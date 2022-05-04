@@ -6,11 +6,13 @@ using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 using Maple2.Tools.Extensions;
 
-namespace Maple2.Model.Game; 
+namespace Maple2.Model.Game;
 
 public class Item : IByteSerializable, IByteDeserializable {
     public readonly ItemMetadata Metadata;
     public readonly InventoryType Inventory;
+
+    public DateTime LastModified { get; init; }
 
     public long Uid { get; init; } = -1;
     public int Rarity { get; init; } = 1;
@@ -103,7 +105,7 @@ public class Item : IByteSerializable, IByteDeserializable {
             Badge = new ItemBadge(Id);
         }
     }
-    
+
     public void WriteTo(IByteWriter writer) {
         writer.WriteInt(Amount);
         writer.WriteInt();
@@ -123,7 +125,7 @@ public class Item : IByteSerializable, IByteDeserializable {
         writer.WriteClass<ItemStats>(Stats ?? ItemStats.Default);
         writer.WriteClass<ItemEnchant>(Enchant ?? ItemEnchant.Default);
         writer.WriteClass<ItemLimitBreak>(LimitBreak ?? ItemLimitBreak.Default);
-        
+
         if (Template != null && Blueprint != null) {
             writer.WriteClass<UgcItemLook>(Template);
             writer.WriteClass<ItemBlueprint>(Blueprint);
@@ -134,7 +136,7 @@ public class Item : IByteSerializable, IByteDeserializable {
         } else if (Badge != null) {
             writer.WriteClass<ItemBadge>(Badge);
         }
-        
+
         writer.WriteClass<ItemTransfer>(Transfer ?? ItemTransfer.Default);
         writer.WriteClass<ItemSocket>(Socket ?? ItemSocket.Default);
         writer.WriteClass<ItemCoupleInfo>(CoupleInfo ?? ItemCoupleInfo.Default);
@@ -160,7 +162,7 @@ public class Item : IByteSerializable, IByteDeserializable {
         Stats = reader.ReadClass<ItemStats>();
         Enchant = reader.ReadClass<ItemEnchant>();
         LimitBreak = reader.ReadClass<ItemLimitBreak>();
-        
+
         if (Template != null && Blueprint != null) {
             Template = reader.ReadClass<UgcItemLook>();
             Blueprint = reader.ReadClass<ItemBlueprint>();
@@ -171,7 +173,7 @@ public class Item : IByteSerializable, IByteDeserializable {
         } else if (Badge != null) {
             Badge = reader.ReadClass<ItemBadge>();
         }
-        
+
         Transfer = reader.ReadClass<ItemTransfer>();
         Socket = reader.ReadClass<ItemSocket>();
         CoupleInfo = reader.ReadClass<ItemCoupleInfo>();

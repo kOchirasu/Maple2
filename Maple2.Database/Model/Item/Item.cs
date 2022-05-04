@@ -45,6 +45,7 @@ internal class Item {
         }
 
         var item = new Item {
+            LastModified = other.LastModified,
             Id = other.Uid,
             ItemId = other.Id,
             Rarity = other.Rarity,
@@ -90,6 +91,7 @@ internal class Item {
     // Use explicit Convert() here because we need metadata to construct Item.
     public Maple2.Model.Game.Item Convert(ItemMetadata metadata) {
         var item = new Maple2.Model.Game.Item(metadata, false) {
+            LastModified = LastModified,
             Uid = Id,
             Rarity = Rarity,
             Slot = Slot,

@@ -28,7 +28,7 @@ public abstract class Session : IDisposable {
     public EventHandler<string>? OnError;
     public EventHandler<IByteReader>? OnPacket;
 
-    private bool disposed;
+    protected bool disposed;
     private uint siv;
     private uint riv;
 
@@ -78,7 +78,14 @@ public abstract class Session : IDisposable {
         this.recvCipher = new MapleCipher.Decryptor(VERSION, riv, BLOCK_IV);
     }
 
-    public virtual void Dispose() {
+    ~Session() => Dispose(false);
+
+    public void Dispose() {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    public void Dispose(bool disposing) {
         if (disposed) return;
 
         disposed = true;

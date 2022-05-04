@@ -17,7 +17,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.Session;
 
-public sealed class GameSession : Core.Network.Session {
+public sealed class GameSession : Core.Network.Session, IDisposable {
     protected override PatchType Type => PatchType.Ignore;
     public const int FIELD_KEY = 0x1234;
 
@@ -156,14 +156,27 @@ public sealed class GameSession : Core.Network.Session {
         return true;
     }
 
-    public override void Dispose() {
+    #region Dispose
+    ~GameSession() => Dispose(false);
+
+    public new void Dispose() {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    public new void Dispose(bool disposing) {
+        if (disposed) {
+            return;
+        }
+
         try {
-            Field?.RemovePlayer(Player.ObjectId, out FieldPlayer _);
-            base.Dispose();
+            Field?.RemovePlayer(Player.ObjectId, out FieldPlayer? _);
+            base.Dispose(disposing);
         } finally {
             using GameStorage.Request db = GameStorage.Context();
             db.BeginTransaction();
             db.SavePlayer(Player);
         }
     }
+    #endregion
 }

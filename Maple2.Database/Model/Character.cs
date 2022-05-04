@@ -13,7 +13,7 @@ internal class Character {
     public DateTime LastModified { get; set; }
 
     public long AccountId { get; set; }
-    
+
     public long Id { get; set; }
     public string Name { get; set; }
     public Gender Gender { get; set; }
@@ -29,6 +29,7 @@ internal class Character {
 
     public static implicit operator Character(Maple2.Model.Game.Character other) {
         return other == null ? null : new Character {
+            LastModified = other.LastModified,
             AccountId = other.AccountId,
             Id = other.Id,
             Name = other.Name,
@@ -59,11 +60,11 @@ internal class Character {
 
     public static implicit operator Maple2.Model.Game.Character(Character other) {
         return other == null ? null : new Maple2.Model.Game.Character {
+            LastModified = other.LastModified,
             AccountId = other.AccountId,
             Id = other.Id,
             Name = other.Name,
             CreationTime = other.CreationTime.ToEpochSeconds(),
-            LastModified = other.LastModified.ToEpochSeconds(),
             Gender = other.Gender,
             Job = other.Job,
             Level = other.Level,

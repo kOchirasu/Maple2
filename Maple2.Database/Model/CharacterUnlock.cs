@@ -19,6 +19,7 @@ internal class CharacterUnlock {
 
     public static implicit operator CharacterUnlock(Maple2.Model.Game.Unlock other) {
         return other == null ? new CharacterUnlock() : new CharacterUnlock {
+            LastModified = other.LastModified,
             Maps = other.Maps,
             Taxis = other.Taxis,
             Titles = other.Titles,
@@ -32,22 +33,16 @@ internal class CharacterUnlock {
             return new Maple2.Model.Game.Unlock();
         }
 
-        var unlock = new Maple2.Model.Game.Unlock();
-        if (other.Maps != null) {
-            unlock.Maps.UnionWith(other.Maps);
-        }
-        if (other.Taxis != null) {
-            unlock.Taxis.UnionWith(other.Taxis);
-        }
-        if (other.Titles != null) {
-            unlock.Titles.UnionWith(other.Titles);
-        }
-        if (other.Emotes != null) {
-            unlock.Emotes.UnionWith(other.Emotes);
-        }
-        if (other.Stamps != null) {
-            unlock.Stamps.UnionWith(other.Stamps);
-        }
+        var unlock = new Maple2.Model.Game.Unlock {
+            LastModified = other.LastModified,
+        };
+
+        unlock.Maps.UnionWith(other.Maps);
+        unlock.Taxis.UnionWith(other.Taxis);
+        unlock.Titles.UnionWith(other.Titles);
+        unlock.Emotes.UnionWith(other.Emotes);
+        unlock.Stamps.UnionWith(other.Stamps);
+
         return unlock;
     }
 

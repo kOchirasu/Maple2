@@ -23,6 +23,7 @@ internal class Account {
 
     public static implicit operator Account(Maple2.Model.Game.Account other) {
         return other == null ? null : new Account {
+            LastModified = other.LastModified,
             Id = other.Id,
             Username = other.Username,
             MachineId = other.MachineId,
@@ -37,6 +38,7 @@ internal class Account {
 
     public static implicit operator Maple2.Model.Game.Account(Account other) {
         return other == null ? null : new Maple2.Model.Game.Account {
+            LastModified = other.LastModified,
             Id = other.Id,
             Username = other.Username,
             MachineId = other.MachineId,
