@@ -6,3 +6,14 @@ public enum Locale : byte {
     NA = 2,
     CN = 3,
 }
+
+public enum Language {
+    Korean = 0,
+    Japanese = 1,
+    English = 2,
+    Chinese = 3,
+    French = 4,
+    German = 5,
+    Portuguese = 6,
+    Spanish = 7,
+}

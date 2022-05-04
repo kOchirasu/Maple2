@@ -7,10 +7,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Core.PacketHandlers;
 
-public abstract class RequestTimeSyncHandler<T> : PacketHandler<T> where T : Session {
+public abstract class TimeSyncHandler<T> : PacketHandler<T> where T : Session {
     public override ushort OpCode => RecvOp.REQUEST_TIME_SYNC;
 
-    protected RequestTimeSyncHandler(ILogger logger) : base(logger) { }
+    protected TimeSyncHandler(ILogger logger) : base(logger) { }
 
     public override void Handle(T session, IByteReader packet) {
         int key = packet.ReadInt();

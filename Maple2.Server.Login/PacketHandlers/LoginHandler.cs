@@ -24,27 +24,27 @@ public class LoginHandler : PacketHandler<LoginSession> {
         CharacterList = 2,
     }
 
-    private readonly GlobalClient global;
-    private readonly GameStorage gameStorage;
+    #region Autofac Autowired
+    // ReSharper disable MemberCanBePrivate.Global
+    public GlobalClient Global { private get; init; } = null!;
+    // ReSharper restore All
+    #endregion
 
-    public LoginHandler(GlobalClient global, GameStorage gameStorage, ILogger<LoginHandler> logger) : base(logger) {
-        this.global = global;
-        this.gameStorage = gameStorage;
-    }
+    public LoginHandler(ILogger<LoginHandler> logger) : base(logger) { }
 
     public override void Handle(LoginSession session, IByteReader packet) {
         var command = packet.Read<Command>();
         string user = packet.ReadUnicodeString();
         string pass = packet.ReadUnicodeString();
         packet.ReadShort(); // 1
-        session.MachineId = packet.Read<Guid>();
+        var machineId = packet.Read<Guid>();
 
         try {
             logger.LogDebug("Logging in with user:{User} pass:{Pass}", user, pass);
-            LoginResponse response = global.Login(new LoginRequest {
+            LoginResponse response = Global.Login(new LoginRequest {
                 Username = user,
                 Password = pass,
-                MachineId = session.MachineId.ToString(),
+                MachineId = machineId.ToString(),
             });
             if (response.Code != LoginResponse.Types.Code.Ok) {
                 session.Send(LoginResultPacket.Error((byte) response.Code, response.Message, response.AccountId));
@@ -52,33 +52,18 @@ public class LoginHandler : PacketHandler<LoginSession> {
                 return;
             }
 
-            switch (command) {
-                case Command.ServerList: {
-                    session.Send(BannerListPacket.SetBanner());
-                    session.Send(ServerListPacket.Load(Target.SEVER_NAME, 
-                        new []{new IPEndPoint(Target.LOGIN_IP, Target.LOGIN_PORT)}, 1));
-                    return;
-                }
-                case Command.CharacterList: {
-                    using GameStorage.Request db = gameStorage.Context();
-                    (session.Account, IList<Character> characters) = db.ListCharacters(response.AccountId);
+            session.Init(response.AccountId, machineId);
 
-                    var entries = new List<(Character, IDictionary<EquipTab, List<Item>>)>();
-                    foreach (Character character in characters) {
-                        IDictionary<EquipTab, List<Item>> equips =
-                            db.GetEquips(character.Id, EquipTab.Gear, EquipTab.Outfit, EquipTab.Badge);
-                        entries.Add((character, equips));
-                    }
-                    
-                    session.Send(LoginResultPacket.Success(session.Account.Id));
-                    //session.Send(UgcPacket.SetEndpoint("http://127.0.0.1/ws.asmx?wsdl", "http://127.0.0.1"));
-                    session.Send(CharacterListPacket.SetMax(session.Account.MaxCharacters, Constant.ServerMaxCharacters));
-                    session.Send(CharacterListPacket.StartList());
-                    // Send each character data
-                    session.Send(CharacterListPacket.AddEntries(session.Account, entries));
-                    session.Send(CharacterListPacket.EndList());
+            switch (command) {
+                case Command.ServerList:
+                    session.ListServers();
                     return;
-                }
+                case Command.CharacterList:
+                    session.Send(LoginResultPacket.Success(response.AccountId));
+                    //session.Send(UgcPacket.SetEndpoint("http://127.0.0.1/ws.asmx?wsdl", "http://127.0.0.1"));
+
+                    session.ListCharacters();
+                    return;
                 default:
                     logger.LogError("Invalid type: {Type}", command);
                     break;

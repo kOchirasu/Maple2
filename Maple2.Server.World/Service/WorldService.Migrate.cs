@@ -21,11 +21,22 @@ public partial class WorldService {
         tokenCache.Set(token, entry, AuthExpiry);
 
         // TODO: Dynamic ip/port
-        return Task.FromResult(new MigrateOutResponse {
-            IpAddress = Target.GAME_IP.ToString(),
-            Port = Target.GAME_PORT,
-            Token = token
-        });
+        switch (request.Server) {
+            case MigrateOutRequest.Types.Server.Login:
+                return Task.FromResult(new MigrateOutResponse {
+                    IpAddress = Target.LOGIN_IP.ToString(),
+                    Port = Target.LOGIN_PORT,
+                    Token = token
+                });
+            case MigrateOutRequest.Types.Server.Game:
+                return Task.FromResult(new MigrateOutResponse {
+                    IpAddress = Target.GAME_IP.ToString(),
+                    Port = Target.GAME_PORT,
+                    Token = token
+                });
+            default:
+                throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid server: {request.Server}"));
+        }
     }
 
     public override Task<MigrateInResponse> MigrateIn(MigrateInRequest request, ServerCallContext context) {

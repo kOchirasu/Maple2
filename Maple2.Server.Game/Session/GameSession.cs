@@ -21,12 +21,16 @@ public sealed class GameSession : Core.Network.Session {
     protected override PatchType Type => PatchType.Ignore;
     public const int FIELD_KEY = 0x1234;
 
+    public long AccountId { get; private set; }
+    public long CharacterId { get; private set; }
+    public Guid MachineId { get; private set; }
+
     #region Autofac Autowired
-    // ReSharper disable MemberCanBePrivate.Global, UnusedAutoPropertyAccessor.Global
-    public GameStorage GameStorage { private get; init; }
-    public SkillMetadataStorage SkillMetadata { private get; init; }
-    public TableMetadataStorage TableMetadata { private get; init; }
-    public FieldManager.Factory FieldFactory { private get; init; }
+    // ReSharper disable MemberCanBePrivate.Global
+    public GameStorage GameStorage { private get; init; } = null!;
+    public SkillMetadataStorage SkillMetadata { private get; init; } = null!;
+    public TableMetadataStorage TableMetadata { private get; init; } = null!;
+    public FieldManager.Factory FieldFactory { private get; init; } = null!;
     // ReSharper restore All
     #endregion
 
@@ -37,15 +41,19 @@ public sealed class GameSession : Core.Network.Session {
 
     public GameSession(ILogger<GameSession> logger) : base(logger) { }
 
-    public bool EnterServer(long accountId, long characterId) {
+    public bool EnterServer(long accountId, long characterId, Guid machineId) {
+        AccountId = accountId;
+        CharacterId = characterId;
+        MachineId = machineId;
+
         using GameStorage.Request db = GameStorage.Context();
-        Player player = db.LoadPlayer(accountId, characterId);
+        Player player = db.LoadPlayer(AccountId, CharacterId);
         if (player == null) {
             return false;
         }
 
         Item = new ItemManager(this);
-        foreach ((EquipTab tab, List<Item> items) in db.GetEquips(characterId, EquipTab.Gear, EquipTab.Outfit, EquipTab.Badge)) {
+        foreach ((EquipTab tab, List<Item> items) in db.GetEquips(CharacterId, EquipTab.Gear, EquipTab.Outfit, EquipTab.Badge)) {
             foreach (Item item in items) {
                 switch (tab) {
                     case EquipTab.Gear:
@@ -66,6 +74,14 @@ public sealed class GameSession : Core.Network.Session {
         JobTable.Entry jobTableEntry = TableMetadata.JobTable.Entries[player.Character.Job.Code()];
         Skill = new SkillManager(player.Character.Job, SkillMetadata, jobTableEntry);
 
+        FieldManager? fieldManager = FieldFactory.Get(player.Character.MapId);
+        if (fieldManager == null) {
+            return false;
+        }
+
+        Field = fieldManager;
+        Player = Field.SpawnPlayer(this, player);
+
         //session.Send(Packet.Of(SendOp.REQUEST_SYSTEM_INFO));
         Send(MigrationPacket.MoveResult(MigrationError.ok));
 
@@ -79,20 +95,12 @@ public sealed class GameSession : Core.Network.Session {
         Send(TimeSyncPacket.Reset(DateTimeOffset.UtcNow));
         Send(TimeSyncPacket.Request());
 
-        // Stat
+        Send(StatsPacket.Init(Player));
         // Quest
 
         Send(RequestPacket.TickSync(Environment.TickCount));
 
         // DynamicChannel
-
-        FieldManager? fieldManager = FieldFactory.Get(player.Character.MapId);
-        if (fieldManager == null) {
-            return false;
-        }
-
-        Field = fieldManager;
-        Player = Field.SpawnPlayer(this, player);
 
         // Ugc
         // Cash
@@ -121,7 +129,6 @@ public sealed class GameSession : Core.Network.Session {
         // RoomDungeon
         // FieldEntrance
         // InGameRank
-        // RequestFieldEnter
         Send(FieldEnterPacket.Request(Player));
         // HomeCommand
         // ResponseCube
