@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net.Sockets;
 using Maple2.Database.Storage;
 using Maple2.Model;
 using Maple2.Model.Enum;
@@ -21,6 +22,8 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
     protected override PatchType Type => PatchType.Ignore;
     public const int FIELD_KEY = 0x1234;
 
+    private readonly GameServer Server;
+
     public long AccountId { get; private set; }
     public long CharacterId { get; private set; }
     public Guid MachineId { get; private set; }
@@ -39,12 +42,16 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
     public SkillManager Skill { get; set; }
     public FieldPlayer Player { get; private set; }
 
-    public GameSession(ILogger<GameSession> logger) : base(logger) { }
+    public GameSession(TcpClient tcpClient, GameServer server, ILogger<GameSession> logger) : base(tcpClient, logger) {
+        Server = server;
+    }
 
     public bool EnterServer(long accountId, long characterId, Guid machineId) {
         AccountId = accountId;
         CharacterId = characterId;
         MachineId = machineId;
+
+        Server.OnConnected(this);
 
         using GameStorage.Request db = GameStorage.Context();
         Player player = db.LoadPlayer(AccountId, CharacterId);
@@ -170,6 +177,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         }
 
         try {
+            Server.OnDisconnected(this);
             Field?.RemovePlayer(Player.ObjectId, out FieldPlayer? _);
             base.Dispose(disposing);
         } finally {

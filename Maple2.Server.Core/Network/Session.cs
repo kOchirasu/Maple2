@@ -45,7 +45,7 @@ public abstract class Session : IDisposable {
     protected abstract PatchType Type { get; }
     protected readonly ILogger logger;
 
-    protected Session(ILogger logger) {
+    protected Session(TcpClient tcpClient, ILogger logger) {
         this.logger = logger;
 
         thread = new Thread(StartInternal);
@@ -56,26 +56,20 @@ public abstract class Session : IDisposable {
             useSynchronizationContext: false
         );
         recvPipe = new Pipe(options);
-    }
-
-    public void Init(TcpClient client) {
-        if (disposed) {
-            throw new ObjectDisposedException("Session has been disposed.");
-        }
 
         // Allow client to close immediately
-        client.LingerState = new LingerOption(true, 0);
-        name = client.Client.RemoteEndPoint?.ToString() ?? "Unknown";
+        tcpClient.LingerState = new LingerOption(true, 0);
+        name = tcpClient.Client.RemoteEndPoint?.ToString() ?? "Unknown";
 
         byte[] sivBytes = RandomNumberGenerator.GetBytes(4);
         byte[] rivBytes = RandomNumberGenerator.GetBytes(4);
-        this.siv = BitConverter.ToUInt32(sivBytes);
-        this.riv = BitConverter.ToUInt32(rivBytes);
+        siv = BitConverter.ToUInt32(sivBytes);
+        riv = BitConverter.ToUInt32(rivBytes);
 
-        this.client = client;
-        this.networkStream = client.GetStream();
-        this.sendCipher = new MapleCipher.Encryptor(VERSION, siv, BLOCK_IV);
-        this.recvCipher = new MapleCipher.Decryptor(VERSION, riv, BLOCK_IV);
+        client = tcpClient;
+        networkStream = tcpClient.GetStream();
+        sendCipher = new MapleCipher.Encryptor(VERSION, siv, BLOCK_IV);
+        recvCipher = new MapleCipher.Decryptor(VERSION, riv, BLOCK_IV);
     }
 
     ~Session() => Dispose(false);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Net.Sockets;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
@@ -26,7 +27,7 @@ public class LoginSession : Core.Network.Session {
 
     private Account account;
 
-    public LoginSession(ILogger<LoginSession> logger) : base(logger) { }
+    public LoginSession(TcpClient tcpClient, ILogger<LoginSession> logger) : base(tcpClient, logger) { }
 
     public void Init(long accountId, Guid machineId) {
         AccountId = accountId;

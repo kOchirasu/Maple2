@@ -43,8 +43,7 @@ public abstract class Server<T> : BackgroundService where T : Session {
         while (!stoppingToken.IsCancellationRequested) {
             TcpClient client = await listener.AcceptTcpClientAsync(stoppingToken);
 
-            var session = context.Resolve<T>();
-            session.Init(client);
+            var session = context.Resolve<T>(new NamedParameter("tcpClient", client));
             session.OnPacket += router.OnPacket;
 
             AddSession(session);
