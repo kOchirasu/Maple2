@@ -1,4 +1,4 @@
-﻿// ReSharper disable InconsistentNaming
+﻿// ReSharper disable InconsistentNaming, IdentifierTypo
 
 using System.ComponentModel;
 
@@ -37,7 +37,7 @@ public enum MigrationError : byte {
     s_move_err_InsideSurvivalSquad = 34,
     [Description("Cannot enter because the wedding has completed.")]
     s_move_err_wedding_complete = 35,
-    
+
     [Description("An unknown error has occurred while moving the server. Code={0}")]
     s_move_err_default = byte.MaxValue,
 }

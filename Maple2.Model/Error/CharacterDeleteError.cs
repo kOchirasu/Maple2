@@ -1,8 +1,8 @@
-﻿// ReSharper disable InconsistentNaming
+﻿// ReSharper disable InconsistentNaming, IdentifierTypo
 
 using System.ComponentModel;
 
-namespace Maple2.Model.Error; 
+namespace Maple2.Model.Error;
 
 public enum CharacterDeleteError : int {
     ok = 0,
@@ -29,7 +29,7 @@ public enum CharacterDeleteError : int {
     s_char_err_next_delete_char_date = 10,
     [Description("The character cannot be deleted because they are engaged, married, or in process of divorce.")]
     s_char_err_wedding = 11,
-    
+
     [Description("System Error: Can't delete character [code = {0}]")]
     s_char_err_destroy = byte.MaxValue,
 }

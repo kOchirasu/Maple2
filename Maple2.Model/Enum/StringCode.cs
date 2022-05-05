@@ -1,4 +1,4 @@
-﻿// ReSharper disable InconsistentNaming
+﻿// ReSharper disable InconsistentNaming, IdentifierTypo
 
 namespace Maple2.Model.Enum;
 

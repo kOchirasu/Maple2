@@ -1,8 +1,8 @@
-﻿// ReSharper disable InconsistentNaming
+﻿// ReSharper disable InconsistentNaming, IdentifierTypo
 
 using System.ComponentModel;
 
-namespace Maple2.Model.Error; 
+namespace Maple2.Model.Error;
 
 public enum CharacterCreateError : byte {
     [Description("Enter at least 2 letters.")]
@@ -23,7 +23,7 @@ public enum CharacterCreateError : byte {
     s_char_err_job_forbidden = 12,
     [Description("Abnormal activity detected. Character creation will be limited for a period of time.")]
     s_char_err_creation_restriction = 14,
-    
+
     [Description("The character cannot be created because of a system error.")]
     s_char_err_system = byte.MaxValue,
 }
