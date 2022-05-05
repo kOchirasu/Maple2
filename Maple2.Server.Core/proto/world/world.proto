@@ -13,6 +13,8 @@ service World {
   rpc MigrateOut(MigrateOutRequest) returns (MigrateOutResponse);
   // Migrate into a server.
   rpc MigrateIn(MigrateInRequest) returns (MigrateInResponse);
+  // Send a chat message.
+  rpc Chat(ChatRequest) returns (ChatResponse);
 }
 
 message HealthResponse {}
@@ -43,4 +45,41 @@ message MigrateInRequest {
 
 message MigrateInResponse {
   int64 character_id = 1;
+}
+
+message ChatRequest {
+  message Whisper {
+    string recipient = 1;
+  }
+  message Party {
+    int64 party_id = 1;
+  }
+  message Guild {
+    int64 guild_id = 1;
+  }
+  message World {
+  }
+  message Super {
+    int32 item_id = 1;
+  }
+  message Club {
+    int64 club_id = 1;
+  }
+  message Wedding {
+    int32 item_id = 1;
+  }
+
+  string message = 1;
+  oneof chat {
+    Whisper whisper = 4;
+    Party party = 7;
+    Guild guild = 8;
+    World world = 11;
+    Super super = 16;
+    Club club = 20;
+    Wedding wedding = 25;
+  }
+}
+
+message ChatResponse {
 }
