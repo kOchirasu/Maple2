@@ -70,13 +70,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
         };
 
         try {
-            ChatResponse response = World.Chat(request);
-            switch (response.Code) {
-                case ChatResponse.Types.Code.WhisperFail:
-                    break;
-                case ChatResponse.Types.Code.WhisperReject:
-                    break;
-            }
+            World.Chat(request);
         } catch (RpcException ex) {
             switch (ex.StatusCode) {
                 case StatusCode.PermissionDenied:
