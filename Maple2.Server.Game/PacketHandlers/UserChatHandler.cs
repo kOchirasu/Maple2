@@ -1,5 +1,7 @@
 ﻿using Grpc.Core;
+using Maple2.Database.Storage;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
@@ -17,6 +19,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
     public WorldClient World { private get; init; } = null!;
+    public GameStorage GameStorage { private get; init; } = null!;
     // ReSharper restore All
     #endregion
 
@@ -31,31 +34,31 @@ public class UserChatHandler : PacketHandler<GameSession> {
         switch (type) {
             case ChatType.Normal:
                 HandleNormal(session, message);
-                break;
+                return;
             case ChatType.WhisperTo:
                 HandleWhisper(session, message, recipient);
-                break;
+                return;
             case ChatType.Party:
                 HandleParty(session, message);
-                break;
+                return;
             case ChatType.Guild:
                 HandleGuild(session, message);
-                break;
+                return;
             case ChatType.World:
                 HandleWorld(session, message);
-                break;
+                return;
             case ChatType.Channel:
                 HandleChannel(session, message);
-                break;
+                return;
             case ChatType.Super:
                 HandleSuper(session, message);
-                break;
+                return;
             case ChatType.Club:
                 HandleClub(session, message, clubId);
-                break;
+                return;
             case ChatType.Wedding:
                 HandleWedding(session, message);
-                break;
+                return;
         }
     }
 
@@ -64,25 +67,46 @@ public class UserChatHandler : PacketHandler<GameSession> {
     }
 
     private void HandleWhisper(GameSession session, string message, string recipient) {
+        if (recipient == session.Player.Value.Character.Name) {
+            session.Send(ChatPacket.Alert(StringCode.s_whisper_err_myself));
+            return;
+        }
+
+        using GameStorage.Request db = GameStorage.Context();
+        CharacterInfo? info = db.GetCharacterInfo(recipient);
+        if (info == null) {
+            session.Send(ChatPacket.Alert(StringCode.s_whisper_err_target));
+            return;
+        }
+
         var request = new ChatRequest {
+            CharacterId = session.CharacterId,
+            Name = session.Player.Value.Character.Name,
             Message = message,
-            Whisper = new ChatRequest.Types.Whisper {Recipient = recipient},
+            Whisper = new ChatRequest.Types.Whisper {RecipientId = info.CharacterId, RecipientName = recipient},
         };
 
         try {
             World.Chat(request);
+            session.Send(ChatPacket.Whisper(info.AccountId, info.CharacterId, info.Name, request.Message));
         } catch (RpcException ex) {
             switch (ex.StatusCode) {
+                case StatusCode.NotFound:
+                    session.Send(ChatPacket.Alert(StringCode.s_err_cannot_find_user));
+                    return;
                 case StatusCode.PermissionDenied:
-                    break;
+                    session.Send(ChatPacket.WhisperReject(recipient));
+                    return;
                 case StatusCode.Unavailable:
-                    break;
+                    return;
             }
         }
     }
 
     private void HandleParty(GameSession session, string message) {
         var request = new ChatRequest {
+            CharacterId = session.CharacterId,
+            Name = session.Player.Value.Character.Name,
             Message = message,
             Party = new ChatRequest.Types.Party {PartyId = 0},
         };
@@ -94,6 +118,8 @@ public class UserChatHandler : PacketHandler<GameSession> {
 
     private void HandleGuild(GameSession session, string message) {
         var request = new ChatRequest {
+            CharacterId = session.CharacterId,
+            Name = session.Player.Value.Character.Name,
             Message = message,
             Guild = new ChatRequest.Types.Guild {GuildId = 0},
         };
@@ -105,6 +131,8 @@ public class UserChatHandler : PacketHandler<GameSession> {
 
     private void HandleWorld(GameSession session, string message) {
         var request = new ChatRequest {
+            CharacterId = session.CharacterId,
+            Name = session.Player.Value.Character.Name,
             Message = message,
             World = new ChatRequest.Types.World(),
         };
@@ -120,6 +148,8 @@ public class UserChatHandler : PacketHandler<GameSession> {
 
     private void HandleSuper(GameSession session, string message) {
         var request = new ChatRequest {
+            CharacterId = session.CharacterId,
+            Name = session.Player.Value.Character.Name,
             Message = message,
             Super = new ChatRequest.Types.Super {ItemId = 0},
         };
@@ -131,6 +161,8 @@ public class UserChatHandler : PacketHandler<GameSession> {
 
     private void HandleClub(GameSession session, string message, long clubId) {
         var request = new ChatRequest {
+            CharacterId = session.CharacterId,
+            Name = session.Player.Value.Character.Name,
             Message = message,
             Club = new ChatRequest.Types.Club {ClubId = clubId},
         };
@@ -142,6 +174,8 @@ public class UserChatHandler : PacketHandler<GameSession> {
 
     private void HandleWedding(GameSession session, string message) {
         var request = new ChatRequest {
+            CharacterId = session.CharacterId,
+            Name = session.Player.Value.Character.Name,
             Message = message,
             Wedding = new ChatRequest.Types.Wedding {ItemId = 0},
         };

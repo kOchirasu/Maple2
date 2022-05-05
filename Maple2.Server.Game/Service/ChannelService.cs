@@ -6,10 +6,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.Service;
 
-public class ChannelService : Channel.Service.Channel.ChannelBase {
+public partial class ChannelService : Channel.Service.Channel.ChannelBase {
+    private readonly GameServer server;
     private readonly ILogger logger;
 
-    public ChannelService(ILogger<ChannelService> logger) {
+    public ChannelService(GameServer server, ILogger<ChannelService> logger) {
+        this.server = server;
         this.logger = logger;
     }
 

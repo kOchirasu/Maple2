@@ -4,18 +4,16 @@ using Maple2.Model.Common;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Maple2.Database.Model;
 
 internal class Character {
-    public DateTime CreationTime { get; set; }
-    public DateTime LastModified { get; set; }
-
     public long AccountId { get; set; }
-
     public long Id { get; set; }
     public string Name { get; set; }
+    public bool Online { get; set; }
     public Gender Gender { get; set; }
     public Job Job { get; set; }
     public short Level { get; set; }
@@ -26,6 +24,8 @@ internal class Character {
     public Cooldown Cooldown { get; set; }
     public CharacterCurrency Currency { get; set; }
     public DateTime DeleteTime { get; set; }
+    public DateTime CreationTime { get; set; }
+    public DateTime LastModified { get; set; }
 
     public static implicit operator Character(Maple2.Model.Game.Character other) {
         return other == null ? null : new Character {
@@ -83,15 +83,17 @@ internal class Character {
         };
     }
 
+    public static implicit operator CharacterInfo(Character other) {
+        return other == null ? null : new CharacterInfo(other.AccountId, other.Id, other.Name, other.Gender, other.Job,
+            other.Level, other.MapId, other.Profile.Picture, other.Online);
+    }
+
     public static void Configure(EntityTypeBuilder<Character> builder) {
-        builder.Property(character => character.LastModified).IsRowVersion();
         builder.HasKey(character => character.Id);
         builder.HasOne<Account>()
             .WithMany(account => account.Characters)
             .HasForeignKey(character => character.AccountId);
         builder.HasIndex(character => character.Name).IsUnique();
-        builder.Property(character => character.CreationTime)
-            .ValueGeneratedOnAdd();
         builder.Property(character => character.Level)
             .HasDefaultValue(1);
         builder.Property(character => character.SkinColor).HasJsonConversion().IsRequired();
@@ -99,6 +101,11 @@ internal class Character {
         builder.Property(character => character.Profile).HasJsonConversion().IsRequired();
         builder.Property(character => character.Cooldown).HasJsonConversion().IsRequired();
         builder.Property(character => character.Currency).HasJsonConversion().IsRequired();
+
+        builder.Property(character => character.LastModified).IsRowVersion();
+        IMutableProperty creationTime = builder.Property(character => character.CreationTime)
+            .ValueGeneratedOnAdd().Metadata;
+        creationTime.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
     }
 }
 

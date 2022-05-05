@@ -49,7 +49,8 @@ message MigrateInResponse {
 
 message ChatRequest {
   message Whisper {
-    string recipient = 1;
+    int64 recipient_id = 1;
+    string recipient_name = 2;
   }
   message Party {
     int64 party_id = 1;
@@ -69,9 +70,13 @@ message ChatRequest {
     int32 item_id = 1;
   }
 
-  string message = 1;
+  int64 account_id = 1;
+  int64 character_id = 2;
+  string name = 3;
+  string message = 4;
+
   oneof chat {
-    Whisper whisper = 4;
+    Whisper whisper = 5;
     Party party = 7;
     Guild guild = 8;
     World world = 11;

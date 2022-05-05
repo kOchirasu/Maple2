@@ -14,7 +14,7 @@ public partial class GameStorage {
             if (model == null) {
                 return null;
             }
-            
+
             IList<ClubMember> members = GetClubMembers(clubId);
             Club club = model;
             club.Leader = members.First(member => member.Info.CharacterId == model.LeaderId);
@@ -26,21 +26,21 @@ public partial class GameStorage {
         public IList<Tuple<long, string>> ListClubs(long characterId) {
             return context.ClubMember.Where(member => member.CharacterId == characterId)
                 .Join(
-                    context.Club, 
-                    member => member.ClubId, 
-                    club => club.Id, 
+                    context.Club,
+                    member => member.ClubId,
+                    club => club.Id,
                     (member, club) => new Tuple<long, string>(club.Id, club.Name)
                 ).ToList();
         }
-        
+
         public Club CreateClub(Club club) {
             Model.Club model = club;
             model.Id = 0;
             model.Members = club.Members.Select<ClubMember, Model.ClubMember>(member => member).ToList();
             model.Members.Add(club.Leader);
-            
+
             context.Club.Add(model);
-            
+
             // I know this is an extra read, but the conversion logic is complicated.
             return context.TrySaveChanges() ? GetClub(model.Id) : null;
         }
@@ -48,28 +48,13 @@ public partial class GameStorage {
         public IList<ClubMember> GetClubMembers(long clubId) {
             return context.ClubMember.Where(member => member.ClubId == clubId)
                 .Include(member => member.Character)
-                .Join(
-                    context.Account,
+                .Join(context.Account,
                     member => member.Character.AccountId,
                     account => account.Id,
                     (member, account) => new ClubMember(
-                        new CharacterInfo(
-                            account.Id,
-                            member.Character.Id,
-                            member.Character.Name,
-                            member.Character.Gender,
-                            member.Character.Job,
-                            member.Character.Level,
-                            member.Character.MapId,
-                            member.Character.Profile.Picture,
-                            0,
-                            0,
-                            0,
-                            0,
-                            account.Trophy),
+                        new PlayerInfo(member.Character, new HomeInfo(0, 0, 0, 0), account.Trophy),
                         member.CreationTime.ToEpochSeconds(),
-                        member.Character.LastModified.ToEpochSeconds(),
-                        false)
+                        member.Character.LastModified.ToEpochSeconds())
                 ).ToList();
         }
     }

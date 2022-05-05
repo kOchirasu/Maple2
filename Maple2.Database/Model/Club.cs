@@ -2,16 +2,16 @@
 using System.Collections.Generic;
 using Maple2.Database.Extensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Maple2.Database.Model;
 
 internal class Club {
-    public DateTime LastModified { get; set; }
-    public DateTime CreationTime { get; set; }
-
     public long Id { get; set; }
     public string Name { get; set; }
+    public DateTime CreationTime { get; set; }
+    public DateTime LastModified { get; set; }
 
     public long LeaderId { get; set; }
     public List<ClubMember> Members { get; set; }
@@ -37,18 +37,19 @@ internal class Club {
     }
 
     public static void Configure(EntityTypeBuilder<Club> builder) {
-        builder.Property(club => club.LastModified).IsRowVersion();
         builder.HasKey(club => club.Id);
         builder.HasIndex(club => club.Name).IsUnique();
-        builder.Property(club => club.CreationTime)
-            .ValueGeneratedOnAdd();
-
 
         builder.HasOne<Character>()
             .WithMany()
             .HasForeignKey(club => club.LeaderId)
             .IsRequired();
         builder.HasMany<ClubMember>(club => club.Members);
+
+        builder.Property(club => club.LastModified).IsRowVersion();
+        IMutableProperty creationTime = builder.Property(club => club.CreationTime)
+            .ValueGeneratedOnAdd().Metadata;
+        creationTime.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
     }
 }
 
@@ -70,8 +71,6 @@ internal class ClubMember {
     public static void Configure(EntityTypeBuilder<ClubMember> builder) {
         builder.ToTable("club-member");
         builder.HasKey(member => new {member.ClubId, member.CharacterId});
-        builder.Property(member => member.CreationTime)
-            .ValueGeneratedOnAdd();
 
         builder.HasOne<Character>(member => member.Character)
             .WithMany()
@@ -79,5 +78,9 @@ internal class ClubMember {
         builder.HasOne<Club>()
             .WithMany(club => club.Members)
             .HasForeignKey(member => member.ClubId);
+
+        IMutableProperty creationTime = builder.Property(member => member.CreationTime)
+            .ValueGeneratedOnAdd().Metadata;
+        creationTime.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
     }
 }

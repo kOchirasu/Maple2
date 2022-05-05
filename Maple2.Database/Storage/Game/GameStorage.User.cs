@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model;
 using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Account = Maple2.Model.Game.Account;
 using Character = Maple2.Model.Game.Character;
 
@@ -49,7 +51,21 @@ public partial class GameStorage {
                 character.Id == characterId && character.AccountId == accountId);
         }
 
+        public CharacterInfo GetCharacterInfo(long characterId) {
+            return context.Character.Where(character => character.Id == characterId)
+                .Select<Maple2.Database.Model.Character, CharacterInfo>(character => character)
+                .SingleOrDefault();
+        }
+
+        public CharacterInfo GetCharacterInfo(string name) {
+            return context.Character.Where(character => character.Name == name)
+                .Select<Maple2.Database.Model.Character, CharacterInfo>(character => character)
+                .SingleOrDefault();
+        }
+
         public Player LoadPlayer(long accountId, long characterId) {
+            context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
+
             Model.Account account = context.Account.Find(accountId);
             if (account == null) {
                 return null;
@@ -60,6 +76,16 @@ public partial class GameStorage {
             if (character == null) {
                 return null;
             }
+
+            if (account.Online || character.Online) {
+                throw new InvalidOperationException($"AlreadyOnline accountId:{accountId}, characterId:{characterId}");
+            }
+
+            account.Online = true;
+            character.Online = true;
+            context.Account.Update(account);
+            context.Character.Update(character);
+            context.SaveChanges();
 
             var player = new Player(account, character) {
                 Currency = new Currency(
@@ -82,7 +108,7 @@ public partial class GameStorage {
             return player;
         }
 
-        public bool SavePlayer(Player player) {
+        public bool SavePlayer(Player player, bool logoff = false) {
             Model.Account account = player.Account;
             account.Currency = new AccountCurrency {
                 Meret = player.Currency.Meret,
@@ -102,6 +128,11 @@ public partial class GameStorage {
                 MenteeToken = player.Currency.MenteeToken,
                 StarPoint = player.Currency.StarPoint,
             };
+
+            if (logoff) {
+                account.Online = false;
+                character.Online = false;
+            }
 
             context.Update(account);
             context.Update(character);

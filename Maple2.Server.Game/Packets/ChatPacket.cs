@@ -12,12 +12,77 @@ public static class ChatPacket {
         pWriter.WriteLong(player.Account.Id);
         pWriter.WriteLong(player.Character.Id);
         pWriter.WriteUnicodeString(player.Character.Name);
-        pWriter.WriteByte();
+        pWriter.WriteBool(false);
         pWriter.WriteUnicodeString(message);
         pWriter.Write<ChatType>(type);
-        pWriter.WriteByte();
+        pWriter.WriteBool(false);
         pWriter.WriteInt();
-        pWriter.WriteByte();
+
+        switch (type) {
+            case ChatType.WhisperFrom:
+                pWriter.WriteUnicodeString();
+                break;
+            case ChatType.Super:
+                pWriter.WriteInt();
+                break;
+            case ChatType.Club:
+                pWriter.WriteLong();
+                break;
+        }
+
+        pWriter.WriteBool(false);
+
+        return pWriter;
+    }
+
+    public static ByteWriter Whisper(long accountId, long characterId, string name, string message, string? unknown = null) {
+        ChatType type = unknown == null ? ChatType.WhisperTo : ChatType.WhisperFrom;
+
+        var pWriter = Packet.Of(SendOp.USER_CHAT);
+        pWriter.WriteLong(accountId);
+        pWriter.WriteLong(characterId);
+        pWriter.WriteUnicodeString(name);
+        pWriter.WriteBool(false);
+        pWriter.WriteUnicodeString(message);
+        pWriter.Write<ChatType>(type);
+        pWriter.WriteBool(false);
+        pWriter.WriteInt();
+
+        if (type == ChatType.WhisperFrom) {
+            pWriter.WriteUnicodeString(unknown);
+        }
+
+        pWriter.WriteBool(false);
+
+        return pWriter;
+    }
+
+    public static ByteWriter WhisperReject(string name) {
+        var pWriter = Packet.Of(SendOp.USER_CHAT);
+        pWriter.WriteLong();
+        pWriter.WriteLong();
+        pWriter.WriteUnicodeString(name);
+        pWriter.WriteBool(false);
+        pWriter.WriteUnicodeString(".");
+        pWriter.Write<ChatType>(ChatType.WhisperReject);
+        pWriter.WriteBool(false);
+        pWriter.WriteInt();
+        pWriter.WriteBool(false);
+
+        return pWriter;
+    }
+
+    public static ByteWriter Alert(StringCode code) {
+        var pWriter = Packet.Of(SendOp.USER_CHAT);
+        pWriter.WriteLong();
+        pWriter.WriteLong();
+        pWriter.WriteUnicodeString();
+        pWriter.WriteBool(true);
+        pWriter.Write<StringCode>(code);
+        pWriter.Write<ChatType>(ChatType.NoticeAlert);
+        pWriter.WriteBool(false);
+        pWriter.WriteInt();
+        pWriter.WriteBool(false);
 
         return pWriter;
     }

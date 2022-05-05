@@ -15,7 +15,6 @@ public class Club {
 }
 
 public record ClubMember(
-    CharacterInfo Info,
+    PlayerInfo Info,
     long JoinTime,
-    long LastLoginTime,
-    bool Online);
+    long LastLoginTime);

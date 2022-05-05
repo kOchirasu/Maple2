@@ -13,7 +13,7 @@ namespace Maple2.Server.Global.Service;
 
 public partial class GlobalService : Global.GlobalBase {
     private readonly GameStorage gameStorage;
-    
+
     private readonly ILogger logger;
 
     public GlobalService(GameStorage gameStorage, ILogger<GlobalService> logger) {
@@ -46,6 +46,10 @@ public partial class GlobalService : Global.GlobalBase {
             };
             account = db.CreateAccount(account);
         } else {
+            if (account.Online) {
+                return Task.FromResult(new LoginResponse {Code = LoginResponse.Types.Code.AlreadyLogin});
+            }
+
             if (account.MachineId == default) {
                 account.MachineId = machineId;
                 db.UpdateAccount(account, true);
@@ -53,7 +57,7 @@ public partial class GlobalService : Global.GlobalBase {
                 return Task.FromResult(new LoginResponse {Code = LoginResponse.Types.Code.BlockNexonSn});
             }
         }
-        
+
         return Task.FromResult(new LoginResponse{AccountId = account.Id});
     }
 }

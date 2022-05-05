@@ -2,13 +2,12 @@
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Maple2.Database.Model;
 
 internal class Item {
-    public DateTime LastModified { get; set; }
-
     public long Id { get; set; }
     public long OwnerId { get; set; }
     public int ItemId { get; set; }
@@ -17,10 +16,7 @@ internal class Item {
     public EquipTab EquipTab { get; set; } = EquipTab.None;
     public EquipSlot EquipSlot { get; set; } = EquipSlot.Unknown;
     public int Amount { get; set; }
-
-    public DateTime CreationTime { get; set; }
     public DateTime ExpiryTime { get; set; }
-
     public int TimeChangedOption { get; set; }
     public int RemainUses { get; set; }
     public bool IsLocked { get; set; }
@@ -38,6 +34,9 @@ internal class Item {
     public ItemBinding Binding { get; set; }
 
     public ItemSubType SubType { get; set; }
+
+    public DateTime CreationTime { get; set; }
+    public DateTime LastModified { get; set; }
 
     public static implicit operator Item(Maple2.Model.Game.Item other) {
         if (other == null) {
@@ -141,7 +140,6 @@ internal class Item {
     }
 
     public static void Configure(EntityTypeBuilder<Item> builder) {
-        builder.Property(item => item.LastModified).IsRowVersion();
         builder.HasKey(item => item.Id);
         builder.Property(character => character.CreationTime)
             .ValueGeneratedOnAdd();
@@ -155,5 +153,10 @@ internal class Item {
         builder.Property(item => item.CoupleInfo).HasJsonConversion();
         builder.Property(item => item.Binding).HasJsonConversion();
         builder.Property(item => item.SubType).HasJsonConversion();
+
+        builder.Property(item => item.LastModified).IsRowVersion();
+        IMutableProperty creationTime = builder.Property(item => item.CreationTime)
+            .ValueGeneratedOnAdd().Metadata;
+        creationTime.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
     }
 }

@@ -54,10 +54,12 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         Server.OnConnected(this);
 
         using GameStorage.Request db = GameStorage.Context();
+        db.BeginTransaction();
         Player player = db.LoadPlayer(AccountId, CharacterId);
         if (player == null) {
             return false;
         }
+        db.Commit();
 
         Item = new ItemManager(this);
         foreach ((EquipTab tab, List<Item> items) in db.GetEquips(CharacterId, EquipTab.Gear, EquipTab.Outfit, EquipTab.Badge)) {
@@ -171,7 +173,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         GC.SuppressFinalize(this);
     }
 
-    public new void Dispose(bool disposing) {
+    protected override void Dispose(bool disposing) {
         if (disposed) {
             return;
         }
@@ -179,11 +181,14 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         try {
             Server.OnDisconnected(this);
             Field?.RemovePlayer(Player.ObjectId, out FieldPlayer? _);
-            base.Dispose(disposing);
+            Complete();
         } finally {
-            using GameStorage.Request db = GameStorage.Context();
-            db.BeginTransaction();
-            db.SavePlayer(Player);
+            using (GameStorage.Request db = GameStorage.Context()) {
+                db.BeginTransaction();
+                db.SavePlayer(Player, true);
+            }
+
+            base.Dispose(disposing);
         }
     }
     #endregion

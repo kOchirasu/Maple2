@@ -7,15 +7,13 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace Maple2.Database.Model;
 
 internal class CharacterUnlock {
-    public DateTime LastModified { get; set; }
-
     public long CharacterId { get; set; }
-
     public ISet<int> Maps { get; set; }
     public ISet<int> Taxis { get; set; }
     public ISet<int> Titles { get; set; }
     public ISet<int> Emotes { get; set; }
     public ISet<int> Stamps { get; set; }
+    public DateTime LastModified { get; set; }
 
     public static implicit operator CharacterUnlock(Maple2.Model.Game.Unlock other) {
         return other == null ? new CharacterUnlock() : new CharacterUnlock {
@@ -48,7 +46,6 @@ internal class CharacterUnlock {
 
     public static void Configure(EntityTypeBuilder<CharacterUnlock> builder) {
         builder.ToTable("character-unlock");
-        builder.Property(character => character.LastModified).IsRowVersion();
         builder.HasKey(unlock => unlock.CharacterId);
         builder.OneToOne<CharacterUnlock, Character>()
             .HasForeignKey<CharacterUnlock>(unlock => unlock.CharacterId);
@@ -57,5 +54,7 @@ internal class CharacterUnlock {
         builder.Property(unlock => unlock.Titles).HasJsonConversion().IsRequired();
         builder.Property(unlock => unlock.Emotes).HasJsonConversion().IsRequired();
         builder.Property(unlock => unlock.Stamps).HasJsonConversion().IsRequired();
+
+        builder.Property(unlock => unlock.LastModified).IsRowVersion();
     }
 }
