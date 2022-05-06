@@ -15,7 +15,7 @@ public static class TimeSyncPacket {
         Request = 2,
         Set = 3,
     }
-    
+
     public static ByteWriter Response(DateTimeOffset time, int key) {
         var pWriter = Packet.Of(SendOp.RESPONSE_TIME_SYNC);
         pWriter.Write<Command>(Command.Response);
@@ -50,7 +50,7 @@ public static class TimeSyncPacket {
     public static ByteWriter Set(DateTimeOffset time) {
         var pWriter = Packet.Of(SendOp.RESPONSE_TIME_SYNC);
         pWriter.Write<Command>(Command.Set);
-        pWriter.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds()); // CMainSystem[32]
+        pWriter.WriteLong(time.ToUnixTimeSeconds()); // CMainSystem[32]
 
         return pWriter;
     }

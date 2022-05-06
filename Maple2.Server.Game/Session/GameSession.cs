@@ -12,6 +12,7 @@ using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Manager.Items;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
+using Maple2.Tools.Scheduler;
 using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.Session;
@@ -22,6 +23,8 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
 
     private bool disposed;
     private readonly GameServer server;
+
+    public readonly EventQueue Scheduler;
 
     public long AccountId { get; private set; }
     public long CharacterId { get; private set; }
@@ -44,6 +47,10 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
 
     public GameSession(TcpClient tcpClient, GameServer server, ILogger<GameSession> logger) : base(tcpClient, logger) {
         this.server = server;
+        Scheduler = new EventQueue();
+        Scheduler.ScheduleRepeated(() => Send(TimeSyncPacket.Request()), 1000);
+
+        OnLoop += Scheduler.InvokeAll;
     }
 
     public bool EnterServer(long accountId, long characterId, Guid machineId) {
@@ -85,7 +92,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         // Buddy
 
         Send(TimeSyncPacket.Reset(DateTimeOffset.UtcNow));
-        Send(TimeSyncPacket.Request());
+        Send(TimeSyncPacket.Set(DateTimeOffset.UtcNow));
 
         Send(StatsPacket.Init(Player));
         // Quest
@@ -165,6 +172,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         disposed = true;
 
         try {
+            Scheduler.Stop();
             server.OnDisconnected(this);
             Field?.RemovePlayer(Player.ObjectId, out FieldPlayer? _);
             Complete();

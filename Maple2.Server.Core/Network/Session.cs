@@ -27,6 +27,7 @@ public abstract class Session : IDisposable {
 
     public EventHandler<string>? OnError;
     public EventHandler<IByteReader>? OnPacket;
+    public Action? OnLoop;
 
     private bool disposed;
     private readonly uint siv;
@@ -140,6 +141,7 @@ public abstract class Session : IDisposable {
 
             while (!disposed && pipeScheduler.OutputAvailableAsync().Result) {
                 pipeScheduler.ProcessQueue();
+                OnLoop?.Invoke();
             }
         } catch (Exception ex) {
             if (!disposed) {

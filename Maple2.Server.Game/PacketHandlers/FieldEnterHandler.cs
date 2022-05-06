@@ -19,5 +19,6 @@ public class FieldEnterHandler : PacketHandler<GameSession> {
         Player player = session.Player;
         player.Unlock.Maps.Add(player.Character.MapId);
         session.Field.OnAddPlayer(session.Player);
+        session.Scheduler.Start();
     }
 }
