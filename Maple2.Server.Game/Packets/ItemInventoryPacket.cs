@@ -5,7 +5,6 @@ using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
-using Maple2.Server.Game.Model;
 using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.Packets;
@@ -21,7 +20,7 @@ public static class ItemInventoryPacket {
         LoadTab = 10,
         ExpandComplete = 12,
         Reset = 13,
-        Expand = 14,
+        ExpandCount = 14,
         Error = 15,
         UpdateItem = 16,
     }
@@ -67,10 +66,10 @@ public static class ItemInventoryPacket {
         return pWriter;
     }
 
-    public static ByteWriter Load(ItemCollection items) {
+    public static ByteWriter Load(ICollection<Item> items) {
         var pWriter = Packet.Of(SendOp.ITEM_INVENTORY);
         pWriter.Write<Command>(Command.Load);
-        pWriter.WriteShort(items.Count);
+        pWriter.WriteShort((short) items.Count);
         foreach (Item item in items) {
             pWriter.WriteInt(item.Id);
             pWriter.WriteLong(item.Uid);
@@ -92,11 +91,11 @@ public static class ItemInventoryPacket {
         return pWriter;
     }
 
-    public static ByteWriter LoadTab(InventoryType type, ItemCollection items) {
+    public static ByteWriter LoadTab(InventoryType type, ICollection<Item> items) {
         var pWriter = Packet.Of(SendOp.ITEM_INVENTORY);
         pWriter.Write<Command>(Command.LoadTab);
         pWriter.WriteInt((int) type);
-        pWriter.WriteShort(items.Count);
+        pWriter.WriteShort((short) items.Count);
         foreach (Item item in items) {
             pWriter.WriteInt(item.Id);
             pWriter.WriteLong(item.Uid);
@@ -124,9 +123,9 @@ public static class ItemInventoryPacket {
         return pWriter;
     }
 
-    public static ByteWriter Expand(InventoryType type, int expansion) {
+    public static ByteWriter ExpandCount(InventoryType type, int expansion) {
         var pWriter = Packet.Of(SendOp.ITEM_INVENTORY);
-        pWriter.Write<Command>(Command.Expand);
+        pWriter.Write<Command>(Command.ExpandCount);
         pWriter.Write<InventoryType>(type);
         pWriter.WriteInt(expansion);
 

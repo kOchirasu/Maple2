@@ -1,4 +1,4 @@
-﻿namespace Maple2.Model.Enum; 
+﻿namespace Maple2.Model.Enum;
 
 public enum InventoryType : byte {
     // Inventory
@@ -10,6 +10,7 @@ public enum InventoryType : byte {
     Quest = 5,
     Gemstone = 6,
     Misc = 7,
+    // PetEquip = 8,
     LifeSkill = 9,
     Pets = 10,
     Consumable = 11,

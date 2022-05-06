@@ -49,12 +49,10 @@ public class ItemCollection : IEnumerable<Item> {
 
             mutex.EnterUpgradeableReadLock();
             try {
-                Debug.Assert(!uidToSlot.ContainsKey(value.Id), $"Item already in collection:{value.Id}");
-
                 mutex.EnterWriteLock();
                 try {
                     value.Slot = slot;
-                    uidToSlot[value.Id] = slot;
+                    uidToSlot[value.Uid] = slot;
                     items[slot] = value;
                     Count++;
                 } finally {
@@ -64,6 +62,56 @@ public class ItemCollection : IEnumerable<Item> {
                 mutex.ExitUpgradeableReadLock();
             }
         }
+    }
+
+    public IList<(Item, int Added)> Add(Item add, bool stack = false) {
+        if (!CanHold(add, stack)) {
+            return Array.Empty<(Item, int)>();
+        }
+
+        // Prefer item slot if specified
+        if (this[add.Slot] != null) {
+            this[add.Slot] = add;
+            return new []{(add, add.Amount)};
+        }
+
+        var result = new List<(Item, int)>();
+        if (stack) {
+            mutex.EnterReadLock();
+            try {
+                foreach (Item item in GetInternalEnumerator()) {
+                    if (!CanStack(item, add)) {
+                        continue;
+                    }
+
+                    int available = item.Metadata.Property.SlotMax - item.Amount;
+                    int added = Math.Min(available, add.Amount);
+                    add.Amount -= added;
+                    item.Amount += added;
+                    result.Add((item, added));
+
+                    if (add.Amount <= 0) {
+                        return result;
+                    }
+                }
+            } finally {
+                mutex.ExitReadLock();
+            }
+        }
+
+        // All stacks are maxed out at this point, remaining items go in first open slot.
+        for (short i = 0; i < Size; i++) {
+            if (this[i] != null) {
+                continue;
+            }
+
+            this[i] = add;
+            add.Slot = i;
+            result.Add((add, add.Amount));
+            return result;
+        }
+
+        return Array.Empty<(Item, int)>();
     }
 
     public Item? Get(long uid) {
@@ -128,7 +176,7 @@ public class ItemCollection : IEnumerable<Item> {
             uidToSlot.Clear();
             short i = 0;
             while (items[i] != null) {
-                uidToSlot[items[i]!.Id] = i;
+                uidToSlot[items[i]!.Uid] = i;
                 i++;
             }
         } finally {
@@ -150,6 +198,34 @@ public class ItemCollection : IEnumerable<Item> {
         }
     }
 
+    public bool CanHold(Item item, bool stack = false, int amount = -1) {
+        if (OpenSlots > 0) {
+            return true;
+        }
+
+        if (!stack) {
+            return false;
+        }
+
+        mutex.EnterReadLock();
+        try {
+            int remaining = amount < 0 ? item.Amount : amount;
+            foreach (Item existing in GetInternalEnumerator()) {
+                if (!CanStack(existing, item)) continue;
+
+                int available = existing.Metadata.Property.SlotMax - existing.Amount;
+                remaining -= available;
+                if (remaining <= 0) {
+                    return true;
+                }
+            }
+        } finally {
+            mutex.ExitReadLock();
+        }
+
+        return false;
+    }
+
     // Enumerate array while ignoring nulls
     public IEnumerator<Item> GetEnumerator() {
         mutex.EnterReadLock();
@@ -165,6 +241,20 @@ public class ItemCollection : IEnumerable<Item> {
 
     IEnumerator IEnumerable.GetEnumerator() {
         return GetEnumerator();
+    }
+
+    private IEnumerable<Item> GetInternalEnumerator() {
+        foreach (Item? item in items) {
+            if (item == null) continue;
+            yield return item;
+        }
+    }
+
+    private static bool CanStack(Item item, Item stack) {
+        return item.Id == stack.Id
+               && item.Rarity == stack.Rarity
+               && item.Amount < item.Metadata.Property.SlotMax
+               && Equals(item.Transfer, stack.Transfer);
     }
 
     private static int SortItem(Item? x, Item? y) {

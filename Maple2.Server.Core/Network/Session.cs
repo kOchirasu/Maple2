@@ -29,14 +29,14 @@ public abstract class Session : IDisposable {
     public EventHandler<IByteReader>? OnPacket;
 
     protected bool disposed;
-    private uint siv;
-    private uint riv;
+    private readonly uint siv;
+    private readonly uint riv;
 
-    private string name;
-    private TcpClient client;
-    private NetworkStream networkStream;
-    private MapleCipher.Encryptor sendCipher;
-    private MapleCipher.Decryptor recvCipher;
+    private readonly string name;
+    private readonly TcpClient client;
+    private readonly NetworkStream networkStream;
+    private readonly MapleCipher.Encryptor sendCipher;
+    private readonly MapleCipher.Decryptor recvCipher;
 
     private readonly Thread thread;
     private readonly QueuedPipeScheduler pipeScheduler;

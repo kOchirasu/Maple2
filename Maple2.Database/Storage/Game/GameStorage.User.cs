@@ -1,12 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model;
 using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Account = Maple2.Model.Game.Account;
 using Character = Maple2.Model.Game.Character;
 
@@ -109,6 +107,7 @@ public partial class GameStorage {
         }
 
         public bool SavePlayer(Player player, bool logoff = false) {
+            Console.WriteLine($"> Begin Save... {context.ContextId}");
             Model.Account account = player.Account;
             account.Currency = new AccountCurrency {
                 Meret = player.Currency.Meret,
@@ -141,6 +140,7 @@ public partial class GameStorage {
             unlock.CharacterId = character.Id;
             context.Update(unlock);
 
+            context.ChangeTracker.Entries().DisplayStates();
             return context.TrySaveChanges();
         }
 

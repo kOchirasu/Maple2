@@ -52,33 +52,7 @@ public class Item : IByteSerializable, IByteDeserializable {
 
     public Item(ItemMetadata metadata, bool initialize = true) {
         Metadata = metadata;
-        Inventory = Metadata.Property.Type switch {
-            0 => Metadata.Property.SubType == 2 ? InventoryType.Consumable : InventoryType.Misc, // Unknown
-            1 => Metadata.Property.IsSkin ? InventoryType.Outfit : InventoryType.Gear,
-            2 => Metadata.Property.SubType == 2 ? InventoryType.Consumable : InventoryType.Misc,
-            3 => InventoryType.Quest,
-            4 => Metadata.Property.SubType == 2 ? InventoryType.Consumable : InventoryType.Misc,
-            5 => InventoryType.Mount, // Air mount
-            6 => InventoryType.FishingMusic, // Furnishing shows up in FishingMusic
-            7 => InventoryType.Badge,
-            9 => InventoryType.Mount, // Ground mount
-            10 => Metadata.Property.SubType != 20 ? InventoryType.Misc : InventoryType.FishingMusic,
-            11 => InventoryType.Pets,
-            12 => InventoryType.FishingMusic, // Music Score
-            13 => InventoryType.Gemstone,
-            14 => InventoryType.Gemstone, // Gem dust
-            15 => InventoryType.Catalyst,
-            16 => InventoryType.LifeSkill,
-            17 => throw new ArgumentException(
-                $"Invalid Type: {Metadata.Property.Type},{Metadata.Property.SubType}"), // Tab 8
-            18 => InventoryType.Consumable,
-            19 => InventoryType.Catalyst,
-            20 => InventoryType.Currency,
-            21 => InventoryType.Lapenshard,
-            22 => InventoryType.Misc, // Blueprint
-            _ => throw new ArgumentException(
-                $"Unknown Tab for: {Metadata.Property.Type},{Metadata.Property.SubType}")
-        };
+        Inventory = Metadata.Inventory();
 
         // Skip initialization of fields, this is done if we will initialize separately.
         if (!initialize) {
