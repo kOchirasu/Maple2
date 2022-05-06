@@ -28,7 +28,7 @@ public abstract class Session : IDisposable {
     public EventHandler<string>? OnError;
     public EventHandler<IByteReader>? OnPacket;
 
-    protected bool disposed;
+    private bool disposed;
     private readonly uint siv;
     private readonly uint riv;
 

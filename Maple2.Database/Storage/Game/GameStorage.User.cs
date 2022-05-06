@@ -75,9 +75,11 @@ public partial class GameStorage {
                 return null;
             }
 
+#if !DEBUG
             if (account.Online || character.Online) {
                 throw new InvalidOperationException($"AlreadyOnline accountId:{accountId}, characterId:{characterId}");
             }
+#endif
 
             account.Online = true;
             character.Online = true;

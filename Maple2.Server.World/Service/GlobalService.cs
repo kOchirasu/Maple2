@@ -26,11 +26,11 @@ public partial class GlobalService : Global.GlobalBase {
     }
 
     public override Task<LoginResponse> Login(LoginRequest request, ServerCallContext context) {
-        #if !DEBUG // Allow empty username for testing
+#if !DEBUG // Allow empty username for testing
         if (string.IsNullOrWhiteSpace(request.Username)) {
             throw new RpcException(new Status(StatusCode.InvalidArgument, "Username must be specified."));
         }
-        #endif
+#endif
 
         // Normalize username
         string username = request.Username.Trim().ToLower();
@@ -46,9 +46,11 @@ public partial class GlobalService : Global.GlobalBase {
             };
             account = db.CreateAccount(account);
         } else {
+#if !DEBUG
             if (account.Online) {
                 return Task.FromResult(new LoginResponse {Code = LoginResponse.Types.Code.AlreadyLogin});
             }
+#endif
 
             if (account.MachineId == default) {
                 account.MachineId = machineId;

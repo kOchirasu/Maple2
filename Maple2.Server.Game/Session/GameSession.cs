@@ -22,6 +22,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
     protected override PatchType Type => PatchType.Ignore;
     public const int FIELD_KEY = 0x1234;
 
+    private bool disposed;
     private readonly GameServer Server;
 
     public long AccountId { get; private set; }
@@ -30,7 +31,8 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public GameStorage GameStorage { private get; init; } = null!;
+    public GameStorage GameStorage { get; init; } = null!;
+    public ItemMetadataStorage ItemMetadata { get; init; } = null!;
     public SkillMetadataStorage SkillMetadata { private get; init; } = null!;
     public TableMetadataStorage TableMetadata { private get; init; } = null!;
     public FieldManager.Factory FieldFactory { private get; init; } = null!;
@@ -61,24 +63,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         }
         db.Commit();
 
-        Item = new ItemManager(this);
-        foreach ((EquipTab tab, List<Item> items) in db.GetEquips(CharacterId, EquipTab.Gear, EquipTab.Outfit, EquipTab.Badge)) {
-            foreach (Item item in items) {
-                switch (tab) {
-                    case EquipTab.Gear:
-                        Item.Equips.Gear[item.EquipSlot] = item;
-                        break;
-                    case EquipTab.Outfit:
-                        Item.Equips.Outfit[item.EquipSlot] = item;
-                        break;
-                    case EquipTab.Badge:
-                        if (item.Badge != null) {
-                            Item.Equips.Badge[item.Badge.Type] = item;
-                        }
-                        break;
-                }
-            }
-        }
+        Item = new ItemManager(db, this);
 
         JobTable.Entry jobTableEntry = TableMetadata.JobTable.Entries[player.Character.Job.Code()];
         Skill = new SkillManager(player.Character.Job, SkillMetadata, jobTableEntry);
@@ -118,7 +103,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         // SyncNumber
         // SyncWorld
         // Prestige
-        // ItemInventory
+        Item.Inventory.Load();
         // FurnishingStorage
         // FurnishingInventory
         // Quest
@@ -174,9 +159,8 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
     }
 
     protected override void Dispose(bool disposing) {
-        if (disposed) {
-            return;
-        }
+        if (disposed) return;
+        disposed = true;
 
         try {
             Server.OnDisconnected(this);
@@ -186,6 +170,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
             using (GameStorage.Request db = GameStorage.Context()) {
                 db.BeginTransaction();
                 db.SavePlayer(Player, true);
+                Item.Save(db);
             }
 
             base.Dispose(disposing);

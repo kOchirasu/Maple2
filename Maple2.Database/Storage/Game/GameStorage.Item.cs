@@ -17,6 +17,19 @@ public partial class GameStorage {
             return context.TrySaveChanges() ? model.Convert(game.itemMetadata.Get(model.ItemId)) : null;
         }
 
+        public Item SplitItem(long ownerId, Item item, int amount) {
+            Model.Item model = item;
+            model.Amount = amount;
+            model.OwnerId = ownerId;
+            model.Slot = -1;
+            model.EquipSlot = EquipSlot.Unknown;
+            model.EquipTab = EquipTab.None;
+            model.Id = 0;
+            context.Item.Add(model);
+
+            return context.TrySaveChanges() ? model.Convert(game.itemMetadata.Get(model.ItemId)) : null;
+        }
+
         public List<Item> CreateItems(long ownerId, params Item[] items) {
             var models = new Model.Item[items.Length];
             for (int i = 0; i < items.Length; i++) {
@@ -48,16 +61,32 @@ public partial class GameStorage {
                 );
         }
 
+        public Dictionary<InventoryType, List<Item>> GetInventory(long characterId) {
+            return context.Item.Where(item => item.OwnerId == characterId && item.EquipTab == EquipTab.None)
+                .Select(model => model.Convert(game.itemMetadata.Get(model.ItemId)))
+                .AsEnumerable()
+                .GroupBy(item => item.Inventory)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.ToList()
+                );
+        }
+
         public List<Item> GetItems(long characterId) {
             return context.Item.Where(item => item.OwnerId == characterId)
                 .Select(model => model.Convert(game.itemMetadata.Get(model.ItemId)))
                 .ToList();
         }
 
-        public List<Item> GetInventory(long characterId) {
-            return context.Item.Where(item => item.OwnerId == characterId && item.EquipTab == EquipTab.None)
-                .Select(model => model.Convert(game.itemMetadata.Get(model.ItemId)))
-                .ToList();
+        public bool SaveItems(long ownerId, params Item[] items) {
+            var models = new Model.Item[items.Length];
+            for (int i = 0; i < items.Length; i++) {
+                models[i] = items[i];
+                models[i].OwnerId = ownerId;
+                context.Item.Update(models[i]);
+            }
+
+            return context.TrySaveChanges();
         }
     }
 }
