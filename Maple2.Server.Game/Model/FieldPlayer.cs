@@ -8,8 +8,8 @@ namespace Maple2.Server.Game.Model;
 public class FieldPlayer : IActor<Player> {
     public readonly GameSession Session;
 
-    public int ObjectId { get; init; }
-    public Player Value { get; init; }
+    public int ObjectId { get; }
+    public Player Value { get; }
 
     public Vector3 Position { get; set; }
     public Vector3 Rotation { get; set; }

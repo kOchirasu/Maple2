@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Maple2.Model;
 using Maple2.Model.Common;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
@@ -110,6 +111,49 @@ public static class FieldPacket {
         pWriter.WriteInt(); // Tail
         pWriter.WriteInt();
         pWriter.WriteShort();
+
+        return pWriter;
+    }
+
+    public static ByteWriter RemovePlayer(int objectId) {
+        var pWriter = Packet.Of(SendOp.FIELD_REMOVE_USER);
+        pWriter.WriteInt(objectId);
+
+        return pWriter;
+    }
+
+    public static ByteWriter DropItem(FieldEntity<Item> fieldItem) {
+        Item item = fieldItem;
+
+        var pWriter = Packet.Of(SendOp.FIELD_ADD_ITEM);
+        pWriter.WriteInt(fieldItem.ObjectId);
+        pWriter.WriteInt(item.Id);
+        pWriter.WriteInt(item.Amount);
+
+        pWriter.WriteBool(item.Uid >= 0);
+        if (item.Uid >= 0) {
+            pWriter.WriteLong(item.Uid);
+        }
+
+        pWriter.Write<Vector3>(fieldItem.Position);
+        pWriter.WriteInt(fieldItem.Owner?.ObjectId ?? 0);
+        pWriter.WriteInt();
+        pWriter.WriteByte(2); // Required for item to show up
+        pWriter.WriteInt(item.Rarity);
+        pWriter.WriteShort();
+        pWriter.WriteBool(false);
+        pWriter.WriteBool(false);
+
+        if (!item.IsMeso()) {
+            pWriter.WriteClass<Item>(item);
+        }
+
+        return pWriter;
+    }
+
+    public static ByteWriter RemoveItem(int objectId) {
+        var pWriter = Packet.Of(SendOp.FIELD_REMOVE_ITEM);
+        pWriter.WriteInt(objectId);
 
         return pWriter;
     }

@@ -43,7 +43,7 @@ public class ItemCollection : IEnumerable<Item> {
         set {
             // Setting slot to null or Slot is already taken
             // Use `RemoveSlot()` to remove items.
-            if (value == null || this[slot] != null) {
+            if (value == null || slot < 0 || slot >= Size || this[slot] != null) {
                 return;
             }
 

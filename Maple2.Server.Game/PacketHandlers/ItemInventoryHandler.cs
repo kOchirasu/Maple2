@@ -54,7 +54,7 @@ public class ItemInventoryHandler : PacketHandler<GameSession> {
         int amount = packet.ReadInt();
 
         if (session.Item.Inventory.Remove(uid, out Item? removed, amount)) {
-            // TODO: drop item
+            session.Field.DropItem(session.Player, removed!);
         }
     }
 
@@ -62,7 +62,7 @@ public class ItemInventoryHandler : PacketHandler<GameSession> {
         long uid = packet.ReadLong();
 
         if (session.Item.Inventory.Remove(uid, out Item? removed)) {
-            // TODO: drop item
+            session.Field.DropItem(session.Player, removed!);
         }
     }
 

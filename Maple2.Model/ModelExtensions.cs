@@ -1,5 +1,6 @@
 ﻿using System;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 
 namespace Maple2.Model;
@@ -37,4 +38,10 @@ public static class ModelExtensions {
                 $"Unknown Tab for: {metadata.Property.Type},{metadata.Property.SubType}")
         };
     }
+
+    public static bool IsMeso(this Item item) => item.Id is >= 90000001 and <= 90000003;
+    public static bool IsMeret(this Item item) => item.Id is 90000004 or 90000011 or 90000015 or 90000016;
+    public static bool IsExp(this Item item) => item.Id is 90000008;
+    public static bool IsSpirit(this Item item) => item.Id is 90000009;
+    public static bool IsStamina(this Item item) => item.Id is 90000010;
 }

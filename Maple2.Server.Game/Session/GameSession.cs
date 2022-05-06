@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Net.Sockets;
 using Maple2.Database.Storage;
 using Maple2.Model;
-using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -23,7 +21,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
     public const int FIELD_KEY = 0x1234;
 
     private bool disposed;
-    private readonly GameServer Server;
+    private readonly GameServer server;
 
     public long AccountId { get; private set; }
     public long CharacterId { get; private set; }
@@ -45,7 +43,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
     public FieldPlayer Player { get; private set; }
 
     public GameSession(TcpClient tcpClient, GameServer server, ILogger<GameSession> logger) : base(tcpClient, logger) {
-        Server = server;
+        this.server = server;
     }
 
     public bool EnterServer(long accountId, long characterId, Guid machineId) {
@@ -53,7 +51,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         CharacterId = characterId;
         MachineId = machineId;
 
-        Server.OnConnected(this);
+        server.OnConnected(this);
 
         using GameStorage.Request db = GameStorage.Context();
         db.BeginTransaction();
@@ -150,6 +148,10 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         return true;
     }
 
+    public void Log(LogLevel level, string? message, params object?[] args) {
+        logger.Log(level, message, args);
+    }
+
     #region Dispose
     ~GameSession() => Dispose(false);
 
@@ -163,7 +165,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         disposed = true;
 
         try {
-            Server.OnDisconnected(this);
+            server.OnDisconnected(this);
             Field?.RemovePlayer(Player.ObjectId, out FieldPlayer? _);
             Complete();
         } finally {

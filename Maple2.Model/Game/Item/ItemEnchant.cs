@@ -17,7 +17,7 @@ public class ItemEnchant : IByteSerializable, IByteDeserializable {
 
     public readonly IDictionary<StatAttribute, StatOption> StatOptions;
 
-    public ItemEnchant(int enchants = 0, int enchantExp = 0, byte enchantCharges = 1, bool canRepack = false,
+    public ItemEnchant(int enchants = 0, int enchantExp = 0, byte enchantCharges = 1, bool canRepack = true,
             int charges = 0, IDictionary<StatAttribute, StatOption>? statOptions = null) {
         Enchants = enchants;
         EnchantExp = enchantExp;
