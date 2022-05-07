@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Server.Game.Session;
 
@@ -13,6 +14,9 @@ public class FieldPlayer : IActor<Player> {
 
     public Vector3 Position { get; set; }
     public Vector3 Rotation { get; set; }
+
+    public PlayerState State { get; set; }
+    public PlayerSubState SubState { get; set; }
 
     public IReadOnlyDictionary<int, Buff> Buffs => new Dictionary<int, Buff>();
     public Stats Stats => new Stats();

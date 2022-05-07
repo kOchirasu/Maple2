@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Sockets;
+using System.Numerics;
 using Maple2.Database.Storage;
 using Maple2.Model;
 using Maple2.Model.Error;
@@ -100,12 +101,13 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         Send(RequestPacket.TickSync(Environment.TickCount));
 
         // DynamicChannel
+        Send(ServerEnterPacket.Request(Player));
 
         // Ugc
         // Cash
         // Gvg
         // Pvp
-        // SyncNumber
+        Send(StateSyncPacket.SyncNumber(0));
         // SyncWorld
         // Prestige
         Item.Inventory.Load();
@@ -153,6 +155,11 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
 
 
         return true;
+    }
+
+    public void OnStateSync(StateSync stateSync) {
+        Player.Position = stateSync.Position;
+        Player.Rotation = new Vector3(0, 0, stateSync.Rotation);
     }
 
     public void Log(LogLevel level, string? message, params object?[] args) {
