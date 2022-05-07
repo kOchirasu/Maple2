@@ -1,4 +1,5 @@
-﻿using Maple2.Database.Context;
+﻿using System.Diagnostics.CodeAnalysis;
+using Maple2.Database.Context;
 using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +10,7 @@ public class MapMetadataStorage : MetadataStorage<int, MapMetadata> {
 
     public MapMetadataStorage(MetadataContext context) : base(context, CACHE_SIZE) { }
 
-    public bool TryGet(int id, out MapMetadata map) {
+    public bool TryGet(int id, [NotNullWhen(true)] out MapMetadata? map) {
         if (Cache.TryGet(id, out map)) {
             return true;
         }

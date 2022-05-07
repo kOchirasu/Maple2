@@ -45,7 +45,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
     public ConfigManager Config { get; set; }
     public ItemManager Item { get; set; }
     public SkillManager Skill { get; set; }
-    public FieldManager Field { get; set; }
+    public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
 
     public GameSession(TcpClient tcpClient, GameServer server, ILogger<GameSession> logger) : base(tcpClient, logger) {
@@ -67,9 +67,13 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         db.BeginTransaction();
         Player player = db.LoadPlayer(AccountId, CharacterId);
         if (player == null) {
+            Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
             return false;
         }
         db.Commit();
+
+        // Create a placeholder FieldPlayer
+        Player = new FieldPlayer(0, this, player);
 
         Config = new ConfigManager(db, this);
         Item = new ItemManager(db, this);
@@ -77,13 +81,10 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         JobTable.Entry jobTableEntry = TableMetadata.JobTable.Entries[player.Character.Job.Code()];
         Skill = new SkillManager(player.Character.Job, SkillMetadata, jobTableEntry);
 
-        FieldManager? fieldManager = FieldFactory.Get(player.Character.MapId);
-        if (fieldManager == null) {
+        if (!PrepareField(player.Character.MapId)) {
+            Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
             return false;
         }
-
-        Field = fieldManager;
-        Player = Field.SpawnPlayer(this, player);
 
         //session.Send(Packet.Of(SendOp.REQUEST_SYSTEM_INFO));
         Send(MigrationPacket.MoveResult(MigrationError.ok));
@@ -145,6 +146,32 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         return true;
     }
 
+    public bool PrepareField(int mapId, int portalId = 0, in Vector3 position = default, in Vector3 rotation = default) {
+        FieldManager? newField = FieldFactory.Get(mapId);
+        if (newField == null) {
+            return false;
+        }
+
+        if (Field != null) {
+            Scheduler.Stop();
+            Field.RemovePlayer(Player.ObjectId, out _);
+        }
+
+        Field = newField;
+        Player = Field.SpawnPlayer(this, Player, portalId, position, rotation);
+
+        return true;
+    }
+
+    public bool EnterField() {
+        Player.Value.Unlock.Maps.Add(Player.Value.Character.MapId);
+
+        Field?.OnAddPlayer(Player);
+        Scheduler.Start();
+
+        return true;
+    }
+
     public bool Temp() {
         // -> RequestMoveField
 
@@ -189,6 +216,12 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
             Field?.RemovePlayer(Player.ObjectId, out FieldPlayer? _);
             Complete();
         } finally {
+#if !DEBUG
+            if (Player.Value.Character.ReturnMapId != 0) {
+                Player.Value.Character.MapId = Player.Value.Character.ReturnMapId;
+            }
+#endif
+
             using (GameStorage.Request db = GameStorage.Context()) {
                 db.BeginTransaction();
                 db.SavePlayer(Player, true);

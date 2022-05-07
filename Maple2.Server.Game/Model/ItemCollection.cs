@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Maple2.Model.Game;
 
@@ -137,7 +138,7 @@ public class ItemCollection : IEnumerable<Item> {
         }
     }
 
-    public bool Remove(long uid, out Item? removed) {
+    public bool Remove(long uid, [NotNullWhen(true)] out Item? removed) {
         mutex.EnterUpgradeableReadLock();
         try {
             if (!uidToSlot.TryGetValue(uid, out short slot)) {
@@ -151,7 +152,7 @@ public class ItemCollection : IEnumerable<Item> {
         }
     }
 
-    public bool RemoveSlot(short slot, out Item? removed) {
+    public bool RemoveSlot(short slot, [NotNullWhen(true)] out Item? removed) {
         removed = this[slot];
         if (removed == null) {
             return false;

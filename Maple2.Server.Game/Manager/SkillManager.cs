@@ -19,7 +19,7 @@ public class SkillManager {
             Debug.Assert(rank is SkillRank.Basic or SkillRank.Awakening);
 
             foreach (JobTable.Skill skill in jobSkills) {
-                if (!storage.TryGet(skill.Main, out SkillMetadata metadata)) {
+                if (!storage.TryGet(skill.Main, out SkillMetadata? metadata)) {
                     throw new InvalidOperationException($"Nonexistent skillId:{skill.Main}");
                 }
 

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -34,7 +35,7 @@ public class GameServer : Server<GameSession> {
         }
     }
 
-    public bool GetSession(long characterId, out GameSession? session) {
+    public bool GetSession(long characterId, [NotNullWhen(true)] out GameSession? session) {
         return sessions.TryGetValue(characterId, out session);
     }
 

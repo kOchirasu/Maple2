@@ -71,4 +71,14 @@ public static class PortalPacket {
 
         return pWriter;
     }
+
+    public static ByteWriter MoveByPortal(int playerObjectId, in Vector3 position, in Vector3 rotation, bool isPortal) {
+        var pWriter = Packet.Of(SendOp.USER_MOVE_BY_PORTAL);
+        pWriter.WriteInt(playerObjectId);
+        pWriter.Write<Vector3>(position + new Vector3(0, 0, 25)); // Always seems to be offset by 25
+        pWriter.Write<Vector3>(rotation);
+        pWriter.WriteBool(isPortal);
+
+        return pWriter;
+    }
 }

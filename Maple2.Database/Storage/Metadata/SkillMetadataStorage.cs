@@ -1,4 +1,5 @@
-﻿using Maple2.Database.Context;
+﻿using System.Diagnostics.CodeAnalysis;
+using Maple2.Database.Context;
 using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +10,7 @@ public class SkillMetadataStorage : MetadataStorage<int, SkillMetadata> {
 
     public SkillMetadataStorage(MetadataContext context) : base(context, CACHE_SIZE) { }
 
-    public bool TryGet(int id, out SkillMetadata skill) {
+    public bool TryGet(int id, [NotNullWhen(true)] out SkillMetadata? skill) {
         if (Cache.TryGet(id, out skill)) {
             return true;
         }

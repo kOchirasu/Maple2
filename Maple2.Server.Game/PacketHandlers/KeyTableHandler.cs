@@ -73,7 +73,7 @@ public class KeyTableHandler : PacketHandler<GameSession> {
         }
 
         int targetSlot = packet.ReadInt();
-        targetHotBar!.MoveQuickSlot(targetSlot, quickSlot);
+        targetHotBar.MoveQuickSlot(targetSlot, quickSlot);
         session.Config.LoadHotBars();
     }
 
@@ -86,7 +86,7 @@ public class KeyTableHandler : PacketHandler<GameSession> {
 
         int skillId = packet.ReadInt();
         long itemUid = packet.ReadLong();
-        if (targetHotBar!.RemoveQuickSlot(skillId, itemUid)) {
+        if (targetHotBar.RemoveQuickSlot(skillId, itemUid)) {
             session.Config.LoadHotBars();
         }
     }

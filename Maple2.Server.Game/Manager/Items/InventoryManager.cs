@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Maple2.Database.Storage;
@@ -99,7 +100,7 @@ public class InventoryManager {
             }
 
             if (items.Remove(uid, out Item? removed)) {
-                short srcSlot = removed!.Slot;
+                short srcSlot = removed.Slot;
                 Item? existing = items[dstSlot];
                 items[dstSlot] = removed;
                 items[srcSlot] = existing;
@@ -148,7 +149,7 @@ public class InventoryManager {
         }
     }
 
-    public bool Remove(long uid, out Item? removed, int amount = -1) {
+    public bool Remove(long uid, [NotNullWhen(true)] out Item? removed, int amount = -1) {
         mutex.EnterWriteLock();
         try {
             return RemoveInternal(uid, amount, out removed);
@@ -232,7 +233,7 @@ public class InventoryManager {
     }
 
     #region Internal (No Locks)
-    private bool RemoveInternal(long uid, int amount, out Item? removed) {
+    private bool RemoveInternal(long uid, int amount, [NotNullWhen(true)] out Item? removed) {
         ItemCollection? items = GetTab(uid);
         if (items == null || amount == 0) {
             removed = null;

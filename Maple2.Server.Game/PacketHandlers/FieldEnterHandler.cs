@@ -16,9 +16,6 @@ public class FieldEnterHandler : PacketHandler<GameSession> {
     public override void Handle(GameSession session, IByteReader packet) {
         Debug.Assert(packet.ReadInt() == GameSession.FIELD_KEY);
 
-        Player player = session.Player;
-        player.Unlock.Maps.Add(player.Character.MapId);
-        session.Field.OnAddPlayer(session.Player);
-        session.Scheduler.Start();
+        session.EnterField();
     }
 }

@@ -33,7 +33,7 @@ public partial class ChannelService {
 
     private void WhisperChat(ChatRequest request) {
         if (server.GetSession(request.Whisper.RecipientId, out GameSession? session)) {
-            session!.Send(ChatPacket.Whisper(
+            session.Send(ChatPacket.Whisper(
                 request.AccountId, request.CharacterId, request.Name, request.Message,string.Empty));
         }
 

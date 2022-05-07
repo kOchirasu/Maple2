@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Database.Storage;
 using Maple2.Model.Game;
@@ -57,7 +58,7 @@ public class ConfigManager {
         activeHotBar = hotBarId;
     }
 
-    public bool TryGetHotBar(short hotBarId, out HotBar? hotBar) {
+    public bool TryGetHotBar(short hotBarId, [NotNullWhen(true)] out HotBar? hotBar) {
         if (hotBarId < 0 || hotBarId >= hotBars.Count) {
             hotBar = null;
             return false;

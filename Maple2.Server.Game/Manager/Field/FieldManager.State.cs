@@ -1,5 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using Maple2.Model;
 using Maple2.Model.Game;
@@ -16,25 +19,45 @@ public partial class FieldManager {
     private readonly ConcurrentDictionary<int, FieldPlayer> fieldPlayers = new();
     private readonly ConcurrentDictionary<int, FieldEntity<Item>> fieldItems = new();
 
-    public FieldPlayer SpawnPlayer(GameSession session, Player player) {
+    public FieldPlayer SpawnPlayer(GameSession session, Player player, int portalId = 0,
+        in Vector3 position = default, in Vector3 rotation = default) {
         // TODO: Not sure what the difference is between instance ids.
         player.Character.MapId = MapId;
         player.Character.InstanceMapId = MapId;
         player.Character.InstanceId = InstanceId;
 
         int objectId = Interlocked.Increment(ref objectIdCounter);
-        var fieldPlayer = new FieldPlayer(objectId, session, player);
+        var fieldPlayer = new FieldPlayer(objectId, session, player) {
+            Position = position,
+            Rotation = rotation
+        };
 
-        SpawnPointPC? spawn = entities.PlayerSpawns.Values.FirstOrDefault(spawn => spawn.Enable);
-        if (spawn != null) {
-            fieldPlayer.Position = spawn.Position;
-            fieldPlayer.Rotation = spawn.Rotation;
+        // Use Portal if needed.
+        if (fieldPlayer.Position == default && entities.Portals.TryGetValue(portalId, out Portal? portal)) {
+            fieldPlayer.Position = portal.Position;
+            fieldPlayer.Rotation = portal.Rotation;
+        }
+
+        // Use SpawnPoint if needed.
+        if (fieldPlayer.Position == default) {
+            SpawnPointPC? spawn = entities.PlayerSpawns.Values.FirstOrDefault(spawn => spawn.Enable);
+            if (spawn != null) {
+                fieldPlayer.Position = spawn.Position;
+                fieldPlayer.Rotation = spawn.Rotation;
+            }
+        }
+
+        if (Metadata.Property.RevivalReturnId != 0) {
+            player.Character.ReviveMapId = Metadata.Property.RevivalReturnId;
+        }
+        if (Metadata.Property.EnterReturnId != 0) {
+            player.Character.ReturnMapId = Metadata.Property.EnterReturnId;
         }
 
         return fieldPlayer;
     }
 
-    public bool RemovePlayer(int objectId, out FieldPlayer? fieldPlayer) {
+    public bool RemovePlayer(int objectId, [NotNullWhen(true)] out FieldPlayer? fieldPlayer) {
         if (fieldPlayers.TryRemove(objectId, out fieldPlayer)) {
             Multicast(FieldPacket.RemovePlayer(objectId));
             return true;
@@ -55,7 +78,7 @@ public partial class FieldManager {
         Multicast(FieldPacket.DropItem(fieldItem));
     }
 
-    public bool PickupItem(FieldPlayer looter, int objectId, out FieldEntity<Item>? fieldItem) {
+    public bool PickupItem(FieldPlayer looter, int objectId, [NotNullWhen(true)] out FieldEntity<Item>? fieldItem) {
         if (!fieldItems.TryRemove(objectId, out fieldItem)) return false;
 
         if (fieldItem.Value.IsMeso()) {
