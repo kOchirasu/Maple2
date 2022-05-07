@@ -5,8 +5,25 @@ using System.Runtime.InteropServices;
 namespace Maple2.Model.Common;
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 4)]
-public readonly record struct Vector3B(sbyte X, sbyte Y, sbyte Z);
+public readonly record struct Vector3B(sbyte X, sbyte Y, sbyte Z) {
+    private const float BLOCK_SIZE = 150f;
 
+    public static implicit operator Vector3B(Vector3 vector) {
+        return new Vector3B(
+            (sbyte) MathF.Round(vector.X / BLOCK_SIZE),
+            (sbyte) MathF.Round(vector.Y / BLOCK_SIZE),
+            (sbyte) MathF.Round(vector.Z / BLOCK_SIZE)
+        );
+    }
+
+    public static implicit operator Vector3(Vector3B vector) {
+        return new Vector3(
+            vector.X * BLOCK_SIZE,
+            vector.Y * BLOCK_SIZE,
+            vector.Z * BLOCK_SIZE
+        );
+    }
+}
 
 [StructLayout(LayoutKind.Sequential, Pack = 2, Size = 6)]
 public readonly record struct Vector3S(short X, short Y, short Z) {
