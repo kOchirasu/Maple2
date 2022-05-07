@@ -1,4 +1,5 @@
-﻿using Maple2.Database.Storage;
+﻿using System.Numerics;
+using Maple2.Database.Storage;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -6,6 +7,7 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Tools.Extensions;
 using Microsoft.Extensions.Logging;
 using static Maple2.Model.Error.MigrationError;
 
@@ -66,7 +68,9 @@ public class TaxiHandler : PacketHandler<GameSession> {
             return;
         }
 
-        session.Send(session.PrepareField(mapId, position: entities.Taxi.Position, rotation: entities.Taxi.Rotation)
+        Vector3 position = entities.Taxi.Position.Offset(VectorExtensions.BLOCK_SIZE, entities.Taxi.Rotation);
+        Vector3 rotation = entities.Taxi.Rotation;
+        session.Send(session.PrepareField(mapId, position: position, rotation: rotation)
             ? FieldEnterPacket.Request(session.Player)
             : FieldEnterPacket.Error(s_move_err_default));
     }

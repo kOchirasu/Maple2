@@ -42,7 +42,7 @@ public partial class FieldManager {
         if (fieldPlayer.Position == default) {
             SpawnPointPC? spawn = entities.PlayerSpawns.Values.FirstOrDefault(spawn => spawn.Enable);
             if (spawn != null) {
-                fieldPlayer.Position = spawn.Position;
+                fieldPlayer.Position = spawn.Position + new Vector3(0, 0, 25);
                 fieldPlayer.Rotation = spawn.Rotation;
             }
         }
