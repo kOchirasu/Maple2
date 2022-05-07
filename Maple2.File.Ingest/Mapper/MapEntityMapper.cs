@@ -26,8 +26,9 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
                     if (!FeatureEnabled(portal.feature) || !HasLocale(portal.locale)) continue;
                     yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
                         Block = new Portal(portal.PortalID, portal.TargetFieldSN, portal.TargetPortalID,
-                            portal.PortalType, portal.ActionType, portal.Position, portal.Rotation,
-                            portal.PortalDimension, portal.PortalOffset, portal.MinimapIconVisible, portal.PortalEnable)
+                            (byte) portal.PortalType, portal.ActionType, portal.Position, portal.Rotation,
+                            portal.PortalDimension, portal.PortalOffset, portal.IsVisible, portal.MinimapIconVisible,
+                            portal.PortalEnable)
                     };
                     continue;
                 case ISpawnPoint spawn:

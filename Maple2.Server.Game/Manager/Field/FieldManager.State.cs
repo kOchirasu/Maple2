@@ -13,10 +13,8 @@ namespace Maple2.Server.Game.Manager.Field;
 public partial class FieldManager {
     private int objectIdCounter = 10000000;
 
-    private readonly ConcurrentDictionary<int, FieldPlayer> fieldPlayers =
-        new ConcurrentDictionary<int, FieldPlayer>();
-    private readonly ConcurrentDictionary<int, FieldEntity<Item>> fieldItems =
-        new ConcurrentDictionary<int, FieldEntity<Item>>();
+    private readonly ConcurrentDictionary<int, FieldPlayer> fieldPlayers = new();
+    private readonly ConcurrentDictionary<int, FieldEntity<Item>> fieldItems = new();
 
     public FieldPlayer SpawnPlayer(GameSession session, Player player) {
         // TODO: Not sure what the difference is between instance ids.
@@ -89,6 +87,9 @@ public partial class FieldManager {
         // FieldAddNpc
         // FieldAddPet
         // FieldAddPortal
+        foreach (FieldEntity<Portal> fieldPortal in fieldPortals.Values) {
+            added.Session.Send(PortalPacket.Add(fieldPortal));
+        }
         // ProxyGameObj
         // RegionSkill (on tick?)
         // Stat
