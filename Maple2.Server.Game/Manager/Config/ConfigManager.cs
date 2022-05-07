@@ -16,13 +16,16 @@ public class ConfigManager {
     private readonly Dictionary<int, KeyBind> keyBinds;
     private short activeHotBar;
     private readonly List<HotBar> hotBars;
+    private IList<SkillMacro> skillMacros;
 
     public ConfigManager(GameStorage.Request db, GameSession session) {
         this.session = session;
         keyBinds = new Dictionary<int, KeyBind>();
         hotBars = new List<HotBar>();
+        skillMacros = new List<SkillMacro>();
 
-        (IList<KeyBind>? KeyBinds, IList<QuickSlot[]>? HotBars) load = db.LoadCharacterConfig(session.CharacterId);
+        (IList<KeyBind>? KeyBinds, IList<QuickSlot[]>? HotBars, IList<SkillMacro>? Macros) load =
+            db.LoadCharacterConfig(session.CharacterId);
         if (load.KeyBinds != null) {
             foreach (KeyBind keyBind in load.KeyBinds) {
                 SetKeyBind(keyBind);
@@ -31,6 +34,7 @@ public class ConfigManager {
         for (int i = 0; i < TOTAL_HOT_BARS; i++) {
             hotBars.Add(new HotBar(load.HotBars?.ElementAtOrDefault(i)));
         }
+        skillMacros = load.Macros ?? new List<SkillMacro>();
     }
 
     public void LoadKeyTable() {
@@ -41,6 +45,10 @@ public class ConfigManager {
 
     public void LoadHotBars() {
         session.Send(KeyTablePacket.LoadHotBar(activeHotBar, hotBars));
+    }
+
+    public void LoadMacros() {
+        session.Send(SkillMacroPacket.Load(skillMacros));
     }
 
     #region KeyBind
@@ -69,8 +77,17 @@ public class ConfigManager {
     }
     #endregion
 
+    #region Macros
+    public void UpdateMacros(List<SkillMacro> updated) {
+        skillMacros = updated;
+    }
+    #endregion
+
     public void Save(GameStorage.Request db) {
-        db.SaveCharacterConfig(session.CharacterId, keyBinds.Values.ToList(),
-            hotBars.Select(hotBar => hotBar.Slots).ToList());
+        db.SaveCharacterConfig(
+            session.CharacterId, keyBinds.Values.ToList(),
+            hotBars.Select(hotBar => hotBar.Slots).ToList(),
+            skillMacros
+        );
     }
 }

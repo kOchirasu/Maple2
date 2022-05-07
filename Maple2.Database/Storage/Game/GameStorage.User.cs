@@ -7,6 +7,7 @@ using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
 using Account = Maple2.Model.Game.Account;
 using Character = Maple2.Model.Game.Character;
+using SkillMacro = Maple2.Model.Game.SkillMacro;
 
 namespace Maple2.Database.Storage;
 
@@ -146,12 +147,18 @@ public partial class GameStorage {
             return context.TrySaveChanges();
         }
 
-        public (IList<KeyBind> KeyBinds, IList<QuickSlot[]> HotBars) LoadCharacterConfig(long characterId) {
+        public (IList<KeyBind> KeyBinds, IList<QuickSlot[]> HotBars, List<SkillMacro>) LoadCharacterConfig(long characterId) {
             CharacterConfig config = context.CharacterConfig.Find(characterId);
-            return (config?.KeyBinds, config?.HotBars);
+            return (
+                config?.KeyBinds,
+                config?.HotBars,
+                config?.SkillMacros?.Select<Model.SkillMacro, SkillMacro>(macro => macro).ToList()
+            );
         }
 
-        public bool SaveCharacterConfig(long characterId, IList<KeyBind> keyBinds, IList<QuickSlot[]> hotBars) {
+        public bool SaveCharacterConfig(long characterId, IList<KeyBind> keyBinds, IList<QuickSlot[]> hotBars,
+            IEnumerable<SkillMacro> skillMacros) {
+
             CharacterConfig config = context.CharacterConfig.Find(characterId);
             if (config == null) {
                 return false;
@@ -159,6 +166,7 @@ public partial class GameStorage {
 
             config.KeyBinds = keyBinds;
             config.HotBars = hotBars;
+            config.SkillMacros = skillMacros.Select<SkillMacro, Model.SkillMacro>(macro => macro).ToList();
             context.CharacterConfig.Update(config);
 
             return context.TrySaveChanges();
