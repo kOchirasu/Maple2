@@ -27,7 +27,7 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
                     yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
                         Block = new Portal(portal.PortalID, portal.TargetFieldSN, portal.TargetPortalID,
                             (byte) portal.PortalType, portal.ActionType, portal.Position, portal.Rotation,
-                            portal.PortalDimension, portal.PortalOffset, portal.IsVisible, portal.MinimapIconVisible,
+                            portal.PortalDimension, portal.frontOffset, portal.IsVisible, portal.MinimapIconVisible,
                             portal.PortalEnable)
                     };
                     continue;

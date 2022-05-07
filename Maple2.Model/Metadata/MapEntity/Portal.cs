@@ -11,7 +11,7 @@ public record Portal(
     Vector3 Position,
     Vector3 Rotation,
     Vector3 Dimension,
-    Vector3 Offset,
+    float FrontOffset,
     bool Visible,
     bool MinimapVisible,
     bool Enable

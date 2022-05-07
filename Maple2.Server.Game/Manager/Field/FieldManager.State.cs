@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
@@ -10,6 +9,7 @@ using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.Manager.Field;
 
@@ -34,7 +34,7 @@ public partial class FieldManager {
 
         // Use Portal if needed.
         if (fieldPlayer.Position == default && entities.Portals.TryGetValue(portalId, out Portal? portal)) {
-            fieldPlayer.Position = portal.Position;
+            fieldPlayer.Position = portal.Position.Offset(portal.FrontOffset, portal.Rotation);
             fieldPlayer.Rotation = portal.Rotation;
         }
 
