@@ -13,7 +13,7 @@ internal class CharacterUnlock {
     public ISet<int> Titles { get; set; }
     public ISet<int> Emotes { get; set; }
     public ISet<int> Stamps { get; set; }
-    public DateTime LastModified { get; set; }
+    public DateTime LastModified { get; init; }
 
     public static implicit operator CharacterUnlock(Maple2.Model.Game.Unlock other) {
         return other == null ? new CharacterUnlock() : new CharacterUnlock {

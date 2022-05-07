@@ -1,4 +1,6 @@
-﻿using Maple2.Model.Game;
+﻿using System;
+using System.Collections.Generic;
+using Maple2.Model.Game;
 
 namespace Maple2.Server.Game.Manager.Config;
 
@@ -6,13 +8,16 @@ public class HotBar {
     private const int MAX_SLOTS = 25;
     private const int ASSIGNABLE_SLOTS = 22;
 
-    public QuickSlot[] Slots { get; }
+    public QuickSlot[] Slots { get; } = new QuickSlot[MAX_SLOTS];
 
-    public HotBar() {
-        Slots = new QuickSlot[MAX_SLOTS];
+    public HotBar(QuickSlot[]? slots = null) {
+        if (slots == null) {
+            return;
+        }
 
-        for (int i = 0; i < MAX_SLOTS; i++) {
-            Slots[i] = new QuickSlot();
+        int limit = Math.Min(MAX_SLOTS, slots.Length);
+        for (int i = 0; i < limit; i++) {
+            Slots[i] = slots[i];
         }
     }
 

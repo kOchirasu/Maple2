@@ -6,6 +6,7 @@ namespace Maple2.Database.Context;
 public class Ms2Context : DbContext {
     internal DbSet<Account> Account { get; set; }
     internal DbSet<Character> Character { get; set; }
+    internal DbSet<CharacterConfig> CharacterConfig { get; set; }
     internal DbSet<CharacterUnlock> CharacterUnlock { get; set; }
     internal DbSet<Item> Item { get; set; }
     internal DbSet<Club> Club { get; set; }
@@ -17,6 +18,7 @@ public class Ms2Context : DbContext {
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<Account>(Maple2.Database.Model.Account.Configure);
         modelBuilder.Entity<Character>(Maple2.Database.Model.Character.Configure);
+        modelBuilder.Entity<CharacterConfig>(Maple2.Database.Model.CharacterConfig.Configure);
         modelBuilder.Entity<CharacterUnlock>(Maple2.Database.Model.CharacterUnlock.Configure);
         modelBuilder.Entity<Item>(Maple2.Database.Model.Item.Configure);
         modelBuilder.Entity<Club>(Maple2.Database.Model.Club.Configure);

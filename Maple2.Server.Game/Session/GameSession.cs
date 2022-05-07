@@ -9,6 +9,7 @@ using Maple2.Model.Metadata;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Manager;
+using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Manager.Items;
 using Maple2.Server.Game.Model;
@@ -41,9 +42,10 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
     // ReSharper restore All
     #endregion
 
-    public FieldManager Field { get; set; }
+    public ConfigManager Config { get; set; }
     public ItemManager Item { get; set; }
     public SkillManager Skill { get; set; }
+    public FieldManager Field { get; set; }
     public FieldPlayer Player { get; private set; }
 
     public GameSession(TcpClient tcpClient, GameServer server, ILogger<GameSession> logger) : base(tcpClient, logger) {
@@ -69,6 +71,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         }
         db.Commit();
 
+        Config = new ConfigManager(db, this);
         Item = new ItemManager(db, this);
 
         JobTable.Entry jobTableEntry = TableMetadata.JobTable.Entries[player.Character.Job.Code()];
@@ -122,7 +125,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         // ResponsePet
         // LegionBattle
         // CharacterAbility
-        // KeyTable
+        Config.LoadKeyTable();
         // GuideRecord
         // DailyWonder*
         // GameEvent
@@ -187,6 +190,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
             using (GameStorage.Request db = GameStorage.Context()) {
                 db.BeginTransaction();
                 db.SavePlayer(Player, true);
+                Config.Save(db);
                 Item.Save(db);
             }
 

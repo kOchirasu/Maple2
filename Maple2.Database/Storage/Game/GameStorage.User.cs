@@ -146,6 +146,24 @@ public partial class GameStorage {
             return context.TrySaveChanges();
         }
 
+        public (IList<KeyBind> KeyBinds, IList<QuickSlot[]> HotBars) LoadCharacterConfig(long characterId) {
+            CharacterConfig config = context.CharacterConfig.Find(characterId);
+            return (config?.KeyBinds, config?.HotBars);
+        }
+
+        public bool SaveCharacterConfig(long characterId, IList<KeyBind> keyBinds, IList<QuickSlot[]> hotBars) {
+            CharacterConfig config = context.CharacterConfig.Find(characterId);
+            if (config == null) {
+                return false;
+            }
+
+            config.KeyBinds = keyBinds;
+            config.HotBars = hotBars;
+            context.CharacterConfig.Update(config);
+
+            return context.TrySaveChanges();
+        }
+
         #region Create
         public Account CreateAccount(Account account) {
             Model.Account model = account;
@@ -161,11 +179,14 @@ public partial class GameStorage {
             return context.TrySaveChanges() ? model : null;
         }
 
-        public Unlock CreateUnlock(long characterId, Unlock unlock) {
+        public bool InitNewCharacter(long characterId, Unlock unlock) {
             CharacterUnlock model = unlock;
             model.CharacterId = characterId;
             context.CharacterUnlock.Add(model);
-            return context.TrySaveChanges() ? model : null;
+            var config = new CharacterConfig {CharacterId = characterId};
+            context.CharacterConfig.Add(config);
+
+            return context.TrySaveChanges();
         }
         #endregion
 

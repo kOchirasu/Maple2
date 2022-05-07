@@ -72,7 +72,7 @@ public class LoginSession : Core.Network.Session {
                 90200042, // Ledge Sit
                 90200043, // Epiphany
             });
-            db.CreateUnlock(character.Id, unlock);
+            db.InitNewCharacter(character.Id, unlock);
 
             outfits = db.CreateItems(character.Id, outfits.ToArray());
 
