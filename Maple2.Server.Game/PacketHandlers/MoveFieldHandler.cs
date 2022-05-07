@@ -8,6 +8,7 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Microsoft.Extensions.Logging;
+using static Maple2.Model.Error.MigrationError;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -93,8 +94,9 @@ public class MoveFieldHandler : PacketHandler<GameSession> {
             return;
         }
 
-        session.PrepareField(srcPortal.TargetMapId, portalId: srcPortal.TargetPortalId);
-        session.Send(FieldEnterPacket.Request(session.Player));
+        session.Send(session.PrepareField(srcPortal.TargetMapId, portalId: srcPortal.TargetPortalId)
+            ? FieldEnterPacket.Request(session.Player)
+            : FieldEnterPacket.Error(s_move_err_default));
     }
 
     private void HandleVisitHome(GameSession session, IByteReader packet) {
@@ -116,8 +118,9 @@ public class MoveFieldHandler : PacketHandler<GameSession> {
         player.Character.ReturnPosition = default;
 
         // If returning to a map, pass in the spawn point.
-        session.PrepareField(mapId, position: position);
-        session.Send(FieldEnterPacket.Request(session.Player));
+        session.Send(session.PrepareField(mapId, position: position)
+            ? FieldEnterPacket.Request(session.Player)
+            : FieldEnterPacket.Error(s_move_err_default));
     }
 
     private void HandleDecorPlanner(GameSession session) {
