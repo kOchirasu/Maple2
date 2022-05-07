@@ -14,7 +14,7 @@ public record PlayerInfo(CharacterInfo Character, HomeInfo Home, Trophy Trophy) 
     public bool Online => Character.Online;
 }
 
-public record HomeInfo(int PlotMapId, int PlotId, int ApartmentNumber, long PlotExpiration);
+public record HomeInfo(string Name, int PlotMapId, int PlotId, int ApartmentNumber, long PlotExpiration);
 
 public record CharacterInfo(long AccountId, long CharacterId, string Name, Gender Gender, Job Job, short Level,
     int MapId, string Picture, bool Online);

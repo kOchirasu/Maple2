@@ -16,6 +16,7 @@ internal class Account {
     public int MaxCharacters { get; set; }
     public int PrestigeLevel { get; set; }
     public long PrestigeExp { get; set; }
+    public HomeInfo Home { get; set; }
     public Trophy Trophy { get; set; }
     public long PremiumTime { get; set; }
     public AccountCurrency Currency { get; set; }
@@ -33,6 +34,7 @@ internal class Account {
             MaxCharacters = other.MaxCharacters,
             PrestigeLevel = other.PrestigeLevel,
             PrestigeExp = other.PrestigeExp,
+            Home = other.Home,
             Trophy = other.Trophy,
             PremiumTime = other.PremiumTime,
             Currency = new AccountCurrency(),
@@ -49,6 +51,7 @@ internal class Account {
             MaxCharacters = other.MaxCharacters,
             PrestigeLevel = other.PrestigeLevel,
             PrestigeExp = other.PrestigeExp,
+            Home = other.Home,
             Trophy = other.Trophy,
             PremiumTime = other.PremiumTime,
         };
@@ -62,6 +65,7 @@ internal class Account {
         builder.Property(account => account.MaxCharacters)
             .HasDefaultValue(4);
         builder.HasMany(account => account.Characters);
+        builder.Property(account => account.Home).HasJsonConversion();
         builder.Property(account => account.Trophy).HasJsonConversion().IsRequired();
         builder.Property(account => account.Currency).HasJsonConversion().IsRequired();
 

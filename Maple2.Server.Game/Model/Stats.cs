@@ -8,6 +8,8 @@ public class Stats {
 
     private readonly Dictionary<StatAttribute, Stat> values;
 
+    public int GearScore => 12345;
+
     public Stats() {
         values = new Dictionary<StatAttribute, Stat> {
             [StatAttribute.Health] = new Stat(100),

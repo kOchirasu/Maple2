@@ -80,17 +80,20 @@ public partial class FieldManager {
         foreach (FieldPlayer fieldPlayer in fieldPlayers.Values) {
             added.Session.Send(FieldPacket.AddPlayer(fieldPlayer.Session));
         }
-        Multicast(FieldPacket.AddPlayer(added.Session), added.Session); // FieldAddUser
+        Multicast(FieldPacket.AddPlayer(added.Session), added.Session);
+        Multicast(ProxyObjectPacket.AddPlayer(added), added.Session);
         foreach (FieldEntity<Item> fieldItem in fieldItems.Values) {
             added.Session.Send(FieldPacket.DropItem(fieldItem));
         }
         // FieldAddNpc
         // FieldAddPet
-        // FieldAddPortal
         foreach (FieldEntity<Portal> fieldPortal in fieldPortals.Values) {
             added.Session.Send(PortalPacket.Add(fieldPortal));
         }
         // ProxyGameObj
+        foreach (FieldPlayer fieldPlayer in fieldPlayers.Values) {
+            added.Session.Send(ProxyObjectPacket.AddPlayer(fieldPlayer));
+        }
         // RegionSkill (on tick?)
         // Stat
     }

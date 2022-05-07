@@ -52,7 +52,7 @@ public partial class GameStorage {
                     member => member.Character.AccountId,
                     account => account.Id,
                     (member, account) => new ClubMember(
-                        new PlayerInfo(member.Character, new HomeInfo(0, 0, 0, 0), account.Trophy),
+                        new PlayerInfo(member.Character, new HomeInfo("", 0, 0, 0, 0), account.Trophy),
                         member.CreationTime.ToEpochSeconds(),
                         member.Character.LastModified.ToEpochSeconds())
                 ).ToList();

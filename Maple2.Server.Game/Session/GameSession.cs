@@ -163,6 +163,8 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
     public void OnStateSync(StateSync stateSync) {
         Player.Position = stateSync.Position;
         Player.Rotation = new Vector3(0, 0, stateSync.Rotation);
+        Player.State = stateSync.State;
+        Player.SubState = stateSync.SubState;
     }
 
     public void Log(LogLevel level, string? message, params object?[] args) {
