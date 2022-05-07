@@ -5,6 +5,7 @@ using System.Threading;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Game.Model;
+using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.Manager.Field;
@@ -35,6 +36,17 @@ public sealed partial class FieldManager : IDisposable {
 
     public bool TryGetPortal(int portalId, [NotNullWhen(true)] out Portal? portal) {
         return entities.Portals.TryGetValue(portalId, out portal);
+    }
+
+    public void InspectPlayer(GameSession session, long characterId) {
+        foreach (FieldPlayer fieldPlayer in fieldPlayers.Values) {
+            if (fieldPlayer.Value.Character.Id == characterId) {
+                session.Send(PlayerInfoPacket.Load(fieldPlayer.Session));
+                return;
+            }
+        }
+
+        session.Send(PlayerInfoPacket.NotFound(characterId));
     }
 
     public void Multicast(ByteWriter packet, GameSession? sender = null) {
