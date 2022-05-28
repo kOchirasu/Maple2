@@ -130,7 +130,7 @@ public class InventoryManager {
 
             // Item was stacked onto existing slots.
             if (add.Amount == 0) {
-                delete.Add(add);
+                Discard(add);
             }
 
             foreach ((Item item, int added) in result) {
@@ -169,7 +169,7 @@ public class InventoryManager {
             IList<Item> toRemove = items.Where(item => item.ExpiryTime <= now).ToList();
             foreach (Item item in toRemove) {
                 if (items.Remove(item.Uid, out Item? removed)) {
-                    delete.Add(removed!);
+                    Discard(removed);
                 }
             }
         }
@@ -194,6 +194,10 @@ public class InventoryManager {
             session.Send(ItemInventoryPacket.ExpandCount(type, items.Size - BaseSize(type)));
             session.Send(ItemInventoryPacket.ExpandComplete());
         }
+    }
+
+    public short FreeSlots(InventoryType type) {
+        return !tabs.TryGetValue(type, out ItemCollection? items) ? (short) 0 : items.OpenSlots;
     }
 
     // Just iterating instead of creating another map.
@@ -230,6 +234,10 @@ public class InventoryManager {
 
             yield return item;
         }
+    }
+
+    public void Discard(Item item) {
+        delete.Add(item);
     }
 
     #region Internal (No Locks)

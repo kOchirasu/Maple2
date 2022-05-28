@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.Manager.Items;
@@ -46,27 +48,123 @@ public class EquipManager {
     /// <summary>
     /// Equips an item to its specified slot
     /// </summary>
-    /// <param name="item">The item to be equipped</param>
-    /// <param name="slot">The slot to be equipped to.
-    /// - If not specified, slot from item will be used.
-    /// - If item does not have a slot, slot will be determined by metadata.
-    /// </param>
+    /// <param name="itemUid">The uid of the item to be equipped</param>
+    /// <param name="slot">The slot to be equipped to.</param>
+    /// <param name="isSkin">Whether the item is a skin or not.</param>
     /// <returns>The items if any that were unequipped to equip this item.</returns>
-    public IEnumerable<Item> Equip(Item item, EquipSlot slot) {
-        if (!ValidEquipSlot(slot)) {
-            throw new InvalidOperationException($"Cannot equip item to slot {slot}");
+    public bool Equip(long itemUid, EquipSlot slot, bool isSkin) {
+        // Check that item is valid and can be equipped.
+        Item? item = session.Item.Inventory.Get(itemUid);
+        if (item == null) {
+            return false;
         }
 
-        ConcurrentDictionary<EquipSlot, Item> inventory = item.Metadata.Property.IsSkin ? Outfit : Gear;
-        foreach (EquipSlot removeSlot in item.Metadata.SlotNames) {
-            if (inventory.Remove(removeSlot, out Item? removed)) {
-                yield return removed;
+        Debug.Assert(item.Metadata.Property.IsSkin == isSkin);
+
+        if (!ValidEquipSlotForItem(slot, item)) {
+            throw new InvalidOperationException($"Cannot equip item {item.Id} to slot {slot}");
+        }
+
+        ConcurrentDictionary<EquipSlot, Item> equips = isSkin ? Outfit : Gear;
+        if (item.Metadata.SlotNames.Length > 1) { // Two-Handed Weapon, Overall Armor
+            int requiredFreeSlots = 0;
+            foreach (EquipSlot removeSlot in item.Metadata.SlotNames) {
+                if (equips.ContainsKey(removeSlot)) {
+                    requiredFreeSlots++;
+                }
+            }
+
+            // +1 because we will have a free slot from the item being equipped.
+            int freeSlots = session.Item.Inventory.FreeSlots(isSkin ? InventoryType.Outfit : InventoryType.Gear) + 1;
+            if (freeSlots <= requiredFreeSlots) {
+                return false;
             }
         }
+
+        // Remove item being equipped from inventory so unequipped items and be moved there.
+        if (!session.Item.Inventory.Remove(itemUid, out item)) {
+            return false;
+        }
+
+        if (!UnequipInternal(slot, isSkin, item.Slot)) {
+            throw new InvalidOperationException("Failed to unequip item");
+        }
+        if (item.Metadata.SlotNames.Length > 1) { // Two-Handed Weapon, Overall Armor
+            foreach (EquipSlot unequipSlot in item.Metadata.SlotNames) {
+                if (!UnequipInternal(unequipSlot, isSkin)) {
+                    throw new InvalidOperationException("Failed to unequip item");
+                }
+            }
+        }
+
+        item.EquipTab = isSkin ? EquipTab.Outfit : EquipTab.Gear;
+        item.EquipSlot = slot;
+        item.Slot = -1;
+        equips[slot] = item;
+        session.Field?.Multicast(EquipPacket.EquipItem(session.Player, item, 0));
+
+        return true;
+    }
+
+    /// <summary>
+    /// Unequips an item.
+    /// </summary>
+    /// <param name="itemUid">The uid of the item to be unequipped</param>
+    /// <returns></returns>
+    public bool Unequip(long itemUid) {
+        // Unequip from Gear.
+        foreach ((EquipSlot slot, Item item) in Gear) {
+            if (itemUid == item.Uid) {
+                return UnequipInternal(slot, false);
+            }
+        }
+
+        // Unequip from Outfit.
+        foreach ((EquipSlot slot, Item item) in Outfit) {
+            if (itemUid == item.Uid) {
+                return UnequipInternal(slot, true);
+            }
+        }
+
+        return false;
+    }
+
+    private bool UnequipInternal(EquipSlot slot, bool isSkin, short inventorySlot = -1) {
+        ConcurrentDictionary<EquipSlot, Item> equips = isSkin ? Outfit : Gear;
+        if (!equips.TryRemove(slot, out Item? unequipItem)) {
+            return true;
+        }
+
+        bool success;
+        if (slot is EquipSlot.HR or EquipSlot.ER or EquipSlot.FA or EquipSlot.FD) {
+            session.Item.Inventory.Discard(unequipItem);
+            success = true;
+        } else {
+            unequipItem.Slot = inventorySlot;
+            success = session.Item.Inventory.Add(unequipItem);
+        }
+
+        if (success) {
+            session.Field?.Multicast(EquipPacket.UnequipItem(session.Player, unequipItem));
+        }
+        return success;
     }
 
     private static bool ValidEquipSlot(EquipSlot slot) {
         return slot is not (EquipSlot.SK or EquipSlot.OH or EquipSlot.ER or EquipSlot.Unknown);
+    }
+
+    private static bool ValidEquipSlotForItem(EquipSlot slot, Item item) {
+        if (!ValidEquipSlot(slot) || item.Metadata.SlotNames.Length == 0) {
+            return false;
+        }
+
+        // LH and RH are both valid for OH equip.
+        if (item.Metadata.SlotNames.Contains(EquipSlot.OH)) {
+            return slot is EquipSlot.LH or EquipSlot.RH;
+        }
+
+        return slot == item.Metadata.SlotNames[0];
     }
 
     public void Save(GameStorage.Request db) {

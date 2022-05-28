@@ -71,7 +71,7 @@ public class ItemCollection : IEnumerable<Item> {
         }
 
         // Prefer item slot if specified
-        if (this[add.Slot] != null) {
+        if (this[add.Slot] == null) {
             this[add.Slot] = add;
             return new []{(add, add.Amount)};
         }
