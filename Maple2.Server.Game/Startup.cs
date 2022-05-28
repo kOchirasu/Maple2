@@ -1,8 +1,11 @@
-﻿using System.Reflection;
+﻿using System.CommandLine;
+using System.Reflection;
 using Autofac;
+using Autofac.Features.AttributeFilters;
 using Maple2.Server.Core.Modules;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.PacketHandlers;
+using Maple2.Server.Game.Commands;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Service;
 using Maple2.Server.Game.Session;
@@ -42,7 +45,7 @@ public class Startup {
         builder.RegisterType<GameSession>()
             .PropertiesAutowired()
             .AsSelf();
-        
+
         // Database
         builder.RegisterModule<GameDbModule>();
         builder.RegisterModule<DataDbModule>();
@@ -53,7 +56,16 @@ public class Startup {
             .As<PacketHandler<GameSession>>()
             .PropertiesAutowired()
             .SingleInstance();
-        
+
+        // ChatCommand Handlers
+        builder.RegisterType<CommandRouter>();
+
+        builder.RegisterAssemblyTypes(typeof(CommandRouter).Assembly)
+            .PublicOnly()
+            .WithAttributeFiltering()
+            .Where(type => typeof(Command).IsAssignableFrom(type))
+            .As<Command>();
+
         // Managers
         builder.RegisterType<FieldManager.Factory>()
             .SingleInstance();

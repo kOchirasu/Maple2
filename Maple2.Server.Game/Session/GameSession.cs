@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net.Sockets;
 using System.Numerics;
+using Autofac;
 using Maple2.Database.Storage;
 using Maple2.Model;
 using Maple2.Model.Error;
@@ -8,6 +9,7 @@ using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
+using Maple2.Server.Game.Commands;
 using Maple2.Server.Game.Manager;
 using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Manager.Field;
@@ -26,6 +28,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
     private bool disposed;
     private readonly GameServer server;
 
+    public readonly CommandRouter CommandHandler;
     public readonly EventQueue Scheduler;
 
     public long AccountId { get; private set; }
@@ -37,7 +40,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
     public GameStorage GameStorage { get; init; } = null!;
     public ItemMetadataStorage ItemMetadata { get; init; } = null!;
     public SkillMetadataStorage SkillMetadata { private get; init; } = null!;
-    public TableMetadataStorage TableMetadata { private get; init; } = null!;
+    public TableMetadataStorage TableMetadata { get; init; } = null!;
     public FieldManager.Factory FieldFactory { private get; init; } = null!;
     // ReSharper restore All
     #endregion
@@ -48,8 +51,10 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
 
-    public GameSession(TcpClient tcpClient, GameServer server, ILogger<GameSession> logger) : base(tcpClient, logger) {
+    public GameSession(TcpClient tcpClient, GameServer server, ILogger<GameSession> logger, IComponentContext context)
+            : base(tcpClient, logger) {
         this.server = server;
+        CommandHandler = context.Resolve<CommandRouter>(new NamedParameter("session", this));
         Scheduler = new EventQueue();
         Scheduler.ScheduleRepeated(() => Send(TimeSyncPacket.Request()), 1000);
 

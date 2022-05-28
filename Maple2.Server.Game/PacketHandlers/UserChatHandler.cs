@@ -31,6 +31,12 @@ public class UserChatHandler : PacketHandler<GameSession> {
         string recipient = packet.ReadUnicodeString();
         long clubId = packet.ReadLong();
 
+        // Handle ChatCommands
+        if (message.StartsWith('/')) {
+            session.CommandHandler.Invoke(message[1..]);
+            return;
+        }
+
         switch (type) {
             case ChatType.Normal:
                 HandleNormal(session, message);
@@ -63,7 +69,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
     }
 
     private static void HandleNormal(GameSession session, string message) {
-        session.Field.Multicast(ChatPacket.Message(session.Player.Value, ChatType.Normal, message));
+        session.Field?.Multicast(ChatPacket.Message(session.Player.Value, ChatType.Normal, message));
     }
 
     private void HandleWhisper(GameSession session, string message, string recipient) {

@@ -1,4 +1,5 @@
-﻿using Maple2.Model.Enum;
+﻿using System.Web;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -72,6 +73,21 @@ public static class ChatPacket {
         return pWriter;
     }
 
+    public static ByteWriter System(string type, string message) {
+        var pWriter = Packet.Of(SendOp.USER_CHAT);
+        pWriter.WriteLong();
+        pWriter.WriteLong();
+        pWriter.WriteUnicodeString(type);
+        pWriter.WriteBool(false);
+        pWriter.WriteUnicodeString(message);
+        pWriter.Write<ChatType>(ChatType.System);
+        pWriter.WriteBool(false);
+        pWriter.WriteInt();
+        pWriter.WriteBool(false);
+
+        return pWriter;
+    }
+
     public static ByteWriter Alert(StringCode code) {
         var pWriter = Packet.Of(SendOp.USER_CHAT);
         pWriter.WriteLong();
@@ -79,6 +95,21 @@ public static class ChatPacket {
         pWriter.WriteUnicodeString();
         pWriter.WriteBool(true);
         pWriter.Write<StringCode>(code);
+        pWriter.Write<ChatType>(ChatType.NoticeAlert);
+        pWriter.WriteBool(false);
+        pWriter.WriteInt();
+        pWriter.WriteBool(false);
+
+        return pWriter;
+    }
+
+    public static ByteWriter Alert(string message, bool htmlEncoded = false) {
+        var pWriter = Packet.Of(SendOp.USER_CHAT);
+        pWriter.WriteLong();
+        pWriter.WriteLong();
+        pWriter.WriteUnicodeString();
+        pWriter.WriteBool(false);
+        pWriter.WriteUnicodeString(htmlEncoded ? message : HttpUtility.HtmlEncode(message));
         pWriter.Write<ChatType>(ChatType.NoticeAlert);
         pWriter.WriteBool(false);
         pWriter.WriteInt();
