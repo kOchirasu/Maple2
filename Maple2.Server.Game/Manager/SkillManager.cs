@@ -29,18 +29,23 @@ public class SkillManager {
         }
     }
 
-    public void UpdateSkills(IList<(int, short)> skills) {
-        foreach ((int skillId, short level) in skills) {
-            JobInfo.Skill? skill = JobInfo.GetSkill(skillId);
-            if (skill == null) {
-                continue;
-            }
-
-            if (skill.Level == skill.BaseLevel && level > skill.BaseLevel) {
-                skill.Notify = true;
-            }
-            skill.Level = level;
+    public void UpdateSkill(int skillId, short level, bool enabled) {
+        JobInfo.Skill? skill = JobInfo.GetSkill(skillId);
+        if (skill == null) {
+            return;
         }
+
+        // Level must be set to 0 if not enabled since there is a placeholder value of 1.
+        if (!enabled) {
+            skill.Level = 0;
+            return;
+        }
+
+        if (skill.Level == skill.BaseLevel && level > skill.BaseLevel) {
+            skill.Notify = true;
+        }
+
+        skill.Level = level;
     }
 
     public void ResetSkills(SkillRank rank = SkillRank.Both) {
