@@ -129,11 +129,57 @@ public class EquipManager {
         return false;
     }
 
+    public bool EquipBadge(long itemUid) {
+        Item? item = session.Item.Inventory.Get(itemUid);
+        if (item?.Badge == null) {
+            return false;
+        }
+
+        // Remove item being equipped from inventory so unequipped items and be moved there.
+        if (!session.Item.Inventory.Remove(itemUid, out item) || item.Badge == null) {
+            return false;
+        }
+
+        if (!UnequipBadge(item.Badge.Type, item.Slot)) {
+            return false;
+        }
+
+        item.EquipTab = EquipTab.Badge;
+        item.EquipSlot = EquipSlot.Unknown;
+        item.Slot = -1;
+        session.Field?.Multicast(EquipPacket.EquipBadge(session.Player, item));
+
+        return true;
+    }
+
+    public bool UnequipBadge(BadgeType slot, short inventorySlot = -1) {
+        if (!Badge.TryRemove(slot, out Item? unequipItem)) {
+            return true;
+        }
+
+        if (unequipItem.Badge == null) {
+            throw new InvalidOperationException("Unequipped badge that is not a badge");
+        }
+
+        unequipItem.EquipTab = EquipTab.None;
+        unequipItem.EquipSlot = EquipSlot.Unknown;
+        unequipItem.Slot = inventorySlot;
+        bool success = session.Item.Inventory.Add(unequipItem);
+
+        if (success) {
+            session.Field?.Multicast(EquipPacket.UnequipBadge(session.Player, unequipItem.Badge.Type));
+        }
+        return success;
+    }
+
     private bool UnequipInternal(EquipSlot slot, bool isSkin, short inventorySlot = -1) {
         ConcurrentDictionary<EquipSlot, Item> equips = isSkin ? Outfit : Gear;
         if (!equips.TryRemove(slot, out Item? unequipItem)) {
             return true;
         }
+
+        unequipItem.EquipTab = EquipTab.None;
+        unequipItem.EquipSlot = EquipSlot.Unknown;
 
         bool success;
         if (slot is EquipSlot.HR or EquipSlot.ER or EquipSlot.FA or EquipSlot.FD) {

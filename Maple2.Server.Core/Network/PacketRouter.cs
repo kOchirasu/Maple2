@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.PacketHandlers;
 using Microsoft.Extensions.Logging;
@@ -14,7 +15,7 @@ public class PacketRouter<T> where T : Session {
         this.logger = logger;
 
         var builder = ImmutableDictionary.CreateBuilder<ushort, PacketHandler<T>>();
-        foreach (PacketHandler<T> packetHandler in packetHandlers) {
+        foreach (PacketHandler<T> packetHandler in packetHandlers.OrderBy(handler => handler.OpCode)) {
             Register(builder, packetHandler);
         }
         this.handlers = builder.ToImmutable();
