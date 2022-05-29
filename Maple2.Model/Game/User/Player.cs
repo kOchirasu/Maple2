@@ -26,17 +26,18 @@ public class Unlock {
     public readonly ISet<int> Stamps = new SortedSet<int>();
 }
 
-public record Currency(
-    long Meret,
-    long GameMeret,
-    long Meso,
-    long EventMeret,
-    long ValorToken,
-    long Treva,
-    long Rue,
-    long HaviFruit,
-    long ReverseCoin,
-    long MentorToken,
-    long MenteeToken,
-    long StarPoint,
-    long MesoToken);
+public class Currency {
+    public long Meret;
+    public long GameMeret;
+    public long Meso;
+    public long EventMeret;
+    public long ValorToken;
+    public long Treva;
+    public long Rue;
+    public long HaviFruit;
+    public long ReverseCoin;
+    public long MentorToken;
+    public long MenteeToken;
+    public long StarPoint;
+    public long MesoToken;
+};

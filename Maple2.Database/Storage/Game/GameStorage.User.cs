@@ -89,20 +89,21 @@ public partial class GameStorage {
             context.SaveChanges();
 
             var player = new Player(account, character) {
-                Currency = new Currency(
-                    account.Currency.Meret,
-                    account.Currency.GameMeret,
-                    character.Currency.Meso,
-                    character.Currency.EventMeret,
-                    character.Currency.ValorToken,
-                    character.Currency.Treva,
-                    character.Currency.Rue,
-                    character.Currency.HaviFruit,
-                    character.Currency.ReverseCoin,
-                    character.Currency.MentorToken,
-                    character.Currency.MenteeToken,
-                    character.Currency.StarPoint,
-                    account.Currency.MesoToken),
+                Currency = new Currency{
+                    Meret = account.Currency.Meret,
+                    GameMeret = account.Currency.GameMeret,
+                    Meso = character.Currency.Meso,
+                    EventMeret = character.Currency.EventMeret,
+                    ValorToken = character.Currency.ValorToken,
+                    Treva = character.Currency.Treva,
+                    Rue = character.Currency.Rue,
+                    HaviFruit = character.Currency.HaviFruit,
+                    ReverseCoin = character.Currency.ReverseCoin,
+                    MentorToken = character.Currency.MentorToken,
+                    MenteeToken = character.Currency.MenteeToken,
+                    StarPoint = character.Currency.StarPoint,
+                    MesoToken = account.Currency.MesoToken,
+                },
                 Unlock = (Unlock)context.CharacterUnlock.Find(characterId),
             };
 

@@ -47,6 +47,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
 
     public ConfigManager Config { get; set; }
     public ItemManager Item { get; set; }
+    public CurrencyManager Currency { get; set; }
     public SkillManager Skill { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
@@ -82,6 +83,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
 
         Config = new ConfigManager(db, this);
         Item = new ItemManager(db, this);
+        Currency = new CurrencyManager(this);
 
         JobTable.Entry jobTableEntry = TableMetadata.JobTable.Entries[player.Character.Job.Code()];
         Skill = new SkillManager(player.Character.Job, SkillMetadata, jobTableEntry);
@@ -173,6 +175,11 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
 
         Field?.OnAddPlayer(Player);
         Scheduler.Start();
+
+        Config.LoadMacros();
+
+        Send(RevivalPacket.Count(0)); // TODO: Consumed daily revivals?
+        Send(RevivalPacket.Confirm(Player));
 
         return true;
     }

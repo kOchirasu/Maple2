@@ -1,0 +1,13 @@
+﻿namespace Maple2.Model.Enum;
+
+public enum CurrencyType : byte {
+    ValorToken = 3,
+    Treva = 4,
+    Rue = 5,
+    HaviFruit = 6,
+    ReverseCoin = 9,
+    MentorToken = 10,
+    MenteeToken = 11,
+    StarPoint = 12,
+    MesoToken = 13,
+}

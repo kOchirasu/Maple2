@@ -6,6 +6,10 @@ public static class Constant {
     #region custom constants
 
     public const int ServerMaxCharacters = 8;
+    public const long MaxMeret = 99999;
+    public const long MaxMeso = 999999999;
+    public const long StarPointMax = 999999;
+    public const long MesoTokenMax = 100000;
 
     #endregion
 
@@ -380,6 +384,8 @@ public static class Constant {
     public const int LuTokenMax = 2000;
     public const int HaviTokenMax = 35000;
     public const int ReverseCoinMax = 2000;
+    public const int MentorTokenMax = 10000; // From KMS
+    public const int MenteeTokenMax = 35000; // From KMS
     public const int CharacterDestroyDivisionLevel = 20;
     public const int CharacterDestroyWaitSecond = 86400;
     public const int BossShimmerScaleUpActiveDistance = 5000;
