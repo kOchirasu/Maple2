@@ -11,6 +11,7 @@ public class Ms2Context : DbContext {
     internal DbSet<Item> Item { get; set; }
     internal DbSet<Club> Club { get; set; }
     internal DbSet<ClubMember> ClubMember { get; set; }
+    internal DbSet<SkillTab> SkillTab { get; set; }
 
     public Ms2Context(DbContextOptions options) : base(options) { }
 
@@ -23,5 +24,6 @@ public class Ms2Context : DbContext {
         modelBuilder.Entity<Item>(Maple2.Database.Model.Item.Configure);
         modelBuilder.Entity<Club>(Maple2.Database.Model.Club.Configure);
         modelBuilder.Entity<ClubMember>(Maple2.Database.Model.ClubMember.Configure);
+        modelBuilder.Entity<SkillTab>(Maple2.Database.Model.SkillTab.Configure);
     }
 }

@@ -13,6 +13,7 @@ internal class CharacterConfig {
     public IList<KeyBind> KeyBinds { get; set; }
     public IList<QuickSlot[]> HotBars { get; set; }
     public IList<SkillMacro> SkillMacros { get; set; }
+    public SkillBook SkillBook { get; set; }
 
     public DateTime LastModified { get; set; }
 
@@ -24,6 +25,14 @@ internal class CharacterConfig {
         builder.Property(config => config.KeyBinds).HasJsonConversion();
         builder.Property(config => config.HotBars).HasJsonConversion();
         builder.Property(config => config.SkillMacros).HasJsonConversion();
+
+        builder.OwnsOne(config => config.SkillBook)
+            .Property(skillBook => skillBook.MaxSkillTabs)
+            .HasDefaultValue(1);
+        builder.OwnsOne(config => config.SkillBook)
+            .HasOne<SkillTab>()
+            .WithOne()
+            .HasForeignKey<SkillBook>(skillBook => skillBook.ActiveSkillTabId);
 
         builder.Property(unlock => unlock.LastModified).IsRowVersion();
     }
@@ -46,4 +55,9 @@ internal class SkillMacro {
         return other == null ? new Maple2.Model.Game.SkillMacro(string.Empty, 0) :
             new Maple2.Model.Game.SkillMacro(other.Name, other.KeyId, other.Skills.ToHashSet());
     }
+}
+
+internal class SkillBook {
+    public int MaxSkillTabs { get; set; }
+    public long ActiveSkillTabId { get; set; }
 }

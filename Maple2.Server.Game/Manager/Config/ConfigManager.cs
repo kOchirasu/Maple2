@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Database.Storage;
@@ -17,6 +18,7 @@ public class ConfigManager {
     private short activeHotBar;
     private readonly List<HotBar> hotBars;
     private IList<SkillMacro> skillMacros;
+    private readonly SkillBook skillBook;
 
     public ConfigManager(GameStorage.Request db, GameSession session) {
         this.session = session;
@@ -24,7 +26,7 @@ public class ConfigManager {
         hotBars = new List<HotBar>();
         skillMacros = new List<SkillMacro>();
 
-        (IList<KeyBind>? KeyBinds, IList<QuickSlot[]>? HotBars, IList<SkillMacro>? Macros) load =
+        (IList<KeyBind>? KeyBinds, IList<QuickSlot[]>? HotBars, IList<SkillMacro>? Macros, SkillBook? SkillBook) load =
             db.LoadCharacterConfig(session.CharacterId);
         if (load.KeyBinds != null) {
             foreach (KeyBind keyBind in load.KeyBinds) {
@@ -35,6 +37,18 @@ public class ConfigManager {
             hotBars.Add(new HotBar(load.HotBars?.ElementAtOrDefault(i)));
         }
         skillMacros = load.Macros ?? new List<SkillMacro>();
+        skillBook = load.SkillBook ?? new SkillBook();
+
+        // There should be at least one skill tab.
+        if (skillBook.SkillTabs.Count == 0) {
+            SkillTab? skillTab = db.CreateSkillTab(session.CharacterId, new SkillTab(string.Empty));
+            if (skillTab == null) {
+                throw new InvalidOperationException("Failed to create initial skill tab.");
+            }
+
+            skillBook.ActiveSkillTabId = skillTab.Id;
+            skillBook.SkillTabs.Add(skillTab);
+        }
     }
 
     public void LoadKeyTable() {
@@ -87,7 +101,8 @@ public class ConfigManager {
         db.SaveCharacterConfig(
             session.CharacterId, keyBinds.Values.ToList(),
             hotBars.Select(hotBar => hotBar.Slots).ToList(),
-            skillMacros
+            skillMacros,
+            skillBook
         );
     }
 }

@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Account = Maple2.Model.Game.Account;
 using Character = Maple2.Model.Game.Character;
 using SkillMacro = Maple2.Model.Game.SkillMacro;
+using SkillBook = Maple2.Model.Game.SkillBook;
+using SkillTab = Maple2.Model.Game.SkillTab;
 
 namespace Maple2.Database.Storage;
 
@@ -52,13 +54,13 @@ public partial class GameStorage {
 
         public CharacterInfo GetCharacterInfo(long characterId) {
             return context.Character.Where(character => character.Id == characterId)
-                .Select<Maple2.Database.Model.Character, CharacterInfo>(character => character)
+                .Select<Model.Character, CharacterInfo>(character => character)
                 .SingleOrDefault();
         }
 
         public CharacterInfo GetCharacterInfo(string name) {
             return context.Character.Where(character => character.Name == name)
-                .Select<Maple2.Database.Model.Character, CharacterInfo>(character => character)
+                .Select<Model.Character, CharacterInfo>(character => character)
                 .SingleOrDefault();
         }
 
@@ -148,17 +150,31 @@ public partial class GameStorage {
             return context.TrySaveChanges();
         }
 
-        public (IList<KeyBind> KeyBinds, IList<QuickSlot[]> HotBars, List<SkillMacro>) LoadCharacterConfig(long characterId) {
+        public (IList<KeyBind> KeyBinds, IList<QuickSlot[]> HotBars, List<SkillMacro>, SkillBook) LoadCharacterConfig(long characterId) {
             CharacterConfig config = context.CharacterConfig.Find(characterId);
+            if (config == null) {
+                return (null, null, null, null);
+            }
+
+            var skillBook = new SkillBook {
+                MaxSkillTabs = config.SkillBook.MaxSkillTabs,
+                ActiveSkillTabId = config.SkillBook.ActiveSkillTabId,
+                SkillTabs = context.SkillTab.Where(tab => tab.CharacterId == characterId)
+                    .Select<Model.SkillTab, SkillTab>(tab => tab)
+                    .ToList(),
+            };
+
             return (
-                config?.KeyBinds,
-                config?.HotBars,
-                config?.SkillMacros?.Select<Model.SkillMacro, SkillMacro>(macro => macro).ToList()
+                config.KeyBinds,
+                config.HotBars,
+                config.SkillMacros?.Select<Model.SkillMacro, SkillMacro>(macro => macro).ToList(),
+                skillBook
             );
         }
 
         public bool SaveCharacterConfig(long characterId, IList<KeyBind> keyBinds, IList<QuickSlot[]> hotBars,
-            IEnumerable<SkillMacro> skillMacros) {
+                IEnumerable<SkillMacro> skillMacros, SkillBook skillBook) {
+            context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
 
             CharacterConfig config = context.CharacterConfig.Find(characterId);
             if (config == null) {
@@ -168,7 +184,17 @@ public partial class GameStorage {
             config.KeyBinds = keyBinds;
             config.HotBars = hotBars;
             config.SkillMacros = skillMacros.Select<SkillMacro, Model.SkillMacro>(macro => macro).ToList();
+            config.SkillBook = new Model.SkillBook {
+                MaxSkillTabs = skillBook.MaxSkillTabs,
+                ActiveSkillTabId = skillBook.ActiveSkillTabId,
+            };
             context.CharacterConfig.Update(config);
+
+            foreach (SkillTab skillTab in skillBook.SkillTabs) {
+                Model.SkillTab model = skillTab;
+                model.CharacterId = characterId;
+                context.SkillTab.Update(model);
+            }
 
             return context.TrySaveChanges();
         }
@@ -192,10 +218,26 @@ public partial class GameStorage {
             CharacterUnlock model = unlock;
             model.CharacterId = characterId;
             context.CharacterUnlock.Add(model);
-            var config = new CharacterConfig {CharacterId = characterId};
+
+            SkillTab defaultTab = CreateSkillTab(characterId, new SkillTab(string.Empty));
+            var config = new CharacterConfig {
+                CharacterId = characterId,
+                SkillBook = new Model.SkillBook {
+                    MaxSkillTabs = 1,
+                    ActiveSkillTabId = defaultTab.Id,
+                },
+            };
             context.CharacterConfig.Add(config);
 
             return context.TrySaveChanges();
+        }
+
+        public SkillTab CreateSkillTab(long characterId, SkillTab skillTab) {
+            Model.SkillTab model = skillTab;
+            model.CharacterId = characterId;
+            model.Id = 0;
+            context.SkillTab.Add(model);
+            return context.TrySaveChanges() ? model : null;
         }
         #endregion
 

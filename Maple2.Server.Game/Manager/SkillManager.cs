@@ -2,24 +2,28 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using Maple2.Database.Storage;
+using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.Manager;
 
 public class SkillManager {
     public readonly JobInfo JobInfo;
 
-    public SkillManager(Job job, SkillMetadataStorage storage, JobTable.Entry jobTable) {
-        JobInfo = new JobInfo(job);
+    public SkillManager(GameSession session) {
+        Player player = session.Player;
+        JobTable.Entry jobTableEntry = session.TableMetadata.JobTable.Entries[player.Character.Job.Code()];
+        JobInfo = new JobInfo(player.Character.Job);
 
-        var baseSkills = new HashSet<int>(jobTable.BaseSkills);
-        foreach ((SkillRank rank, JobTable.Skill[] jobSkills) in jobTable.Skills) {
+        var baseSkills = new HashSet<int>(jobTableEntry.BaseSkills);
+        foreach ((SkillRank rank, JobTable.Skill[] jobSkills) in jobTableEntry.Skills) {
             Debug.Assert(rank is SkillRank.Basic or SkillRank.Awakening);
 
             foreach (JobTable.Skill skill in jobSkills) {
-                if (!storage.TryGet(skill.Main, out SkillMetadata? metadata)) {
+                if (!session.SkillMetadata.TryGet(skill.Main, out SkillMetadata? metadata)) {
                     throw new InvalidOperationException($"Nonexistent skillId:{skill.Main}");
                 }
 

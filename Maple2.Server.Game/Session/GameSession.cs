@@ -39,7 +39,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
     // ReSharper disable MemberCanBePrivate.Global
     public GameStorage GameStorage { get; init; } = null!;
     public ItemMetadataStorage ItemMetadata { get; init; } = null!;
-    public SkillMetadataStorage SkillMetadata { private get; init; } = null!;
+    public SkillMetadataStorage SkillMetadata { get; init; } = null!;
     public TableMetadataStorage TableMetadata { get; init; } = null!;
     public FieldManager.Factory FieldFactory { private get; init; } = null!;
     // ReSharper restore All
@@ -85,8 +85,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         Item = new ItemManager(db, this);
         Currency = new CurrencyManager(this);
 
-        JobTable.Entry jobTableEntry = TableMetadata.JobTable.Entries[player.Character.Job.Code()];
-        Skill = new SkillManager(player.Character.Job, SkillMetadata, jobTableEntry);
+        Skill = new SkillManager(this);
 
         if (!PrepareField(player.Character.MapId)) {
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
