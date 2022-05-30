@@ -46,10 +46,16 @@ public class JobInfo : IByteSerializable {
         }
     }
 
-    public Skill? GetSkill(int skillId) {
+    public Skill? GetSkill(int skillId, SkillRank rank = SkillRank.Both) {
         for (int i = 0; i < SKILL_TYPES; i++) {
-            for (int j = 0; j < SKILL_RANKS; j++) {
-                if (skills[i, j].TryGetValue(skillId, out Skill? skill)) {
+            if (rank is SkillRank.Basic or SkillRank.Both) {
+                if (skills[i, (int) SkillRank.Basic].TryGetValue(skillId, out Skill? skill)) {
+                    return skill;
+                }
+            }
+
+            if (rank is SkillRank.Awakening or SkillRank.Both) {
+                if (skills[i, (int) SkillRank.Awakening].TryGetValue(skillId, out Skill? skill)) {
                     return skill;
                 }
             }

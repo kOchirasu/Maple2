@@ -10,6 +10,7 @@ public static class Constant {
     public const long MaxMeso = 999999999;
     public const long StarPointMax = 999999;
     public const long MesoTokenMax = 100000;
+    public const int MaxSkillTabCount = 3;
 
     #endregion
 
