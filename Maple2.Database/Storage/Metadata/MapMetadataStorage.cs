@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Maple2.Database.Context;
 using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
@@ -25,5 +27,13 @@ public class MapMetadataStorage : MetadataStorage<int, MapMetadata> {
 
         Cache.AddReplace(id, map);
         return true;
+    }
+
+    public List<MapMetadata> Search(string name) {
+        lock (Context) {
+            return Context.MapMetadata
+                .Where(map => EF.Functions.Like(map.Name, $"%{name}%"))
+                .ToList();
+        }
     }
 }

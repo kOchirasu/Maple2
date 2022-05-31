@@ -2,6 +2,8 @@
 using System.CommandLine.IO;
 using System.Net;
 using System.Text;
+using System.Text.RegularExpressions;
+using Maple2.Model.Game;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -31,34 +33,30 @@ public class GameConsole : IConsole {
         }
 
         public void Write(string? value) {
-            if (value == null) {
+            value = value?.Replace("\r", string.Empty);
+            if (string.IsNullOrEmpty(value)) {
                 return;
             }
 
-            if (value.EndsWith('\r')) {
-                return;
-            } else if (value.EndsWith('\n')) {
-                value = value.TrimEnd('\r', '\n');
+            if (value.EndsWith('\n')) {
+                value = value.TrimEnd('\n');
                 pending.Append(WebUtility.HtmlEncode(value));
                 if (joinNewline) {
                     joinNewline = false;
                     return;
                 }
             } else {
-                if (value.EndsWith(':')) {
-                    pending.Append($"<b>{WebUtility.HtmlEncode(value)}</b>");
-                    if (value is "Description:" or "Usage:") {
-                        joinNewline = true;
-                    }
-                } else {
-                    pending.Append(WebUtility.HtmlEncode(value));
+                if (value is "Description:" or "Usage:") {
+                    joinNewline = true;
                 }
+                pending.Append(WebUtility.HtmlEncode(value));
                 return;
             }
 
             string result = pending.ToString();
+            result = Regex.Replace(result, "(\\w+:)", "<b>$1</b>");
             if (!string.IsNullOrWhiteSpace(result)) {
-                session.Send(ChatPacket.Alert(result, true));
+                session.Send(NoticePacket.Message(result, true));
             }
 
             pending.Clear();
@@ -73,10 +71,12 @@ public class GameConsole : IConsole {
         }
 
         public void Write(string? value) {
-            // if (value != null) {
-            //     value = value.TrimEnd('\r', '\n', ' ');
-            //     session.Send(ChatPacket.System("ERROR", value));
-            // }
+            if (string.IsNullOrWhiteSpace(value)) {
+                return;
+            }
+
+            value = value.TrimEnd();
+            session.Send(NoticePacket.Notice(NoticePacket.Flags.Banner, new InterfaceText(value, true)));
         }
     }
 }
