@@ -28,7 +28,7 @@ public class TutorialCommand : Command {
 
         private readonly GameSession session;
 
-        public RewardCommand(GameSession session) : base("reward", "") {
+        public RewardCommand(GameSession session) : base("reward", "Receive tutorial reward.") {
             this.session = session;
 
             var type = new Argument<Type>("type", "Type of tutorial reward.");

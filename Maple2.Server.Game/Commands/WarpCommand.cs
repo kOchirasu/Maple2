@@ -37,7 +37,7 @@ public class WarpCommand : Command {
         try {
             if (int.TryParse(query, out int mapId)) {
                 if (mapStorage.TryGet(mapId, out MapMetadata? map)) {
-                    WarpMap(map);
+                    WarpMap(ctx, map);
                     ctx.ExitCode = 0;
                     return;
                 }
@@ -45,7 +45,7 @@ public class WarpCommand : Command {
 
             List<MapMetadata> results = mapStorage.Search(query);
             if (results.Count == 1) {
-                WarpMap(results[0]);
+                WarpMap(ctx, results[0]);
                 ctx.ExitCode = 0;
                 return;
             }
@@ -65,8 +65,8 @@ public class WarpCommand : Command {
         }
     }
 
-    private void WarpMap(MapMetadata map) {
-        session.Send(NoticePacket.Message($"Warping to '{map.Name}' ({map.Id})", true));
+    private void WarpMap(InvocationContext ctx, MapMetadata map) {
+        ctx.Console.Out.WriteLine($"Warping to '{map.Name}' ({map.Id})");
         session.Send(session.PrepareField(map.Id)
             ? FieldEnterPacket.Request(session.Player)
             : FieldEnterPacket.Error(MigrationError.s_move_err_default));
