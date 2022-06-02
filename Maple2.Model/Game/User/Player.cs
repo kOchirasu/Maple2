@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Maple2.Model.Enum;
 
 namespace Maple2.Model.Game;
 
@@ -18,6 +19,8 @@ public class Player {
 
 public class Unlock {
     public DateTime LastModified { get; init; }
+
+    public IDictionary<InventoryType, short> Expand { get; init; } = new Dictionary<InventoryType, short>();
 
     public readonly ISet<int> Maps = new SortedSet<int>();
     public readonly ISet<int> Taxis = new SortedSet<int>();

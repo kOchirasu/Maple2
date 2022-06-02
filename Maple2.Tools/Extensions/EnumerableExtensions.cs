@@ -36,4 +36,8 @@ public static class EnumerableExtensions {
     public static T AsType<TE, T>(this IEnumerable<TE> enumerable, Func<IEnumerable<TE>, T> function) {
         return function.Invoke(enumerable);
     }
+
+    public static V GetValueOrDefault<K, V>(this IDictionary<K, V> dictionary, K key, V @default = default) {
+        return dictionary.TryGetValue(key, out V value) ? value : @default;
+    }
 }

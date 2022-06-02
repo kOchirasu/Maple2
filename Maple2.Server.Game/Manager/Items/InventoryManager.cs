@@ -33,7 +33,8 @@ public class InventoryManager {
         mutex = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         tabs = new Dictionary<InventoryType, ItemCollection>();
         foreach (InventoryType type in Enum.GetValues<InventoryType>()) {
-            tabs[type] = new ItemCollection(BaseSize(type));
+            session.Player.Value.Unlock.Expand.TryGetValue(type, out short expand);
+            tabs[type] = new ItemCollection((short) (BaseSize(type) + expand));
         }
 
         delete = new List<Item>();
@@ -188,9 +189,19 @@ public class InventoryManager {
             return;
         }
 
-        //session.Send(ItemInventoryPacket.Error(s_cannot_charge_merat));
+        if (session.Currency.Meret < Constant.InventoryExpandPrice1Row) {
+            session.Send(ItemInventoryPacket.Error(s_cannot_charge_merat));
+            return;
+        }
 
         if (items.Expand((short) (items.Size + EXPAND_SLOTS))) {
+            session.Currency.Meret -= Constant.InventoryExpandPrice1Row;
+            if (session.Player.Value.Unlock.Expand.ContainsKey(type)) {
+                session.Player.Value.Unlock.Expand[type] += EXPAND_SLOTS;
+            } else {
+                session.Player.Value.Unlock.Expand[type] = EXPAND_SLOTS;
+            }
+
             session.Send(ItemInventoryPacket.ExpandCount(type, items.Size - BaseSize(type)));
             session.Send(ItemInventoryPacket.ExpandComplete());
         }
