@@ -40,13 +40,13 @@ public class JobHandler : PacketHandler<GameSession> {
                 HandleReset(session, packet);
                 return;
             case Command.AutoDistribute:
-                HandleUpdate(session, packet);
+                AutoDistribute(session, packet);
                 return;
         }
     }
 
     private void HandleLoad(GameSession session) {
-        session.Send(JobPacket.Load(session.Player, session.Skill.JobInfo));
+        session.Send(JobPacket.Load(session.Player, session.Config.Skill.SkillInfo));
     }
 
     private void HandleUpdate(GameSession session, IByteReader packet) {
@@ -56,14 +56,29 @@ public class JobHandler : PacketHandler<GameSession> {
             short points = packet.ReadShort();
             bool enabled = packet.ReadBool();
 
-            session.Skill.UpdateSkill(skillId, points, enabled);
+            session.Config.Skill.UpdateSkill(skillId, points, enabled);
         }
+
+        session.Send(JobPacket.Update(session.Player, session.Config.Skill.SkillInfo));
     }
 
     private void HandleReset(GameSession session, IByteReader packet) {
         var rank = (SkillRank) packet.ReadInt();
-        session.Skill.ResetSkills(rank);
+        session.Config.Skill.ResetSkills(rank);
 
-        session.Send(JobPacket.Reset(session.Player, session.Skill.JobInfo));
+        session.Send(JobPacket.Reset(session.Player, session.Config.Skill.SkillInfo));
+    }
+
+    private void AutoDistribute(GameSession session, IByteReader packet) {
+        int count = packet.ReadInt();
+        for (int i = 0; i < count; i++) {
+            int skillId = packet.ReadInt();
+            short points = packet.ReadShort();
+            bool enabled = packet.ReadBool();
+
+            session.Config.Skill.UpdateSkill(skillId, points, enabled);
+        }
+
+        session.Send(JobPacket.AutoDistribute(session.Player, session.Config.Skill.SkillInfo));
     }
 }

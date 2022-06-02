@@ -11,17 +11,17 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="7.2.0"/>
-        <PackageReference Include="NLog.Extensions.Logging" Version="1.7.4"/>
-        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.1"/>
-        <PackageReference Include="System.CommandLine" Version="2.0.0-beta2.21617.1"/>
+        <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="8.0.0" />
+        <PackageReference Include="NLog.Extensions.Logging" Version="5.0.0" />
+        <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.1" />
+        <PackageReference Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Maple2.Database\Maple2.Database.csproj"/>
-        <ProjectReference Include="..\Maple2.Server.Game\Maple2.Server.Game.csproj"/>
-        <ProjectReference Include="..\Maple2.Server.Login\Maple2.Server.Login.csproj"/>
-        <ProjectReference Include="..\Maple2.Server.World\Maple2.Server.World.csproj"/>
+        <ProjectReference Include="..\Maple2.Database\Maple2.Database.csproj" />
+        <ProjectReference Include="..\Maple2.Server.Game\Maple2.Server.Game.csproj" />
+        <ProjectReference Include="..\Maple2.Server.Login\Maple2.Server.Login.csproj" />
+        <ProjectReference Include="..\Maple2.Server.World\Maple2.Server.World.csproj" />
     </ItemGroup>
 
 </Project>

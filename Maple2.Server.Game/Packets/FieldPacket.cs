@@ -7,6 +7,7 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Core.Packets.Helper;
+using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Extensions;
@@ -20,7 +21,7 @@ public static class FieldPacket {
         var pWriter = Packet.Of(SendOp.FIELD_ADD_USER);
         pWriter.WriteInt(session.Player.ObjectId);
         pWriter.WriteCharacter(player.Account, player.Character);
-        pWriter.WriteClass<JobInfo>(session.Skill.JobInfo);
+        pWriter.WriteClass<SkillInfo>(session.Config.Skill.SkillInfo);
         pWriter.Write<Vector3>(session.Player.Position);
         pWriter.Write<Vector3>(session.Player.Rotation);
         pWriter.WriteByte();

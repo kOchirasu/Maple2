@@ -21,7 +21,6 @@ public sealed class InitializationContext : Ms2Context {
         Database.ExecuteSqlRaw("ALTER TABLE `account` AUTO_INCREMENT = 10000000000");
         Database.ExecuteSqlRaw("ALTER TABLE `character` AUTO_INCREMENT = 20000000000");
         Database.ExecuteSqlRaw("ALTER TABLE `club` AUTO_INCREMENT = 30000000000");
-        Database.ExecuteSqlRaw("ALTER TABLE `skill-tab` AUTO_INCREMENT = 40000000000");
 
         // item is the entity that could grow the most, so put it last
         Database.ExecuteSqlRaw("ALTER TABLE `item` AUTO_INCREMENT = 1000000000000");

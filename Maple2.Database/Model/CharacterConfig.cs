@@ -32,6 +32,7 @@ internal class CharacterConfig {
         builder.OwnsOne(config => config.SkillBook)
             .HasOne<SkillTab>()
             .WithOne()
+            .HasPrincipalKey<SkillTab>(skillTab => skillTab.Id)
             .HasForeignKey<SkillBook>(skillBook => skillBook.ActiveSkillTabId);
 
         builder.Property(unlock => unlock.LastModified).IsRowVersion();

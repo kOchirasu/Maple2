@@ -48,7 +48,6 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
     public ConfigManager Config { get; set; }
     public ItemManager Item { get; set; }
     public CurrencyManager Currency { get; set; }
-    public SkillManager Skill { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
 
@@ -84,8 +83,6 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
         Config = new ConfigManager(db, this);
         Item = new ItemManager(db, this);
         Currency = new CurrencyManager(this);
-
-        Skill = new SkillManager(this);
 
         if (!PrepareField(player.Character.MapId)) {
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));

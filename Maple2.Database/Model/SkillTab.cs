@@ -9,13 +9,12 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace Maple2.Database.Model;
 
 internal class SkillTab {
+    public long CharacterId { get; set; }
     public long Id { get; set; }
     public string Name { get; set; }
     public IList<SkillTabEntry> Skills;
 
     public DateTime CreationTime { get; set; }
-
-    public long CharacterId { get; set; }
 
     public static implicit operator SkillTab(Maple2.Model.Game.SkillTab other) {
         return other == null ? null : new SkillTab {
@@ -42,13 +41,13 @@ internal class SkillTab {
 
     public static void Configure(EntityTypeBuilder<SkillTab> builder) {
         builder.ToTable("skill-tab");
-        builder.HasKey(tab => tab.Id);
+        builder.HasKey(tab => new {tab.CharacterId, tab.Id});
+        builder.HasIndex(tab => tab.CharacterId);
         builder.Property(tab => tab.Skills).HasJsonConversion().IsRequired();
 
         builder.HasOne<Character>()
             .WithMany()
-            .HasForeignKey(tab => tab.CharacterId)
-            .IsRequired();
+            .HasForeignKey(tab => tab.CharacterId);
 
         IMutableProperty creationTime = builder.Property(club => club.CreationTime)
             .ValueGeneratedOnAdd().Metadata;

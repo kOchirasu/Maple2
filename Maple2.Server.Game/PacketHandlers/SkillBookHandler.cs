@@ -42,7 +42,7 @@ public class SkillBookHandler : PacketHandler<GameSession> {
     }
 
     private void HandleLoad(GameSession session) {
-        session.Config.LoadSkillBook();
+        session.Config.Skill.LoadSkillBook();
     }
 
     private void HandleSave(GameSession session, IByteReader packet) {
@@ -54,8 +54,9 @@ public class SkillBookHandler : PacketHandler<GameSession> {
             return;
         }
 
+        // Switching Active Tab
         if (savedSkillTab == 0) {
-            session.Config.SaveSkillTab(activeSkillTab, ranksToSave);
+            session.Config.Skill.SaveSkillTab(activeSkillTab, ranksToSave);
             return;
         }
 
@@ -64,7 +65,7 @@ public class SkillBookHandler : PacketHandler<GameSession> {
             var skillTab = packet.ReadClass<SkillTab>();
             if (skillTab.Id != savedSkillTab) continue;
 
-            session.Config.SaveSkillTab(activeSkillTab, ranksToSave, skillTab);
+            session.Config.Skill.SaveSkillTab(activeSkillTab, ranksToSave, skillTab);
             return;
         }
     }
@@ -73,7 +74,7 @@ public class SkillBookHandler : PacketHandler<GameSession> {
         long skillTabId = packet.ReadLong();
         string skillTabName = packet.ReadUnicodeString();
 
-        SkillTab? skillTab = session.Config.GetSkillTab(skillTabId);
+        SkillTab? skillTab = session.Config.Skill.GetSkillTab(skillTabId);
         if (skillTab == null) {
             return;
         }
@@ -89,6 +90,6 @@ public class SkillBookHandler : PacketHandler<GameSession> {
             return;
         }
 
-        session.Config.ExpandSkillTabs();
+        session.Config.Skill.ExpandSkillTabs();
     }
 }

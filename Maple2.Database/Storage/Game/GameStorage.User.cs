@@ -219,7 +219,7 @@ public partial class GameStorage {
             model.CharacterId = characterId;
             context.CharacterUnlock.Add(model);
 
-            SkillTab defaultTab = CreateSkillTab(characterId, new SkillTab(string.Empty));
+            SkillTab defaultTab = CreateSkillTab(characterId, new SkillTab("Build 1") {Id = characterId});
             var config = new CharacterConfig {
                 CharacterId = characterId,
                 SkillBook = new Model.SkillBook {
@@ -235,7 +235,6 @@ public partial class GameStorage {
         public SkillTab CreateSkillTab(long characterId, SkillTab skillTab) {
             Model.SkillTab model = skillTab;
             model.CharacterId = characterId;
-            model.Id = 0;
             context.SkillTab.Add(model);
             return context.TrySaveChanges() ? model : null;
         }
