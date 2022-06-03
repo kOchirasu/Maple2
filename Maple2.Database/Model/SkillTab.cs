@@ -12,7 +12,7 @@ internal class SkillTab {
     public long CharacterId { get; set; }
     public long Id { get; set; }
     public string Name { get; set; }
-    public IList<SkillTabEntry> Skills;
+    public IDictionary<int, int> Skills;
 
     public DateTime CreationTime { get; set; }
 
@@ -20,10 +20,7 @@ internal class SkillTab {
         return other == null ? null : new SkillTab {
             Id = other.Id,
             Name = other.Name,
-            Skills = other.Skills.Select(entry => new SkillTabEntry {
-                SkillId = entry.SkillId,
-                Points = entry.Points,
-            }).ToList(),
+            Skills = new Dictionary<int, int>(other.Skills),
         };
     }
 
@@ -32,10 +29,9 @@ internal class SkillTab {
             return null;
         }
 
-        List<Maple2.Model.Game.SkillTab.Skill> skills = other.Skills.Select(entry =>
-            new Maple2.Model.Game.SkillTab.Skill(entry.SkillId, entry.Points)).ToList();
-        return new Maple2.Model.Game.SkillTab(other.Name, skills) {
+        return new Maple2.Model.Game.SkillTab(other.Name) {
             Id = other.Id,
+            Skills = new Dictionary<int, int>(other.Skills),
         };
     }
 

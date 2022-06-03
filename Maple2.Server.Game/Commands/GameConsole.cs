@@ -55,6 +55,7 @@ public class GameConsole : IConsole {
 
             string result = pending.ToString();
             result = Regex.Replace(result, "(\\w+:)", "<b>$1</b>");
+            result = Regex.Replace(result, "\\s{2,}", "  ");
             if (!string.IsNullOrWhiteSpace(result) && !result.Contains("--version")) {
                 session.Send(NoticePacket.Message(result, true));
             }

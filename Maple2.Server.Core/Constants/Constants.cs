@@ -416,7 +416,7 @@ public static class Constant {
     public const int RecallCastingTime = 3000;
     public const int PartyRecallMeret = 30;
     public const float CashCallMedicLeaveDelay = 0.5f;
-    public const int characterMaxLevel = 60;
+    public const int characterMaxLevel = 99; // Updated
     public const int DropSPEPBallMaxLength = 300;
     public const int DropSPEPBallTargetZPos = 100;
     public const int DropSPEPBallPickUpVel = 250;

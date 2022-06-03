@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Maple2.Database.Storage;
-using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -23,7 +20,10 @@ public class SkillManager {
         this.session = session;
 
         SkillBook = skillBook;
-        SkillInfo = new SkillInfo(session, GetSkillTab(skillBook.ActiveSkillTabId));
+
+        JobTable jobTable = session.TableMetadata.JobTable;
+        Job job = session.Player.Value.Character.Job;
+        SkillInfo = new SkillInfo(jobTable, session.SkillMetadata, job, GetActiveTab());
     }
 
     public void LoadSkillBook() {
@@ -31,6 +31,8 @@ public class SkillManager {
     }
 
     #region SkillBook
+    public SkillTab? GetActiveTab() => GetSkillTab(SkillBook.ActiveSkillTabId);
+
     public SkillTab? GetSkillTab(long id) {
         return SkillBook.SkillTabs.SingleOrDefault(skillTab => skillTab.Id == id);
     }
@@ -42,7 +44,7 @@ public class SkillManager {
 
         // Switching Active Tab
         if (tab == null) {
-            SkillTab? activeTab = GetSkillTab(SkillBook.ActiveSkillTabId);
+            SkillTab? activeTab = GetActiveTab();
             if (activeTab != null) {
                 SkillInfo.SetTab(activeTab);
             }
@@ -61,10 +63,11 @@ public class SkillManager {
             return result;
         }
 
-        foreach (SkillTab.Skill entry in tab.Skills) {
-            SkillInfo.Skill? skill = SkillInfo.GetSkill(entry.SkillId, ranks);
+        existingTab.Skills.Clear();
+        foreach ((int skillId, int points) in tab.Skills) {
+            SkillInfo.Skill? skill = SkillInfo.GetSkill(skillId, ranks);
             if (skill != null) {
-                existingTab.AddOrUpdate(entry);
+                existingTab.Skills.Add(skillId, points);
             }
         }
 
@@ -116,22 +119,18 @@ public class SkillManager {
 
         // Level must be set to 0 if not enabled since there is a placeholder value of 1.
         if (!enabled) {
-            skill.Level = 0;
+            skill.SetLevel(0);
             return;
         }
 
-        if (skill.Level == skill.BaseLevel && level > skill.BaseLevel) {
-            skill.Notify = true;
-        }
-
-        skill.Level = level;
+        skill.SetLevel(level);
     }
     #endregion
 
     public void ResetSkills(SkillRank rank = SkillRank.Both) {
         foreach (SkillType type in Enum.GetValues(typeof(SkillType))) {
             foreach (SkillInfo.Skill skill in SkillInfo.GetSkills(type, rank)) {
-                skill.Level = skill.BaseLevel;
+                skill.SetLevel(0);
             }
         }
     }

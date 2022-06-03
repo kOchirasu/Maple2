@@ -50,7 +50,7 @@ public class SkillBookHandler : PacketHandler<GameSession> {
         long savedSkillTab = packet.ReadLong();
         var ranksToSave = (SkillRank) packet.ReadInt();
 
-        if (!Enum.IsDefined(typeof(SkillRank), ranksToSave)) {
+        if (!Enum.IsDefined<SkillRank>(ranksToSave)) {
             return;
         }
 
