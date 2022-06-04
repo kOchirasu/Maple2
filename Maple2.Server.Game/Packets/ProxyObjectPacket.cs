@@ -90,7 +90,7 @@ public static class ProxyObjectPacket {
         return pWriter;
     }
 
-    public static ByteWriter AddNpc(FieldEntity<NpcMetadata> fieldNpc) {
+    public static ByteWriter AddNpc(FieldNpc fieldNpc) {
         var pWriter = Packet.Of(SendOp.PROXY_GAME_OBJ);
         pWriter.Write<Command>(Command.AddNpc);
         pWriter.WriteInt(fieldNpc.ObjectId);
@@ -110,7 +110,7 @@ public static class ProxyObjectPacket {
         return pWriter;
     }
 
-    public static ByteWriter UpdateNpc(FieldEntity<NpcMetadata> fieldNpc) {
+    public static ByteWriter UpdateNpc(FieldNpc fieldNpc) {
         var pWriter = Packet.Of(SendOp.PROXY_GAME_OBJ);
         pWriter.Write<Command>(Command.UpdateNpc);
         pWriter.WriteInt(fieldNpc.ObjectId);

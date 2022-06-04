@@ -7,28 +7,35 @@ namespace Maple2.Server.Game.Manager.Field;
 
 public partial class FieldManager {
     public class Factory {
-        private readonly MapMetadataStorage mapStorage;
-        private readonly MapEntityStorage entityStorage;
+        #region Autofac Autowired
+        // ReSharper disable MemberCanBePrivate.Global
+        public MapMetadataStorage MapMetadata { private get; init; } = null!;
+        public MapEntityStorage MapEntities { private get; init; } = null!;
+        public NpcMetadataStorage NpcMetadata { private get; init; } = null!;
+        // ReSharper restore All
+        #endregion
+
         private readonly ILogger logger;
 
         private readonly ConcurrentDictionary<(int MapId, int InstanceId), FieldManager> managers;
 
-        public Factory(MapMetadataStorage mapStorage, MapEntityStorage entityStorage, ILogger<Factory> logger) {
-            this.mapStorage = mapStorage;
-            this.entityStorage = entityStorage;
+        public Factory(ILogger<Factory> logger) {
             this.logger = logger;
 
             managers = new ConcurrentDictionary<(int, int), FieldManager>();
         }
 
         public FieldManager? Get(int mapId, int instanceId = 0) {
-            if (!mapStorage.TryGet(mapId, out MapMetadata metadata)) {
+            if (!MapMetadata.TryGet(mapId, out MapMetadata? metadata)) {
                 logger.LogError("Loading invalid Map:{MapId}", mapId);
                 return null;
             }
 
-            MapEntityMetadata entities = entityStorage.Get(metadata.XBlock);
-            return managers.GetOrAdd((mapId, instanceId), new FieldManager(instanceId, metadata, entities));
+            // ReSharper disable once HeapView.CanAvoidClosure, defer instantiation unless it's needed.
+            return managers.GetOrAdd((mapId, instanceId), _ => {
+                MapEntityMetadata entities = MapEntities.Get(metadata.XBlock);
+                return new FieldManager(instanceId, metadata, entities, NpcMetadata);
+            });
         }
     }
 }

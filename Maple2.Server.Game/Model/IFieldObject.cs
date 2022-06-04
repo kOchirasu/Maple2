@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
+using Maple2.Model.Enum;
+using Maple2.Server.Game.Manager.Field;
 
 namespace Maple2.Server.Game.Model;
 
@@ -18,6 +20,7 @@ public interface IFieldEntity<out T> : IFieldEntity {
 }
 
 public interface IActor : IFieldEntity {
+    public FieldManager Field { get; }
     public IReadOnlyDictionary<int, Buff> Buffs { get; }
     public Stats Stats { get; }
 
@@ -27,4 +30,7 @@ public interface IActor : IFieldEntity {
 
 public interface IActor<T> : IActor {
     public T Value { get; }
+
+    public ActorState State { get; }
+    public ActorSubState SubState { get; }
 }

@@ -19,8 +19,8 @@ public class StateSync : IByteSerializable, IByteDeserializable {
         Flag6 = 32,
     }
 
-    public PlayerState State;
-    public PlayerSubState SubState;
+    public ActorState State;
+    public ActorSubState SubState;
     public Flag Flags;
 
     public Vector3 Position;
@@ -67,8 +67,8 @@ public class StateSync : IByteSerializable, IByteDeserializable {
     #endregion
 
     public virtual void WriteTo(IByteWriter writer) {
-        writer.Write<PlayerState>(State);
-        writer.Write<PlayerSubState>(SubState);
+        writer.Write<ActorState>(State);
+        writer.Write<ActorSubState>(SubState);
         writer.Write<Flag>(Flags);
 
         if (Flags.HasFlag(Flag.Flag1)) {
@@ -116,8 +116,8 @@ public class StateSync : IByteSerializable, IByteDeserializable {
     }
 
     public virtual void ReadFrom(IByteReader reader) {
-        State = reader.Read<PlayerState>();
-        SubState = reader.Read<PlayerSubState>();
+        State = reader.Read<ActorState>();
+        SubState = reader.Read<ActorSubState>();
         Flags = reader.Read<Flag>();
 
         if (Flags.HasFlag(Flag.Flag1)) {

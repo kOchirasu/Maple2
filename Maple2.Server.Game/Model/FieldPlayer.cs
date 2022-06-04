@@ -2,6 +2,7 @@
 using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.Model;
@@ -9,14 +10,16 @@ namespace Maple2.Server.Game.Model;
 public class FieldPlayer : IActor<Player> {
     public readonly GameSession Session;
 
+    public FieldManager Field => Session.Field!;
+
     public int ObjectId { get; }
     public Player Value { get; }
 
     public Vector3 Position { get; set; }
     public Vector3 Rotation { get; set; }
 
-    public PlayerState State { get; set; }
-    public PlayerSubState SubState { get; set; }
+    public ActorState State { get; set; }
+    public ActorSubState SubState { get; set; }
 
     public IReadOnlyDictionary<int, Buff> Buffs => new Dictionary<int, Buff>();
     public Stats Stats => Session.Stats.Values;
@@ -29,4 +32,8 @@ public class FieldPlayer : IActor<Player> {
     }
 
     public static implicit operator Player(FieldPlayer fieldPlayer) => fieldPlayer.Value;
+
+    public void Sync() {
+
+    }
 }

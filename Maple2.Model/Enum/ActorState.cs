@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace Maple2.Model.Enum;
 
-public enum PlayerState : byte {
+public enum ActorState : byte {
     [Description("gosNone")]
     None = 0,
     [Description("gosIdle")]
@@ -34,7 +34,7 @@ public enum PlayerState : byte {
     [Description("gosHit")]
     Hit = 13,
     [Description("gosWaittingSelect")]
-    WaittingSelect = 14,
+    WaitingSelect = 14,
     [Description("gosEmotionIdle")]
     EmotionIdle = 15,
     [Description("gosPcSkill")]
@@ -149,7 +149,7 @@ public enum PlayerState : byte {
     Max = 72,
 }
 
-public enum PlayerSubState : byte {
+public enum ActorSubState : byte {
     [Description("SubState_None")]
     None = 0,
 
@@ -453,7 +453,7 @@ public enum PlayerSubState : byte {
     HomeConvenient_End = 137,
 
     [Description("StateInteract_Intearct")]
-    Interact_Intearct = 138,
+    Interact_Interact = 138,
     [Description("StateInteract_Success")]
     Interact_Success = 139,
     [Description("StateInteract_Fail")]

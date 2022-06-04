@@ -68,6 +68,7 @@ public class Startup {
 
         // Managers
         builder.RegisterType<FieldManager.Factory>()
+            .PropertiesAutowired()
             .SingleInstance();
     }
 

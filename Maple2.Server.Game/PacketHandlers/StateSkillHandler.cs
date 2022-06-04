@@ -23,7 +23,7 @@ public class StateSkillHandler : PacketHandler<GameSession> {
         int serverTick = packet.ReadInt();
         int skillId = packet.ReadInt();
         packet.ReadShort(); // 1
-        session.Player.State = (PlayerState) packet.ReadInt();
+        session.Player.State = (ActorState) packet.ReadInt();
         int clientTick = packet.ReadInt();
         long itemUid = packet.ReadLong();
 

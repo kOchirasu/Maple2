@@ -49,7 +49,7 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                         break;
                     case MapBlock.Discriminator.SpawnPointPC:
                         if (entity.Block is SpawnPointPC playerSpawn) {
-                            playerSpawns.Add(playerSpawn.Id, playerSpawn);
+                            playerSpawns[playerSpawn.Id] = playerSpawn;
                         }
                         break;
                     case MapBlock.Discriminator.SpawnPointNPC:

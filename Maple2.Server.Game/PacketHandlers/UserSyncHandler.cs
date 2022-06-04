@@ -27,11 +27,11 @@ public class UserSyncHandler : PacketHandler<GameSession> {
 
         var stateSyncs = new StateSync[segments];
         for (int i = 0; i < segments; i++) {
-            var playerState = packet.Peek<PlayerState>();
+            var playerState = packet.Peek<ActorState>();
             StateSync stateSync = playerState switch {
-                PlayerState.MicroGameRps => new StateSyncRps(),
-                PlayerState.MicroGameCoupleDance => new StateSyncCoupleDance(),
-                PlayerState.WeddingEmotion => new StateSyncWeddingEmotion(),
+                ActorState.MicroGameRps => new StateSyncRps(),
+                ActorState.MicroGameCoupleDance => new StateSyncCoupleDance(),
+                ActorState.WeddingEmotion => new StateSyncWeddingEmotion(),
                 _ => new StateSync()
             };
 

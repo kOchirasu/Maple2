@@ -108,7 +108,9 @@ public partial class FieldManager {
         foreach (FieldEntity<Item> fieldItem in fieldItems.Values) {
             added.Session.Send(FieldPacket.DropItem(fieldItem));
         }
-        // FieldAddNpc
+        foreach (FieldNpc fieldNpc in fieldNpcs.Values) {
+            added.Session.Send(FieldPacket.AddNpc(fieldNpc));
+        }
         // FieldAddPet
         foreach (FieldEntity<Portal> fieldPortal in fieldPortals.Values) {
             added.Session.Send(PortalPacket.Add(fieldPortal));
@@ -117,6 +119,16 @@ public partial class FieldManager {
         foreach (FieldPlayer fieldPlayer in fieldPlayers.Values) {
             added.Session.Send(ProxyObjectPacket.AddPlayer(fieldPlayer));
         }
+        foreach (FieldNpc fieldNpc in fieldNpcs.Values) {
+            added.Session.Send(ProxyObjectPacket.AddNpc(fieldNpc));
+        }
+
+        // TODO: Move this into a periodically called function in FieldNpc
+        new Thread(() => {
+            Thread.Sleep(1000);
+            added.Session.Send(NpcControlPacket.Control(fieldNpcs.Values.ToArray()));
+        }).Start();
+
         // RegionSkill (on tick?)
         added.Session.Send(StatsPacket.Init(added));
         Multicast(StatsPacket.Update(added), added.Session);

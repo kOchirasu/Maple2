@@ -125,6 +125,55 @@ public static class FieldPacket {
         return pWriter;
     }
 
+    public static ByteWriter AddNpc(FieldNpc npc) {
+        var pWriter = Packet.Of(SendOp.FIELD_ADD_NPC);
+        pWriter.WriteInt(npc.ObjectId);
+        pWriter.WriteInt(npc.Value.Id);
+        pWriter.Write<Vector3>(npc.Position);
+        pWriter.Write<Vector3>(npc.Rotation);
+        // If NPC is not valid, the packet seems to stop here
+
+        if (npc.Value.Metadata.Basic.Friendly == 0 && npc.Value.Metadata.Basic.Class >= 3) {
+            pWriter.WriteString(npc.Value.Metadata.Model);
+        }
+
+        pWriter.WriteNpcStats(npc.Stats);
+        pWriter.WriteBool(npc.Stats[StatAttribute.Health].Current <= 0); // IsNpcDead
+
+        pWriter.WriteShort((short) npc.Buffs.Count);
+        foreach (Buff buff in npc.Buffs.Values) {
+            pWriter.WriteClass<Buff>(buff);
+        }
+
+        pWriter.WriteLong(); // uid for PetNpc
+        pWriter.WriteByte();
+        pWriter.WriteInt(1); // level
+        pWriter.WriteInt();
+
+        if (npc.Value.Metadata.Basic.Friendly == 0 && npc.Value.Metadata.Basic.Class >= 3) {
+            int count = 0;
+            pWriter.WriteUnicodeString(); // EffectStr
+            pWriter.WriteInt(count);
+            for (int i = 0; i < count; i++) {
+                pWriter.WriteInt(); // SkillId
+                pWriter.WriteShort(); // SkillLevel
+            }
+
+            pWriter.WriteInt();
+        }
+
+        pWriter.WriteBool(false);
+
+        return pWriter;
+    }
+
+    public static ByteWriter RemoveNpc(int objectId) {
+        var pWriter = Packet.Of(SendOp.FIELD_REMOVE_NPC);
+        pWriter.WriteInt(objectId);
+
+        return pWriter;
+    }
+
     public static ByteWriter DropItem(FieldEntity<Item> fieldItem) {
         Item item = fieldItem;
 
