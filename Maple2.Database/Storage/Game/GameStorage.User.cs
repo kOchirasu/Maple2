@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Server.Game.Manager.Config;
 using Microsoft.EntityFrameworkCore;
 using Account = Maple2.Model.Game.Account;
 using Character = Maple2.Model.Game.Character;
@@ -150,10 +152,11 @@ public partial class GameStorage {
             return context.TrySaveChanges();
         }
 
-        public (IList<KeyBind> KeyBinds, IList<QuickSlot[]> HotBars, List<SkillMacro>, SkillBook) LoadCharacterConfig(long characterId) {
+        public (IList<KeyBind> KeyBinds, IList<QuickSlot[]> HotBars, List<SkillMacro>,
+                IDictionary<StatAttribute, int>, SkillBook) LoadCharacterConfig(long characterId) {
             CharacterConfig config = context.CharacterConfig.Find(characterId);
             if (config == null) {
-                return (null, null, null, null);
+                return (null, null, null, null, null);
             }
 
             var skillBook = new SkillBook {
@@ -168,12 +171,13 @@ public partial class GameStorage {
                 config.KeyBinds,
                 config.HotBars,
                 config.SkillMacros?.Select<Model.SkillMacro, SkillMacro>(macro => macro).ToList(),
+                config.StatAllocation,
                 skillBook
             );
         }
 
         public bool SaveCharacterConfig(long characterId, IList<KeyBind> keyBinds, IList<QuickSlot[]> hotBars,
-                IEnumerable<SkillMacro> skillMacros, SkillBook skillBook) {
+                IEnumerable<SkillMacro> skillMacros, StatAttributes.PointAllocation allocation, SkillBook skillBook) {
             context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
 
             CharacterConfig config = context.CharacterConfig.Find(characterId);
@@ -184,6 +188,9 @@ public partial class GameStorage {
             config.KeyBinds = keyBinds;
             config.HotBars = hotBars;
             config.SkillMacros = skillMacros.Select<SkillMacro, Model.SkillMacro>(macro => macro).ToList();
+            config.StatAllocation = allocation.Attributes.ToDictionary(
+                attribute => attribute,
+                attribute => allocation[attribute]);
             config.SkillBook = new Model.SkillBook {
                 MaxSkillTabs = skillBook.MaxSkillTabs,
                 ActiveSkillTabId = skillBook.ActiveSkillTabId,

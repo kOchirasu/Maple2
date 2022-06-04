@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -13,6 +14,7 @@ internal class CharacterConfig {
     public IList<KeyBind> KeyBinds { get; set; }
     public IList<QuickSlot[]> HotBars { get; set; }
     public IList<SkillMacro> SkillMacros { get; set; }
+    public IDictionary<StatAttribute, int> StatAllocation { get; set; }
     public SkillBook SkillBook { get; set; }
 
     public DateTime LastModified { get; set; }
@@ -25,6 +27,7 @@ internal class CharacterConfig {
         builder.Property(config => config.KeyBinds).HasJsonConversion();
         builder.Property(config => config.HotBars).HasJsonConversion();
         builder.Property(config => config.SkillMacros).HasJsonConversion();
+        builder.Property(config => config.StatAllocation).HasJsonConversion();
 
         builder.OwnsOne(config => config.SkillBook)
             .Property(skillBook => skillBook.MaxSkillTabs)

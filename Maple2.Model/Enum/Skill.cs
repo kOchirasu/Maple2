@@ -20,7 +20,7 @@ public enum SkillSubType : byte {
     Type9 = 9,
 }
 
-public enum SkillStyle : byte {
+public enum RangeType : byte {
     None = 0,
     Melee = 1,
     Range = 2,

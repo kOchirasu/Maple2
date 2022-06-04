@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Database.Storage;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
@@ -18,6 +19,7 @@ public class ConfigManager {
     private readonly List<HotBar> hotBars;
     private IList<SkillMacro> skillMacros;
 
+    public readonly StatAttributes StatAttributes;
     public readonly SkillManager Skill;
 
     public ConfigManager(GameStorage.Request db, GameSession session) {
@@ -26,8 +28,13 @@ public class ConfigManager {
         hotBars = new List<HotBar>();
         skillMacros = new List<SkillMacro>();
 
-        (IList<KeyBind>? KeyBinds, IList<QuickSlot[]>? HotBars, IList<SkillMacro>? Macros, SkillBook? SkillBook) load =
-            db.LoadCharacterConfig(session.CharacterId);
+        (
+            IList<KeyBind>? KeyBinds,
+            IList<QuickSlot[]>? HotBars,
+            IList<SkillMacro>? Macros,
+            IDictionary<StatAttribute, int>? Allocation,
+            SkillBook? SkillBook
+        ) load = db.LoadCharacterConfig(session.CharacterId);
         if (load.KeyBinds != null) {
             foreach (KeyBind keyBind in load.KeyBinds) {
                 SetKeyBind(keyBind);
@@ -37,6 +44,13 @@ public class ConfigManager {
             hotBars.Add(new HotBar(load.HotBars?.ElementAtOrDefault(i)));
         }
         skillMacros = load.Macros ?? new List<SkillMacro>();
+
+        StatAttributes = new StatAttributes();
+        if (load.Allocation != null) {
+            foreach ((StatAttribute attribute, int amount) in load.Allocation) {
+                StatAttributes.Allocation[attribute] = amount;
+            }
+        }
 
         Skill = new SkillManager(session, load.SkillBook ?? new SkillBook());
     }
@@ -54,8 +68,6 @@ public class ConfigManager {
     public void LoadMacros() {
         session.Send(SkillMacroPacket.Load(skillMacros));
     }
-
-
 
     #region KeyBind
     public void SetKeyBind(in KeyBind keyBind) {
@@ -94,6 +106,7 @@ public class ConfigManager {
             session.CharacterId, keyBinds.Values.ToList(),
             hotBars.Select(hotBar => hotBar.Slots).ToList(),
             skillMacros,
+            StatAttributes.Allocation,
             Skill.SkillBook
         );
     }

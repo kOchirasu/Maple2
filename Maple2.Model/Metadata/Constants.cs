@@ -1,6 +1,6 @@
 ﻿// ReSharper disable InconsistentNaming
 
-namespace Maple2.Server.Core.Constants;
+namespace Maple2.Model.Metadata;
 
 public static class Constant {
     #region custom constants

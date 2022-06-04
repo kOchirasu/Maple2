@@ -176,6 +176,8 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
 
         Send(RevivalPacket.Count(0)); // TODO: Consumed daily revivals?
         Send(RevivalPacket.Confirm(Player));
+        Send(AttributePointPacket.Sources(Config.StatAttributes));
+        Send(AttributePointPacket.Allocation(Config.StatAttributes));
 
         return true;
     }

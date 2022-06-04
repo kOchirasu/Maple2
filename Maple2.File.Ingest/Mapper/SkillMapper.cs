@@ -28,7 +28,7 @@ public class SkillMapper : TypeMapper<SkillMetadata> {
                 Property:new SkillMetadataProperty(
                     Type:(SkillType)data.basic.kinds.type,
                     SubType:(SkillSubType)data.basic.kinds.subType,
-                    SkillStyle:(SkillStyle)data.basic.kinds.rangeType,
+                    RangeType:(RangeType)data.basic.kinds.rangeType,
                     Element:(Element)data.basic.kinds.element,
                     ContinueSkill:data.basic.kinds.continueSkill,
                     SpRecoverySkill:data.basic.kinds.spRecoverySkill,

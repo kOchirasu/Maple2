@@ -12,7 +12,7 @@ public record SkillMetadata(
 public record SkillMetadataProperty(
     SkillType Type,
     SkillSubType SubType,
-    SkillStyle SkillStyle,
+    RangeType RangeType,
     Element Element,
     bool ContinueSkill,
     bool SpRecoverySkill,
