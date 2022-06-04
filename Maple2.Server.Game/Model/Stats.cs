@@ -12,7 +12,11 @@ public class Stats {
 
     public Stats() {
         values = new Dictionary<StatAttribute, Stat> {
-            [StatAttribute.Health] = new Stat(100),
+            [StatAttribute.Strength] = new Stat(1),
+            [StatAttribute.Dexterity] = new Stat(1),
+            [StatAttribute.Intelligence] = new Stat(1),
+            [StatAttribute.Luck] = new Stat(1),
+            [StatAttribute.Health] = new Stat(50),
             [StatAttribute.HpRegen] = new Stat(10, 10, 100),
             [StatAttribute.HpRegenInterval] = new Stat(3000),
             [StatAttribute.Spirit] = new Stat(100),
@@ -21,8 +25,9 @@ public class Stats {
             [StatAttribute.Stamina] = new Stat(120),
             [StatAttribute.StaminaRegen] = new Stat(10),
             [StatAttribute.StaminaRegenInterval] = new Stat(500),
-            [StatAttribute.AttackSpeed] = new Stat(100, 100, 140),
-            [StatAttribute.MovementSpeed] = new Stat(100, 100, 140),
+            [StatAttribute.AttackSpeed] = new Stat(110, 100, 140),
+            [StatAttribute.MovementSpeed] = new Stat(110, 100, 140),
+            [StatAttribute.CriticalRate] = new Stat(35),
             [StatAttribute.JumpHeight] = new Stat(100, 100, 140),
             [StatAttribute.MountSpeed] = new Stat(100, 100, 160),
         };
@@ -44,24 +49,31 @@ public sealed class Stat {
     public const int TOTAL = 3;
 
     public long Total { get; set; }
-    public long Min { get; set; }
-    public long Max { get; set; }
+    public long Base { get; set; }
+    public long Current { get; set; }
 
     public Stat(long value) : this(value, value, value) { }
 
-    public Stat(long total, long min, long max) {
+    public Stat(long total, long @base, long current) {
         Total = total;
-        Min = min;
-        Max = max;
+        Base = @base;
+        Current = current;
+    }
+
+    public void AddTotal(long amount) {
+        Total += amount;
+        Current += amount;
     }
 
     public long this[int i] {
         get {
             return i switch {
-                1 => Min,
-                2 => Max,
-                _ => Total
+                0 => Total,
+                1 => Base,
+                _ => Current
             };
         }
     }
+
+    public override string ToString() => $"<{Total}|{Base}|{Current}>";
 }

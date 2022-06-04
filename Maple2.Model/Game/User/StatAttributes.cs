@@ -63,7 +63,7 @@ public class StatAttributes : IByteSerializable {
         public int this[StatAttribute type] {
             get => points.GetValueOrDefault(type);
             set {
-                if (value < 0 || value >= StatLimit(type)) {
+                if (value < 0 || value > StatLimit(type)) {
                     return;
                 }
                 if (value == 0) {

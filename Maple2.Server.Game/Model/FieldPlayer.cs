@@ -19,7 +19,7 @@ public class FieldPlayer : IActor<Player> {
     public PlayerSubState SubState { get; set; }
 
     public IReadOnlyDictionary<int, Buff> Buffs => new Dictionary<int, Buff>();
-    public Stats Stats => new Stats();
+    public Stats Stats => Session.Stats.Values;
     public bool InBattle;
 
     public FieldPlayer(int objectId, GameSession session, Player player) {

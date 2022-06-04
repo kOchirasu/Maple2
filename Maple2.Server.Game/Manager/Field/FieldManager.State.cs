@@ -118,7 +118,8 @@ public partial class FieldManager {
             added.Session.Send(ProxyObjectPacket.AddPlayer(fieldPlayer));
         }
         // RegionSkill (on tick?)
-        // Stat
+        added.Session.Send(StatsPacket.Init(added));
+        Multicast(StatsPacket.Update(added), added.Session);
     }
     #endregion Events
 }

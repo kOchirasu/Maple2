@@ -1,10 +1,7 @@
-﻿using System.Linq;
-using Maple2.Model.Enum;
+﻿using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
-using Maple2.Server.Game.Manager.Config;
-using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Microsoft.Extensions.Logging;
 
@@ -34,29 +31,10 @@ public class AttributePointHandler : PacketHandler<GameSession> {
 
     private void HandleIncrement(GameSession session, IByteReader packet) {
         var type = packet.Read<StatAttribute>();
-        // Limit reached or invalid type.
-        if (StatAttributes.PointAllocation.StatLimit(type) <= 0) {
-            return;
-        }
-
-        // No points remaining
-        if (session.Config.StatAttributes.UsedPoints >= session.Config.StatAttributes.TotalPoints) {
-            return;
-        }
-
-        session.Config.StatAttributes.Allocation[type]++;
-        // TODO: Sync with player stats
-        session.Send(AttributePointPacket.Allocation(session.Config.StatAttributes));
+        session.Config.AllocateStatPoint(type);
     }
 
     private void HandleReset(GameSession session) {
-        foreach (StatAttribute type in session.Config.StatAttributes.Allocation.Attributes) {
-            int points = session.Config.StatAttributes.Allocation[type];
-            session.Config.StatAttributes.Allocation[type] = 0;
-            // TODO: Sync with player stats
-        }
-
-        session.Send(AttributePointPacket.Allocation(session.Config.StatAttributes));
-        session.Send(NoticePacket.Message("s_char_info_reset_stat_pointsuccess_msg"));
+        session.Config.ResetStatPoints();
     }
 }

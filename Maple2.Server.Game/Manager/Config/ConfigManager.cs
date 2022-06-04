@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Database.Storage;
@@ -18,8 +19,8 @@ public class ConfigManager {
     private short activeHotBar;
     private readonly List<HotBar> hotBars;
     private IList<SkillMacro> skillMacros;
+    private readonly StatAttributes statAttributes;
 
-    public readonly StatAttributes StatAttributes;
     public readonly SkillManager Skill;
 
     public ConfigManager(GameStorage.Request db, GameSession session) {
@@ -45,10 +46,11 @@ public class ConfigManager {
         }
         skillMacros = load.Macros ?? new List<SkillMacro>();
 
-        StatAttributes = new StatAttributes();
+        statAttributes = new StatAttributes();
         if (load.Allocation != null) {
             foreach ((StatAttribute attribute, int amount) in load.Allocation) {
-                StatAttributes.Allocation[attribute] = amount;
+                statAttributes.Allocation[attribute] = amount;
+                UpdateStatAttribute(attribute, amount, false);
             }
         }
 
@@ -67,6 +69,11 @@ public class ConfigManager {
 
     public void LoadMacros() {
         session.Send(SkillMacroPacket.Load(skillMacros));
+    }
+
+    public void LoadStatAttributes() {
+        session.Send(AttributePointPacket.Sources(statAttributes));
+        session.Send(AttributePointPacket.Allocation(statAttributes));
     }
 
     #region KeyBind
@@ -101,12 +108,69 @@ public class ConfigManager {
     }
     #endregion
 
+    #region StatPoints
+    public void AllocateStatPoint(StatAttribute type) {
+        // Invalid stat type.
+        if (StatAttributes.PointAllocation.StatLimit(type) <= 0) {
+            return;
+        }
+
+        // No points remaining.
+        if (statAttributes.UsedPoints >= statAttributes.TotalPoints) {
+            return;
+        }
+
+        // Reached limit for allocation.
+        if (session.Config.statAttributes.Allocation[type] >= StatAttributes.PointAllocation.StatLimit(type)) {
+            session.Send(NoticePacket.Message("s_char_info_limit_stat_point"));
+            return;
+        }
+
+        session.Config.statAttributes.Allocation[type]++;
+        UpdateStatAttribute(type, 1);
+        session.Send(AttributePointPacket.Allocation(session.Config.statAttributes));
+    }
+
+    public void ResetStatPoints() {
+        foreach (StatAttribute type in session.Config.statAttributes.Allocation.Attributes) {
+            int points = session.Config.statAttributes.Allocation[type];
+            session.Config.statAttributes.Allocation[type] = 0;
+            UpdateStatAttribute(type, -points);
+        }
+
+        session.Send(AttributePointPacket.Allocation(session.Config.statAttributes));
+        session.Send(NoticePacket.Message("s_char_info_reset_stat_pointsuccess_msg"));
+    }
+
+    private void UpdateStatAttribute(StatAttribute type, int points, bool send = true) {
+        switch (type) {
+            case StatAttribute.Strength:
+            case StatAttribute.Dexterity:
+            case StatAttribute.Intelligence:
+            case StatAttribute.Luck:
+                session.Player.Stats[type].AddTotal(1 * points);
+                break;
+            case StatAttribute.Health:
+                session.Player.Stats[StatAttribute.Health].AddTotal(10 * points);
+                break;
+            case StatAttribute.CriticalRate:
+                session.Player.Stats[StatAttribute.CriticalRate].AddTotal(3 * points);
+                break;
+        }
+
+        // Sends packet to notify client, skipped during loading.
+        if (send) {
+            session.Send(StatsPacket.Update(session.Player, type));
+        }
+    }
+    #endregion
+
     public void Save(GameStorage.Request db) {
         db.SaveCharacterConfig(
             session.CharacterId, keyBinds.Values.ToList(),
             hotBars.Select(hotBar => hotBar.Slots).ToList(),
             skillMacros,
-            StatAttributes.Allocation,
+            statAttributes.Allocation,
             Skill.SkillBook
         );
     }

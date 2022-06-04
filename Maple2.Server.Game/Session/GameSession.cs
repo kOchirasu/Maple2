@@ -48,6 +48,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
     public ConfigManager Config { get; set; }
     public ItemManager Item { get; set; }
     public CurrencyManager Currency { get; set; }
+    public StatsManager Stats { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
 
@@ -79,10 +80,11 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
 
         // Create a placeholder FieldPlayer
         Player = new FieldPlayer(0, this, player);
+        Currency = new CurrencyManager(this);
+        Stats = new StatsManager(this);
 
         Config = new ConfigManager(db, this);
         Item = new ItemManager(db, this);
-        Currency = new CurrencyManager(this);
 
         if (!PrepareField(player.Character.MapId)) {
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
@@ -176,8 +178,7 @@ public sealed class GameSession : Core.Network.Session, IDisposable {
 
         Send(RevivalPacket.Count(0)); // TODO: Consumed daily revivals?
         Send(RevivalPacket.Confirm(Player));
-        Send(AttributePointPacket.Sources(Config.StatAttributes));
-        Send(AttributePointPacket.Allocation(Config.StatAttributes));
+        Config.LoadStatAttributes();
 
         return true;
     }
