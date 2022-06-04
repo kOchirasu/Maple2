@@ -40,4 +40,14 @@ public static class EnumerableExtensions {
     public static V GetValueOrDefault<K, V>(this IDictionary<K, V> dictionary, K key, V @default = default) {
         return dictionary.TryGetValue(key, out V value) ? value : @default;
     }
+
+    public delegate bool TryFunc<in T, TResult>(T input, out TResult value);
+
+    public static IEnumerable<TResult> TrySelect<T, TResult>(this IEnumerable<T> source, TryFunc<T, TResult> parse) {
+        foreach(T element in source) {
+            if(parse(element, out TResult value )) {
+                yield return value;
+            }
+        }
+    }
 }

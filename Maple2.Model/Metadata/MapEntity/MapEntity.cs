@@ -22,6 +22,8 @@ public abstract partial record MapBlock([JsonDiscriminator] MapBlock.Discriminat
         Portal = 19716277,
         //SpawnPoint = 2593567611,
         SpawnPointPC = 476587788,
+        SpawnPointNPC = 2354491253,
+        EventSpawnPointNPC = 4186340407,
         TaxiStation = 2234881030,
         Liftable = 52914141,
         Breakable = 3551547141,

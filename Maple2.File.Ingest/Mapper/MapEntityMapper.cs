@@ -5,6 +5,7 @@ using Maple2.File.IO;
 using Maple2.File.Parser.Flat;
 using Maple2.File.Parser.MapXBlock;
 using Maple2.Model.Metadata;
+using Maple2.Tools.Extensions;
 using static M2dXmlGenerator.FeatureLocaleFilter;
 
 namespace Maple2.File.Ingest.Mapper;
@@ -35,6 +36,25 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
                                 Block = new SpawnPointPC(pcSpawn.SpawnPointID, pcSpawn.Position, pcSpawn.Rotation, pcSpawn.IsVisible, pcSpawn.Enable)
                             };
                             continue;
+                        case ISpawnPointNPC npcSpawn:
+                            int[] npcIds = npcSpawn.NpcList.Keys.TrySelect<string, int>(int.TryParse).ToArray();
+                            if (npcSpawn.NpcCount == 0 || npcIds.Length == 0) {
+                                Console.WriteLine($"No NPCs for {xblock}:{entity.EntityId}");
+                                continue;
+                            }
+
+                            switch (npcSpawn) {
+                                case IEventSpawnPointNPC eventNpcSpawn:
+                                    yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                                        Block = new EventSpawnPointNPC(npcSpawn.SpawnPointID, npcSpawn.Position, npcSpawn.Rotation, npcSpawn.IsVisible, npcSpawn.IsSpawnOnFieldCreate, npcSpawn.SpawnRadius, (int) npcSpawn.NpcCount, npcIds, (int) npcSpawn.RegenCheckTime, (int) eventNpcSpawn.LifeTime, eventNpcSpawn.SpawnAnimation)
+                                    };
+                                    continue;
+                                default:
+                                    yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                                        Block = new SpawnPointNPC(npcSpawn.SpawnPointID, npcSpawn.Position, npcSpawn.Rotation, npcSpawn.IsVisible, npcSpawn.IsSpawnOnFieldCreate, npcSpawn.SpawnRadius, (int) npcSpawn.NpcCount, npcIds, (int) npcSpawn.RegenCheckTime)
+                                    };
+                                    continue;
+                            }
                     }
                     continue;
                 case IMS2PhysXProp physXProp:

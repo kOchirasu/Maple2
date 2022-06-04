@@ -21,6 +21,8 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
         var liftables = new Dictionary<Vector3B, Liftable>();
         var portals = new Dictionary<int, Portal>();
         var playerSpawns = new Dictionary<int, SpawnPointPC>();
+        var npcSpawns = new List<SpawnPointNPC>();
+        var eventNpcSpawns = new Dictionary<int, EventSpawnPointNPC>();
         TaxiStation taxi = null;
         lock (Context) {
             foreach (MapEntity entity in Context.MapEntity.Where(entity => entity.XBlock == xblock)) {
@@ -47,7 +49,17 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                         break;
                     case MapBlock.Discriminator.SpawnPointPC:
                         if (entity.Block is SpawnPointPC playerSpawn) {
-                            playerSpawns[playerSpawn.Id] = playerSpawn;
+                            playerSpawns.Add(playerSpawn.Id, playerSpawn);
+                        }
+                        break;
+                    case MapBlock.Discriminator.SpawnPointNPC:
+                        if (entity.Block is SpawnPointNPC npcSpawn) {
+                            npcSpawns.Add(npcSpawn);
+                        }
+                        break;
+                    case MapBlock.Discriminator.EventSpawnPointNPC:
+                        if (entity.Block is EventSpawnPointNPC eventNpcSpawn) {
+                            eventNpcSpawns.Add(eventNpcSpawn.Id, eventNpcSpawn);
                         }
                         break;
                     case MapBlock.Discriminator.TaxiStation:
@@ -65,6 +77,8 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
             Liftables = liftables,
             Portals = portals,
             PlayerSpawns = playerSpawns,
+            NpcSpawns = npcSpawns,
+            EventNpcSpawns = eventNpcSpawns,
             Taxi = taxi,
         };
         Cache.AddReplace(xblock, mapEntity);

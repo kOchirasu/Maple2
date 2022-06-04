@@ -9,5 +9,7 @@ public class MapEntityMetadata {
     public IReadOnlyDictionary<Vector3B, Liftable> Liftables { get; init; }
     public IReadOnlyDictionary<int, Portal> Portals { get; init; }
     public IReadOnlyDictionary<int, SpawnPointPC> PlayerSpawns { get; init; }
+    public IReadOnlyList<SpawnPointNPC> NpcSpawns { get; init; }
+    public IReadOnlyDictionary<int, EventSpawnPointNPC> EventNpcSpawns { get; init; }
     public TaxiStation? Taxi { get; init; }
 }
