@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Numerics;
+using Maple2.Database.Extensions;
 using Maple2.Model;
 using Maple2.Model.Common;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -20,7 +22,7 @@ public static class FieldPacket {
 
         var pWriter = Packet.Of(SendOp.FIELD_ADD_USER);
         pWriter.WriteInt(session.Player.ObjectId);
-        pWriter.WriteCharacter(player.Account, player.Character);
+        pWriter.WriteCharacter(session);
         pWriter.WriteClass<SkillInfo>(session.Config.Skill.SkillInfo);
         pWriter.Write<Vector3>(session.Player.Position);
         pWriter.Write<Vector3>(session.Player.Rotation);
@@ -157,5 +159,62 @@ public static class FieldPacket {
         pWriter.WriteInt(objectId);
 
         return pWriter;
+    }
+
+    private static void WriteCharacter(this IByteWriter writer, GameSession session) {
+        Account account = session.Player.Value.Account;
+        Character character = session.Player.Value.Character;
+        writer.WriteLong(account.Id);
+        writer.WriteLong(character.Id);
+        writer.WriteUnicodeString(character.Name);
+        writer.Write<Gender>(character.Gender);
+        writer.WriteByte(1);
+        writer.WriteLong();
+        writer.WriteInt();
+        writer.WriteInt(character.MapId);
+        writer.WriteInt(character.InstanceMapId);
+        writer.WriteInt(character.InstanceId);
+        writer.WriteShort(character.Level);
+        writer.WriteShort(character.Channel);
+        writer.WriteInt((int)character.Job.Code());
+        writer.Write<Job>(character.Job);
+        writer.WriteInt((int) session.Stats.Values[StatAttribute.Health].Current);
+        writer.WriteInt((int) session.Stats.Values[StatAttribute.Health].Total);
+        writer.WriteShort();
+        writer.WriteLong();
+        writer.WriteLong(character.StorageCooldown);
+        writer.WriteLong(character.DoctorCooldown);
+        writer.WriteInt(character.ReturnMapId);
+        writer.Write<Vector3>(character.ReturnPosition);
+        writer.WriteInt(session.Stats.Values.GearScore);
+        writer.Write<SkinColor>(character.SkinColor);
+        writer.WriteLong(character.CreationTime);
+        writer.Write<Trophy>(account.Trophy);
+        writer.WriteLong(); // GuildId
+        writer.WriteUnicodeString(); // GuildName
+        writer.WriteUnicodeString(character.Motto);
+        writer.WriteUnicodeString(character.Picture);
+        writer.WriteByte(); // Club Count
+        writer.WriteByte(); // PCBang related?
+        writer.Write<Mastery>(character.Mastery);
+        #region Unknown
+        writer.WriteUnicodeString();
+        writer.WriteLong();
+        writer.WriteLong();
+        writer.WriteLong();
+        #endregion
+        writer.WriteInt(); // Unknown Count
+        writer.WriteByte();
+        writer.WriteBool(false);
+        writer.WriteLong(); // Birthday
+        writer.WriteInt();
+        writer.WriteInt();
+        writer.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+        writer.WriteInt(account.PrestigeLevel); // PrestigeLevel
+        writer.WriteLong(character.LastModified.ToEpochSeconds());
+        writer.WriteInt(); // Unknown Count
+        writer.WriteInt(); // Unknown Count
+        writer.WriteShort(); // Survival related?
+        writer.WriteLong();
     }
 }

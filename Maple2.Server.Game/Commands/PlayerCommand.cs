@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
@@ -8,10 +7,8 @@ using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
-using Maple2.Server.Core.Constants;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using Enum = Google.Protobuf.WellKnownTypes.Enum;
 
 namespace Maple2.Server.Game.Commands;
 
@@ -45,6 +42,7 @@ public class PlayerCommand : Command {
 
                 session.Player.Value.Character.Level = level;
                 session.Field?.Multicast(LevelUpPacket.LevelUp(session.Player));
+                session.Stats.Refresh();
                 ctx.ExitCode = 0;
             } catch (SystemException ex) {
                 ctx.Console.Error.WriteLine(ex.Message);
@@ -103,6 +101,7 @@ public class PlayerCommand : Command {
 
                 session.Player.Value.Character.Job = job;
                 session.Config.Skill.SkillInfo.SetJob(job);
+                session.Stats.Refresh();
                 session.Field?.Multicast(JobPacket.Awakening(session.Player, session.Config.Skill.SkillInfo));
                 ctx.ExitCode = 0;
             } catch (SystemException ex) {
