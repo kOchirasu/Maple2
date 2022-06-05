@@ -14,6 +14,7 @@ public sealed class MetadataContext : DbContext {
     public DbSet<MapEntity> MapEntity { get; set; }
     public DbSet<SkillMetadata> SkillMetadata { get; set; }
     public DbSet<TableMetadata> TableMetadata { get; set; }
+    public DbSet<UgcMapMetadata> UgcMapMetadata { get; set; }
 
     public MetadataContext(DbContextOptions options) : base(options) { }
 
@@ -26,6 +27,7 @@ public sealed class MetadataContext : DbContext {
         modelBuilder.Entity<MapEntity>(ConfigureMapEntity);
         modelBuilder.Entity<SkillMetadata>(ConfigureSkillMetadata);
         modelBuilder.Entity<TableMetadata>(ConfigureTableMetadata);
+        modelBuilder.Entity<UgcMapMetadata>(ConfigureUgcMapMetadata);
     }
 
     private static void ConfigureItemMetadata(EntityTypeBuilder<ItemMetadata> builder) {
@@ -72,5 +74,11 @@ public sealed class MetadataContext : DbContext {
         builder.ToTable("table");
         builder.HasKey(table => table.Name);
         builder.Property(table => table.Table).HasJsonConversion().IsRequired();
+    }
+
+    private static void ConfigureUgcMapMetadata(EntityTypeBuilder<UgcMapMetadata> builder) {
+        builder.ToTable("ugcmap");
+        builder.HasKey(map => map.Id);
+        builder.Property(map => map.Groups).HasJsonConversion().IsRequired();
     }
 }

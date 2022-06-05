@@ -211,11 +211,6 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
     #region Dispose
     ~GameSession() => Dispose(false);
 
-    public new void Dispose() {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
     protected override void Dispose(bool disposing) {
         if (disposed) return;
         disposed = true;

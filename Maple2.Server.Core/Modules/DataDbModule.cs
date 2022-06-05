@@ -1,6 +1,7 @@
 ﻿using Autofac;
 using Maple2.Database.Context;
 using Maple2.Database.Storage;
+using Maple2.Model.Metadata;
 using Maple2.Server.Core.Constants;
 using Microsoft.EntityFrameworkCore;
 using Module = Autofac.Module;
@@ -28,5 +29,6 @@ public class DataDbModule : Module {
         builder.RegisterType<NpcMetadataStorage>().SingleInstance();
         builder.RegisterType<SkillMetadataStorage>().SingleInstance();
         builder.RegisterType<TableMetadataStorage>().SingleInstance();
+        builder.RegisterType<UgcMapMetadata>().SingleInstance();
     }
 }

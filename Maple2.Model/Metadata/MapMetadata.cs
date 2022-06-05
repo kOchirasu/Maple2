@@ -1,5 +1,8 @@
-﻿namespace Maple2.Model.Metadata;
+﻿using System.Collections.Generic;
 
+namespace Maple2.Model.Metadata;
+
+#region map
 public record MapMetadata(
     int Id,
     string? Name,
@@ -48,3 +51,33 @@ public record MapMetadataCashCall(
     bool Recall);
 
 public record MapEntranceBuff(int Id, short Level);
+#endregion
+
+#region ugcmap
+public record UgcMapMetadata(
+    int Id,
+    List<UgcMapGroup> Groups);
+
+public record UgcMapGroup(
+    int GroupId,
+    int Type,
+    int HouseBlock,
+    int HouseNumber,
+    UgcMapGroup.Cost ContractCost,
+    UgcMapGroup.Cost ExtensionCost,
+    UgcMapGroup.Limits Limit) {
+
+    public record Cost(
+        int Amount,
+        int ItemId,
+        int Days);
+
+    public record Limits(
+        int Height,
+        int Area,
+        int Maid,
+        int Trigger,
+        int InstallNpc,
+        int InstallBuilding);
+}
+#endregion
