@@ -3,10 +3,8 @@ using System.Net.Sockets;
 using System.Numerics;
 using Autofac;
 using Maple2.Database.Storage;
-using Maple2.Model;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
-using Maple2.Model.Metadata;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Commands;
@@ -21,7 +19,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.Session;
 
-public sealed class GameSession : Core.Network.Session, IDisposable {
+public sealed partial class GameSession : Core.Network.Session, IDisposable {
     protected override PatchType Type => PatchType.Ignore;
     public const int FIELD_KEY = 0x1234;
 
