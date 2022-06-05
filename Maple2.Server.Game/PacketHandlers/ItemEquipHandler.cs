@@ -43,9 +43,7 @@ public class ItemEquipHandler : PacketHandler<GameSession> {
         }
 
         // Disconnect if this fails to avoid bad state.
-        if (!session.Item.Equips.Equip(itemUid, equipSlot, isSkin)) {
-            session.Disconnect();
-        }
+        session.Item.Equips.Equip(itemUid, equipSlot, isSkin);
     }
 
     private void HandleUnequip(GameSession session, IByteReader packet) {
@@ -53,6 +51,7 @@ public class ItemEquipHandler : PacketHandler<GameSession> {
 
         // Disconnect if this fails to avoid bad state.
         if (!session.Item.Equips.Unequip(itemUid)) {
+            logger.LogCritical("Failed to unequip item: {Uid}", itemUid);
             session.Disconnect();
         }
     }

@@ -32,11 +32,7 @@ public class ItemCollection : IEnumerable<Item> {
         get {
             mutex.EnterReadLock();
             try {
-                if (slot < 0 || slot >= Size) {
-                    return null;
-                }
-
-                return items[slot];
+                return ValidSlot(slot) ? items[slot] : null;
             } finally {
                 mutex.ExitReadLock();
             }
@@ -71,7 +67,7 @@ public class ItemCollection : IEnumerable<Item> {
         }
 
         // Prefer item slot if specified
-        if (this[add.Slot] == null) {
+        if (ValidSlot(add.Slot) && this[add.Slot] == null) {
             this[add.Slot] = add;
             return new []{(add, add.Amount)};
         }
@@ -226,6 +222,8 @@ public class ItemCollection : IEnumerable<Item> {
 
         return false;
     }
+
+    private bool ValidSlot(short slot) => slot >= 0 && slot < Size;
 
     // Enumerate array while ignoring nulls
     public IEnumerator<Item> GetEnumerator() {

@@ -72,7 +72,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
 
         try {
             using GameStorage.Request db = GameStorage.Context();
-            Character character = db.GetCharacter(characterId, session.AccountId);
+            Character? character = db.GetCharacter(characterId, session.AccountId);
             if (character == null) {
                 session.Send(MigrationPacket.LoginToGameError(s_move_err_default, "Invalid character"));
                 return;
@@ -116,8 +116,12 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
                 session.Send(CharacterListPacket.CreateError(s_char_err_invalid_def_item));
                 return;
             }
+            if (!ItemMetadata.TryGet(id, out ItemMetadata? metadata)) {
+                session.Send(CharacterListPacket.CreateError(s_char_err_invalid_def_item));
+                return;
+            }
 
-            var outfit = new Item(ItemMetadata.Get(id)) {
+            var outfit = new Item(metadata) {
                 EquipTab = EquipTab.Outfit,
                 EquipSlot = slot,
             };
@@ -145,7 +149,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
         long characterId = packet.ReadLong();
 
         using GameStorage.Request db = GameStorage.Context();
-        Character character = db.GetCharacter(characterId, session.AccountId);
+        Character? character = db.GetCharacter(characterId, session.AccountId);
         if (!ValidateDeleteRequest(session, characterId, character)) {
             return;
         }
@@ -177,7 +181,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
         long characterId = packet.ReadLong();
 
         using GameStorage.Request db = GameStorage.Context();
-        Character character = db.GetCharacter(characterId, session.AccountId);
+        Character? character = db.GetCharacter(characterId, session.AccountId);
         if (!ValidateDeleteRequest(session, characterId, character)) {
             return;
         }
@@ -194,7 +198,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
         }
     }
 
-    private static bool ValidateDeleteRequest(LoginSession session, long characterId, Character character) {
+    private static bool ValidateDeleteRequest(LoginSession session, long characterId, Character? character) {
         // This character does not exist or is not owned by session's account.
         if (character == null) {
             session.Send(CharacterListPacket.DeleteEntry(characterId, s_char_err_already_destroy));

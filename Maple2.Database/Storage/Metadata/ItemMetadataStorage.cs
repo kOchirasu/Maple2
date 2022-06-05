@@ -1,4 +1,7 @@
-﻿using Maple2.Database.Context;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using Maple2.Database.Context;
 using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,21 +12,28 @@ public class ItemMetadataStorage : MetadataStorage<int, ItemMetadata> {
 
     public ItemMetadataStorage(MetadataContext context) : base(context, CACHE_SIZE) { }
 
-    public ItemMetadata Get(int id) {
-        if (Cache.TryGet(id, out ItemMetadata item)) {
-            return item;
+    public bool TryGet(int id, [NotNullWhen(true)] out ItemMetadata? item) {
+        if (Cache.TryGet(id, out item)) {
+            return true;
         }
 
         lock (Context) {
             item = Context.ItemMetadata.Find(id);
         }
 
-        Cache.AddReplace(id, item);
+        if (item == null) {
+            return false;
+        }
 
-        return item;
+        Cache.AddReplace(id, item);
+        return true;
     }
 
-    public bool Contains(int id) {
-        return Get(id) != null;
+    public List<ItemMetadata> Search(string name) {
+        lock (Context) {
+            return Context.ItemMetadata
+                .Where(item => EF.Functions.Like(item.Name, $"%{name}%"))
+                .ToList();
+        }
     }
 }

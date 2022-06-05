@@ -50,6 +50,10 @@ public class ItemInventoryHandler : PacketHandler<GameSession> {
     }
 
     private void HandleDrop(GameSession session, IByteReader packet) {
+        if (session.Field == null) {
+            return;
+        }
+
         long uid = packet.ReadLong();
         int amount = packet.ReadInt();
 
@@ -59,6 +63,10 @@ public class ItemInventoryHandler : PacketHandler<GameSession> {
     }
 
     private void HandleDropAll(GameSession session, IByteReader packet) {
+        if (session.Field == null) {
+            return;
+        }
+
         long uid = packet.ReadLong();
 
         if (session.Item.Inventory.Remove(uid, out Item? removed)) {

@@ -3,6 +3,8 @@ using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Database.Storage;
 
@@ -14,7 +16,7 @@ public partial class GameStorage {
             model.Id = 0;
             context.Item.Add(model);
 
-            return context.TrySaveChanges() ? model.Convert(game.itemMetadata.Get(model.ItemId)) : null;
+            return context.TrySaveChanges() ? ToItem(model) : null;
         }
 
         public Item SplitItem(long ownerId, Item item, int amount) {
@@ -27,7 +29,7 @@ public partial class GameStorage {
             model.Id = 0;
             context.Item.Add(model);
 
-            return context.TrySaveChanges() ? model.Convert(game.itemMetadata.Get(model.ItemId)) : null;
+            return context.TrySaveChanges() ? ToItem(model) : null;
         }
 
         public List<Item> CreateItems(long ownerId, params Item[] items) {
@@ -43,12 +45,16 @@ public partial class GameStorage {
                 return null;
             }
 
-            return models.Select(model => model.Convert(game.itemMetadata.Get(model.ItemId))).ToList();
+            return models.Select(ToItem).Where(item => item != null).ToList();
         }
 
         public Item GetItem(long itemUid) {
             Model.Item model = context.Item.Find(itemUid);
-            return model?.Convert(game.itemMetadata.Get(model.ItemId));
+            if (model == null) {
+                return null;
+            }
+
+            return game.itemMetadata.TryGet(model.ItemId, out ItemMetadata metadata) ? model.Convert(metadata) : null;
         }
 
         public IDictionary<EquipTab, List<Item>> GetEquips(long characterId, params EquipTab[] tab) {
@@ -57,14 +63,15 @@ public partial class GameStorage {
                 .GroupBy(item => item.EquipTab)
                 .ToDictionary(
                     group => group.Key,
-                    group => group.Select(model => model.Convert(game.itemMetadata.Get(model.ItemId))).ToList()
+                    group => group.Select(ToItem).Where(item => item != null).ToList()
                 );
         }
 
         public Dictionary<InventoryType, List<Item>> GetInventory(long characterId) {
             return context.Item.Where(item => item.OwnerId == characterId && item.EquipTab == EquipTab.None)
-                .Select(model => model.Convert(game.itemMetadata.Get(model.ItemId)))
                 .AsEnumerable()
+                .Select(ToItem)
+                .Where(item => item != null)
                 .GroupBy(item => item.Inventory)
                 .ToDictionary(
                     group => group.Key,
@@ -74,7 +81,9 @@ public partial class GameStorage {
 
         public List<Item> GetItems(long characterId) {
             return context.Item.Where(item => item.OwnerId == characterId)
-                .Select(model => model.Convert(game.itemMetadata.Get(model.ItemId)))
+                .AsEnumerable()
+                .Select(ToItem)
+                .Where(item => item != null)
                 .ToList();
         }
 
@@ -87,6 +96,15 @@ public partial class GameStorage {
             }
 
             return context.TrySaveChanges();
+        }
+
+        // Converts model to item if possible, otherwise returns null.
+        private Item ToItem(Model.Item model) {
+            if (model == null) {
+                return null;
+            }
+
+            return game.itemMetadata.TryGet(model.ItemId, out ItemMetadata metadata) ? model.Convert(metadata) : null;
         }
     }
 }

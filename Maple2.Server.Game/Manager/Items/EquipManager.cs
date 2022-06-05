@@ -58,11 +58,11 @@ public class EquipManager {
         if (item == null) {
             return false;
         }
-
-        Debug.Assert(item.Metadata.Property.IsSkin == isSkin);
-
+        if (item.Metadata.Property.IsSkin != isSkin) {
+            return false;
+        }
         if (!ValidEquipSlotForItem(slot, item)) {
-            throw new InvalidOperationException($"Cannot equip item {item.Id} to slot {slot}");
+            return false;
         }
 
         ConcurrentDictionary<EquipSlot, Item> equips = isSkin ? Outfit : Gear;

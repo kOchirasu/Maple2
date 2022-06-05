@@ -9,7 +9,6 @@ using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
-using Maple2.Server.Core.Constants;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
@@ -234,7 +233,11 @@ public class InventoryManager {
     }
 
     public IEnumerable<Item> Find(int id, int rarity = -1) {
-        InventoryType type = session.ItemMetadata.Get(id).Inventory();
+        if (!session.ItemMetadata.TryGet(id, out ItemMetadata? metadata)) {
+            yield break;
+        }
+
+        InventoryType type = metadata.Inventory();
         if (!tabs.TryGetValue(type, out ItemCollection? items)) {
             session.Send(ItemInventoryPacket.Error(s_item_err_not_active_tab));
             yield break;

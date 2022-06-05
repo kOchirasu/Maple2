@@ -47,7 +47,11 @@ public class TutorialCommand : Command {
                     case Type.Item: {
                         using GameStorage.Request db = session.GameStorage.Context();
                         foreach (JobTable.Item rewardItem in tutorial.StartItem.Concat(tutorial.Reward)) {
-                            var item = new Item(session.ItemMetadata.Get(rewardItem.Id)) {
+                            if (!session.ItemMetadata.TryGet(rewardItem.Id, out ItemMetadata? metadata)) {
+                                continue;
+                            }
+
+                            var item = new Item(metadata) {
                                 Amount = rewardItem.Count,
                                 Rarity = rewardItem.Rarity,
                             };
