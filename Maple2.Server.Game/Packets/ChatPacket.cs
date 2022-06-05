@@ -50,7 +50,7 @@ public static class ChatPacket {
         pWriter.WriteInt();
 
         if (type == ChatType.WhisperFrom) {
-            pWriter.WriteUnicodeString(unknown);
+            pWriter.WriteUnicodeString(unknown ?? string.Empty);
         }
 
         pWriter.WriteBool(false);

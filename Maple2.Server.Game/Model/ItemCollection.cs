@@ -158,6 +158,7 @@ public class ItemCollection : IEnumerable<Item> {
         try {
             items[slot] = null;
             uidToSlot.Remove(removed.Uid);
+            Count--;
             return true;
         } finally {
             mutex.ExitWriteLock();

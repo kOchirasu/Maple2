@@ -15,7 +15,7 @@ internal class Item {
     public short Slot { get; set; } = -1;
     public EquipTab EquipTab { get; set; } = EquipTab.None;
     public EquipSlot EquipSlot { get; set; } = EquipSlot.Unknown;
-    public int Amount { get; set; }
+    public int Amount { get; set; } = 1;
     public DateTime ExpiryTime { get; set; }
     public int TimeChangedOption { get; set; }
     public int RemainUses { get; set; }

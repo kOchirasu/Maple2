@@ -21,7 +21,7 @@ public class Item : IByteSerializable, IByteDeserializable {
     public EquipSlot EquipSlot = EquipSlot.Unknown;
 
     public int Id => Metadata.Id;
-    public int Amount;
+    public int Amount = 1;
 
     public long CreationTime;
     public long ExpiryTime;

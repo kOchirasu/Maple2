@@ -145,6 +145,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         // Mail
         // BypassKey
         // AH
+        Config.LoadWardrobe();
 
         return true;
     }

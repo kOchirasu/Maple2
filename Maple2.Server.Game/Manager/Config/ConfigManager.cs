@@ -1,10 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -74,6 +74,12 @@ public class ConfigManager {
         session.Send(SkillMacroPacket.Load(skillMacros));
     }
 
+    public void LoadWardrobe() {
+        for (int i = 0; i < wardrobes.Count; i++) {
+            session.Send(WardrobePacket.Load(i, wardrobes[i]));
+        }
+    }
+
     public void LoadStatAttributes() {
         session.Send(AttributePointPacket.Sources(statAttributes));
         session.Send(AttributePointPacket.Allocation(statAttributes));
@@ -108,6 +114,30 @@ public class ConfigManager {
     #region Macros
     public void UpdateMacros(List<SkillMacro> updated) {
         skillMacros = updated;
+    }
+    #endregion
+
+    #region Wardrobe
+    public bool AddWardrobe(string name) {
+        if (wardrobes.Count >= Constant.MaxClosetMaxCount) {
+            return false;
+        }
+        if (name.Length > Constant.MaxClosetTabNameLength) {
+            return false;
+        }
+
+        wardrobes.Add(new Wardrobe(0, name));
+        return true;
+    }
+
+    public bool TryGetWardrobe(int index, [NotNullWhen(true)] out Wardrobe? wardrobe) {
+        if (index < 0 || index >= wardrobes.Count) {
+            wardrobe = null;
+            return false;
+        }
+
+        wardrobe = wardrobes[index];
+        return true;
     }
     #endregion
 

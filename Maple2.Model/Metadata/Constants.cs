@@ -14,6 +14,21 @@ public static class Constant {
 
     #endregion
 
+    #region client constants
+    public const int MaxClosetMaxCount = 5;
+    public const int MaxClosetTabNameLength = 10;
+    public const int WeddingProposeItemID = 11600482;
+    public const int WeddingInvitationMaxCount = 70;
+    public const int WeddingProposeCooltime = 2;
+    public const int WeddingDivorceFieldID = 84000002;
+    public const int WeddingInvitationMeso = 1000;
+    public const int WeddingDivorceMeso = 1000000;
+    public const int WeddingCoolingOffDay = 7;
+    public const int WeddingPromiseLimitDay = 7;
+    public const int WeddingHallModifyLimitHour = 3;
+    public const int WeddingDivorceRequireMarriageDay = 30;
+    #endregion
+
     #region table/constants.xml
 
     public const float NPCColorScale = 2.0f;
