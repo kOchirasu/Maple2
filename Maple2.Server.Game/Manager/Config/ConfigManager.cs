@@ -19,6 +19,7 @@ public class ConfigManager {
     private short activeHotBar;
     private readonly List<HotBar> hotBars;
     private IList<SkillMacro> skillMacros;
+    private IList<Wardrobe> wardrobes;
     private readonly StatAttributes statAttributes;
 
     public readonly SkillManager Skill;
@@ -33,6 +34,7 @@ public class ConfigManager {
             IList<KeyBind>? KeyBinds,
             IList<QuickSlot[]>? HotBars,
             IList<SkillMacro>? Macros,
+            IList<Wardrobe>? Wardrobes,
             IDictionary<StatAttribute, int>? Allocation,
             SkillBook? SkillBook
         ) load = db.LoadCharacterConfig(session.CharacterId);
@@ -45,6 +47,7 @@ public class ConfigManager {
             hotBars.Add(new HotBar(load.HotBars?.ElementAtOrDefault(i)));
         }
         skillMacros = load.Macros ?? new List<SkillMacro>();
+        wardrobes = load.Wardrobes ?? new List<Wardrobe>();
 
         statAttributes = new StatAttributes();
         if (load.Allocation != null) {
@@ -170,6 +173,7 @@ public class ConfigManager {
             session.CharacterId, keyBinds.Values.ToList(),
             hotBars.Select(hotBar => hotBar.Slots).ToList(),
             skillMacros,
+            wardrobes,
             statAttributes.Allocation,
             Skill.SkillBook
         );

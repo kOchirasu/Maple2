@@ -14,6 +14,7 @@ internal class CharacterConfig {
     public IList<KeyBind> KeyBinds { get; set; }
     public IList<QuickSlot[]> HotBars { get; set; }
     public IList<SkillMacro> SkillMacros { get; set; }
+    public IList<Wardrobe> Wardrobes { get; set; }
     public IDictionary<StatAttribute, int> StatAllocation { get; set; }
     public SkillBook SkillBook { get; set; }
 
@@ -27,6 +28,7 @@ internal class CharacterConfig {
         builder.Property(config => config.KeyBinds).HasJsonConversion();
         builder.Property(config => config.HotBars).HasJsonConversion();
         builder.Property(config => config.SkillMacros).HasJsonConversion();
+        builder.Property(config => config.Wardrobes).HasJsonConversion();
         builder.Property(config => config.StatAllocation).HasJsonConversion();
 
         builder.OwnsOne(config => config.SkillBook)
@@ -58,6 +60,49 @@ internal class SkillMacro {
     public static implicit operator Maple2.Model.Game.SkillMacro(SkillMacro other) {
         return other == null ? new Maple2.Model.Game.SkillMacro(string.Empty, 0) :
             new Maple2.Model.Game.SkillMacro(other.Name, other.KeyId, other.Skills.ToHashSet());
+    }
+}
+
+internal class Wardrobe {
+    public int Type { get; set; }
+    public int KeyId { get; set; }
+    public string Name { get; set; }
+    public Dictionary<EquipSlot, Equip> Equips { get; set; }
+
+    public static implicit operator Wardrobe(Maple2.Model.Game.Wardrobe other) {
+        return other == null ? new Wardrobe() : new Wardrobe {
+            Type = other.Type,
+            Name = other.Name,
+            KeyId = other.KeyId,
+            Equips = other.Equips.ToDictionary(
+                entry => entry.Key,
+                entry => new Equip {
+                    ItemId = entry.Value.ItemId,
+                    ItemUid = entry.Value.ItemUid,
+                    Rarity = entry.Value.Rarity,
+                }
+            ),
+        };
+    }
+
+    public static implicit operator Maple2.Model.Game.Wardrobe(Wardrobe other) {
+        if (other == null) {
+            return new Maple2.Model.Game.Wardrobe(0, string.Empty);
+        }
+
+        var wardrobe = new Maple2.Model.Game.Wardrobe(other.Type, other.Name) {
+            KeyId = other.KeyId,
+        };
+        foreach ((EquipSlot slot, Equip equip) in other.Equips) {
+            wardrobe.Equips[slot] = new Maple2.Model.Game.Wardrobe.Equip(equip.ItemUid, equip.ItemId, slot, equip.Rarity);
+        }
+        return wardrobe;
+    }
+
+    internal class Equip {
+        public long ItemUid { get; set; }
+        public int ItemId { get; set; }
+        public int Rarity { get; set; }
     }
 }
 

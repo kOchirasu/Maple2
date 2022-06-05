@@ -12,6 +12,7 @@ using Character = Maple2.Model.Game.Character;
 using SkillMacro = Maple2.Model.Game.SkillMacro;
 using SkillBook = Maple2.Model.Game.SkillBook;
 using SkillTab = Maple2.Model.Game.SkillTab;
+using Wardrobe = Maple2.Model.Game.Wardrobe;
 
 namespace Maple2.Database.Storage;
 
@@ -152,11 +153,10 @@ public partial class GameStorage {
             return context.TrySaveChanges();
         }
 
-        public (IList<KeyBind> KeyBinds, IList<QuickSlot[]> HotBars, List<SkillMacro>,
-                IDictionary<StatAttribute, int>, SkillBook) LoadCharacterConfig(long characterId) {
+        public (IList<KeyBind> KeyBinds, IList<QuickSlot[]> HotBars, List<SkillMacro>, List<Wardrobe>, IDictionary<StatAttribute, int>, SkillBook) LoadCharacterConfig(long characterId) {
             CharacterConfig config = context.CharacterConfig.Find(characterId);
             if (config == null) {
-                return (null, null, null, null, null);
+                return (null, null, null, null, null, null);
             }
 
             var skillBook = new SkillBook {
@@ -171,13 +171,20 @@ public partial class GameStorage {
                 config.KeyBinds,
                 config.HotBars,
                 config.SkillMacros?.Select<Model.SkillMacro, SkillMacro>(macro => macro).ToList(),
+                config.Wardrobes?.Select<Model.Wardrobe, Wardrobe>(wardrobe => wardrobe).ToList(),
                 config.StatAllocation,
                 skillBook
             );
         }
 
-        public bool SaveCharacterConfig(long characterId, IList<KeyBind> keyBinds, IList<QuickSlot[]> hotBars,
-                IEnumerable<SkillMacro> skillMacros, StatAttributes.PointAllocation allocation, SkillBook skillBook) {
+        public bool SaveCharacterConfig(
+                long characterId,
+                IList<KeyBind> keyBinds,
+                IList<QuickSlot[]> hotBars,
+                IEnumerable<SkillMacro> skillMacros,
+                IEnumerable<Wardrobe> wardrobes,
+                StatAttributes.PointAllocation allocation,
+                SkillBook skillBook) {
             context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
 
             CharacterConfig config = context.CharacterConfig.Find(characterId);
@@ -188,6 +195,7 @@ public partial class GameStorage {
             config.KeyBinds = keyBinds;
             config.HotBars = hotBars;
             config.SkillMacros = skillMacros.Select<SkillMacro, Model.SkillMacro>(macro => macro).ToList();
+            config.Wardrobes = wardrobes.Select<Wardrobe, Model.Wardrobe>(wardrobe => wardrobe).ToList();
             config.StatAllocation = allocation.Attributes.ToDictionary(
                 attribute => attribute,
                 attribute => allocation[attribute]);
