@@ -27,6 +27,7 @@ metadataContext.Database.EnsureCreated();
 // Filter Xml results based on feature settings.
 Filter.Load(xmlReader, locale, env);
 
+UpdateDatabase(metadataContext, new AnimationMapper(xmlReader));
 UpdateDatabase(metadataContext, new ItemMapper(xmlReader));
 UpdateDatabase(metadataContext, new NpcMapper(xmlReader));
 UpdateDatabase(metadataContext, new MapMapper(xmlReader));

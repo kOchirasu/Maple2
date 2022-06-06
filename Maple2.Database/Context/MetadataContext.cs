@@ -8,6 +8,7 @@ namespace Maple2.Database.Context;
 
 public sealed class MetadataContext : DbContext {
     public DbSet<TableChecksum> TableChecksum { get; set; }
+    public DbSet<AnimationMetadata> AnimationMetadata { get; set; }
     public DbSet<ItemMetadata> ItemMetadata { get; set; }
     public DbSet<NpcMetadata> NpcMetadata { get; set; }
     public DbSet<MapMetadata> MapMetadata { get; set; }
@@ -21,6 +22,7 @@ public sealed class MetadataContext : DbContext {
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<TableChecksum>(Maple2.Database.Model.Metadata.TableChecksum.Configure);
+        modelBuilder.Entity<AnimationMetadata>(ConfigureAnimationMetadata);
         modelBuilder.Entity<ItemMetadata>(ConfigureItemMetadata);
         modelBuilder.Entity<NpcMetadata>(ConfigureNpcMetadata);
         modelBuilder.Entity<MapMetadata>(ConfigureMapMetadata);
@@ -28,6 +30,12 @@ public sealed class MetadataContext : DbContext {
         modelBuilder.Entity<SkillMetadata>(ConfigureSkillMetadata);
         modelBuilder.Entity<TableMetadata>(ConfigureTableMetadata);
         modelBuilder.Entity<UgcMapMetadata>(ConfigureUgcMapMetadata);
+    }
+
+    private static void ConfigureAnimationMetadata(EntityTypeBuilder<AnimationMetadata> builder) {
+        builder.ToTable("animation");
+        builder.HasKey(ani => ani.Model);
+        builder.Property(ani => ani.Sequences).HasJsonConversion();
     }
 
     private static void ConfigureItemMetadata(EntityTypeBuilder<ItemMetadata> builder) {

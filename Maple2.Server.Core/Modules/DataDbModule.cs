@@ -23,6 +23,7 @@ public class DataDbModule : Module {
         context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
         builder.RegisterInstance(context);
 
+        builder.RegisterType<AnimationMetadata>().SingleInstance();
         builder.RegisterType<ItemMetadataStorage>().SingleInstance();
         builder.RegisterType<MapMetadataStorage>().SingleInstance();
         builder.RegisterType<MapEntityStorage>().SingleInstance();
