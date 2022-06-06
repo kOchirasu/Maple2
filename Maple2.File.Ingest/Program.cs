@@ -30,6 +30,7 @@ Filter.Load(xmlReader, locale, env);
 UpdateDatabase(metadataContext, new AnimationMapper(xmlReader));
 UpdateDatabase(metadataContext, new ItemMapper(xmlReader));
 UpdateDatabase(metadataContext, new NpcMapper(xmlReader));
+UpdateDatabase(metadataContext, new MagicPathMapper(xmlReader));
 UpdateDatabase(metadataContext, new MapMapper(xmlReader));
 UpdateDatabase(metadataContext, new MapEntityMapper(metadataContext, exportedReader));
 UpdateDatabase(metadataContext, new SkillMapper(xmlReader));

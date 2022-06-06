@@ -11,6 +11,7 @@ public sealed class MetadataContext : DbContext {
     public DbSet<AnimationMetadata> AnimationMetadata { get; set; }
     public DbSet<ItemMetadata> ItemMetadata { get; set; }
     public DbSet<NpcMetadata> NpcMetadata { get; set; }
+    public DbSet<MagicPathMetadata> MagicPathMetadata { get; set; }
     public DbSet<MapMetadata> MapMetadata { get; set; }
     public DbSet<MapEntity> MapEntity { get; set; }
     public DbSet<SkillMetadata> SkillMetadata { get; set; }
@@ -25,6 +26,7 @@ public sealed class MetadataContext : DbContext {
         modelBuilder.Entity<AnimationMetadata>(ConfigureAnimationMetadata);
         modelBuilder.Entity<ItemMetadata>(ConfigureItemMetadata);
         modelBuilder.Entity<NpcMetadata>(ConfigureNpcMetadata);
+        modelBuilder.Entity<MagicPathMetadata>(ConfigureMagicPathMetadata);
         modelBuilder.Entity<MapMetadata>(ConfigureMapMetadata);
         modelBuilder.Entity<MapEntity>(ConfigureMapEntity);
         modelBuilder.Entity<SkillMetadata>(ConfigureSkillMetadata);
@@ -53,6 +55,12 @@ public sealed class MetadataContext : DbContext {
         builder.Property(npc => npc.Basic).HasJsonConversion();
         builder.Property(npc => npc.Action).HasJsonConversion();
         builder.Property(npc => npc.Dead).HasJsonConversion();
+    }
+
+    private static void ConfigureMagicPathMetadata(EntityTypeBuilder<MagicPathMetadata> builder) {
+        builder.ToTable("magicpath");
+        builder.HasKey(magicPath => magicPath.Id);
+        builder.Property(magicPath => magicPath.Moves).HasJsonConversion();
     }
 
     private static void ConfigureMapMetadata(EntityTypeBuilder<MapMetadata> builder) {

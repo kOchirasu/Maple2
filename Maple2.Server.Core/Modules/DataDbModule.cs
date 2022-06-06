@@ -25,6 +25,7 @@ public class DataDbModule : Module {
 
         builder.RegisterType<AnimationMetadata>().SingleInstance();
         builder.RegisterType<ItemMetadataStorage>().SingleInstance();
+        builder.RegisterType<MagicPathMetadata>().SingleInstance();
         builder.RegisterType<MapMetadataStorage>().SingleInstance();
         builder.RegisterType<MapEntityStorage>().SingleInstance();
         builder.RegisterType<NpcMetadataStorage>().SingleInstance();

@@ -43,3 +43,23 @@ public enum SkillRank : byte {
     Awakening = 1,
     Both = 2,
 }
+
+public enum SkillRegion {
+    None = 0,
+    Box = 1,
+    Cylinder = 2,
+    Frustum = 3,
+    HoleCylinder = 4,
+}
+
+public enum SkillEntity {
+    None = 0,
+    Self = 1,
+    Other = 2,
+    Unknown3 = 3,
+    Unknown4 = 4,
+    Unknown5 = 5,
+    Unknown6 = 6,
+    Unknown7 = 7,
+    Pet = 8, // Snares and Dryad Candy
+}
