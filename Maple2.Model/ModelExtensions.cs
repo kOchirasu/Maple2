@@ -39,6 +39,7 @@ public static class ModelExtensions {
         };
     }
 
+    public static bool IsCurrency(this Item item) => item.Id is >= 90000000 and < 100000000;
     public static bool IsMeso(this Item item) => item.Id is >= 90000001 and <= 90000003;
     public static bool IsMeret(this Item item) => item.Id is 90000004 or 90000011 or 90000015 or 90000016;
     public static bool IsExp(this Item item) => item.Id is 90000008;

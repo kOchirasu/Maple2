@@ -111,6 +111,30 @@ public class ItemCollection : IEnumerable<Item> {
         return Array.Empty<(Item, int)>();
     }
 
+    public bool CanAdd(Item item, int amount = -1) {
+        if (OpenSlots > 0) {
+            return true;
+        }
+
+        int remaining = amount < 0 ? item.Amount : amount;
+        mutex.EnterReadLock();
+        try {
+            foreach (Item existing in GetInternalEnumerator()) {
+                if (!CanStack(existing, item)) continue;
+
+                int available = existing.Metadata.Property.SlotMax - existing.Amount;
+                remaining -= available;
+                if (remaining <= 0) {
+                    return true;
+                }
+            }
+        } finally {
+            mutex.ExitReadLock();
+        }
+
+        return false;
+    }
+
     public Item? Get(long uid) {
         short slot;
         mutex.EnterReadLock();

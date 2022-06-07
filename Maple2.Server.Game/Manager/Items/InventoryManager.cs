@@ -150,6 +150,10 @@ public class InventoryManager {
         }
     }
 
+    public bool CanAdd(Item item) {
+        return tabs.TryGetValue(item.Inventory, out ItemCollection? items) && items.CanAdd(item);
+    }
+
     public bool Remove(long uid, [NotNullWhen(true)] out Item? removed, int amount = -1) {
         mutex.EnterWriteLock();
         try {

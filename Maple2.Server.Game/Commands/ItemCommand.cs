@@ -51,7 +51,12 @@ public class ItemCommand : Command {
                 return;
             }
 
-            amount = Math.Clamp(amount, 1, metadata.Property.SlotMax);
+            if (metadata.Property.SlotMax == 0) {
+                ctx.Console.Error.WriteLine($"{itemId} has SlotMax of 0, ignoring...");
+                amount = Math.Clamp(amount, 1, int.MaxValue);
+            } else {
+                amount = Math.Clamp(amount, 1, metadata.Property.SlotMax);
+            }
             rarity = Math.Clamp(rarity, 1, MAX_RARITY);
 
             var item = new Item(metadata) {

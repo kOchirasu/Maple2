@@ -58,7 +58,7 @@ public class ItemInventoryHandler : PacketHandler<GameSession> {
         int amount = packet.ReadInt();
 
         if (session.Item.Inventory.Remove(uid, out Item? removed, amount)) {
-            session.Field.DropItem(session.Player, removed!);
+            session.Field.DropItem(session.Player, removed);
         }
     }
 

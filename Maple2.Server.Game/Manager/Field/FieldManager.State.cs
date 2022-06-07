@@ -78,6 +78,10 @@ public partial class FieldManager {
         Multicast(FieldPacket.DropItem(fieldItem));
     }
 
+    public bool TryGetItem(int objectId, [NotNullWhen(true)] out FieldEntity<Item>? fieldItem) {
+        return fieldItems.TryGetValue(objectId, out fieldItem);
+    }
+
     public bool PickupItem(FieldPlayer looter, int objectId, [NotNullWhen(true)] out FieldEntity<Item>? fieldItem) {
         if (!fieldItems.TryRemove(objectId, out fieldItem)) return false;
 
