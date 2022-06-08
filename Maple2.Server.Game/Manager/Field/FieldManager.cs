@@ -9,6 +9,7 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.Manager.Field;
 
@@ -22,14 +23,17 @@ public sealed partial class FieldManager : IDisposable {
     private readonly ConcurrentDictionary<int, FieldEntity<Portal>> fieldPortals = new();
     private readonly ConcurrentDictionary<int, FieldNpc> fieldNpcs = new();
 
+    private readonly ILogger logger;
+
     public int MapId => Metadata.Id;
     public readonly int InstanceId;
 
-    private FieldManager(int instanceId, MapMetadata metadata, MapEntityMetadata entities, NpcMetadataStorage npcMetadata) {
+    private FieldManager(int instanceId, MapMetadata metadata, MapEntityMetadata entities, NpcMetadataStorage npcMetadata, ILogger logger) {
         InstanceId = instanceId;
         this.Metadata = metadata;
         this.entities = entities;
         this.npcMetadata = npcMetadata;
+        this.logger = logger;
 
         foreach (Portal portal in entities.Portals.Values) {
             int objectId = Interlocked.Increment(ref objectIdCounter);
@@ -50,7 +54,13 @@ public sealed partial class FieldManager : IDisposable {
                     int objectId = Interlocked.Increment(ref objectIdCounter);
                     // TODO: get other NpcIds too
                     int npcId = spawnPointNpc.NpcIds[0];
-                    var fieldNpc = new FieldNpc(this, objectId, new Npc(npcMetadata.Get(npcId))) {
+                    NpcMetadata? npc = npcMetadata.Get(npcId);
+                    if (npc == null) {
+                        logger.LogWarning("Npc {NpcId} failed to load for map {MapId}", npcId, MapId);
+                        continue;
+                    }
+
+                    var fieldNpc = new FieldNpc(this, objectId, new Npc(npc)) {
                         Position = spawnPointNpc.Position,
                         Rotation = spawnPointNpc.Rotation,
                     };

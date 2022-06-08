@@ -34,7 +34,7 @@ public partial class FieldManager {
             // ReSharper disable once HeapView.CanAvoidClosure, defer instantiation unless it's needed.
             return managers.GetOrAdd((mapId, instanceId), _ => {
                 MapEntityMetadata entities = MapEntities.Get(metadata.XBlock);
-                return new FieldManager(instanceId, metadata, entities, NpcMetadata);
+                return new FieldManager(instanceId, metadata, entities, NpcMetadata, logger);
             });
         }
     }
