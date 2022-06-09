@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Game.Shop;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
@@ -25,6 +26,30 @@ public static class BeautyPacket {
         DeleteHair = 18,
         SaveSlots = 20,
         ApplySavedHair = 21,
+    }
+
+    public static ByteWriter BeautyShop(BeautyShop shop) {
+        var pWriter = Packet.Of(SendOp.BEAUTY);
+        pWriter.Write<Command>(Command.BeautyShop);
+        pWriter.WriteClass<BeautyShop>(shop);
+
+        return pWriter;
+    }
+
+    public static ByteWriter DyeShop(BeautyShopData shop) {
+        var pWriter = Packet.Of(SendOp.BEAUTY);
+        pWriter.Write<Command>(Command.DyeShop);
+        pWriter.WriteClass<BeautyShopData>(shop);
+
+        return pWriter;
+    }
+
+    public static ByteWriter SaveShop(BeautyShopData shop) {
+        var pWriter = Packet.Of(SendOp.BEAUTY);
+        pWriter.Write<Command>(Command.SaveShop);
+        pWriter.WriteClass<BeautyShopData>(shop);
+
+        return pWriter;
     }
 
     public static ByteWriter Error(BeautyError error) {

@@ -54,8 +54,7 @@ public sealed partial class FieldManager : IDisposable {
                     int objectId = Interlocked.Increment(ref objectIdCounter);
                     // TODO: get other NpcIds too
                     int npcId = spawnPointNpc.NpcIds[0];
-                    NpcMetadata? npc = npcMetadata.Get(npcId);
-                    if (npc == null) {
+                    if (!npcMetadata.TryGet(npcId, out NpcMetadata? npc)) {
                         logger.LogWarning("Npc {NpcId} failed to load for map {MapId}", npcId, MapId);
                         continue;
                     }
@@ -72,6 +71,10 @@ public sealed partial class FieldManager : IDisposable {
 
     public bool TryGetPortal(int portalId, [NotNullWhen(true)] out Portal? portal) {
         return entities.Portals.TryGetValue(portalId, out portal);
+    }
+
+    public bool TryGetNpc(int objectId, [NotNullWhen(true)] out FieldNpc? npc) {
+        return fieldNpcs.TryGetValue(objectId, out npc);
     }
 
     public void InspectPlayer(GameSession session, long characterId) {

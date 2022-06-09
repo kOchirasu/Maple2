@@ -1,6 +1,8 @@
-﻿using Maple2.Model.Common;
+﻿using Maple2.Database.Storage;
+using Maple2.Model.Common;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Game.Shop;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -32,6 +34,12 @@ public class BeautyHandler : PacketHandler<GameSession> {
         GearDye = 22,
         Voucher = 23,
     }
+
+    #region Autofac Autowired
+    // ReSharper disable MemberCanBePrivate.Global
+    public NpcMetadataStorage NpcMetadata { get; init; } = null!;
+    // ReSharper restore All
+    #endregion
 
     public BeautyHandler(ILogger<BeautyHandler> logger) : base(logger) { }
 
@@ -89,6 +97,38 @@ public class BeautyHandler : PacketHandler<GameSession> {
     private void HandleShop(GameSession session, IByteReader packet) {
         int npcId = packet.ReadInt();
         byte shopType = packet.ReadByte();
+
+        if (!NpcMetadata.TryGet(npcId, out NpcMetadata? metadata)) {
+            return;
+        }
+
+        int shopId = metadata.Basic.ShopId;
+        switch (shopId) {
+            case 500:
+                session.Send(BeautyPacket.BeautyShop(BeautyShop.Face()));
+                return;
+            case 501:
+                session.Send(BeautyPacket.BeautyShop(BeautyShop.Skin()));
+                return;
+            case 504:
+                session.Send(BeautyPacket.BeautyShop(BeautyShop.Hair()));
+                return;
+            case 505:
+                session.Send(BeautyPacket.BeautyShop(BeautyShop.Cosmetic()));
+                return;
+            case 506:
+                session.Send(BeautyPacket.DyeShop(BeautyShop.Dye()));
+                return;
+            case 508:
+                session.Send(BeautyPacket.BeautyShop(BeautyShop.RandomHair()));
+                return;
+            case 509:
+                session.Send(BeautyPacket.BeautyShop(BeautyShop.SpecialHair()));
+                return;
+            case 510:
+                session.Send(BeautyPacket.SaveShop(BeautyShop.SavedHair()));
+                return;
+        }
     }
 
     private void HandleCreateBeauty(GameSession session, IByteReader packet) {

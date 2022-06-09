@@ -34,7 +34,7 @@ public class CurrencyManager {
         get => Currency.GameMeret;
         set {
             if (value < 0) {
-                throw new ArgumentException("Not enough Merets");
+                throw new ArgumentException("Not enough RedMerets");
             }
 
             long delta = Math.Min(value, Constant.MaxMeret) - Currency.GameMeret;

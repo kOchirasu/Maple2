@@ -1,4 +1,5 @@
-﻿using Caching;
+﻿using System.Diagnostics.CodeAnalysis;
+using Caching;
 using Maple2.Database.Context;
 using Maple2.Model.Metadata;
 
@@ -14,18 +15,21 @@ public class NpcMetadataStorage : MetadataStorage<int, NpcMetadata> {
         AniCache = new LRUCache<string, AnimationMetadata>(ANI_CACHE_SIZE, (int)(ANI_CACHE_SIZE * 0.05));
     }
 
-    public NpcMetadata Get(int id) {
-        if (Cache.TryGet(id, out NpcMetadata npc)) {
-            return npc;
+    public bool TryGet(int id, [NotNullWhen(true)] out NpcMetadata? npc) {
+        if (Cache.TryGet(id, out npc)) {
+            return true;
         }
 
         lock (Context) {
             npc = Context.NpcMetadata.Find(id);
         }
 
-        Cache.AddReplace(id, npc);
+        if (npc == null) {
+            return false;
+        }
 
-        return npc;
+        Cache.AddReplace(id, npc);
+        return true;
     }
 
     public AnimationMetadata GetAnimation(string model) {
@@ -40,9 +44,5 @@ public class NpcMetadataStorage : MetadataStorage<int, NpcMetadata> {
         AniCache.AddReplace(model, animation);
 
         return animation;
-    }
-
-    public bool Contains(int id) {
-        return Get(id) != null;
     }
 }
