@@ -8,14 +8,14 @@ internal abstract partial record ItemSubType([JsonDiscriminator] ItemSubType.Dis
 
 internal record ItemUgc(UgcItemLook Template, ItemBlueprint Blueprint) : ItemSubType(Discriminator.Ugc);
 
-internal record UgcItemLook(string FileName, string Name, long AccountId, long CharacterId, string Author, 
+internal record UgcItemLook(string FileName, string Name, long AccountId, long CharacterId, string Author,
         long CreationTime, string Url) {
-    public static implicit operator UgcItemLook(Maple2.Model.Game.UgcItemLook other) {
-        return other == null ? null : new UgcItemLook(other.FileName, other.Name, other.AccountId, other.CharacterId, 
+    public static implicit operator UgcItemLook?(Maple2.Model.Game.UgcItemLook? other) {
+        return other == null ? null : new UgcItemLook(other.FileName, other.Name, other.AccountId, other.CharacterId,
             other.Author, other.CreationTime, other.Url);
     }
-    
-    public static implicit operator Maple2.Model.Game.UgcItemLook(UgcItemLook other) {
+
+    public static implicit operator Maple2.Model.Game.UgcItemLook?(UgcItemLook? other) {
         return other == null ? null : new Maple2.Model.Game.UgcItemLook {
             FileName = other.FileName,
             Name = other.Name,
@@ -29,21 +29,21 @@ internal record UgcItemLook(string FileName, string Name, long AccountId, long C
 }
 
 internal record ItemBlueprint() {
-    public static implicit operator ItemBlueprint(Maple2.Model.Game.ItemBlueprint other) {
+    public static implicit operator ItemBlueprint?(Maple2.Model.Game.ItemBlueprint? other) {
         return other == null ? null : new ItemBlueprint();
     }
-    
-    public static implicit operator Maple2.Model.Game.ItemBlueprint(ItemBlueprint other) {
+
+    public static implicit operator Maple2.Model.Game.ItemBlueprint?(ItemBlueprint? other) {
         return other == null ? null : new Maple2.Model.Game.ItemBlueprint();
     }
 }
 
 internal record ItemPet(string Name, long Exp, int Level) : ItemSubType(Discriminator.Pet) {
-    public static implicit operator ItemPet(Maple2.Model.Game.ItemPet other) {
+    public static implicit operator ItemPet?(Maple2.Model.Game.ItemPet? other) {
         return other == null ? null : new ItemPet(other.Name, other.Exp, other.Level);
     }
-    
-    public static implicit operator Maple2.Model.Game.ItemPet(ItemPet other) {
+
+    public static implicit operator Maple2.Model.Game.ItemPet?(ItemPet? other) {
         return other == null ? null : new Maple2.Model.Game.ItemPet {
             Name = other.Name,
             Exp = other.Exp,
@@ -54,12 +54,12 @@ internal record ItemPet(string Name, long Exp, int Level) : ItemSubType(Discrimi
 
 internal record ItemCustomMusicScore(int Length, int Instrument, string Title, string Author, long CharacterId,
         bool IsLocked) : ItemSubType(Discriminator.Music) {
-    public static implicit operator ItemCustomMusicScore(Maple2.Model.Game.ItemCustomMusicScore other) {
+    public static implicit operator ItemCustomMusicScore?(Maple2.Model.Game.ItemCustomMusicScore? other) {
         return other == null ? null : new ItemCustomMusicScore(other.Length, other.Instrument, other.Title,
             other.Author, other.CharacterId, other.IsLocked);
     }
-    
-    public static implicit operator Maple2.Model.Game.ItemCustomMusicScore(ItemCustomMusicScore other) {
+
+    public static implicit operator Maple2.Model.Game.ItemCustomMusicScore?(ItemCustomMusicScore? other) {
         return other == null ? null : new Maple2.Model.Game.ItemCustomMusicScore {
             Length = other.Length,
             Instrument = other.Instrument,
@@ -72,11 +72,11 @@ internal record ItemCustomMusicScore(int Length, int Instrument, string Title, s
 }
 
 internal record ItemBadge(int Id, bool[] Transparency, int PetSkinId) : ItemSubType(Discriminator.Badge) {
-    public static implicit operator ItemBadge(Maple2.Model.Game.ItemBadge other) {
+    public static implicit operator ItemBadge?(Maple2.Model.Game.ItemBadge? other) {
         return other == null ? null : new ItemBadge(other.Id, other.Transparency, other.PetSkinId);
     }
-    
-    public static implicit operator Maple2.Model.Game.ItemBadge(ItemBadge other) {
+
+    public static implicit operator Maple2.Model.Game.ItemBadge?(ItemBadge? other) {
         return other == null ? null : new Maple2.Model.Game.ItemBadge(other.Id, other.Transparency) {
             PetSkinId = other.PetSkinId,
         };

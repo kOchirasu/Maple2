@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Metadata;
 namespace Maple2.Database.Extensions;
 
 public static class DbContextExtensions {
-    public static string GetTableName<T>(this DbContext context) where T : class {
+    public static string? GetTableName<T>(this DbContext context) where T : class {
         IEntityType entityType = context.Model.GetEntityTypes().First(type => type.ClrType == typeof(T));
 
         IAnnotation tableNameAnnotation = entityType.GetAnnotation("Relational:TableName");

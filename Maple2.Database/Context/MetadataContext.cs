@@ -7,16 +7,16 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace Maple2.Database.Context;
 
 public sealed class MetadataContext : DbContext {
-    public DbSet<TableChecksum> TableChecksum { get; set; }
-    public DbSet<AnimationMetadata> AnimationMetadata { get; set; }
-    public DbSet<ItemMetadata> ItemMetadata { get; set; }
-    public DbSet<NpcMetadata> NpcMetadata { get; set; }
-    public DbSet<MagicPathMetadata> MagicPathMetadata { get; set; }
-    public DbSet<MapMetadata> MapMetadata { get; set; }
-    public DbSet<MapEntity> MapEntity { get; set; }
-    public DbSet<SkillMetadata> SkillMetadata { get; set; }
-    public DbSet<TableMetadata> TableMetadata { get; set; }
-    public DbSet<UgcMapMetadata> UgcMapMetadata { get; set; }
+    public DbSet<TableChecksum> TableChecksum { get; set; } = null!;
+    public DbSet<AnimationMetadata> AnimationMetadata { get; set; } = null!;
+    public DbSet<ItemMetadata> ItemMetadata { get; set; } = null!;
+    public DbSet<NpcMetadata> NpcMetadata { get; set; } = null!;
+    public DbSet<MagicPathMetadata> MagicPathMetadata { get; set; } = null!;
+    public DbSet<MapMetadata> MapMetadata { get; set; } = null!;
+    public DbSet<MapEntity> MapEntity { get; set; } = null!;
+    public DbSet<SkillMetadata> SkillMetadata { get; set; } = null!;
+    public DbSet<TableMetadata> TableMetadata { get; set; } = null!;
+    public DbSet<UgcMapMetadata> UgcMapMetadata { get; set; } = null!;
 
     public MetadataContext(DbContextOptions options) : base(options) { }
 

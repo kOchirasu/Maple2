@@ -32,13 +32,17 @@ public class NpcMetadataStorage : MetadataStorage<int, NpcMetadata> {
         return true;
     }
 
-    public AnimationMetadata GetAnimation(string model) {
-        if (AniCache.TryGet(model, out AnimationMetadata animation)) {
+    public AnimationMetadata? GetAnimation(string model) {
+        if (AniCache.TryGet(model, out AnimationMetadata? animation)) {
             return animation;
         }
 
         lock (Context) {
             animation = Context.AnimationMetadata.Find(model);
+        }
+
+        if (animation == null) {
+            return null;
         }
 
         AniCache.AddReplace(model, animation);

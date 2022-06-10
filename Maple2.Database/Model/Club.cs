@@ -16,7 +16,7 @@ internal class Club {
     public long LeaderId { get; set; }
     public List<ClubMember> Members { get; set; }
 
-    public static implicit operator Club(Maple2.Model.Game.Club other) {
+    public static implicit operator Club?(Maple2.Model.Game.Club? other) {
         return other == null ? null : new Club {
             // CreationTime set by DB
             LastModified = other.LastModified,
@@ -26,7 +26,7 @@ internal class Club {
         };
     }
 
-    public static implicit operator Maple2.Model.Game.Club(Club other) {
+    public static implicit operator Maple2.Model.Game.Club?(Club? other) {
         return other == null ? null : new Maple2.Model.Game.Club {
             LastModified = other.LastModified,
             CreationTime = other.CreationTime.ToEpochSeconds(),
@@ -60,7 +60,7 @@ internal class ClubMember {
     public long CharacterId { get; set; }
     public Character Character { get; set; }
 
-    public static implicit operator ClubMember(Maple2.Model.Game.ClubMember other) {
+    public static implicit operator ClubMember?(Maple2.Model.Game.ClubMember? other) {
         return other == null ? null : new ClubMember {
             // CreationTime set by DB
             // ClubId set by Club auto_increment

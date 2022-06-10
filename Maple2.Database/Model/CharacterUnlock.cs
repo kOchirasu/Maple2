@@ -18,7 +18,7 @@ internal class CharacterUnlock {
     public InventoryExpand Expand { get; set; }
     public DateTime LastModified { get; init; }
 
-    public static implicit operator CharacterUnlock(Maple2.Model.Game.Unlock other) {
+    public static implicit operator CharacterUnlock?(Maple2.Model.Game.Unlock? other) {
         return other == null ? new CharacterUnlock() : new CharacterUnlock {
             LastModified = other.LastModified,
             Expand = new InventoryExpand {
@@ -46,7 +46,7 @@ internal class CharacterUnlock {
         };
     }
 
-    public static implicit operator Maple2.Model.Game.Unlock(CharacterUnlock other) {
+    public static implicit operator Maple2.Model.Game.Unlock?(CharacterUnlock? other) {
         if (other == null) {
             return new Maple2.Model.Game.Unlock();
         }

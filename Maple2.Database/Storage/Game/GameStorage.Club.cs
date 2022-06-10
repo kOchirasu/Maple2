@@ -9,14 +9,14 @@ namespace Maple2.Database.Storage;
 
 public partial class GameStorage {
     public partial class Request {
-        public Club GetClub(long clubId) {
-            Model.Club model = context.Club.Find(clubId);
+        public Club? GetClub(long clubId) {
+            Model.Club? model = Context.Club.Find(clubId);
             if (model == null) {
                 return null;
             }
 
             IList<ClubMember> members = GetClubMembers(clubId);
-            Club club = model;
+            Club club = model!;
             club.Leader = members.First(member => member.Info.CharacterId == model.LeaderId);
             members.Remove(club.Leader);
             club.Members = members;
@@ -24,35 +24,35 @@ public partial class GameStorage {
         }
 
         public IList<Tuple<long, string>> ListClubs(long characterId) {
-            return context.ClubMember.Where(member => member.CharacterId == characterId)
+            return Context.ClubMember.Where(member => member.CharacterId == characterId)
                 .Join(
-                    context.Club,
+                    Context.Club,
                     member => member.ClubId,
                     club => club.Id,
                     (member, club) => new Tuple<long, string>(club.Id, club.Name)
                 ).ToList();
         }
 
-        public Club CreateClub(Club club) {
-            Model.Club model = club;
+        public Club? CreateClub(Club club) {
+            Model.Club model = club!;
             model.Id = 0;
-            model.Members = club.Members.Select<ClubMember, Model.ClubMember>(member => member).ToList();
-            model.Members.Add(club.Leader);
+            model.Members = club.Members.Select<ClubMember, Model.ClubMember>(member => member!).ToList();
+            model.Members.Add(club.Leader!);
 
-            context.Club.Add(model);
+            Context.Club.Add(model);
 
             // I know this is an extra read, but the conversion logic is complicated.
-            return context.TrySaveChanges() ? GetClub(model.Id) : null;
+            return Context.TrySaveChanges() ? GetClub(model.Id) : null;
         }
 
         public IList<ClubMember> GetClubMembers(long clubId) {
-            return context.ClubMember.Where(member => member.ClubId == clubId)
+            return Context.ClubMember.Where(member => member.ClubId == clubId)
                 .Include(member => member.Character)
-                .Join(context.Account,
+                .Join(Context.Account,
                     member => member.Character.AccountId,
                     account => account.Id,
                     (member, account) => new ClubMember(
-                        new PlayerInfo(member.Character, new HomeInfo("", 0, 0, 0, 0), account.Trophy),
+                        new PlayerInfo(member.Character!, new HomeInfo("", 0, 0, 0, 0), account.Trophy),
                         member.CreationTime.ToEpochSeconds(),
                         member.Character.LastModified.ToEpochSeconds())
                 ).ToList();

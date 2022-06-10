@@ -4,14 +4,14 @@ using Microsoft.EntityFrameworkCore;
 namespace Maple2.Database.Context;
 
 public class Ms2Context : DbContext {
-    internal DbSet<Account> Account { get; set; }
-    internal DbSet<Character> Character { get; set; }
-    internal DbSet<CharacterConfig> CharacterConfig { get; set; }
-    internal DbSet<CharacterUnlock> CharacterUnlock { get; set; }
-    internal DbSet<Item> Item { get; set; }
-    internal DbSet<Club> Club { get; set; }
-    internal DbSet<ClubMember> ClubMember { get; set; }
-    internal DbSet<SkillTab> SkillTab { get; set; }
+    internal DbSet<Account> Account { get; set; } = null!;
+    internal DbSet<Character> Character { get; set; } = null!;
+    internal DbSet<CharacterConfig> CharacterConfig { get; set; } = null!;
+    internal DbSet<CharacterUnlock> CharacterUnlock { get; set; } = null!;
+    internal DbSet<Item> Item { get; set; } = null!;
+    internal DbSet<Club> Club { get; set; } = null!;
+    internal DbSet<ClubMember> ClubMember { get; set; } = null!;
+    internal DbSet<SkillTab> SkillTab { get; set; } = null!;
 
     public Ms2Context(DbContextOptions options) : base(options) { }
 

@@ -16,7 +16,7 @@ internal class SkillTab {
 
     public DateTime CreationTime { get; set; }
 
-    public static implicit operator SkillTab(Maple2.Model.Game.SkillTab other) {
+    public static implicit operator SkillTab?(Maple2.Model.Game.SkillTab? other) {
         return other == null ? null : new SkillTab {
             Id = other.Id,
             Name = other.Name,
@@ -24,7 +24,7 @@ internal class SkillTab {
         };
     }
 
-    public static implicit operator Maple2.Model.Game.SkillTab(SkillTab other) {
+    public static implicit operator Maple2.Model.Game.SkillTab?(SkillTab? other) {
         if (other == null) {
             return null;
         }

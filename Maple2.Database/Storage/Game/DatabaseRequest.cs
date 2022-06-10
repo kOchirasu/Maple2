@@ -9,37 +9,37 @@ using Microsoft.Extensions.Logging;
 namespace Maple2.Database.Storage;
 
 public abstract class DatabaseRequest<TContext> : IDisposable where TContext : DbContext {
-    protected readonly TContext context;
-    protected readonly ILogger logger;
-    
-    private IDbContextTransaction transaction;
+    protected readonly TContext Context;
+    protected readonly ILogger Logger;
+
+    private IDbContextTransaction? transaction;
     public bool IsTransaction => transaction != null;
 
     public DatabaseRequest(TContext context, ILogger logger) {
-        this.context = context;
-        this.logger = logger;
+        Context = context;
+        Logger = logger;
     }
 
     public void BeginTransaction() {
-        transaction = context.Database.BeginTransaction();
+        transaction = Context.Database.BeginTransaction();
     }
 
     public bool Commit() {
-        if (!IsTransaction) {
+        if (transaction == null) {
             return false;
         }
-        
+
         transaction.Commit();
         transaction = null; // transaction is completed.
         return true;
     }
 
     public bool SaveChanges() {
-        return context.TrySaveChanges();
+        return Context.TrySaveChanges();
     }
-    
+
     public void Dispose() {
         Commit();
-        context.Dispose();
+        Context.Dispose();
     }
 }

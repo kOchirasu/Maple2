@@ -13,12 +13,12 @@ public class TableMetadataStorage {
 
     private static T Retrieve<T>(MetadataContext context, string key) where T : Table {
         lock (context) {
-            TableMetadata row = context.TableMetadata.Find(key);
-            if (row == null) {
+            TableMetadata? row = context.TableMetadata.Find(key);
+            if (row?.Table is not T result) {
                 throw new InvalidOperationException($"Row does not exist: {key}");
             }
 
-            return row.Table as T;
+            return result;
         }
     }
 }

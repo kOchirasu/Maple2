@@ -11,12 +11,12 @@ namespace Maple2.Database.Model;
 
 internal class CharacterConfig {
     public long CharacterId { get; set; }
-    public IList<KeyBind> KeyBinds { get; set; }
-    public IList<QuickSlot[]> HotBars { get; set; }
-    public IList<SkillMacro> SkillMacros { get; set; }
-    public IList<Wardrobe> Wardrobes { get; set; }
-    public IDictionary<StatAttribute, int> StatAllocation { get; set; }
-    public SkillBook SkillBook { get; set; }
+    public IList<KeyBind>? KeyBinds { get; set; }
+    public IList<QuickSlot[]>? HotBars { get; set; }
+    public IList<SkillMacro>? SkillMacros { get; set; }
+    public IList<Wardrobe>? Wardrobes { get; set; }
+    public IDictionary<StatAttribute, int>? StatAllocation { get; set; }
+    public SkillBook? SkillBook { get; set; }
 
     public DateTime LastModified { get; set; }
 
@@ -49,7 +49,7 @@ internal class SkillMacro {
     public long KeyId { get; set; }
     public IList<int> Skills { get; set; }
 
-    public static implicit operator SkillMacro(Maple2.Model.Game.SkillMacro other) {
+    public static implicit operator SkillMacro?(Maple2.Model.Game.SkillMacro? other) {
         return other == null ? new SkillMacro() : new SkillMacro {
             Name = other.Name,
             KeyId = other.KeyId,
@@ -57,7 +57,7 @@ internal class SkillMacro {
         };
     }
 
-    public static implicit operator Maple2.Model.Game.SkillMacro(SkillMacro other) {
+    public static implicit operator Maple2.Model.Game.SkillMacro?(SkillMacro? other) {
         return other == null ? new Maple2.Model.Game.SkillMacro(string.Empty, 0) :
             new Maple2.Model.Game.SkillMacro(other.Name, other.KeyId, other.Skills.ToHashSet());
     }
@@ -69,7 +69,7 @@ internal class Wardrobe {
     public string Name { get; set; }
     public Dictionary<EquipSlot, Equip> Equips { get; set; }
 
-    public static implicit operator Wardrobe(Maple2.Model.Game.Wardrobe other) {
+    public static implicit operator Wardrobe?(Maple2.Model.Game.Wardrobe? other) {
         return other == null ? new Wardrobe() : new Wardrobe {
             Type = other.Type,
             Name = other.Name,
@@ -85,7 +85,7 @@ internal class Wardrobe {
         };
     }
 
-    public static implicit operator Maple2.Model.Game.Wardrobe(Wardrobe other) {
+    public static implicit operator Maple2.Model.Game.Wardrobe?(Wardrobe? other) {
         if (other == null) {
             return new Maple2.Model.Game.Wardrobe(0, string.Empty);
         }

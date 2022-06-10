@@ -32,7 +32,7 @@ public class ItemMetadataStorage : MetadataStorage<int, ItemMetadata> {
     public List<ItemMetadata> Search(string name) {
         lock (Context) {
             return Context.ItemMetadata
-                .Where(item => EF.Functions.Like(item.Name, $"%{name}%"))
+                .Where(item => EF.Functions.Like(item.Name!, $"%{name}%"))
                 .ToList();
         }
     }

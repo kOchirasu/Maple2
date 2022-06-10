@@ -16,7 +16,7 @@ internal class Account {
     public int MaxCharacters { get; set; }
     public int PrestigeLevel { get; set; }
     public long PrestigeExp { get; set; }
-    public HomeInfo Home { get; set; }
+    public HomeInfo? Home { get; set; }
     public Trophy Trophy { get; set; }
     public long PremiumTime { get; set; }
     public AccountCurrency Currency { get; set; }
@@ -25,7 +25,7 @@ internal class Account {
 
     public ICollection<Character> Characters { get; set; }
 
-    public static implicit operator Account(Maple2.Model.Game.Account other) {
+    public static implicit operator Account?(Maple2.Model.Game.Account? other) {
         return other == null ? null : new Account {
             LastModified = other.LastModified,
             Id = other.Id,
@@ -41,7 +41,7 @@ internal class Account {
         };
     }
 
-    public static implicit operator Maple2.Model.Game.Account(Account other) {
+    public static implicit operator Maple2.Model.Game.Account?(Account? other) {
         return other == null ? null : new Maple2.Model.Game.Account {
             LastModified = other.LastModified,
             Online = other.Online,

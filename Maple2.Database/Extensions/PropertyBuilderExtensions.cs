@@ -14,7 +14,7 @@ internal static class PropertyBuilderExtensions {
     public static PropertyBuilder<TProperty> HasJsonConversion<TProperty>(this PropertyBuilder<TProperty> builder) {
         return builder.HasConversion(
             property => JsonSerializer.Serialize(property, Options),
-            value => JsonSerializer.Deserialize<TProperty>(value, Options)
+            value => JsonSerializer.Deserialize<TProperty>(value, Options)!
         ).HasColumnType("json");
     }
 

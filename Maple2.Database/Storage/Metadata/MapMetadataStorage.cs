@@ -55,7 +55,7 @@ public class MapMetadataStorage : MetadataStorage<int, MapMetadata> {
     public List<MapMetadata> Search(string name) {
         lock (Context) {
             return Context.MapMetadata
-                .Where(map => EF.Functions.Like(map.Name, $"%{name}%"))
+                .Where(map => EF.Functions.Like(map.Name!, $"%{name}%"))
                 .ToList();
         }
     }

@@ -11,7 +11,7 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
 
     public MapEntityStorage(MetadataContext context) : base(context, CACHE_SIZE) { }
 
-    public MapEntityMetadata Get(string xblock) {
+    public MapEntityMetadata? Get(string xblock) {
         if (Cache.TryGet(xblock, out MapEntityMetadata mapEntity)) {
             return mapEntity;
         }
@@ -23,7 +23,7 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
         var playerSpawns = new Dictionary<int, SpawnPointPC>();
         var npcSpawns = new List<SpawnPointNPC>();
         var eventNpcSpawns = new Dictionary<int, EventSpawnPointNPC>();
-        TaxiStation taxi = null;
+        TaxiStation? taxi = null;
         lock (Context) {
             foreach (MapEntity entity in Context.MapEntity.Where(entity => entity.XBlock == xblock)) {
                 switch (entity.Block.Class) {
