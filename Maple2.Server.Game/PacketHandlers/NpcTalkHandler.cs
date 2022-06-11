@@ -74,9 +74,7 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (session.NpcScript.Next()) {
-            HandleClose(session);
-        }
+        session.NpcScript.Talk();
     }
 
     private void HandleSelect(GameSession session, IByteReader packet) {
@@ -86,6 +84,7 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
         }
 
         int selection = packet.ReadInt();
-        session.NpcScript.Next(selection);
+        session.NpcScript.Advance(selection);
+        session.NpcScript.Select();
     }
 }

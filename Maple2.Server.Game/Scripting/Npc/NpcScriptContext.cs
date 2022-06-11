@@ -26,9 +26,14 @@ public class NpcScriptContext : INpcScriptContext {
         session.Send(NpcTalkPacket.Close());
     }
 
-    public void Respond(int id, NpcTalkType type, NpcTalkComponent component) {
-        var dialogue = new NpcDialogue(id, 0, component);
+    public void Respond(NpcTalkType type, int id, NpcTalkButton button) {
+        var dialogue = new NpcDialogue(id, 0, button);
         session.Send(NpcTalkPacket.Respond(npc, type, dialogue));
+    }
+
+    public void Continue(NpcTalkType type, int id, int index, NpcTalkButton button, int questId = 0) {
+        var dialogue = new NpcDialogue(id, index, button);
+        session.Send(NpcTalkPacket.Continue(type, dialogue, questId));
     }
 
     public bool MovePlayer(int portalId) {
@@ -37,7 +42,6 @@ public class NpcScriptContext : INpcScriptContext {
         }
 
         session.Send(NpcTalkPacket.MovePlayer(portalId));
-        session.Send(PortalPacket.MoveByPortal(session.Player, portal));
         return true;
     }
 

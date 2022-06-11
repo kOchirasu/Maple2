@@ -26,8 +26,8 @@ public class MagicPathMapper : TypeMapper<MagicPathMetadata> {
 
                 List<MagicPathMetadataMove> moves = type.move.Select(move => new MagicPathMetadataMove(
                     Align: move.align,
-                    AlignHeight: move.alignCubeHeight != 0,
-                    Rotate: move.rotation != 0,
+                    AlignHeight: move.alignCubeHeight,
+                    Rotate: move.rotation,
                     IgnoreAdjust: move.ignoreAdjustCubePosition,
                     Direction: move.direction,
                     FireOffset: move.fireOffsetPosition,

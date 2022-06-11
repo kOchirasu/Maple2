@@ -2,6 +2,7 @@
 using Maple2.Database.Context;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model.Metadata;
+using Maple2.File.Ingest.Generator;
 using Maple2.File.Ingest.Mapper;
 using Maple2.File.IO;
 using Maple2.File.Parser.Tools;
@@ -27,15 +28,17 @@ metadataContext.Database.EnsureCreated();
 // Filter Xml results based on feature settings.
 Filter.Load(xmlReader, locale, env);
 
-UpdateDatabase(metadataContext, new AnimationMapper(xmlReader));
-UpdateDatabase(metadataContext, new ItemMapper(xmlReader));
-UpdateDatabase(metadataContext, new NpcMapper(xmlReader));
-UpdateDatabase(metadataContext, new MagicPathMapper(xmlReader));
-UpdateDatabase(metadataContext, new MapMapper(xmlReader));
-UpdateDatabase(metadataContext, new MapEntityMapper(metadataContext, exportedReader));
-UpdateDatabase(metadataContext, new SkillMapper(xmlReader));
-UpdateDatabase(metadataContext, new TableMapper(xmlReader));
-UpdateDatabase(metadataContext, new UgcMapMapper(xmlReader));
+new NpcScriptGenerator(xmlReader).Generate();
+
+// UpdateDatabase(metadataContext, new AnimationMapper(xmlReader));
+// UpdateDatabase(metadataContext, new ItemMapper(xmlReader));
+// UpdateDatabase(metadataContext, new NpcMapper(xmlReader));
+// UpdateDatabase(metadataContext, new MagicPathMapper(xmlReader));
+// UpdateDatabase(metadataContext, new MapMapper(xmlReader));
+// UpdateDatabase(metadataContext, new MapEntityMapper(metadataContext, exportedReader));
+// UpdateDatabase(metadataContext, new SkillMapper(xmlReader));
+// UpdateDatabase(metadataContext, new TableMapper(xmlReader));
+// UpdateDatabase(metadataContext, new UgcMapMapper(xmlReader));
 
 // new MusicScoreParser(xmlReader).Parse().ToList();
 // new MusicScoreParser(xmlReader).Parse().ToList();

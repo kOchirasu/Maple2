@@ -24,7 +24,7 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     .ToArray(),
                 Mesh: data.ucc.mesh,
                 Property:new ItemMetadataProperty(
-                    IsSkin:data.property.skin != 0,
+                    IsSkin:data.property.skin,
                     SkinType:data.property.skinType,
                     SlotMax:data.property.slotMax,
                     Type:data.property.type,
@@ -40,13 +40,13 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     Gender:(Gender) data.limit.genderLimit,
                     Level:data.limit.levelLimit,
                     TransferType:data.limit.transferType,
-                    ShopSell:data.limit.shopSell != 0,
-                    EnableBreak:data.limit.enableBreak != 0,
-                    EnableEnchant:data.limit.exceptEnchant != 0,
-                    EnableMeretMarket:data.limit.enableRegisterMeratMarket != 0,
+                    ShopSell:data.limit.shopSell,
+                    EnableBreak:data.limit.enableBreak,
+                    EnableEnchant:data.limit.exceptEnchant,
+                    EnableMeretMarket:data.limit.enableRegisterMeratMarket,
                     EnableSocketTransfer:data.limit.enableSocketTransfer,
-                    RequireVip:data.limit.vip != 0,
-                    RequireWedding:data.limit.wedding != 0,
+                    RequireVip:data.limit.vip,
+                    RequireWedding:data.limit.wedding,
                     Jobs:data.limit.jobLimit.Select(job => (JobCode)job).ToArray()
                 )
             );

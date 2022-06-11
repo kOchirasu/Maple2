@@ -23,7 +23,7 @@ public enum NpcTalkType : byte {
     Flag6 = 32,
 }
 
-public enum NpcTalkComponent {
+public enum NpcTalkButton {
     None = 0,
     /// <summary>
     /// No options

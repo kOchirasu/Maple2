@@ -7,11 +7,11 @@ namespace Maple2.Model.Game;
 public readonly struct NpcDialogue {
     public readonly int Id; // ScriptId
     public readonly int Index; // Selection
-    public readonly NpcTalkComponent Component;
+    public readonly NpcTalkButton Button;
 
-    public NpcDialogue(int id, int index, NpcTalkComponent component) {
+    public NpcDialogue(int id, int index, NpcTalkButton button) {
         Id = id;
         Index = index;
-        Component = component;
+        Button = button;
     }
 }

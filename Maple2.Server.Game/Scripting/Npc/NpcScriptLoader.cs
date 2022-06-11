@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
 using Maple2.Script.Npc;
 
@@ -18,8 +17,8 @@ public class NpcScriptLoader {
         }
 
         foreach (Type type in assembly.GetExportedTypes()) {
-            ConstructorInfo? constructor = type.GetConstructor(BindingFlags.NonPublic | BindingFlags.Instance, null,
-                new[] {typeof(INpcScriptContext)}, null);
+            ConstructorInfo? constructor = type.GetConstructor(BindingFlags.Public | BindingFlags.Instance, null,
+                Array.Empty<Type>(), null);
 
             // No matching constructor for dungeon_common
             if (constructor == null) {
@@ -30,7 +29,11 @@ public class NpcScriptLoader {
                 continue;
             }
 
-            scriptLookup[npcId] = context => (NpcScript) constructor.Invoke(new object?[] {context});
+            scriptLookup[npcId] = context => {
+                var script = (NpcScript) constructor.Invoke(Array.Empty<object?>());
+                script.Init(context);
+                return script;
+            };
         }
     }
 
