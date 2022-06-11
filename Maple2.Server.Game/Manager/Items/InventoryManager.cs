@@ -100,13 +100,14 @@ public class InventoryManager {
                 return false;
             }
 
-            if (items.Remove(uid, out Item? removed)) {
-                short srcSlot = removed.Slot;
-                Item? existing = items[dstSlot];
-                items[dstSlot] = removed;
-                items[srcSlot] = existing;
+            if (items.Remove(uid, out Item? removeSrc)) {
+                short srcSlot = removeSrc.Slot;
+                if (items.RemoveSlot(dstSlot, out Item? removeDst)) {
+                    items[srcSlot] = removeDst;
+                }
+                items[dstSlot] = removeSrc;
 
-                session.Send(ItemInventoryPacket.Move(existing?.Uid ?? 0, srcSlot, uid, dstSlot));
+                session.Send(ItemInventoryPacket.Move(removeDst?.Uid ?? 0, srcSlot, uid, dstSlot));
             }
 
             return true;

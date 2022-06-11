@@ -14,6 +14,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Maple2.Database\Maple2.Database.csproj" />
+        <ProjectReference Include="..\Maple2.Script\Maple2.Script.csproj" />
         <ProjectReference Include="..\Maple2.Server.Core\Maple2.Server.Core.csproj" />
     </ItemGroup>
 
@@ -25,5 +26,4 @@
         <PackageReference Include="NLog.Extensions.Logging" Version="5.0.0" />
         <PackageReference Include="System.CommandLine" Version="2.0.0-beta3.22114.1" />
     </ItemGroup>
-
 </Project>

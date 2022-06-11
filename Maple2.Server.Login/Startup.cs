@@ -15,7 +15,7 @@ public static class Startup {
         services.RegisterModule<WorldClientModule>();
 
         services.AddSingleton<LoginServer>();
-        services.AddHostedService<LoginServer>(provider => provider.GetService<LoginServer>());
+        services.AddHostedService<LoginServer>(provider => provider.GetService<LoginServer>()!);
     }
 
     // ConfigureContainer is where you can register things directly with Autofac. This runs after
@@ -34,7 +34,7 @@ public static class Startup {
         // Database
         builder.RegisterModule<GameDbModule>();
         builder.RegisterModule<DataDbModule>();
-        
+
         // Make all packet handlers available to PacketRouter
         builder.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
             .Where(type => typeof(PacketHandler<LoginSession>).IsAssignableFrom(type))

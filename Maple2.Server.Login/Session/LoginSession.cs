@@ -26,7 +26,7 @@ public class LoginSession : Core.Network.Session {
     // ReSharper restore All
     #endregion
 
-    private Account account;
+    private Account account = null!;
 
     public LoginSession(TcpClient tcpClient, ILogger<LoginSession> logger) : base(tcpClient, logger) { }
 

@@ -82,8 +82,7 @@ public class MoveFieldHandler : PacketHandler<GameSession> {
         // MoveByPortal (same map)
         if (srcPortal.TargetMapId == mapId) {
             if (session.Field.TryGetPortal(srcPortal.TargetPortalId, out Portal? dstPortal)) {
-                session.Send(PortalPacket.MoveByPortal(
-                    session.Player.ObjectId, dstPortal.Position, dstPortal.Rotation, true));
+                session.Send(PortalPacket.MoveByPortal(session.Player, dstPortal));
             }
 
             return;

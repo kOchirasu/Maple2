@@ -3,7 +3,7 @@
 namespace Maple2.Model.Enum;
 
 [Flags]
-public enum NpcTalkType {
+public enum NpcTalkType : byte {
     /// <summary>
     /// Simple NpcTalk without CinematicComponent, used for UIDialogs.
     ///     sub_649B00(uiTalkMgr, npcId, 1)
@@ -102,4 +102,16 @@ public enum NpcTalkComponent {
     /// s_quest_talk_progress OR s_quest_talk_end
     /// </summary>
     CustomSelectableDistractor = 19,
+}
+
+public enum NpcTalkAction : byte {
+    Unknown1 = 1,
+    MovePlayer = 3,
+    OpenDialog = 4,
+    RewardItem = 5,
+    RewardExp = 6,
+    RewardMeso = 7,
+    AddOption = 8,
+    Unknown9 = 9,
+    Cutscene = 10,
 }
