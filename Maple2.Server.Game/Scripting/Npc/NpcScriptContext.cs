@@ -22,16 +22,17 @@ public class NpcScriptContext : INpcScriptContext {
         this.npc = npc;
     }
 
-    public void Close() {
-        session.Send(NpcTalkPacket.Close());
-    }
-
     public void Respond(NpcTalkType type, int id, NpcTalkButton button) {
         var dialogue = new NpcDialogue(id, 0, button);
         session.Send(NpcTalkPacket.Respond(npc, type, dialogue));
     }
 
     public void Continue(NpcTalkType type, int id, int index, NpcTalkButton button, int questId = 0) {
+        if (button == NpcTalkButton.None) {
+            session.Send(NpcTalkPacket.Close());
+            return;
+        }
+
         var dialogue = new NpcDialogue(id, index, button);
         session.Send(NpcTalkPacket.Continue(type, dialogue, questId));
     }

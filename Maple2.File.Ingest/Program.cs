@@ -28,17 +28,18 @@ metadataContext.Database.EnsureCreated();
 // Filter Xml results based on feature settings.
 Filter.Load(xmlReader, locale, env);
 
-new NpcScriptGenerator(xmlReader).Generate();
+// new NpcScriptGenerator(xmlReader).Generate();
+// new NpcScriptGenerator(xmlReader).GenerateEvent();
 
-// UpdateDatabase(metadataContext, new AnimationMapper(xmlReader));
-// UpdateDatabase(metadataContext, new ItemMapper(xmlReader));
-// UpdateDatabase(metadataContext, new NpcMapper(xmlReader));
-// UpdateDatabase(metadataContext, new MagicPathMapper(xmlReader));
-// UpdateDatabase(metadataContext, new MapMapper(xmlReader));
-// UpdateDatabase(metadataContext, new MapEntityMapper(metadataContext, exportedReader));
-// UpdateDatabase(metadataContext, new SkillMapper(xmlReader));
-// UpdateDatabase(metadataContext, new TableMapper(xmlReader));
-// UpdateDatabase(metadataContext, new UgcMapMapper(xmlReader));
+UpdateDatabase(metadataContext, new AnimationMapper(xmlReader));
+UpdateDatabase(metadataContext, new ItemMapper(xmlReader));
+UpdateDatabase(metadataContext, new NpcMapper(xmlReader));
+UpdateDatabase(metadataContext, new MagicPathMapper(xmlReader));
+UpdateDatabase(metadataContext, new MapMapper(xmlReader));
+UpdateDatabase(metadataContext, new MapEntityMapper(metadataContext, exportedReader));
+UpdateDatabase(metadataContext, new SkillMapper(xmlReader));
+UpdateDatabase(metadataContext, new TableMapper(xmlReader));
+UpdateDatabase(metadataContext, new UgcMapMapper(xmlReader));
 
 // new MusicScoreParser(xmlReader).Parse().ToList();
 // new MusicScoreParser(xmlReader).Parse().ToList();

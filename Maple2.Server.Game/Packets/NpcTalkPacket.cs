@@ -15,7 +15,7 @@ public static class NpcTalkPacket {
         Respond = 1,
         Continue = 2,
         Action = 3,
-        Script = 4,
+        Update = 4,
     }
 
     public static ByteWriter Close() {
@@ -93,6 +93,16 @@ public static class NpcTalkPacket {
         pWriter.Write<Command>(Command.Action);
         pWriter.Write<NpcTalkAction>(NpcTalkAction.RewardMeso);
         pWriter.WriteLong(mesos);
+
+        return pWriter;
+    }
+
+    public static ByteWriter Update(string text, string voiceId = "", string illustration = "") {
+        var pWriter = Packet.Of(SendOp.NPC_TALK);
+        pWriter.Write<Command>(Command.Update);
+        pWriter.WriteUnicodeString(text);
+        pWriter.WriteUnicodeString(voiceId);
+        pWriter.WriteUnicodeString(illustration);
 
         return pWriter;
     }

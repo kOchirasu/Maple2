@@ -1,5 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 
 namespace Maple2.Script.Npc;
 
@@ -21,40 +22,51 @@ public abstract class NpcScript {
 
     protected int Index;
     protected NpcTalkType Type = NpcTalkType.Chat;
-    protected NpcTalkButton Button = NpcTalkButton.Close;
 
     public void Init(INpcScriptContext scriptContext) {
         context = scriptContext;
-        (Id, Button) = FirstScript();
+        Id = First();
     }
 
-    public void Close() => context.Close();
-
-    public void Talk() => context.Respond(Type, id, Button);
-
-    public void Select(int questId = 0) {
-        if (Button == NpcTalkButton.None) {
-            context.Close();
-        } else {
-            context.Continue(Type, id, Index, Button, questId);
-        }
-    }
-
-    public void Advance(int selection = 0) {
-        (Id, Button) = Next(selection);
-    }
-
-    protected abstract (int, NpcTalkButton) FirstScript();
+    public void Respond() => context.Respond(Type, Id, Button());
+    public void Continue() => context.Continue(Type, Id, Index, Button());
 
     /// <summary>
-    /// Handles the next talk interaction with the Npc.
+    /// Advances the script to the next Id
+    /// </summary>
+    /// <param name="selection"></param>
+    public void Advance(int selection = 0) {
+        Id = Execute(selection);
+    }
+
+    #region Script Methods
+    /// <summary>
+    /// Determines the Id of the script to begin at.
+    /// </summary>
+    /// <returns>The Id of the first script</returns>
+    protected abstract int First();
+
+    /// <summary>
+    /// Get the <b>SELECT</b> script Id to use for prompting the user with (Quests/Shops).
+    /// </summary>
+    /// <returns>The Id of the select script</returns>
+    protected abstract int Select();
+
+    /// <summary>
+    /// Executes any actions needed for the talk interaction with the Npc.
     /// </summary>
     /// <param name="selection">The index of the option being selected.</param>
-    /// <returns>true means the NpcTalk has finished</returns>
-    protected abstract (int, NpcTalkButton) Next(int selection);
+    /// <returns>The Id of the next script to be executed</returns>
+    protected abstract int Execute(int selection);
+
+    /// <summary>
+    /// Get the displayed buttons.
+    /// </summary>
+    /// <returns>The button to display for the current (Id, Index) pair.</returns>
+    protected abstract NpcTalkButton Button();
+    #endregion
 
     #region API Wrapper
-
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected bool MovePlayer(int portalId) => context.MovePlayer(portalId);
 
@@ -70,5 +82,6 @@ public abstract class NpcScript {
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     protected void RewardMeso(long mesos) => context.RewardMeso(mesos);
 
+    protected T Random<T>(params T[] options) => options[Environment.TickCount % options.Length];
     #endregion
 }

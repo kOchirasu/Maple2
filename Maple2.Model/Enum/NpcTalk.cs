@@ -15,7 +15,7 @@ public enum NpcTalkType : byte {
     /// Similar to '1':
     ///     sub_649B00(uiTalkMgr, npcId, 0)
     /// </summary>
-    Flag4 = 8,
+    Select = 8,
     Component = 16,
     /// <summary>
     /// Seems to affect 'SelectableTalk' only
@@ -42,7 +42,7 @@ public enum NpcTalkButton {
     /// </summary>
     Next = 4,
     /// <summary>
-    /// A lot of branching logic, handles many cases
+    /// Used for Select script
     /// </summary>
     SelectableTalk = 5,
     /// <summary>

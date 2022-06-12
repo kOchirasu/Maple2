@@ -3,8 +3,6 @@
 namespace Maple2.Script.Npc;
 
 public interface INpcScriptContext {
-    public void Close();
-
     public void Respond(NpcTalkType type, int id, NpcTalkButton button);
     public void Continue(NpcTalkType type, int id, int index, NpcTalkButton button, int questId = 0);
 
