@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Caching;
 using Maple2.Database.Context;
 using Maple2.Model.Metadata;
@@ -6,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Maple2.Database.Storage;
 
-public class SkillMetadataStorage : MetadataStorage<int, SkillMetadata> {
+public class SkillMetadataStorage : MetadataStorage<int, SkillMetadata>, ISearchable<SkillMetadata> {
     private const int CACHE_SIZE = 10000; // ~10k total items
     private const int MAGIC_PATH_CACHE_SIZE = 3000;
 
@@ -49,5 +51,13 @@ public class SkillMetadataStorage : MetadataStorage<int, SkillMetadata> {
 
         MagicPathCache.AddReplace(id, magicPath);
         return true;
+    }
+
+    public List<SkillMetadata> Search(string name) {
+        lock (Context) {
+            return Context.SkillMetadata
+                .Where(skill => EF.Functions.Like(skill.Name!, $"%{name}%"))
+                .ToList();
+        }
     }
 }

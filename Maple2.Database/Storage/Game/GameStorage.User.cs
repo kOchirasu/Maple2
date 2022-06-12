@@ -109,7 +109,7 @@ public partial class GameStorage {
                     StarPoint = character.Currency.StarPoint,
                     MesoToken = account.Currency.MesoToken,
                 },
-                Unlock = Context.CharacterUnlock.Find(characterId),
+                Unlock = Context.CharacterUnlock.Find(characterId)!,
             };
 
             return player;

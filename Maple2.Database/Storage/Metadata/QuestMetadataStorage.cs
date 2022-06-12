@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Maple2.Database.Storage;
 
-public class QuestMetadataStorage : MetadataStorage<int, QuestMetadata> {
+public class QuestMetadataStorage : MetadataStorage<int, QuestMetadata>, ISearchable<QuestMetadata> {
     private const int CACHE_SIZE = 2500; // ~2.2k total items
 
     public QuestMetadataStorage(MetadataContext context) : base(context, CACHE_SIZE) { }

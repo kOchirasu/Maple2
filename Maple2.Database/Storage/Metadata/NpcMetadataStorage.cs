@@ -1,11 +1,14 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Caching;
 using Maple2.Database.Context;
 using Maple2.Model.Metadata;
+using Microsoft.EntityFrameworkCore;
 
 namespace Maple2.Database.Storage;
 
-public class NpcMetadataStorage : MetadataStorage<int, NpcMetadata> {
+public class NpcMetadataStorage : MetadataStorage<int, NpcMetadata>, ISearchable<NpcMetadata> {
     private const int CACHE_SIZE = 7500; // ~7.4k total npcs
     private const int ANI_CACHE_SIZE = 2500;
 
@@ -30,6 +33,14 @@ public class NpcMetadataStorage : MetadataStorage<int, NpcMetadata> {
 
         Cache.AddReplace(id, npc);
         return true;
+    }
+
+    public List<NpcMetadata> Search(string name) {
+        lock (Context) {
+            return Context.NpcMetadata
+                .Where(npc => EF.Functions.Like(npc.Name!, $"%{name}%"))
+                .ToList();
+        }
     }
 
     public AnimationMetadata? GetAnimation(string model) {

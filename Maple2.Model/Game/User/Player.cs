@@ -9,7 +9,7 @@ public class Player {
     public readonly Character Character;
 
     public Currency Currency { get; init; }
-    public Unlock? Unlock { get; init; }
+    public Unlock Unlock { get; init; }
 
     public Player(Account account, Character character) {
         Account = account;

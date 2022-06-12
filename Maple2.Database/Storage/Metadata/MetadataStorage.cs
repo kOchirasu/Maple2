@@ -1,6 +1,7 @@
-﻿using Caching;
+﻿using System.Collections.Generic;
+using Caching;
 using Maple2.Database.Context;
-using Microsoft.EntityFrameworkCore;
+using Maple2.Model.Metadata;
 
 namespace Maple2.Database.Storage;
 
@@ -16,4 +17,8 @@ public abstract class MetadataStorage<TK, TV> {
     public void InvalidateCache() {
         Cache.Clear();
     }
+}
+
+public interface ISearchable<T> where T : ISearchResult {
+    public List<T> Search(string name);
 }

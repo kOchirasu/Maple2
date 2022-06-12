@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
-using System.Linq;
-using System.Text;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
-using Maple2.Server.Game.Packets;
+using Maple2.Server.Game.Commands.Common;
 using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.Commands;
@@ -28,7 +25,7 @@ public class ItemCommand : Command {
         this.session = session;
         this.itemStorage = itemStorage;
 
-        AddCommand(new FindCommand(session, itemStorage));
+        AddCommand(new FindCommand<ItemMetadata>(session, itemStorage));
 
         var id = new Argument<int>("id", "Id of item to spawn.");
         var amount = new Option<int>(new[] {"--amount", "-a"}, () => 1, "Amount of the item.");
@@ -79,43 +76,6 @@ public class ItemCommand : Command {
         } catch (SystemException ex) {
             ctx.Console.Error.WriteLine(ex.Message);
             ctx.ExitCode = 1;
-        }
-    }
-
-    private class FindCommand : Command {
-        private const int PAGE_SIZE = 5;
-
-        private readonly GameSession session;
-        private readonly ItemMetadataStorage itemStorage;
-
-        public FindCommand(GameSession session, ItemMetadataStorage itemStorage) : base("find", "Finds an item by querying metadata.") {
-            this.session = session;
-            this.itemStorage = itemStorage;
-
-            var query = new Argument<string>("query", "Item search query.");
-            var page = new Option<int>(new[] {"--page", "-p"}, "Page of query results.");
-
-            AddArgument(query);
-            AddOption(page);
-            this.SetHandler<InvocationContext, string, int>(Handle, query, page);
-        }
-
-        private void Handle(InvocationContext ctx, string query, int page) {
-            try {
-                List<ItemMetadata> results = itemStorage.Search(query);
-                int pages = (int)Math.Ceiling(results.Count / (float) PAGE_SIZE);
-                page = Math.Clamp(page, 1, pages);
-                var builder = new StringBuilder($"<b>{results.Count} results for '{query}' ({page}/{pages}):</b>");
-                foreach (ItemMetadata item in results.Skip(PAGE_SIZE * (page - 1)).Take(PAGE_SIZE)) {
-                    builder.Append($"\n• {item.Id}: {item.Name}");
-                }
-
-                session.Send(NoticePacket.Message(builder.ToString(), true));
-                ctx.ExitCode = 0;
-            } catch (SystemException ex) {
-                ctx.Console.Error.WriteLine(ex.Message);
-                ctx.ExitCode = 1;
-            }
         }
     }
 }

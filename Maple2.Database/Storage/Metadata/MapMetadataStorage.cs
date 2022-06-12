@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Maple2.Database.Storage;
 
-public class MapMetadataStorage : MetadataStorage<int, MapMetadata> {
+public class MapMetadataStorage : MetadataStorage<int, MapMetadata>, ISearchable<MapMetadata> {
     private const int CACHE_SIZE = 1500; // ~1.1k total Maps
     private const int UGC_CACHE_SIZE = 200;
 

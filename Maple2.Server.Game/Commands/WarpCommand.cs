@@ -8,6 +8,7 @@ using System.Text;
 using Maple2.Database.Storage;
 using Maple2.Model.Error;
 using Maple2.Model.Metadata;
+using Maple2.Server.Game.Commands.Common;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -16,7 +17,6 @@ namespace Maple2.Server.Game.Commands;
 public class WarpCommand : Command {
     private const string NAME = "warp";
     private const string DESCRIPTION = "Map warping.";
-    private const int PAGE_SIZE = 5;
 
     private readonly GameSession session;
     private readonly MapMetadataStorage mapStorage;
@@ -25,50 +25,32 @@ public class WarpCommand : Command {
         this.session = session;
         this.mapStorage = mapStorage;
 
-        var query = new Argument<string>("query", "MapId or string to query.");
-        var page = new Option<int>(new[] {"--page", "-p"}, "Page of query results.");
+        AddCommand(new FindCommand<MapMetadata>(session, mapStorage));
 
-        AddArgument(query);
-        AddOption(page);
-        this.SetHandler<InvocationContext, string, int>(Handle, query, page);
+        var mapId = new Argument<int>("id", "Id of map to warp to.");
+        var portalId = new Option<int>(new[] {"--portal", "-p"}, () => -1, "Id of portal to teleport to.");
+
+        AddArgument(mapId);
+        AddOption(portalId);
+        this.SetHandler<InvocationContext, int, int>(Handle, mapId, portalId);
     }
 
-    private void Handle(InvocationContext ctx, string query, int page) {
+    private void Handle(InvocationContext ctx, int mapId, int portalId) {
         try {
-            if (int.TryParse(query, out int mapId)) {
-                if (mapStorage.TryGet(mapId, out MapMetadata? map)) {
-                    WarpMap(ctx, map);
-                    ctx.ExitCode = 0;
-                    return;
-                }
-            }
-
-            List<MapMetadata> results = mapStorage.Search(query);
-            if (results.Count == 1) {
-                WarpMap(ctx, results[0]);
-                ctx.ExitCode = 0;
+            if (!mapStorage.TryGet(mapId, out MapMetadata? map)) {
+                ctx.ExitCode = 1;
                 return;
             }
 
-            int pages = (int)Math.Ceiling(results.Count / (float) PAGE_SIZE);
-            page = Math.Clamp(page, 1, pages);
-            var builder = new StringBuilder($"<b>{results.Count} results for '{query}' ({page}/{pages}):</b>");
-            foreach (MapMetadata map in results.Skip(PAGE_SIZE * (page - 1)).Take(PAGE_SIZE)) {
-                builder.Append($"\n• {map.Id}: {map.Name}");
-            }
+            ctx.Console.Out.WriteLine($"Warping to '{map.Name}' ({map.Id})");
+            session.Send(session.PrepareField(map.Id, portalId)
+                ? FieldEnterPacket.Request(session.Player)
+                : FieldEnterPacket.Error(MigrationError.s_move_err_default));
 
-            session.Send(NoticePacket.Message(builder.ToString(), true));
             ctx.ExitCode = 0;
         } catch (SystemException ex) {
             ctx.Console.Error.WriteLine(ex.Message);
             ctx.ExitCode = 1;
         }
-    }
-
-    private void WarpMap(InvocationContext ctx, MapMetadata map) {
-        ctx.Console.Out.WriteLine($"Warping to '{map.Name}' ({map.Id})");
-        session.Send(session.PrepareField(map.Id)
-            ? FieldEnterPacket.Request(session.Player)
-            : FieldEnterPacket.Error(MigrationError.s_move_err_default));
     }
 }

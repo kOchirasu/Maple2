@@ -10,7 +10,7 @@ public record MapMetadata(
     MapMetadataProperty Property,
     MapMetadataLimit Limit,
     MapMetadataCashCall CashCall,
-    MapEntranceBuff[] EntranceBuffs);
+    MapEntranceBuff[] EntranceBuffs) : ISearchResult;
 
 public record MapMetadataProperty(
     int Continent,

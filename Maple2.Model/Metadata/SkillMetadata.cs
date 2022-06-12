@@ -10,7 +10,7 @@ public record SkillMetadata(
     string? Name,
     SkillMetadataProperty Property,
     SkillMetadataState State,
-    Dictionary<short, SkillMetadataLevel> Levels);
+    Dictionary<short, SkillMetadataLevel> Levels) : ISearchResult;
 
 public record SkillMetadataProperty(
     SkillType Type,

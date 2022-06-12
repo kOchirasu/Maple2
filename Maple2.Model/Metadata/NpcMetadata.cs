@@ -10,7 +10,7 @@ public record NpcMetadata(
     NpcMetadataStat Stat,
     NpcMetadataBasic Basic,
     NpcMetadataAction Action,
-    NpcMetadataDead Dead);
+    NpcMetadataDead Dead) : ISearchResult;
 
 public record NpcMetadataStat(
     IDictionary<StatAttribute, long> Stats,

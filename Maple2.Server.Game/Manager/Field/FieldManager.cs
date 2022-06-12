@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Threading;
 using Maple2.Database.Storage;
 using Maple2.Model.Game;
@@ -36,12 +37,7 @@ public sealed partial class FieldManager : IDisposable {
         this.logger = logger;
 
         foreach (Portal portal in entities.Portals.Values) {
-            int objectId = Interlocked.Increment(ref objectIdCounter);
-            var fieldPortal = new FieldEntity<Portal>(objectId, portal) {
-                Position = portal.Position,
-                Rotation = portal.Rotation,
-            };
-            fieldPortals[objectId] = fieldPortal;
+            SpawnPortal(portal);
         }
 
         foreach (SpawnPointNPC spawnPointNpc in entities.NpcSpawns) {
@@ -51,7 +47,6 @@ public sealed partial class FieldManager : IDisposable {
 
             if (spawnPointNpc.SpawnOnFieldCreate) {
                 for (int i = 0; i < spawnPointNpc.NpcCount; i++) {
-                    int objectId = Interlocked.Increment(ref objectIdCounter);
                     // TODO: get other NpcIds too
                     int npcId = spawnPointNpc.NpcIds[0];
                     if (!npcMetadata.TryGet(npcId, out NpcMetadata? npc)) {
@@ -59,18 +54,36 @@ public sealed partial class FieldManager : IDisposable {
                         continue;
                     }
 
-                    var fieldNpc = new FieldNpc(this, objectId, new Npc(npc)) {
-                        Position = spawnPointNpc.Position,
-                        Rotation = spawnPointNpc.Rotation,
-                    };
-                    fieldNpcs[objectId] = fieldNpc;
+                    SpawnNpc(npc, spawnPointNpc.Position, spawnPointNpc.Rotation);
                 }
             }
         }
     }
 
+    public FieldEntity<Portal> SpawnPortal(Portal portal, Vector3 position = default, Vector3 rotation = default) {
+        int objectId = Interlocked.Increment(ref objectIdCounter);
+        var fieldPortal = new FieldEntity<Portal>(objectId, portal) {
+            Position = position != default ? position : portal.Position,
+            Rotation = rotation != default ? rotation : portal.Rotation,
+        };
+        fieldPortals[objectId] = fieldPortal;
+
+        return fieldPortal;
+    }
+
     public bool TryGetPortal(int portalId, [NotNullWhen(true)] out Portal? portal) {
         return entities.Portals.TryGetValue(portalId, out portal);
+    }
+
+    public FieldNpc SpawnNpc(NpcMetadata npc, Vector3 position, Vector3 rotation) {
+        int objectId = Interlocked.Increment(ref objectIdCounter);
+        var fieldNpc = new FieldNpc(this, objectId, new Npc(npc)) {
+            Position = position,
+            Rotation = rotation,
+        };
+        fieldNpcs[objectId] = fieldNpc;
+
+        return fieldNpc;
     }
 
     public bool TryGetNpc(int objectId, [NotNullWhen(true)] out FieldNpc? npc) {

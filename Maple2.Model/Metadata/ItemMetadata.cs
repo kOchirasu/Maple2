@@ -8,7 +8,7 @@ public record ItemMetadata(
     EquipSlot[] SlotNames,
     string Mesh,
     ItemMetadataProperty Property,
-    ItemMetadataLimit Limit);
+    ItemMetadataLimit Limit) : ISearchResult;
 
 public record ItemMetadataProperty(
     bool IsSkin,

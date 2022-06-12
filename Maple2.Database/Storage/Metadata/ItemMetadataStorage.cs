@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Maple2.Database.Storage;
 
-public class ItemMetadataStorage : MetadataStorage<int, ItemMetadata> {
+public class ItemMetadataStorage : MetadataStorage<int, ItemMetadata>, ISearchable<ItemMetadata> {
     private const int CACHE_SIZE = 40000; // ~34k total items
 
     public ItemMetadataStorage(MetadataContext context) : base(context, CACHE_SIZE) { }

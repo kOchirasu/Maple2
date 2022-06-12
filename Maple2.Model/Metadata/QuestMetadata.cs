@@ -8,7 +8,7 @@ public record QuestMetadata(
     QuestMetadataBasic Basic,
     QuestMetadataRequire Require,
     QuestMetadataReward AcceptReward,
-    QuestMetadataReward CompleteReward);
+    QuestMetadataReward CompleteReward) : ISearchResult;
 
 public record QuestMetadataBasic(
     int ChapterId,
