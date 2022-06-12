@@ -16,6 +16,10 @@ public class RideSyncHandler : PacketHandler<GameSession> {
     public RideSyncHandler(ILogger<RideSyncHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
+        if (session.State != SessionState.Connected) {
+            return;
+        }
+
         packet.ReadByte(); // Unknown
         packet.ReadInt(); // ServerTicks
         packet.ReadInt(); // ClientTicks

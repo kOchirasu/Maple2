@@ -1,45 +1,47 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Server.Game.Manager.Field;
+using Maple2.Server.Game.Packets;
 
 namespace Maple2.Server.Game.Model;
 
-public class FieldNpc : IActor<Npc> {
-    public FieldManager Field { get; }
-
-    public int ObjectId { get; }
-    public Npc Value { get; }
-
-    public Vector3 Position { get; set; }
-    public Vector3 Rotation { get; set; }
+public class FieldNpc : Actor<Npc> {
     public Vector3 Velocity { get; set; }
 
     public NpcState StateData;
-    public ActorState State => StateData.State;
-    public ActorSubState SubState => StateData.SubState;
+
+    public ActorState State {
+        get => StateData.State;
+        set => throw new InvalidOperationException("Cannot set Npc State");
+    }
+
+    public ActorSubState SubState {
+        get => StateData.SubState;
+        set => throw new InvalidOperationException("Cannot set Npc SubState");
+    }
 
     public short SequenceId;
     public short SequenceCounter;
 
-    public IReadOnlyDictionary<int, Buff> Buffs { get; }
-    public Stats Stats { get; }
+    public override IReadOnlyDictionary<int, Buff> Buffs { get; }
+    public override Stats Stats { get; }
     public int TargetId = 0;
 
-    public FieldNpc(FieldManager field, int objectId, Npc npc) {
-        Field = field;
-        ObjectId = objectId;
-        Value = npc;
-
+    public FieldNpc(FieldManager field, int objectId, Npc npc) : base (field, objectId, npc) {
         StateData = new NpcState();
         Buffs = new Dictionary<int, Buff>();
         Stats = new Stats(JobCode.Newbie, npc.Metadata.Basic.Level);
         SequenceId = -1;
         SequenceCounter = 1;
+
+        Scheduler.ScheduleRepeated(() => Field.Multicast(NpcControlPacket.Control(this)), 1000);
+        Scheduler.Start();
     }
 
-    public void Sync() {
-
+    public override void Sync() {
+        base.Sync();
     }
 }

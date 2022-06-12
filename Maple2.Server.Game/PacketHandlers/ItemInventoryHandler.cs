@@ -3,6 +3,8 @@ using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
+using Maple2.Server.Game.Model;
+using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Microsoft.Extensions.Logging;
 
@@ -56,9 +58,9 @@ public class ItemInventoryHandler : PacketHandler<GameSession> {
 
         long uid = packet.ReadLong();
         int amount = packet.ReadInt();
-
         if (session.Item.Inventory.Remove(uid, out Item? removed, amount)) {
-            session.Field.DropItem(session.Player, removed);
+            FieldEntity<Item> fieldItem = session.Field.SpawnItem(session.Player, removed);
+            session.Field.Multicast(FieldPacket.DropItem(fieldItem));
         }
     }
 
@@ -68,9 +70,9 @@ public class ItemInventoryHandler : PacketHandler<GameSession> {
         }
 
         long uid = packet.ReadLong();
-
         if (session.Item.Inventory.Remove(uid, out Item? removed)) {
-            session.Field.DropItem(session.Player, removed!);
+            FieldEntity<Item> fieldItem = session.Field.SpawnItem(session.Player, removed);
+            session.Field.Multicast(FieldPacket.DropItem(fieldItem));
         }
     }
 

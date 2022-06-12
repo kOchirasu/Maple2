@@ -17,9 +17,12 @@ public partial class FieldManager {
     private int objectIdCounter = 10000000;
 
     private readonly ConcurrentDictionary<int, FieldPlayer> fieldPlayers = new();
+    private readonly ConcurrentDictionary<int, FieldNpc> fieldNpcs = new();
+    private readonly ConcurrentDictionary<int, FieldEntity<Portal>> fieldPortals = new();
     private readonly ConcurrentDictionary<int, FieldEntity<Item>> fieldItems = new();
 
-    public FieldPlayer SpawnPlayer(GameSession session, Player player, int portalId = 0,
+    #region Spawn
+    public FieldPlayer SpawnPlayer(GameSession session, Player player, int portalId = -1,
         in Vector3 position = default, in Vector3 rotation = default) {
         // TODO: Not sure what the difference is between instance ids.
         player.Character.MapId = MapId;
@@ -57,16 +60,29 @@ public partial class FieldManager {
         return fieldPlayer;
     }
 
-    public bool RemovePlayer(int objectId, [NotNullWhen(true)] out FieldPlayer? fieldPlayer) {
-        if (fieldPlayers.TryRemove(objectId, out fieldPlayer)) {
-            Multicast(FieldPacket.RemovePlayer(objectId));
-            return true;
-        }
+    public FieldNpc SpawnNpc(NpcMetadata npc, Vector3 position, Vector3 rotation) {
+        int objectId = Interlocked.Increment(ref objectIdCounter);
+        var fieldNpc = new FieldNpc(this, objectId, new Npc(npc)) {
+            Position = position,
+            Rotation = rotation,
+        };
+        fieldNpcs[objectId] = fieldNpc;
 
-        return false;
+        return fieldNpc;
     }
 
-    public void DropItem(IFieldEntity owner, Item item) {
+    public FieldEntity<Portal> SpawnPortal(Portal portal, Vector3 position = default, Vector3 rotation = default) {
+        int objectId = Interlocked.Increment(ref objectIdCounter);
+        var fieldPortal = new FieldEntity<Portal>(objectId, portal) {
+            Position = position != default ? position : portal.Position,
+            Rotation = rotation != default ? rotation : portal.Rotation,
+        };
+        fieldPortals[objectId] = fieldPortal;
+
+        return fieldPortal;
+    }
+
+    public FieldEntity<Item> SpawnItem(IFieldEntity owner, Item item) {
         int objectId = Interlocked.Increment(ref objectIdCounter);
         var fieldItem = new FieldEntity<Item>(objectId, item) {
             Owner = owner,
@@ -75,11 +91,18 @@ public partial class FieldManager {
         };
         fieldItems[objectId] = fieldItem;
 
-        Multicast(FieldPacket.DropItem(fieldItem));
+        return fieldItem;
     }
+    #endregion
 
-    public bool TryGetItem(int objectId, [NotNullWhen(true)] out FieldEntity<Item>? fieldItem) {
-        return fieldItems.TryGetValue(objectId, out fieldItem);
+    #region Remove
+    public bool RemovePlayer(int objectId, [NotNullWhen(true)] out FieldPlayer? fieldPlayer) {
+        if (fieldPlayers.TryRemove(objectId, out fieldPlayer)) {
+            Multicast(FieldPacket.RemovePlayer(objectId));
+            return true;
+        }
+
+        return false;
     }
 
     public bool PickupItem(FieldPlayer looter, int objectId, [NotNullWhen(true)] out FieldEntity<Item>? fieldItem) {
@@ -96,6 +119,7 @@ public partial class FieldManager {
         Multicast(FieldPacket.RemoveItem(objectId));
         return true;
     }
+    #endregion
 
     #region Events
     public void OnAddPlayer(FieldPlayer added) {
@@ -126,12 +150,6 @@ public partial class FieldManager {
         foreach (FieldNpc fieldNpc in fieldNpcs.Values) {
             added.Session.Send(ProxyObjectPacket.AddNpc(fieldNpc));
         }
-
-        // TODO: Move this into a periodically called function in FieldNpc
-        new Thread(() => {
-            Thread.Sleep(1000);
-            added.Session.Send(NpcControlPacket.Control(fieldNpcs.Values.ToArray()));
-        }).Start();
 
         // RegionSkill (on tick?)
         added.Session.Send(StatsPacket.Init(added));

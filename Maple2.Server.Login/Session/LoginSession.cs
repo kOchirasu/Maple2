@@ -28,7 +28,9 @@ public class LoginSession : Core.Network.Session {
 
     private Account account = null!;
 
-    public LoginSession(TcpClient tcpClient, ILogger<LoginSession> logger) : base(tcpClient, logger) { }
+    public LoginSession(TcpClient tcpClient, ILogger<LoginSession> logger) : base(tcpClient, logger) {
+        State = SessionState.Connected;
+    }
 
     public void Init(long accountId, Guid machineId) {
         AccountId = accountId;

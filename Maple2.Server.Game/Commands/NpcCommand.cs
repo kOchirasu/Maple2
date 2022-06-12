@@ -6,6 +6,8 @@ using System.Numerics;
 using Maple2.Database.Storage;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Commands.Common;
+using Maple2.Server.Game.Model;
+using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.Commands;
@@ -38,7 +40,10 @@ public class NpcCommand : Command {
 
             Vector3 position = session.Player.Position;
             Vector3 rotation = session.Player.Rotation;
-            session.Field.SpawnNpc(metadata, position, rotation);
+            FieldNpc fieldNpc = session.Field.SpawnNpc(metadata, position, rotation);
+            session.Field.Multicast(FieldPacket.AddNpc(fieldNpc));
+            session.Field.Multicast(ProxyObjectPacket.AddNpc(fieldNpc));
+            fieldNpc.Sync();
 
             ctx.ExitCode = 0;
         } catch (SystemException ex) {

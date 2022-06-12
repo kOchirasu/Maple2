@@ -21,8 +21,8 @@ public sealed partial class FieldManager : IDisposable {
 
     private readonly ConcurrentBag<SpawnPointNPC> npcSpawns = new();
 
-    private readonly ConcurrentDictionary<int, FieldEntity<Portal>> fieldPortals = new();
-    private readonly ConcurrentDictionary<int, FieldNpc> fieldNpcs = new();
+    private readonly CancellationTokenSource cancel;
+    private readonly Thread thread;
 
     private readonly ILogger logger;
 
@@ -34,6 +34,8 @@ public sealed partial class FieldManager : IDisposable {
         this.Metadata = metadata;
         this.entities = entities;
         this.npcMetadata = npcMetadata;
+        this.cancel = new CancellationTokenSource();
+        this.thread = new Thread(Sync);
         this.logger = logger;
 
         foreach (Portal portal in entities.Portals.Values) {
@@ -58,36 +60,32 @@ public sealed partial class FieldManager : IDisposable {
                 }
             }
         }
+
+        thread.Start();
     }
 
-    public FieldEntity<Portal> SpawnPortal(Portal portal, Vector3 position = default, Vector3 rotation = default) {
-        int objectId = Interlocked.Increment(ref objectIdCounter);
-        var fieldPortal = new FieldEntity<Portal>(objectId, portal) {
-            Position = position != default ? position : portal.Position,
-            Rotation = rotation != default ? rotation : portal.Rotation,
-        };
-        fieldPortals[objectId] = fieldPortal;
+    private void Sync() {
+        while (!cancel.IsCancellationRequested) {
+            foreach (FieldPlayer player in fieldPlayers.Values) {
+                player.Sync();
+            }
+            foreach (FieldNpc npc in fieldNpcs.Values) {
+                npc.Sync();
+            }
+            Thread.Sleep(50);
+        }
+    }
 
-        return fieldPortal;
+    public bool TryGetNpc(int objectId, [NotNullWhen(true)] out FieldNpc? npc) {
+        return fieldNpcs.TryGetValue(objectId, out npc);
     }
 
     public bool TryGetPortal(int portalId, [NotNullWhen(true)] out Portal? portal) {
         return entities.Portals.TryGetValue(portalId, out portal);
     }
 
-    public FieldNpc SpawnNpc(NpcMetadata npc, Vector3 position, Vector3 rotation) {
-        int objectId = Interlocked.Increment(ref objectIdCounter);
-        var fieldNpc = new FieldNpc(this, objectId, new Npc(npc)) {
-            Position = position,
-            Rotation = rotation,
-        };
-        fieldNpcs[objectId] = fieldNpc;
-
-        return fieldNpc;
-    }
-
-    public bool TryGetNpc(int objectId, [NotNullWhen(true)] out FieldNpc? npc) {
-        return fieldNpcs.TryGetValue(objectId, out npc);
+    public bool TryGetItem(int objectId, [NotNullWhen(true)] out FieldEntity<Item>? fieldItem) {
+        return fieldItems.TryGetValue(objectId, out fieldItem);
     }
 
     public void InspectPlayer(GameSession session, long characterId) {
@@ -102,11 +100,14 @@ public sealed partial class FieldManager : IDisposable {
     }
 
     public void Multicast(ByteWriter packet, GameSession? sender = null) {
-        foreach ((_, FieldPlayer other) in fieldPlayers) {
-            if (other.Session == sender) continue;
-            other.Session.Send(packet);
+        foreach (FieldPlayer fieldPlayer in fieldPlayers.Values) {
+            if (fieldPlayer.Session == sender) continue;
+            fieldPlayer.Session.Send(packet);
         }
     }
 
-    public void Dispose() { }
+    public void Dispose() {
+        cancel.Cancel();
+        thread.Join();
+    }
 }

@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using Maple2.Database.Storage;
 using Maple2.Model.Metadata;
 using Microsoft.Extensions.Logging;
@@ -6,7 +7,7 @@ using Microsoft.Extensions.Logging;
 namespace Maple2.Server.Game.Manager.Field;
 
 public partial class FieldManager {
-    public class Factory {
+    public class Factory : IDisposable {
         #region Autofac Autowired
         // ReSharper disable MemberCanBePrivate.Global
         public MapMetadataStorage MapMetadata { private get; init; } = null!;
@@ -36,6 +37,14 @@ public partial class FieldManager {
                 MapEntityMetadata entities = MapEntities.Get(metadata.XBlock);
                 return new FieldManager(instanceId, metadata, entities, NpcMetadata, logger);
             });
+        }
+
+        public void Dispose() {
+            foreach (FieldManager manager in managers.Values) {
+                manager.Dispose();
+            }
+
+            managers.Clear();
         }
     }
 }

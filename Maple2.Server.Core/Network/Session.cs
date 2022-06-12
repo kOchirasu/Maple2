@@ -5,6 +5,7 @@ using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using Maple2.Model.Enum;
 using Maple2.PacketLib.Crypto;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -24,6 +25,8 @@ public abstract class Session : IDisposable {
 
     private const int HANDSHAKE_SIZE = 19;
     private const int STOP_TIMEOUT = 2000;
+
+    public SessionState State { get; protected set; }
 
     public EventHandler<string>? OnError;
     public EventHandler<IByteReader>? OnPacket;
@@ -84,6 +87,7 @@ public abstract class Session : IDisposable {
         if (disposed) return;
 
         disposed = true;
+        State = SessionState.Disconnected;
         Complete();
         thread.Join(STOP_TIMEOUT);
 

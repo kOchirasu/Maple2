@@ -7,33 +7,20 @@ using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.Model;
 
-public class FieldPlayer : IActor<Player> {
+public class FieldPlayer : Actor<Player> {
     public readonly GameSession Session;
 
-    public FieldManager Field => Session.Field!;
-
-    public int ObjectId { get; }
-    public Player Value { get; }
-
-    public Vector3 Position { get; set; }
-    public Vector3 Rotation { get; set; }
-
-    public ActorState State { get; set; }
-    public ActorSubState SubState { get; set; }
-
-    public IReadOnlyDictionary<int, Buff> Buffs => new Dictionary<int, Buff>();
-    public Stats Stats => Session.Stats.Values;
+    public override IReadOnlyDictionary<int, Buff> Buffs => new Dictionary<int, Buff>();
+    public override Stats Stats => Session.Stats.Values;
     public bool InBattle;
 
-    public FieldPlayer(int objectId, GameSession session, Player player) {
-        ObjectId = objectId;
+    public FieldPlayer(int objectId, GameSession session, Player player) : base (session.Field!, objectId, player) {
         Session = session;
-        Value = player;
     }
 
     public static implicit operator Player(FieldPlayer fieldPlayer) => fieldPlayer.Value;
 
-    public void Sync() {
-
+    public override void Sync() {
+        base.Sync();
     }
 }

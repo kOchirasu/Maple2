@@ -16,6 +16,10 @@ public class UserSyncHandler : PacketHandler<GameSession> {
     public UserSyncHandler(ILogger<UserSyncHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
+        if (session.State != SessionState.Connected) {
+            return;
+        }
+
         packet.ReadByte(); // Unknown
         packet.ReadInt(); // ServerTicks
         packet.ReadInt(); // ClientTicks

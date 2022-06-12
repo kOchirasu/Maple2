@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Autofac;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
+using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Session;
 using Microsoft.Extensions.Logging;
 
@@ -12,11 +13,13 @@ namespace Maple2.Server.Game;
 
 public class GameServer : Server<GameSession> {
     private readonly object mutex = new object();
+    private readonly FieldManager.Factory fieldFactory;
     private readonly HashSet<GameSession> connectingSessions;
     private readonly Dictionary<long, GameSession> sessions;
 
-    public GameServer(PacketRouter<GameSession> router, ILogger<GameServer> logger, IComponentContext context)
+    public GameServer(FieldManager.Factory fieldFactory, PacketRouter<GameSession> router, ILogger<GameServer> logger, IComponentContext context)
             : base(Target.GAME_PORT, router, logger, context) {
+        this.fieldFactory = fieldFactory;
         connectingSessions = new HashSet<GameSession>();
         sessions = new Dictionary<long, GameSession>();
     }
@@ -56,6 +59,7 @@ public class GameServer : Server<GameSession> {
             foreach (GameSession session in sessions.Values) {
                 session.Dispose();
             }
+            fieldFactory.Dispose();
         }
 
         return base.StopAsync(cancellationToken);

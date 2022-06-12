@@ -3,6 +3,7 @@ using System.Net.Sockets;
 using System.Numerics;
 using Autofac;
 using Maple2.Database.Storage;
+using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Server.Core.Network;
@@ -53,6 +54,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
     public GameSession(TcpClient tcpClient, GameServer server, ILogger<GameSession> logger, IComponentContext context)
             : base(tcpClient, logger) {
         this.server = server;
+        State = SessionState.Moving;
         CommandHandler = context.Resolve<CommandRouter>(new NamedParameter("session", this));
         Scheduler = new EventQueue();
         Scheduler.ScheduleRepeated(() => Send(TimeSyncPacket.Request()), 1000);
@@ -65,6 +67,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         CharacterId = characterId;
         MachineId = machineId;
 
+        State = SessionState.Moving;
         server.OnConnected(this);
 
         using GameStorage.Request db = GameStorage.Context();
@@ -150,13 +153,14 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         return true;
     }
 
-    public bool PrepareField(int mapId, int portalId = 0, in Vector3 position = default, in Vector3 rotation = default) {
+    public bool PrepareField(int mapId, int portalId = -1, in Vector3 position = default, in Vector3 rotation = default) {
         FieldManager? newField = FieldFactory.Get(mapId);
         if (newField == null) {
             return false;
         }
 
         if (Field != null) {
+            State = SessionState.Moving;
             Scheduler.Stop();
             Field.RemovePlayer(Player.ObjectId, out _);
         }
@@ -172,6 +176,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
 
         Field?.OnAddPlayer(Player);
         Scheduler.Start();
+        State = SessionState.Connected;
 
         Config.LoadMacros();
 
@@ -219,6 +224,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
             Scheduler.Stop();
             server.OnDisconnected(this);
             Field?.RemovePlayer(Player.ObjectId, out FieldPlayer? _);
+            State = SessionState.Disconnected;
             Complete();
         } finally {
 #if !DEBUG
