@@ -1,6 +1,8 @@
-﻿namespace Maple2.Database.Model;
+﻿using Maple2.Model.Enum;
 
-internal record ItemTransfer(int Flag, int RemainTrades, int RemainRepackage, ItemBinding Binding) {
+namespace Maple2.Database.Model;
+
+internal record ItemTransfer(TransferFlag Flag, int RemainTrades, int RemainRepackage, ItemBinding Binding) {
     public static implicit operator ItemTransfer?(Maple2.Model.Game.ItemTransfer? other) {
         return other == null ? null :
             new ItemTransfer(other.Flag, other.RemainTrades, other.RemainRepackage, other.Binding!);

@@ -1,20 +1,21 @@
 ﻿using System;
+using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 using Maple2.Tools.Extensions;
 
-namespace Maple2.Model.Game; 
+namespace Maple2.Model.Game;
 
 public class ItemTransfer : IByteSerializable, IByteDeserializable {
     public static readonly ItemTransfer Default = new ItemTransfer();
-    
-    public int Flag { get; private set; }
-    public int RemainTrades { get; private set; }
-    public int RemainRepackage { get; private set; }
-    
+
+    public TransferFlag Flag { get; set; }
+    public int RemainTrades { get; set; }
+    public int RemainRepackage { get; set; }
+
     public ItemBinding? Binding { get; private set; }
 
-    public ItemTransfer(int flag = 0, int remainTrades = 0, int remainRepackage = 0, ItemBinding? binding = null) {
+    public ItemTransfer(TransferFlag flag = 0, int remainTrades = 0, int remainRepackage = 0, ItemBinding? binding = null) {
         Flag = flag;
         RemainTrades = remainTrades;
         RemainRepackage = remainRepackage;
@@ -23,7 +24,7 @@ public class ItemTransfer : IByteSerializable, IByteDeserializable {
 
     public void WriteTo(IByteWriter writer) {
         // CItemTransfer is CItem[66]
-        writer.WriteInt(Flag); // CItemTransfer[5]
+        writer.Write<TransferFlag>(Flag); // CItemTransfer[5]
         writer.WriteBool(false); // CItemTransfer[9] *bit-1*
         writer.WriteInt(RemainTrades); // CItemTransfer[10]
         writer.WriteInt(RemainRepackage); // CItemTransfer[11]
@@ -38,7 +39,7 @@ public class ItemTransfer : IByteSerializable, IByteDeserializable {
     }
 
     public void ReadFrom(IByteReader reader) {
-        Flag = reader.ReadInt();
+        Flag = reader.Read<TransferFlag>();
         reader.ReadByte();
         RemainTrades = reader.ReadInt();
         RemainRepackage = reader.ReadInt();

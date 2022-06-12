@@ -8,7 +8,7 @@ public enum NpcTalkType : byte {
     /// Simple NpcTalk without CinematicComponent, used for UIDialogs.
     ///     sub_649B00(uiTalkMgr, npcId, 1)
     /// </summary>
-    Chat = 1,
+    Dialog = 1,
     Talk = 2,
     Quest = 4,
     /// <summary>

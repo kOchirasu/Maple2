@@ -211,11 +211,6 @@ public class NpcScriptGenerator {
     }
 
     private void GenerateSelect(IndentedTextWriter writer, NpcScript script) {
-        if (script.select.Count > 1) {
-            writer.WriteLine("protected override int Select() {");
-            writer.Indent++;
-        }
-
         int[] ids = script.select.Select(select => select.id).ToArray();
         foreach (TalkScript talk in script.select) {
             writer.WriteLine($"// Select {talk.id}:");
@@ -225,10 +220,7 @@ public class NpcScriptGenerator {
         }
 
         if (script.select.Count > 1) {
-            writer.WriteLine($"// TODO: {string.Join(",", ids)}");
-            writer.WriteLine($"return {ids.FirstOrDefault()};");
-            writer.Indent--;
-            writer.WriteLine("}");
+            writer.WriteLine($"protected override int Select() => Random({string.Join(", ", ids)});");
         } else {
             writer.WriteLine($"protected override int Select() => {ids.FirstOrDefault()};");
         }
@@ -323,8 +315,10 @@ public class NpcScriptGenerator {
                         writer.WriteLine($"// TODO: goto {success}");
                         if (!string.IsNullOrWhiteSpace(fail)) {
                             writer.WriteLine($"// TODO: gotoFail {fail}");
+                            writer.WriteLine($"return {fail};");
+                        } else {
+                            writer.WriteLine("return -1;");
                         }
-                        writer.WriteLine("return -1;");
                     }
                 }
                 writer.Indent--;

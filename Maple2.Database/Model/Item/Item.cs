@@ -89,14 +89,12 @@ internal class Item {
 
     // Use explicit Convert() here because we need metadata to construct Item.
     public Maple2.Model.Game.Item Convert(ItemMetadata metadata) {
-        var item = new Maple2.Model.Game.Item(metadata, false) {
+        var item = new Maple2.Model.Game.Item(metadata, Rarity, Amount, false) {
             LastModified = LastModified,
             Uid = Id,
-            Rarity = Rarity,
             Slot = Slot,
             EquipTab = EquipTab,
             EquipSlot = EquipSlot,
-            Amount = Amount,
             CreationTime = CreationTime.ToEpochSeconds(),
             ExpiryTime = ExpiryTime.ToEpochSeconds(),
             TimeChangedOption = TimeChangedOption,

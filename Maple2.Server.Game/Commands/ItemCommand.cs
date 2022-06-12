@@ -34,17 +34,15 @@ public class ItemCommand : Command {
         var amount = new Option<int>(new[] {"--amount", "-a"}, () => 1, "Amount of the item.");
         var rarity = new Option<int>(new[] {"--rarity", "-r"}, () => 1, "Rarity of the item.");
         var socket = new Option<int[]>(new[] {"--socket", "-s"}, "Number of sockets: '-s max -s unlocked'");
-        var transfer = new Option<int>(new[] {"--transfer", "-t"}, () => 6, "Transfer flags of the item.");
 
         AddArgument(id);
         AddOption(amount);
         AddOption(rarity);
         AddOption(socket);
-        AddOption(transfer);
-        this.SetHandler<InvocationContext, int, int, int, int[], int>(Handle, id, amount, rarity, socket, transfer);
+        this.SetHandler<InvocationContext, int, int, int, int[]>(Handle, id, amount, rarity, socket);
     }
 
-    private void Handle(InvocationContext ctx, int itemId, int amount, int rarity, int[] socket, int transfer) {
+    private void Handle(InvocationContext ctx, int itemId, int amount, int rarity, int[] socket) {
         try {
             if (!itemStorage.TryGet(itemId, out ItemMetadata? metadata)) {
                 ctx.ExitCode = 1;
@@ -59,12 +57,7 @@ public class ItemCommand : Command {
             }
             rarity = Math.Clamp(rarity, 1, MAX_RARITY);
 
-            var item = new Item(metadata) {
-                Amount = amount,
-                Rarity = rarity,
-                Transfer = new ItemTransfer(transfer),
-            };
-
+            var item = new Item(metadata, rarity, amount);
             if (item.Inventory is InventoryType.Gear or InventoryType.Outfit) {
                 byte maxSockets = (byte) Math.Clamp(socket.Length >= 1 ? socket[0] : 0, 0, MAX_SOCKET);
                 byte unlockSockets = (byte) Math.Clamp(socket.Length >= 2 ? socket[1] : 0, 0, maxSockets);

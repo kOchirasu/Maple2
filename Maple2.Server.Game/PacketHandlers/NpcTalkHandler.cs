@@ -95,11 +95,11 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
         int kind = metadata.Basic.Kind;
         switch (kind) {
             case 1 or (> 10 and < 20):
-                scriptContext.Respond(NpcTalkType.Chat, 1, NpcTalkButton.None);
+                scriptContext.Respond(NpcTalkType.Dialog, 1, NpcTalkButton.None);
                 // TODO: Load Shop
                 return;
             case 2:
-                scriptContext.Respond(NpcTalkType.Chat, 1, NpcTalkButton.None);
+                scriptContext.Respond(NpcTalkType.Dialog, 1, NpcTalkButton.None);
                 // TODO: Storage
                 return;
             case 86:
@@ -129,6 +129,10 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
 
         int selection = packet.ReadInt();
         session.NpcScript.Advance(selection);
-        session.NpcScript.Continue();
+
+        // Attempt to Continue, if |false|, the dialogue has terminated.
+        if (!session.NpcScript.Continue()) {
+            session.NpcScript = null;
+        }
     }
 }

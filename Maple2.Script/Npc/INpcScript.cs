@@ -21,15 +21,16 @@ public abstract class NpcScript {
     }
 
     protected int Index;
-    protected NpcTalkType Type = NpcTalkType.Chat;
+    protected NpcTalkType Type = NpcTalkType.Talk;
 
     public void Init(INpcScriptContext scriptContext) {
         context = scriptContext;
         Id = First();
+        Type = context.GetTalkType();
     }
 
     public void Respond() => context.Respond(Type, Id, Button());
-    public void Continue() => context.Continue(Type, Id, Index, Button());
+    public bool Continue() => context.Continue(Type, Id, Index, Button());
 
     /// <summary>
     /// Advances the script to the next Id

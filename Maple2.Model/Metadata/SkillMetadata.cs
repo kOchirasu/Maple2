@@ -111,7 +111,7 @@ public record MagicPathMetadata(
 
 public record MagicPathMetadataMove(
     bool Align,
-    bool AlignHeight,
+    int AlignHeight,
     bool Rotate,
     bool IgnoreAdjust,
     Vector3 Direction,

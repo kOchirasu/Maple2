@@ -20,6 +20,7 @@ public record ItemMetadataProperty(
     int Collection,
     int GearScore,
     int TradableCount,
+    int TradableCountDeduction,
     int RepackCount,
     bool DisableDrop);
 
@@ -27,6 +28,7 @@ public record ItemMetadataLimit(
     Gender Gender,
     int Level,
     int TransferType, // [0-7]
+    int TradeMaxRarity,
     bool ShopSell,
     bool EnableBreak,
     bool EnableEnchant,

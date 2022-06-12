@@ -51,10 +51,7 @@ public class TutorialCommand : Command {
                                 continue;
                             }
 
-                            var item = new Item(metadata) {
-                                Amount = rewardItem.Count,
-                                Rarity = rewardItem.Rarity,
-                            };
+                            var item = new Item(metadata, rewardItem.Rarity, rewardItem.Count);
                             session.Item.Inventory.Add(db.CreateItem(player.Character.Id, item));
                         }
                         break;

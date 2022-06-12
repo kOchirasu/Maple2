@@ -27,14 +27,28 @@ public class NpcScriptContext : INpcScriptContext {
         session.Send(NpcTalkPacket.Respond(npc, type, dialogue));
     }
 
-    public void Continue(NpcTalkType type, int id, int index, NpcTalkButton button, int questId = 0) {
+    public bool Continue(NpcTalkType type, int id, int index, NpcTalkButton button, int questId = 0) {
         if (button == NpcTalkButton.None) {
             session.Send(NpcTalkPacket.Close());
-            return;
+            return false;
         }
 
         var dialogue = new NpcDialogue(id, index, button);
         session.Send(NpcTalkPacket.Continue(type, dialogue, questId));
+        return true;
+    }
+
+    public NpcTalkType GetTalkType() {
+        int kind = npc.Value.Metadata.Basic.Kind;
+        return kind switch {
+            1 or (> 10 and < 20) => NpcTalkType.Dialog, // Shop
+            2 => NpcTalkType.Dialog, // Storage
+            86 => NpcTalkType.Dialog, // TODO: BlackMarket
+            88 => NpcTalkType.Dialog, // TODO: Birthday
+            >= 100 and <= 104 => NpcTalkType.Dialog, // TODO: Sky Fortress
+            >= 105 and <= 107 => NpcTalkType.Dialog, // TODO: Kritias
+            _ => NpcTalkType.Talk,
+        };
     }
 
     public bool MovePlayer(int portalId) {
@@ -57,11 +71,7 @@ public class NpcScriptContext : INpcScriptContext {
                 continue;
             }
 
-            results.Add(new Item(metadata) {
-                Amount = amount,
-                Rarity = rarity,
-                Transfer = new ItemTransfer(6), // Tradeable
-            });
+            results.Add(new Item(metadata, rarity, amount));
         }
 
         // TODO: We should send to mail if we can't add to inventory to guarantee reward.
