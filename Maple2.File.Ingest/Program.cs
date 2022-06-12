@@ -37,6 +37,7 @@ UpdateDatabase(metadataContext, new NpcMapper(xmlReader));
 UpdateDatabase(metadataContext, new MagicPathMapper(xmlReader));
 UpdateDatabase(metadataContext, new MapMapper(xmlReader));
 UpdateDatabase(metadataContext, new MapEntityMapper(metadataContext, exportedReader));
+UpdateDatabase(metadataContext, new QuestMapper(xmlReader));
 UpdateDatabase(metadataContext, new SkillMapper(xmlReader));
 UpdateDatabase(metadataContext, new TableMapper(xmlReader));
 UpdateDatabase(metadataContext, new UgcMapMapper(xmlReader));

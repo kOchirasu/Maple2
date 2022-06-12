@@ -29,6 +29,7 @@ public class DataDbModule : Module {
         builder.RegisterType<MapMetadataStorage>().SingleInstance();
         builder.RegisterType<MapEntityStorage>().SingleInstance();
         builder.RegisterType<NpcMetadataStorage>().SingleInstance();
+        builder.RegisterType<QuestMetadataStorage>().SingleInstance();
         builder.RegisterType<SkillMetadataStorage>().SingleInstance();
         builder.RegisterType<TableMetadataStorage>().SingleInstance();
         builder.RegisterType<UgcMapMetadata>().SingleInstance();

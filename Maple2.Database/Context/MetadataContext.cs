@@ -14,6 +14,7 @@ public sealed class MetadataContext : DbContext {
     public DbSet<MagicPathMetadata> MagicPathMetadata { get; set; } = null!;
     public DbSet<MapMetadata> MapMetadata { get; set; } = null!;
     public DbSet<MapEntity> MapEntity { get; set; } = null!;
+    public DbSet<QuestMetadata> QuestMetadata { get; set; } = null!;
     public DbSet<SkillMetadata> SkillMetadata { get; set; } = null!;
     public DbSet<TableMetadata> TableMetadata { get; set; } = null!;
     public DbSet<UgcMapMetadata> UgcMapMetadata { get; set; } = null!;
@@ -29,6 +30,7 @@ public sealed class MetadataContext : DbContext {
         modelBuilder.Entity<MagicPathMetadata>(ConfigureMagicPathMetadata);
         modelBuilder.Entity<MapMetadata>(ConfigureMapMetadata);
         modelBuilder.Entity<MapEntity>(ConfigureMapEntity);
+        modelBuilder.Entity<QuestMetadata>(ConfigureQuestMetadata);
         modelBuilder.Entity<SkillMetadata>(ConfigureSkillMetadata);
         modelBuilder.Entity<TableMetadata>(ConfigureTableMetadata);
         modelBuilder.Entity<UgcMapMetadata>(ConfigureUgcMapMetadata);
@@ -76,6 +78,15 @@ public sealed class MetadataContext : DbContext {
         builder.ToTable("map-entity");
         builder.HasKey(entity => new {entity.XBlock, Id = entity.Guid});
         builder.Property(entity => entity.Block).HasJsonConversion().IsRequired();
+    }
+
+    private static void ConfigureQuestMetadata(EntityTypeBuilder<QuestMetadata> builder) {
+        builder.ToTable("quest");
+        builder.HasKey(quest => quest.Id);
+        builder.Property(quest => quest.Basic).HasJsonConversion();
+        builder.Property(quest => quest.Require).HasJsonConversion();
+        builder.Property(quest => quest.AcceptReward).HasJsonConversion();
+        builder.Property(quest => quest.CompleteReward).HasJsonConversion();
     }
 
     private static void ConfigureSkillMetadata(EntityTypeBuilder<SkillMetadata> builder) {

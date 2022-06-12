@@ -39,7 +39,7 @@ public class SkillMapper : TypeMapper<SkillMetadata> {
                             PointGroup: attack.pointGroupID,
                             TargetCount: attack.targetCount,
                             MagicPathId: attack.magicPathID,
-                            CubeMagicPathId: attack.cubeMagicPathID,
+                            CubeMagicPathId: attack.cubeMagicPathID == int.MaxValue ? 9000073111 : attack.cubeMagicPathID,
                             Pet: attack.petTamingProperty != null ? new SkillMetadataPet(
                                 TamingGroup: attack.petTamingProperty.tamingGroup,
                                 TrapLevel: attack.petTamingProperty.trapLevel,
@@ -83,8 +83,8 @@ public class SkillMapper : TypeMapper<SkillMetadata> {
 
     private static SkillMetadataSkill Convert(TriggerSkill trigger) {
         return new SkillMetadataSkill(
-            Splash: trigger.splash != 0,
-            RandomCast: trigger.randomCast != 0,
+            Splash: trigger.splash,
+            RandomCast: trigger.randomCast,
             Skills: trigger.skillID.Zip(trigger.level, (skillId, level) =>
                 new SkillMetadataSkill.Skill(skillId, (short) level)).ToArray(),
             Target: (SkillEntity) trigger.skillTarget,
@@ -93,8 +93,8 @@ public class SkillMapper : TypeMapper<SkillMetadata> {
             RemoveDelay: trigger.removeDelay,
             Interval: trigger.interval,
             FireCount: trigger.fireCount,
-            ImmediateActive: trigger.immediateActive != 0,
-            NonTargetActive: trigger.nonTargetActive != 0
+            ImmediateActive: trigger.immediateActive,
+            NonTargetActive: trigger.nonTargetActive
         );
     }
 
