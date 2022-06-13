@@ -64,6 +64,12 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     RequireVip: data.limit.vip,
                     RequireWedding: data.limit.wedding,
                     Jobs: data.limit.jobLimit.Select(job => (JobCode) job).ToArray()
+                ),
+                Skill: new ItemMetadataSkill(
+                    Id: data.skill.skillID,
+                    Level: data.skill.skillLevel,
+                    WeaponId: data.objectWeaponSkill.skillID,
+                    WeaponLevel: data.objectWeaponSkill.skillLevel
                 )
             );
         }

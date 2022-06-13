@@ -8,7 +8,8 @@ public record ItemMetadata(
     EquipSlot[] SlotNames,
     string Mesh,
     ItemMetadataProperty Property,
-    ItemMetadataLimit Limit) : ISearchResult;
+    ItemMetadataLimit Limit,
+    ItemMetadataSkill Skill) : ISearchResult;
 
 public record ItemMetadataProperty(
     bool IsSkin,
@@ -37,3 +38,9 @@ public record ItemMetadataLimit(
     bool RequireVip,
     bool RequireWedding,
     JobCode[] Jobs);
+
+public record ItemMetadataSkill(
+    int Id,
+    short Level,
+    int WeaponId,
+    short WeaponLevel);

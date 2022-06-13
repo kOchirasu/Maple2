@@ -279,6 +279,9 @@ public class InventoryManager {
             if (item.Amount > amount) {
                 using GameStorage.Request db = session.GameStorage.Context();
                 removed = db.SplitItem(0, item, amount);
+                if (removed == null) {
+                    return false;
+                }
                 item.Amount -= amount;
 
                 session.Send(ItemInventoryPacket.UpdateAmount(uid, item.Amount));

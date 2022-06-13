@@ -76,6 +76,22 @@ public sealed partial class FieldManager : IDisposable {
         }
     }
 
+    public bool TryGetPlayerById(long characterId, [NotNullWhen(true)] out FieldPlayer? player) {
+        foreach (FieldPlayer fieldPlayer in fieldPlayers.Values) {
+            if (fieldPlayer.Value.Character.Id == characterId) {
+                player = fieldPlayer;
+                return true;
+            }
+        }
+
+        player = null;
+        return false;
+    }
+
+    public bool TryGetPlayer(int objectId, [NotNullWhen(true)] out FieldPlayer? player) {
+        return fieldPlayers.TryGetValue(objectId, out player);
+    }
+
     public bool TryGetNpc(int objectId, [NotNullWhen(true)] out FieldNpc? npc) {
         return fieldNpcs.TryGetValue(objectId, out npc);
     }
@@ -86,17 +102,6 @@ public sealed partial class FieldManager : IDisposable {
 
     public bool TryGetItem(int objectId, [NotNullWhen(true)] out FieldEntity<Item>? fieldItem) {
         return fieldItems.TryGetValue(objectId, out fieldItem);
-    }
-
-    public void InspectPlayer(GameSession session, long characterId) {
-        foreach (FieldPlayer fieldPlayer in fieldPlayers.Values) {
-            if (fieldPlayer.Value.Character.Id == characterId) {
-                session.Send(PlayerInfoPacket.Load(fieldPlayer.Session));
-                return;
-            }
-        }
-
-        session.Send(PlayerInfoPacket.NotFound(characterId));
     }
 
     public void Multicast(ByteWriter packet, GameSession? sender = null) {

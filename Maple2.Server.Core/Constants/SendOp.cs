@@ -32,7 +32,7 @@ public static class SendOp {
         USER_SYNC = 0x001C,
         USER_CHAT = 0x001D,
         MESSENGER_BROWSER = 0x001E,
-        EMOTION = 0x001F,
+        EMOTE = 0x001F,
         ITEM_PUT_ON_OR_OFF = 0x0020,
         ITEM_INVENTORY = 0x0021,
         STORAGE_INVENTORY = 0x0022,

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net.Sockets;
 using System.Numerics;
 using Autofac;
@@ -159,8 +160,8 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
             return false;
         }
 
+        State = SessionState.Moving;
         if (Field != null) {
-            State = SessionState.Moving;
             Scheduler.Stop();
             Field.RemovePlayer(Player.ObjectId, out _);
         }
@@ -178,6 +179,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         Scheduler.Start();
         State = SessionState.Connected;
 
+        Send(EmotePacket.Load(Player.Value.Unlock.Emotes.Select(id => new Emote(id)).ToList()));
         Config.LoadMacros();
 
         Send(RevivalPacket.Count(0)); // TODO: Consumed daily revivals?

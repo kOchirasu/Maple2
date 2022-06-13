@@ -52,7 +52,7 @@ public class NpcScriptContext : INpcScriptContext {
     }
 
     public bool MovePlayer(int portalId) {
-        if (session.Field == null || !session.Field.TryGetPortal(portalId, out Portal? portal)) {
+        if (session.Field?.TryGetPortal(portalId, out Portal? portal) is null or false) {
             return false;
         }
 

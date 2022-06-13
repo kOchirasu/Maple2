@@ -76,7 +76,7 @@ public class Item : IByteSerializable, IByteDeserializable {
             Blueprint = new ItemBlueprint();
         } else if (Inventory == InventoryType.Pets) {
             Pet = new ItemPet();
-        } else if (Id / 100000 == 351) { // 350 is also score, but doesn't have extra data?
+        } else if (this.IsCustomMusicScore()) { // 350 is also score, but doesn't have extra data?
             // From IDA, this exists for all type 12.
             Music = new ItemCustomMusicScore();
         } else if (Inventory == InventoryType.Badge) {

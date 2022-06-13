@@ -21,7 +21,7 @@ public static class RecvOp {
         RESPONSE_FIELD_ENTER = 0x0010,
         USER_CHAT = 0x0011,
         USER_SYNC = 0x0012,
-        EMOTION = 0x0013,
+        EMOTE = 0x0013,
         REQUEST_SERVER_LIST = 0x0014,
         REQUEST_ITEM_CREATE = 0x0015,
         ITEM_EQUIP = 0x0016,
