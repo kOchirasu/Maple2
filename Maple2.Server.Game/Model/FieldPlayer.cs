@@ -1,8 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Numerics;
-using Maple2.Model.Enum;
 using Maple2.Model.Game;
-using Maple2.Server.Game.Manager.Field;
+using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.Model;
@@ -16,6 +14,9 @@ public class FieldPlayer : Actor<Player> {
 
     public FieldPlayer(int objectId, GameSession session, Player player) : base (session.Field!, objectId, player) {
         Session = session;
+
+        Scheduler.ScheduleRepeated(() => Field.Multicast(ProxyObjectPacket.UpdatePlayer(this, 66)), 2000);
+        Scheduler.Start();
     }
 
     public static implicit operator Player(FieldPlayer fieldPlayer) => fieldPlayer.Value;

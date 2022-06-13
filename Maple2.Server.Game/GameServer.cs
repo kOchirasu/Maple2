@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
+using Maple2.Model.Game.Event;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Game.Manager.Field;
@@ -16,12 +17,14 @@ public class GameServer : Server<GameSession> {
     private readonly FieldManager.Factory fieldFactory;
     private readonly HashSet<GameSession> connectingSessions;
     private readonly Dictionary<long, GameSession> sessions;
+    private readonly List<GameEvent> gameEvents;
 
     public GameServer(FieldManager.Factory fieldFactory, PacketRouter<GameSession> router, ILogger<GameServer> logger, IComponentContext context)
             : base(Target.GAME_PORT, router, logger, context) {
         this.fieldFactory = fieldFactory;
         connectingSessions = new HashSet<GameSession>();
         sessions = new Dictionary<long, GameSession>();
+        gameEvents = new List<GameEvent> {new TrafficOptimizer()};
     }
 
     public void OnConnected(GameSession session) {
@@ -49,6 +52,10 @@ public class GameServer : Server<GameSession> {
 
         logger.LogInformation("Game client connecting: {Session}", session);
         session.Start();
+    }
+
+    public IList<GameEvent> GetGameEvents() {
+        return gameEvents;
     }
 
     public override Task StopAsync(CancellationToken cancellationToken) {

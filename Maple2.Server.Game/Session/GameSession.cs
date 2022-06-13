@@ -7,6 +7,7 @@ using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Commands;
@@ -134,6 +135,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         // LegionBattle
         // CharacterAbility
         Config.LoadKeyTable();
+        Send(GameEventPacket.Load(server.GetGameEvents()));
         // GuideRecord
         // DailyWonder*
         // GameEvent
@@ -178,6 +180,11 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         Field?.OnAddPlayer(Player);
         Scheduler.Start();
         State = SessionState.Connected;
+
+        var pWriter = Packet.Of(SendOp.USER_STATE);
+        pWriter.WriteInt(Player.ObjectId);
+        pWriter.Write<ActorState>(ActorState.Fall);
+        Send(pWriter);
 
         Send(EmotePacket.Load(Player.Value.Unlock.Emotes.Select(id => new Emote(id)).ToList()));
         Config.LoadMacros();
