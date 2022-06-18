@@ -12,6 +12,7 @@ public class Ms2Context : DbContext {
     internal DbSet<Club> Club { get; set; } = null!;
     internal DbSet<ClubMember> ClubMember { get; set; } = null!;
     internal DbSet<SkillTab> SkillTab { get; set; } = null!;
+    internal DbSet<Buddy> Buddy { get; set; } = null!;
 
     public Ms2Context(DbContextOptions options) : base(options) { }
 
@@ -25,5 +26,6 @@ public class Ms2Context : DbContext {
         modelBuilder.Entity<Club>(Maple2.Database.Model.Club.Configure);
         modelBuilder.Entity<ClubMember>(Maple2.Database.Model.ClubMember.Configure);
         modelBuilder.Entity<SkillTab>(Maple2.Database.Model.SkillTab.Configure);
+        modelBuilder.Entity<Buddy>(Maple2.Database.Model.Buddy.Configure);
     }
 }
