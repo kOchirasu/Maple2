@@ -8,7 +8,6 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Server.World.Service;
-using Microsoft.Extensions.Logging;
 using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
 namespace Maple2.Server.Game.PacketHandlers;
@@ -22,8 +21,6 @@ public class UserChatHandler : PacketHandler<GameSession> {
     public GameStorage GameStorage { private get; init; } = null!;
     // ReSharper restore All
     #endregion
-
-    public UserChatHandler(ILogger<UserChatHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         var type = packet.Read<ChatType>();

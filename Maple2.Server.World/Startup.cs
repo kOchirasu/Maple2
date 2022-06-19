@@ -28,8 +28,6 @@ public class Startup {
     // ConfigureServices so the things here will override registrations made in ConfigureServices.
     // Don't build the container; that gets done for you by the factory.
     public void ConfigureContainer(ContainerBuilder builder) {
-        builder.RegisterModule<NLogModule>();
-        
         // Database
         builder.RegisterModule<GameDbModule>();
         builder.RegisterModule<DataDbModule>();

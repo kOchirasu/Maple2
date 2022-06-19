@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using Maple2.File.IO;
 using Maple2.File.Parser;
-using Maple2.File.Parser.Xml.Common;
 using Maple2.File.Parser.Xml.Skill;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;

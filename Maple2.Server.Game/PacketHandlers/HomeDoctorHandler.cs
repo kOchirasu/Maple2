@@ -6,7 +6,6 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -14,8 +13,6 @@ public class HomeDoctorHandler : PacketHandler<GameSession> {
     public override ushort OpCode => RecvOp.REQUEST_HOME_DOCTOR;
 
     private const int DOCTOR_COST_MESO = 10000;
-
-    public HomeDoctorHandler(ILogger<HomeDoctorHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         long time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();

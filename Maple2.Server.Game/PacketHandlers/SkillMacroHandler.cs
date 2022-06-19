@@ -6,7 +6,6 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Extensions;
-using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -19,8 +18,6 @@ public class SkillMacroHandler : PacketHandler<GameSession> {
         Load = 0,
         Update = 1,
     }
-
-    public SkillMacroHandler(ILogger<SkillMacroHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         var command = packet.Read<Command>();

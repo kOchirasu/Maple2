@@ -8,7 +8,6 @@ using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Extensions;
-using Microsoft.Extensions.Logging;
 using static Maple2.Model.Error.MigrationError;
 
 namespace Maple2.Server.Game.PacketHandlers;
@@ -30,8 +29,6 @@ public class TaxiHandler : PacketHandler<GameSession> {
     public MapEntityStorage EntityMetadata { get; init; } = null!;
     // ReSharper restore All
     #endregion
-
-    public TaxiHandler(ILogger<TaxiHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         var command = packet.Read<Command>();

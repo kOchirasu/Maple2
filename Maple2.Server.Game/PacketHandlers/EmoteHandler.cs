@@ -6,7 +6,6 @@ using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -17,8 +16,6 @@ public class EmoteHandler : PacketHandler<GameSession> {
         Learn = 1,
         Use = 2,
     }
-
-    public EmoteHandler(ILogger<EmoteHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         var command = packet.Read<Command>();

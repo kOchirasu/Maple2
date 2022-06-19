@@ -4,7 +4,6 @@ using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Session;
-using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -21,8 +20,6 @@ public class KeyTableHandler : PacketHandler<GameSession> {
         Unknown7 = 7,
         SetActiveHotBar = 8,
     }
-
-    public KeyTableHandler(ILogger<KeyTableHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         var command = packet.Read<Command>();
@@ -59,7 +56,7 @@ public class KeyTableHandler : PacketHandler<GameSession> {
     private void SetQuickSlot(GameSession session, IByteReader packet) {
         short index = packet.ReadShort();
         if (!session.Config.TryGetHotBar(index, out HotBar? targetHotBar)) {
-            logger.LogWarning("Invalid HotBar: {Index}", index);
+            Logger.Warning("Invalid HotBar: {Index}", index);
             return;
         }
 
@@ -67,7 +64,7 @@ public class KeyTableHandler : PacketHandler<GameSession> {
         if (quickSlot.ItemUid != 0) {
             Item? item = session.Item.Inventory.Get(quickSlot.ItemUid);
             if (item == null || item.Id != quickSlot.ItemId) {
-                logger.LogError("Assigning invalid item to QuickSlot");
+                Logger.Error("Assigning invalid item to QuickSlot");
                 return;
             }
         }
@@ -80,7 +77,7 @@ public class KeyTableHandler : PacketHandler<GameSession> {
     private void RemoveQuickSlot(GameSession session, IByteReader packet) {
         short index = packet.ReadShort();
         if (!session.Config.TryGetHotBar(index, out HotBar? targetHotBar)) {
-            logger.LogWarning("Invalid HotBar: {Index}", index);
+            Logger.Warning("Invalid HotBar: {Index}", index);
             return;
         }
 

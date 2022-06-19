@@ -6,7 +6,6 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Login.Session;
 using Maple2.Server.World.Service;
-using Microsoft.Extensions.Logging;
 using static Maple2.Model.Error.MigrationError;
 using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
@@ -21,7 +20,7 @@ public class ResponseKeyHandler : PacketHandler<LoginSession> {
     // ReSharper restore All
     #endregion
 
-    public ResponseKeyHandler(ILogger<ResponseKeyHandler> logger) : base(logger) { }
+    public ResponseKeyHandler() { }
 
     public override void Handle(LoginSession session, IByteReader packet) {
         long accountId = packet.ReadLong();

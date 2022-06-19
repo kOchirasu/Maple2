@@ -2,7 +2,6 @@
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
-using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Core.PacketHandlers;
 
@@ -14,8 +13,6 @@ public abstract class LogSendHandler<T> : PacketHandler<T> where T : Session {
         Log = 0,
         Metric = 1,
     }
-
-    protected LogSendHandler(ILogger logger) : base(logger) { }
 
     public override void Handle(T session, IByteReader packet) {
         byte unknown = packet.ReadByte();
@@ -32,7 +29,7 @@ public abstract class LogSendHandler<T> : PacketHandler<T> where T : Session {
                 if (message.Contains("exception")) {
                     // Read remaining string
                     string debug = packet.ReadUnicodeString();
-                    logger.LogError("[{Message}] {Debug}", message, debug);
+                    Logger.Error("[{Message}] {Debug}", message, debug);
 
                     session.OnError?.Invoke(session, debug);
                     return;
@@ -41,7 +38,7 @@ public abstract class LogSendHandler<T> : PacketHandler<T> where T : Session {
                     builder.Append(message);
                 }
 
-                logger.LogInformation("Client Log: {Builder}", builder);
+                Logger.Information("Client Log: {Builder}", builder);
                 break;
             case Command.Metric:
                 byte count = packet.ReadByte();

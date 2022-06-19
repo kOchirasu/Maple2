@@ -1,12 +1,10 @@
-﻿using System;
-using Maple2.Model.Enum;
+﻿using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -20,8 +18,6 @@ public class WardrobeHandler : PacketHandler<GameSession> {
         SetKey = 4,
         Rename = 6,
     }
-
-    public WardrobeHandler(ILogger<WardrobeHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         var command = packet.Read<Command>();

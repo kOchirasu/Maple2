@@ -1,6 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
 using Maple2.Model.Enum;
-using Maple2.Model.Game;
 
 namespace Maple2.Script.Npc;
 

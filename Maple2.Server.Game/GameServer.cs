@@ -8,7 +8,6 @@ using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Session;
-using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game;
 
@@ -19,8 +18,8 @@ public class GameServer : Server<GameSession> {
     private readonly Dictionary<long, GameSession> sessions;
     private readonly List<GameEvent> gameEvents;
 
-    public GameServer(FieldManager.Factory fieldFactory, PacketRouter<GameSession> router, ILogger<GameServer> logger, IComponentContext context)
-            : base(Target.GAME_PORT, router, logger, context) {
+    public GameServer(FieldManager.Factory fieldFactory, PacketRouter<GameSession> router, IComponentContext context)
+            : base(Target.GAME_PORT, router, context) {
         this.fieldFactory = fieldFactory;
         connectingSessions = new HashSet<GameSession>();
         sessions = new Dictionary<long, GameSession>();
@@ -50,7 +49,7 @@ public class GameServer : Server<GameSession> {
             connectingSessions.Add(session);
         }
 
-        logger.LogInformation("Game client connecting: {Session}", session);
+        Logger.Information("Game client connecting: {Session}", session);
         session.Start();
     }
 

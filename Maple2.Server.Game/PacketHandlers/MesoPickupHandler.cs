@@ -5,14 +5,11 @@ using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Session;
-using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class MesoPickupHandler : PacketHandler<GameSession> {
     public override ushort OpCode => RecvOp.REQUEST_MESO_PICKUP;
-
-    public MesoPickupHandler(ILogger<MesoPickupHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         if (session.Field == null) {

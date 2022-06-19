@@ -1,17 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Net;
 using Grpc.Core;
-using Maple2.Database.Storage;
-using Maple2.Model.Enum;
-using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Global.Service;
 using Maple2.Server.Login.Session;
-using Microsoft.Extensions.Logging;
 using GlobalClient = Maple2.Server.Global.Service.Global.GlobalClient;
 
 namespace Maple2.Server.Login.PacketHandlers;
@@ -30,7 +24,7 @@ public class LoginHandler : PacketHandler<LoginSession> {
     // ReSharper restore All
     #endregion
 
-    public LoginHandler(ILogger<LoginHandler> logger) : base(logger) { }
+    public LoginHandler() { }
 
     public override void Handle(LoginSession session, IByteReader packet) {
         var command = packet.Read<Command>();
@@ -40,7 +34,7 @@ public class LoginHandler : PacketHandler<LoginSession> {
         var machineId = packet.Read<Guid>();
 
         try {
-            logger.LogDebug("Logging in with user:{User} pass:{Pass}", user, pass);
+            Logger.Debug("Logging in with user:{User} pass:{Pass}", user, pass);
             LoginResponse response = Global.Login(new LoginRequest {
                 Username = user,
                 Password = pass,
@@ -65,11 +59,11 @@ public class LoginHandler : PacketHandler<LoginSession> {
                     session.ListCharacters();
                     return;
                 default:
-                    logger.LogError("Invalid type: {Type}", command);
+                    Logger.Error("Invalid type: {Type}", command);
                     break;
             }
         } catch (RpcException ex) {
-            logger.LogError(ex, "Failed to login");
+            Logger.Error(ex, "Failed to login");
         }
 
         // Disconnect by default if anything goes wrong.

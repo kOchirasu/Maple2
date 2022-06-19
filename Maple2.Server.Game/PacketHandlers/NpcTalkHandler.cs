@@ -1,5 +1,4 @@
-﻿using System;
-using Maple2.Database.Storage;
+﻿using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
@@ -9,7 +8,6 @@ using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Scripting.Npc;
 using Maple2.Server.Game.Session;
-using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -36,7 +34,7 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
 
     private readonly NpcScriptLoader scriptLoader;
 
-    public NpcTalkHandler(ILogger<NpcTalkHandler> logger) : base(logger) {
+    public NpcTalkHandler() {
         scriptLoader = new NpcScriptLoader();
     }
 

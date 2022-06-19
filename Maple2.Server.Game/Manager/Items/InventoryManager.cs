@@ -13,7 +13,7 @@ using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Extensions;
-using Microsoft.Extensions.Logging;
+using Serilog;
 using static Maple2.Model.Error.ItemInventoryError;
 
 namespace Maple2.Server.Game.Manager.Items;
@@ -42,7 +42,7 @@ public class InventoryManager {
             if (tabs.TryGetValue(type, out ItemCollection? items)) {
                 foreach (Item item in load) {
                     if (items.Add(item).Count == 0) {
-                        session.Log(LogLevel.Error, "Failed to add item:{Uid}", item.Uid);
+                        Log.Error("Failed to add item:{Uid}", item.Uid);
                     }
                 }
             }

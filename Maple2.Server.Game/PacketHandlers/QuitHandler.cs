@@ -6,7 +6,6 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Server.World.Service;
-using Microsoft.Extensions.Logging;
 using static Maple2.Model.Error.MigrationError;
 using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
@@ -20,8 +19,6 @@ public class QuitHandler : PacketHandler<GameSession> {
     public WorldClient World { private get; init; } = null!;
     // ReSharper restore All
     #endregion
-
-    public QuitHandler(ILogger<QuitHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         bool quitGame = packet.ReadBool();

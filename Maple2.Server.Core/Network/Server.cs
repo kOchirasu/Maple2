@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Maple2.Server.Core.Network;
 
@@ -22,12 +22,11 @@ public abstract class Server<T> : BackgroundService where T : Session {
 
     private ServerState state = ServerState.Unstarted;
 
-    protected readonly ILogger logger;
+    protected readonly ILogger Logger = Log.Logger.ForContext<T>();
 
-    protected Server(ushort port, PacketRouter<T> router, ILogger logger, IComponentContext context) {
+    protected Server(ushort port, PacketRouter<T> router, IComponentContext context) {
         this.port = port;
         this.router = router;
-        this.logger = logger;
         this.context = context ?? throw new ArgumentException("null context provided");
     }
 
@@ -38,7 +37,7 @@ public abstract class Server<T> : BackgroundService where T : Session {
         listener.Start();
         state = ServerState.Running;
 
-        logger.LogInformation("{Type} started on Port:{Port}", GetType().Name, port);
+        Logger.Information("{Type} started on Port:{Port}", GetType().Name, port);
         await using CancellationTokenRegistration registry = stoppingToken.Register(() => listener.Stop());
         while (!stoppingToken.IsCancellationRequested) {
             TcpClient client = await listener.AcceptTcpClientAsync(stoppingToken);
@@ -53,14 +52,14 @@ public abstract class Server<T> : BackgroundService where T : Session {
     public override Task StopAsync(CancellationToken cancellationToken) {
         switch (state) {
             case ServerState.Unstarted:
-                logger.LogInformation("{Type} has not been started", GetType().Name);
+                Logger.Information("{Type} has not been started", GetType().Name);
                 break;
             case ServerState.Running:
                 state = ServerState.Stopped;
-                logger.LogInformation("{Type} was stopped", GetType().Name);
+                Logger.Information("{Type} was stopped", GetType().Name);
                 break;
             case ServerState.Stopped:
-                logger.LogInformation("{Type} has already been stopped", GetType().Name);
+                Logger.Information("{Type} has already been stopped", GetType().Name);
                 break;
         }
 

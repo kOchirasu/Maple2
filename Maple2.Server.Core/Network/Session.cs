@@ -9,7 +9,7 @@ using Maple2.Model.Enum;
 using Maple2.PacketLib.Crypto;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Maple2.Server.Core.Network;
 
@@ -47,11 +47,9 @@ public abstract class Session : IDisposable {
     private readonly Pipe recvPipe;
 
     protected abstract PatchType Type { get; }
-    protected readonly ILogger logger;
+    protected readonly ILogger Logger = Log.Logger.ForContext<Session>();
 
-    protected Session(TcpClient tcpClient, ILogger logger) {
-        this.logger = logger;
-
+    protected Session(TcpClient tcpClient) {
         thread = new Thread(StartInternal);
         pipeScheduler = new QueuedPipeScheduler();
         var options = new PipeOptions(
@@ -103,7 +101,7 @@ public abstract class Session : IDisposable {
     public void Disconnect() {
         if (disposed) return;
 
-        logger.LogInformation("Disconnected {Session}", this);
+        Logger.Information("Disconnected {Session}", this);
         Dispose();
     }
 
@@ -149,7 +147,7 @@ public abstract class Session : IDisposable {
             }
         } catch (Exception ex) {
             if (!disposed) {
-                logger.LogError(ex, "Exception on session thread");
+                Logger.Error(ex, "Exception on session thread");
             }
         } finally {
             Disconnect();
@@ -213,7 +211,7 @@ public abstract class Session : IDisposable {
             } while (!disposed && !result.IsCompleted);
         } catch (Exception ex) {
             if (!disposed) {
-                logger.LogError(ex, "Exception reading recv packet");
+                Logger.Error(ex, "Exception reading recv packet");
             }
         } finally {
             Disconnect();
@@ -251,7 +249,7 @@ public abstract class Session : IDisposable {
         // Filtering sync from logs
         short opcode = (short) (packet[1] << 8 | packet[0]);
         if (opcode != 0x1C && opcode != 0x59 && opcode != 0x80 && opcode != 0x11) {
-            logger.LogTrace("SEND ({Length}): {Packet}", length, packet.ToHexString(length, ' '));
+            Logger.Verbose("SEND ({Length}): {Packet}", length, packet.ToHexString(length, ' '));
         }
     }
 
@@ -259,7 +257,7 @@ public abstract class Session : IDisposable {
         short opcode = (short) (packet.Buffer[1] << 8 | packet.Buffer[0]);
         if (opcode != 0x12 && opcode != 0x0B && opcode != 0x35) {
             // Filtering sync from logs
-            logger.LogTrace("RECV ({Length}): {Packet}", packet.Length, packet);
+            Logger.Verbose("RECV ({Length}): {Packet}", packet.Length, packet);
         }
     }
 }

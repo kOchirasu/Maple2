@@ -10,7 +10,6 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Extensions;
-using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -40,8 +39,6 @@ public class BeautyHandler : PacketHandler<GameSession> {
     public NpcMetadataStorage NpcMetadata { get; init; } = null!;
     // ReSharper restore All
     #endregion
-
-    public BeautyHandler(ILogger<BeautyHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         var command = packet.Read<Command>();

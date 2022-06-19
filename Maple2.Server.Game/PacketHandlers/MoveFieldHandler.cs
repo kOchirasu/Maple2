@@ -7,7 +7,6 @@ using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using Microsoft.Extensions.Logging;
 using static Maple2.Model.Error.MigrationError;
 
 namespace Maple2.Server.Game.PacketHandlers;
@@ -32,8 +31,6 @@ public class MoveFieldHandler : PacketHandler<GameSession> {
     public MapMetadataStorage MapMetadata { get; init; } = null!;
     // ReSharper restore All
     #endregion
-
-    public MoveFieldHandler(ILogger<MoveFieldHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         var command = packet.Read<Command>();

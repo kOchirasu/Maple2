@@ -1,6 +1,6 @@
 ﻿using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Network;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Maple2.Server.Core.PacketHandlers;
 
@@ -9,11 +9,9 @@ namespace Maple2.Server.Core.PacketHandlers;
 public abstract class PacketHandler<T> where T : Session {
     public abstract ushort OpCode { get; }
 
-    protected readonly ILogger logger;
+    protected readonly ILogger Logger = Log.Logger.ForContext<T>();
 
-    protected PacketHandler(ILogger logger) {
-        this.logger = logger;
-    }
+    protected PacketHandler() { }
 
     public abstract void Handle(T session, IByteReader packet);
 

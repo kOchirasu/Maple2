@@ -6,14 +6,11 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Extensions;
-using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class RideSyncHandler : PacketHandler<GameSession> {
     public override ushort OpCode => RecvOp.RIDE_SYNC;
-
-    public RideSyncHandler(ILogger<RideSyncHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         if (session.State != SessionState.Connected) {
@@ -34,7 +31,7 @@ public class RideSyncHandler : PacketHandler<GameSession> {
             var playerState = packet.Peek<ActorState>();
             // TODO: Not sure if this is actually a requirement.
             if (playerState != ActorState.Idle) {
-                logger.LogError("RideSync with invalid state: {State}", playerState);
+                Logger.Error("RideSync with invalid state: {State}", playerState);
                 return;
             }
 

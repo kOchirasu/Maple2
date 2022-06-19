@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Google.Protobuf;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Maple2.Database.Storage;
 using Maple2.Model.Game;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 // TODO: Move this to a Global server
 // ReSharper disable once CheckNamespace
@@ -14,11 +13,10 @@ namespace Maple2.Server.Global.Service;
 public partial class GlobalService : Global.GlobalBase {
     private readonly GameStorage gameStorage;
 
-    private readonly ILogger logger;
+    private readonly ILogger logger = Log.Logger.ForContext<GlobalService>();
 
-    public GlobalService(GameStorage gameStorage, ILogger<GlobalService> logger) {
+    public GlobalService(GameStorage gameStorage) {
         this.gameStorage = gameStorage;
-        this.logger = logger;
     }
 
     public override Task<HealthResponse> Health(Empty request, ServerCallContext context) {

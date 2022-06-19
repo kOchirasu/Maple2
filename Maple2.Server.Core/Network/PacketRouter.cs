@@ -3,22 +3,20 @@ using System.Collections.Immutable;
 using System.Linq;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.PacketHandlers;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace Maple2.Server.Core.Network;
 
 public class PacketRouter<T> where T : Session {
+    private readonly ILogger logger = Log.Logger.ForContext<T>();
     private readonly ImmutableDictionary<ushort, PacketHandler<T>> handlers;
-    private readonly ILogger logger;
 
-    public PacketRouter(IEnumerable<PacketHandler<T>> packetHandlers, ILogger<PacketRouter<T>> logger) {
-        this.logger = logger;
-
+    public PacketRouter(IEnumerable<PacketHandler<T>> packetHandlers) {
         var builder = ImmutableDictionary.CreateBuilder<ushort, PacketHandler<T>>();
         foreach (PacketHandler<T> packetHandler in packetHandlers.OrderBy(handler => handler.OpCode)) {
             Register(builder, packetHandler);
         }
-        this.handlers = builder.ToImmutable();
+        handlers = builder.ToImmutable();
     }
 
     public void OnPacket(object? sender, IByteReader reader) {
@@ -30,7 +28,7 @@ public class PacketRouter<T> where T : Session {
     }
 
     private void Register(ImmutableDictionary<ushort, PacketHandler<T>>.Builder builder, PacketHandler<T> packetHandler) {
-        logger.LogDebug("Registered {Handler}", packetHandler);
+        logger.Debug("Registered [{OpCode}] {Name}", $"0x{packetHandler.OpCode:X4}", packetHandler.GetType().Name);
         builder.Add(packetHandler.OpCode, packetHandler);
     }
 }

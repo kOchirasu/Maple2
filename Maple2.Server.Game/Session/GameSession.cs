@@ -18,7 +18,6 @@ using Maple2.Server.Game.Manager.Items;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Tools.Scheduler;
-using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.Session;
 
@@ -53,8 +52,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
 
-    public GameSession(TcpClient tcpClient, GameServer server, ILogger<GameSession> logger, IComponentContext context)
-            : base(tcpClient, logger) {
+    public GameSession(TcpClient tcpClient, GameServer server, IComponentContext context) : base(tcpClient) {
         this.server = server;
         State = SessionState.Moving;
         CommandHandler = context.Resolve<CommandRouter>(new NamedParameter("session", this));
@@ -216,10 +214,6 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         Player.Rotation = new Vector3(0, 0, stateSync.Rotation);
         Player.State = stateSync.State;
         Player.SubState = stateSync.SubState;
-    }
-
-    public void Log(LogLevel level, string? message, params object?[] args) {
-        logger.Log(level, message, args);
     }
 
     #region Dispose

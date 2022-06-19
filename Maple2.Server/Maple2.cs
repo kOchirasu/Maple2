@@ -1,23 +1,18 @@
 ﻿using System;
-using System.Diagnostics;
 using Autofac;
 using Maple2.Database.Context;
 using Maple2.Database.Storage;
-using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Server.Commands;
-using Maple2.Server.Core.Modules;
 using Maple2.Server.Modules;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using Serilog;
 
 var builder = new ContainerBuilder();
-builder.RegisterModule<NLogModule>();
 builder.RegisterModule<CliModule>();
 using ILifetimeScope mapleScope = builder.Build().BeginLifetimeScope();
 
-ILogger logger = mapleScope.Resolve<ILogger<Program>>();
-logger.LogInformation("MapleServer started with {Length} args: {Args}", args.Length, string.Join(", ", args));
+Log.Information("MapleServer started with {Length} args: {Args}", args.Length, string.Join(", ", args));
 
 // using var channel = GrpcChannel.ForAddress("https://localhost:20101");
 // var worldClient = new World.WorldClient(channel);
@@ -42,7 +37,7 @@ DbContextOptions options = new DbContextOptionsBuilder()
 using var initContext = new InitializationContext(options);
 // Initialize database if needed
 if (!initContext.Initialize()) {
-    logger.LogInformation("Database has already been initialized");
+    Log.Information("Database has already been initialized");
 }
 
 using var testContext = new Ms2Context(options);
@@ -65,6 +60,6 @@ while (true) {
     try {
         commandRouter.Invoke(command);
     } catch (SystemException ex) {
-        logger.LogError(ex, "Uncaught exception handling command");
+        Log.Error(ex, "Uncaught exception handling command");
     }
 }

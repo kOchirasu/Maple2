@@ -4,7 +4,6 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Session;
-using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -16,8 +15,6 @@ public class ItemEquipHandler : PacketHandler<GameSession> {
         Unequip = 1,
         Equip2 = 2,
     }
-
-    public ItemEquipHandler(ILogger<ItemEquipHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         var command = packet.Read<Command>();
@@ -51,7 +48,7 @@ public class ItemEquipHandler : PacketHandler<GameSession> {
 
         // Disconnect if this fails to avoid bad state.
         if (!session.Item.Equips.Unequip(itemUid)) {
-            logger.LogCritical("Failed to unequip item: {Uid}", itemUid);
+            Logger.Fatal("Failed to unequip item: {Uid}", itemUid);
             session.Disconnect();
         }
     }

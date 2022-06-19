@@ -3,7 +3,6 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Session;
-using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -14,8 +13,6 @@ public class AttributePointHandler : PacketHandler<GameSession> {
         Increment = 2,
         Reset = 3,
     }
-
-    public AttributePointHandler(ILogger<AttributePointHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         var command = packet.Read<Command>();

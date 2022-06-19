@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
 using Grpc.Core;
-using Maple2.Database.Model;
 using Maple2.Database.Storage;
 using Maple2.Model.Common;
 using Maple2.Model.Enum;
@@ -15,7 +14,6 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Login.Session;
 using Maple2.Server.World.Service;
-using Microsoft.Extensions.Logging;
 using static Maple2.Model.Enum.EquipSlot;
 using static Maple2.Model.Error.CharacterCreateError;
 using static Maple2.Model.Error.CharacterDeleteError;
@@ -44,7 +42,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
     // ReSharper restore All
     #endregion
 
-    public CharacterManagementHandler(ILogger<CharacterManagementHandler> logger) : base(logger) { }
+    public CharacterManagementHandler() { }
 
     public override void Handle(LoginSession session, IByteReader packet) {
         var command = packet.Read<Command>();
@@ -85,7 +83,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
                 Server = MigrateOutRequest.Types.Server.Game,
             };
 
-            logger.LogInformation("Logging in to game as {Request}", request);
+            Logger.Information("Logging in to game as {Request}", request);
 
             MigrateOutResponse response = World.MigrateOut(request);
             var endpoint = new IPEndPoint(IPAddress.Parse(response.IpAddress), response.Port);

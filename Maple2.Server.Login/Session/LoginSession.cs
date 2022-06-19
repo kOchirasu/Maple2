@@ -9,7 +9,6 @@ using Maple2.Model.Metadata;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
-using Microsoft.Extensions.Logging;
 using static Maple2.Model.Error.CharacterCreateError;
 
 namespace Maple2.Server.Login.Session;
@@ -28,7 +27,7 @@ public class LoginSession : Core.Network.Session {
 
     private Account account = null!;
 
-    public LoginSession(TcpClient tcpClient, ILogger<LoginSession> logger) : base(tcpClient, logger) {
+    public LoginSession(TcpClient tcpClient) : base(tcpClient) {
         State = SessionState.Connected;
     }
 

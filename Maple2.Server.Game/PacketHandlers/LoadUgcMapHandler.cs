@@ -4,14 +4,11 @@ using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Session;
-using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class LoadUgcMapHandler : PacketHandler<GameSession> {
     public override ushort OpCode => RecvOp.REQUEST_LOAD_UGC_MAP;
-
-    public LoadUgcMapHandler(ILogger<LoadUgcMapHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         Debug.Assert(packet.ReadInt() == GameSession.FIELD_KEY);

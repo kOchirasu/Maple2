@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using Maple2.Model.Error;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -7,7 +6,6 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using Microsoft.Extensions.Logging;
 using static Maple2.Model.Error.BuddyEmoteError;
 
 namespace Maple2.Server.Game.PacketHandlers;
@@ -23,8 +21,6 @@ public class BuddyEmoteHandler : PacketHandler<GameSession> {
         Decline = 4,
         Cancel = 6,
     }
-
-    public BuddyEmoteHandler(ILogger<BuddyEmoteHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         var function = packet.Read<Command>();

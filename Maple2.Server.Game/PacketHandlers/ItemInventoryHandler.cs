@@ -6,7 +6,6 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using Microsoft.Extensions.Logging;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -20,8 +19,6 @@ public class ItemInventoryHandler : PacketHandler<GameSession> {
         Sort = 10,
         Expand = 11,
     }
-
-    public ItemInventoryHandler(ILogger<ItemInventoryHandler> logger) : base(logger) { }
 
     public override void Handle(GameSession session, IByteReader packet) {
         var command = packet.Read<Command>();
