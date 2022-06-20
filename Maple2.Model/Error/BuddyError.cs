@@ -5,6 +5,7 @@ using System.ComponentModel;
 namespace Maple2.Model.Error;
 
 public enum BuddyError : byte {
+    ok = 0,
     [Description("Character not found.")]
     s_buddy_err_miss_id = 1,
     [Description("You have already sent a friend request to {0}.")]

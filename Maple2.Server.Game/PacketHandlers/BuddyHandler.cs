@@ -1,5 +1,92 @@
-﻿namespace Maple2.Server.Game.PacketHandlers; 
+﻿using Maple2.PacketLib.Tools;
+using Maple2.Server.Core.Constants;
+using Maple2.Server.Core.PacketHandlers;
+using Maple2.Server.Game.Session;
 
-public class BuddyHandler {
-    
+namespace Maple2.Server.Game.PacketHandlers;
+
+public class BuddyHandler : PacketHandler<GameSession> {
+    public override ushort OpCode => RecvOp.BUDDY;
+
+    private enum Command : byte {
+        Request = 2,
+        Accept = 3,
+        Decline = 4,
+        Block = 5,
+        Unblock = 6,
+        Remove = 7,
+        UpdateBlock = 10,
+        Cancel = 17,
+        Unknown = 20,
+    }
+
+    public override void Handle(GameSession session, IByteReader packet) {
+        var command = packet.Read<Command>();
+        switch (command) {
+            case Command.Request:
+                Request(session, packet);
+                return;
+            case Command.Accept:
+                Accept(session, packet);
+                break;
+            case Command.Decline:
+                Decline(session, packet);
+                break;
+            case Command.Block:
+                Block(session, packet);
+                break;
+            case Command.Unblock:
+                Unblock(session, packet);
+                break;
+            case Command.Remove:
+                Remove(session, packet);
+                break;
+            case Command.UpdateBlock:
+                UpdateBlock(session, packet);
+                break;
+            case Command.Cancel:
+                Cancel(session, packet);
+                break;
+            case Command.Unknown:
+                Logger.Information("BUDDY(20) = {Value}", packet.ReadInt());
+                break;
+        }
+    }
+
+    private static void Request(GameSession session, IByteReader packet) {
+        string name = packet.ReadUnicodeString();
+        string message = packet.ReadUnicodeString();
+    }
+
+    private static void Accept(GameSession session, IByteReader packet) {
+        long entryId = packet.ReadLong();
+    }
+
+    private static void Decline(GameSession session, IByteReader packet) {
+        long entryId = packet.ReadLong();
+    }
+
+    private static void Block(GameSession session, IByteReader packet) {
+        long entryId = packet.ReadLong();
+        string name = packet.ReadUnicodeString();
+        string message = packet.ReadUnicodeString();
+    }
+
+    private static void Unblock(GameSession session, IByteReader packet) {
+        long entryId = packet.ReadLong();
+    }
+
+    private static void Remove(GameSession session, IByteReader packet) {
+        long entryId = packet.ReadLong();
+    }
+
+    private static void UpdateBlock(GameSession session, IByteReader packet) {
+        long entryId = packet.ReadLong();
+        string name = packet.ReadUnicodeString();
+        string message = packet.ReadUnicodeString();
+    }
+
+    private static void Cancel(GameSession session, IByteReader packet) {
+        long entryId = packet.ReadLong();
+    }
 }

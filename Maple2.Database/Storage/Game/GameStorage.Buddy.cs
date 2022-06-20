@@ -8,7 +8,7 @@ namespace Maple2.Database.Storage;
 
 public partial class GameStorage {
     public partial class Request {
-        public List<Buddy> ListBuddies(long characterId) {
+        public IList<Buddy> ListBuddies(long characterId) {
             return JoinBuddyInfo(Context.Buddy.Where(buddy => buddy.CharacterId == characterId))
                 .ToList();
         }
