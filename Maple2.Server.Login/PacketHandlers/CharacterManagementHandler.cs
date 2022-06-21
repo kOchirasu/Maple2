@@ -81,6 +81,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
                 CharacterId = characterId,
                 MachineId = session.MachineId.ToString(),
                 Server = MigrateOutRequest.Types.Server.Game,
+                Channel = Target.GAME_CHANNEL,
             };
 
             Logger.Information("Logging in to game as {Request}", request);

@@ -3,6 +3,7 @@
 package maple2.server.world.service;
 
 import "google/protobuf/empty.proto";
+import "common.proto";
 
 // The world service definition.
 service World {
@@ -14,7 +15,9 @@ service World {
   // Migrate into a server.
   rpc MigrateIn(MigrateInRequest) returns (MigrateInResponse);
   // Send a chat message.
-  rpc Chat(ChatRequest) returns (ChatResponse);
+  rpc Chat(maple2.ChatRequest) returns (maple2.ChatResponse);
+  // Manage buddy list.
+  rpc Buddy(maple2.BuddyRequest) returns (maple2.BuddyResponse);
 }
 
 message HealthResponse {}
@@ -29,6 +32,7 @@ message MigrateOutRequest {
   int64 character_id = 2;
   string machine_id = 3;
   Server server = 4;
+  int32 channel = 5;
 }
 
 message MigrateOutResponse {
@@ -41,50 +45,9 @@ message MigrateInRequest {
   int64 account_id = 1;
   fixed64 token = 3;
   string machine_id = 4;
+  int32 channel = 5;
 }
 
 message MigrateInResponse {
   int64 character_id = 1;
-}
-
-message ChatRequest {
-  message Whisper {
-    int64 recipient_id = 1;
-    string recipient_name = 2;
-  }
-  message Party {
-    int64 party_id = 1;
-  }
-  message Guild {
-    int64 guild_id = 1;
-  }
-  message World {
-  }
-  message Super {
-    int32 item_id = 1;
-  }
-  message Club {
-    int64 club_id = 1;
-  }
-  message Wedding {
-    int32 item_id = 1;
-  }
-
-  int64 account_id = 1;
-  int64 character_id = 2;
-  string name = 3;
-  string message = 4;
-
-  oneof chat {
-    Whisper whisper = 5;
-    Party party = 7;
-    Guild guild = 8;
-    World world = 11;
-    Super super = 16;
-    Club club = 20;
-    Wedding wedding = 25;
-  }
-}
-
-message ChatResponse {
 }

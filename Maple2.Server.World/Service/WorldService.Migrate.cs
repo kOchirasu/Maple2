@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Grpc.Core;
@@ -8,17 +10,19 @@ using Microsoft.Extensions.Caching.Memory;
 namespace Maple2.Server.World.Service;
 
 public partial class WorldService {
-    private readonly record struct TokenEntry(long AccountId, long CharacterId, Guid MachineId);
+    private readonly record struct TokenEntry(long AccountId, long CharacterId, Guid MachineId, int Channel);
 
     // Duration for which a token remains valid.
     private static readonly TimeSpan AuthExpiry = TimeSpan.FromSeconds(30);
 
     private readonly IMemoryCache tokenCache;
+    private readonly ConcurrentDictionary<long, int> playerChannels = new ConcurrentDictionary<long, int>();
 
     public override Task<MigrateOutResponse> MigrateOut(MigrateOutRequest request, ServerCallContext context) {
         ulong token = UniqueToken();
-        var entry = new TokenEntry(request.AccountId, request.CharacterId, new Guid(request.MachineId));
+        var entry = new TokenEntry(request.AccountId, request.CharacterId, new Guid(request.MachineId), request.Channel);
         tokenCache.Set(token, entry, AuthExpiry);
+        playerChannels.Remove(request.CharacterId, out _);
 
         // TODO: Dynamic ip/port
         switch (request.Server) {
@@ -43,6 +47,9 @@ public partial class WorldService {
         if (!tokenCache.TryGetValue(request.Token, out TokenEntry data)) {
             throw new RpcException(new Status(StatusCode.Unauthenticated, "Invalid token"));
         }
+        if (data.Channel != request.Channel) {
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, "Migrating to incorrect channel"));
+        }
         if (data.AccountId != request.AccountId) {
             throw new RpcException(new Status(StatusCode.PermissionDenied, "Invalid token for account"));
         }
@@ -51,6 +58,7 @@ public partial class WorldService {
         }
 
         tokenCache.Remove(request.Token);
+        playerChannels[data.CharacterId] = request.Channel;
         return Task.FromResult(new MigrateInResponse { CharacterId = data.CharacterId });
     }
 

@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Grpc.Core;
+using ChannelClient = Maple2.Server.Channel.Service.Channel.ChannelClient;
 
 namespace Maple2.Server.World.Service;
 
@@ -7,8 +8,7 @@ public partial class WorldService {
     public override Task<ChatResponse> Chat(ChatRequest request, ServerCallContext context) {
         switch (request.ChatCase) {
             case ChatRequest.ChatOneofCase.Whisper: {
-                WhisperChat(request);
-                return Task.FromResult(new ChatResponse());
+                return WhisperChat(request);
             }
             case ChatRequest.ChatOneofCase.Party:
                 return Task.FromResult(new ChatResponse());
@@ -28,27 +28,34 @@ public partial class WorldService {
         }
     }
 
-    private void WhisperChat(ChatRequest request) {
-        var channelChat = new Channel.Service.ChatRequest {
+    private Task<ChatResponse> WhisperChat(ChatRequest request) {
+        // Ideally we would know which channel a character was on.
+        if (!playerChannels.TryGetValue(request.CharacterId, out int channel)) {
+            throw new RpcException(new Status(StatusCode.NotFound,
+                $"Unable to whisper: {request.Whisper.RecipientName}"));
+        }
+
+        if (!channels.TryGetValue(channel, out ChannelClient? channelClient)) {
+            throw new RpcException(new Status(StatusCode.InvalidArgument,
+                $"Unable to whisper: {request.Whisper.RecipientName} on channel: {channel}"));
+        }
+
+        var channelChat = new ChatRequest {
             AccountId = request.AccountId,
             CharacterId = request.CharacterId,
             Name = request.Name,
             Message = request.Message,
-            Whisper = new Channel.Service.ChatRequest.Types.Whisper {
+            Whisper = new ChatRequest.Types.Whisper {
                 RecipientId = request.Whisper.RecipientId,
                 RecipientName = request.Whisper.RecipientName,
             }
         };
 
-        // Ideally we would know which channel a character was on.
-        foreach (Channel.Service.Channel.ChannelClient channel in channels) {
-            try {
-                // Once any request succeeds, we are done.
-                channel.Chat(channelChat);
-                return;
-            } catch (RpcException) { }
+        try {
+            return Task.FromResult(channelClient.Chat(channelChat));
+        } catch (RpcException ex) when (ex.StatusCode is StatusCode.NotFound) {
+            playerChannels.TryRemove(request.CharacterId, out _);
+            return Task.FromResult(new ChatResponse());
         }
-
-        throw new RpcException(new Status(StatusCode.NotFound, $"Unable to whisper: {request.Whisper.RecipientName}"));
     }
 }

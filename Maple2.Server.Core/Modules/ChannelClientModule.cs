@@ -8,7 +8,7 @@ namespace Maple2.Server.Core.Modules;
 
 public class ChannelClientModule : GrpcClientModule {
     public override void Configure(IServiceCollection services) {
-        services.AddGrpcClient<Channel.Service.Channel.ChannelClient>(Options);
+        services.AddGrpcClient<Channel.Service.Channel.ChannelClient>("1", Options);
     }
 
     protected override void Options(GrpcClientFactoryOptions options) {

@@ -3,55 +3,16 @@ syntax = "proto3";
 package maple2.server.channel.service;
 
 import "google/protobuf/empty.proto";
+import "common.proto";
 
 // The channel service definition.
 service Channel {
   // Checks the health of this service
   rpc Health(google.protobuf.Empty) returns (HealthResponse);
   // Send a chat message.
-  rpc Chat(ChatRequest) returns (ChatResponse);
+  rpc Chat(maple2.ChatRequest) returns (maple2.ChatResponse);
+  // Manage buddy list.
+  rpc Buddy(maple2.BuddyRequest) returns (maple2.BuddyResponse);
 }
 
 message HealthResponse {}
-
-message ChatRequest {
-  message Whisper {
-    int64 recipient_id = 1;
-    string recipient_name = 2;
-  }
-  message Party {
-    int64 party_id = 1;
-  }
-  message Guild {
-    int64 guild_id = 1;
-  }
-  message World {
-  }
-  message Super {
-    int32 item_id = 1;
-  }
-  message Club {
-    int64 club_id = 1;
-  }
-  message Wedding {
-    int32 item_id = 1;
-  }
-
-  int64 account_id = 1;
-  int64 character_id = 2;
-  string name = 3;
-  string message = 4;
-
-  oneof chat {
-    Whisper whisper = 5;
-    Party party = 7;
-    Guild guild = 8;
-    World world = 11;
-    Super super = 16;
-    Club club = 20;
-    Wedding wedding = 25;
-  }
-}
-
-message ChatResponse {
-}

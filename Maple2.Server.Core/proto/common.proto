@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package maple2;
+
+message ChatRequest {
+  message Whisper {
+    int64 recipient_id = 1;
+    string recipient_name = 2;
+  }
+  message Party {
+    int64 party_id = 1;
+  }
+  message Guild {
+    int64 guild_id = 1;
+  }
+  message World {
+  }
+  message Super {
+    int32 item_id = 1;
+  }
+  message Club {
+    int64 club_id = 1;
+  }
+  message Wedding {
+    int32 item_id = 1;
+  }
+
+  int64 account_id = 1;
+  int64 character_id = 2;
+  string name = 3;
+  string message = 4;
+
+  oneof chat {
+    Whisper whisper = 5;
+    Party party = 7;
+    Guild guild = 8;
+    World world = 11;
+    Super super = 16;
+    Club club = 20;
+    Wedding wedding = 25;
+  }
+}
+
+message ChatResponse {
+}
+
+message BuddyRequest {
+  enum Type {
+    NONE = 0;
+    INVITE = 2;
+    ACCEPT = 3;
+    DECLINE = 4;
+    BLOCK = 5;
+    UNBLOCK = 6;
+    CANCEL = 17;
+  }
+
+  Type type = 1;
+  int64 senderId = 2;
+  int64 receiverId = 3;
+}
+
+message BuddyResponse {
+}

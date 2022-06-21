@@ -35,7 +35,7 @@ public partial class GlobalService : Global.GlobalBase {
         var machineId = new Guid(request.MachineId);
 
         using GameStorage.Request db = gameStorage.Context();
-        Account account = db.GetAccount(username);
+        Account? account = db.GetAccount(username);
         // Create account if not exists.
         if (account == null) {
             account = new Account {
@@ -43,6 +43,9 @@ public partial class GlobalService : Global.GlobalBase {
                 MachineId = machineId,
             };
             account = db.CreateAccount(account);
+            if (account == null) {
+                throw new RpcException(new Status(StatusCode.Internal, "Failed to create account."));
+            }
         } else {
 #if !DEBUG
             if (account.Online) {
