@@ -11,18 +11,18 @@ namespace Maple2.Server.Game.Packets;
 public static class BuddyPacket {
     private enum Command : byte {
         Load = 1,
-        Request = 2,
+        Invite = 2,
         Accept = 3,
         Decline = 4,
         Block = 5,
         Unblock = 6,
-        Remove = 7,
+        Delete = 7,
         UpdateInfo = 8,
-        Add = 9,
+        Append = 9,
         UpdateBlock = 10,
         NotifyAccept = 11,
         NotifyBlock = 12,
-        NotifyRemove = 13,
+        NotifyDelete = 13,
         NotifyOnline = 14,
         StartList = 15,
         Cancel = 17,
@@ -42,9 +42,9 @@ public static class BuddyPacket {
         return pWriter;
     }
 
-    public static ByteWriter Request(string name, string message, BuddyError error = BuddyError.ok) {
+    public static ByteWriter Invite(string name = "", string message = "", BuddyError error = BuddyError.ok) {
         var pWriter = Packet.Of(SendOp.BUDDY);
-        pWriter.Write<Command>(Command.Request);
+        pWriter.Write<Command>(Command.Invite);
         pWriter.Write<BuddyError>(error);
         pWriter.WriteUnicodeString(name);
         pWriter.WriteUnicodeString(message);
@@ -93,9 +93,9 @@ public static class BuddyPacket {
         return pWriter;
     }
 
-    public static ByteWriter Remove(Buddy buddy) {
+    public static ByteWriter Delete(Buddy buddy) {
         var pWriter = Packet.Of(SendOp.BUDDY);
-        pWriter.Write<Command>(Command.Remove);
+        pWriter.Write<Command>(Command.Delete);
         pWriter.Write<BuddyError>(BuddyError.ok);
         pWriter.WriteLong(buddy.Id);
         pWriter.WriteLong(buddy.BuddyInfo.CharacterId);
@@ -115,9 +115,9 @@ public static class BuddyPacket {
         return pWriter;
     }
 
-    public static ByteWriter Add(Buddy buddy) {
+    public static ByteWriter Append(Buddy buddy) {
         var pWriter = Packet.Of(SendOp.BUDDY);
-        pWriter.Write<Command>(Command.Add);
+        pWriter.Write<Command>(Command.Append);
         pWriter.Write<BuddyError>(BuddyError.ok);
         pWriter.WriteLong(buddy.Id);
         pWriter.WriteClass<Buddy>(buddy);
@@ -152,9 +152,9 @@ public static class BuddyPacket {
         return pWriter;
     }
 
-    public static ByteWriter NotifyRemove(Buddy buddy, string action) {
+    public static ByteWriter NotifyDelete(Buddy buddy, string action) {
         var pWriter = Packet.Of(SendOp.BUDDY);
-        pWriter.Write<Command>(Command.NotifyRemove);
+        pWriter.Write<Command>(Command.NotifyDelete);
         pWriter.WriteInt();
         pWriter.WriteUnicodeString(buddy.BuddyInfo.Name);
         pWriter.WriteUnicodeString(action);

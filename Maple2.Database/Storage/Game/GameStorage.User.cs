@@ -55,6 +55,12 @@ public partial class GameStorage {
                 character.Id == characterId && character.AccountId == accountId);
         }
 
+        public long GetCharacterId(string name) {
+            return Context.Character.Where(character => character.Name == name)
+                .Select(character => character.Id)
+                .SingleOrDefault();
+        }
+
         public CharacterInfo? GetCharacterInfo(long characterId) {
             return Context.Character.Where(character => character.Id == characterId)
                 .Select<Model.Character, CharacterInfo>(character => character!)

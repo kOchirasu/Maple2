@@ -18,6 +18,7 @@ using Maple2.Server.Game.Manager.Items;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Tools.Scheduler;
+using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
 namespace Maple2.Server.Game.Session;
 
@@ -38,6 +39,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
     public GameStorage GameStorage { get; init; } = null!;
+    public WorldClient World { get; init; } = null!;
     public ItemMetadataStorage ItemMetadata { get; init; } = null!;
     public SkillMetadataStorage SkillMetadata { get; init; } = null!;
     public TableMetadataStorage TableMetadata { get; init; } = null!;
@@ -46,6 +48,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
     #endregion
 
     public ConfigManager Config { get; set; }
+    public BuddyManager Buddy { get; set; }
     public ItemManager Item { get; set; }
     public CurrencyManager Currency { get; set; }
     public StatsManager Stats { get; set; }
@@ -85,6 +88,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         Stats = new StatsManager(this);
 
         Config = new ConfigManager(db, this);
+        Buddy = new BuddyManager(db, this);
         Item = new ItemManager(db, this);
 
         if (!PrepareField(player.Character.MapId)) {
@@ -95,7 +99,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         //session.Send(Packet.Of(SendOp.REQUEST_SYSTEM_INFO));
         Send(MigrationPacket.MoveResult(MigrationError.ok));
 
-        // Buddy
+        Buddy.Load();
         // Survival
         // MeretMarket
         // UserConditionEvent

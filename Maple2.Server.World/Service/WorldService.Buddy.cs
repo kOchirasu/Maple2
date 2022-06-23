@@ -18,7 +18,7 @@ public partial class WorldService {
             return Task.FromResult(channelClient.Buddy(request));
         } catch (RpcException ex) when (ex.StatusCode is StatusCode.NotFound) {
             playerChannels.TryRemove(request.ReceiverId, out _);
-            return Task.FromResult(new BuddyResponse());
+            return Task.FromResult(new BuddyResponse{Online = false});
         }
     }
 }

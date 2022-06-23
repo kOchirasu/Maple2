@@ -45,20 +45,37 @@ message ChatResponse {
 }
 
 message BuddyRequest {
-  enum Type {
-    NONE = 0;
-    INVITE = 2;
-    ACCEPT = 3;
-    DECLINE = 4;
-    BLOCK = 5;
-    UNBLOCK = 6;
-    CANCEL = 17;
+  message Invite {
+    int64 sender_id = 1;
+  }
+  message Accept {
+    int64 entry_id = 1;
+  }
+  message Decline {
+    int64 entry_id = 1;
+  }
+  message Block {
+
+  }
+  message Unblock {
+
+  }
+  message Cancel {
+
   }
 
-  Type type = 1;
-  int64 senderId = 2;
-  int64 receiverId = 3;
+  int64 receiver_id = 1;
+
+  oneof buddy {
+    Invite invite = 2;
+    Accept accept = 3;
+    Decline decline = 4;
+    Block block = 5;
+    Unblock unblock = 6;
+    Cancel cancel = 17;
+  }
 }
 
 message BuddyResponse {
+  bool online = 1;
 }

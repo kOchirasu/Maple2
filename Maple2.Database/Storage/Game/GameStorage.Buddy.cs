@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,9 +19,25 @@ public partial class GameStorage {
                 .SingleOrDefault();
         }
 
-        public Buddy? CreateBuddy(Buddy buddy) {
-            Model.Buddy model = buddy!;
-            model.Id = 0;
+        public Buddy? GetBuddy(long ownerId, long buddyId) {
+            return JoinBuddyInfo(Context.Buddy
+                    .Where(buddy => buddy.CharacterId == ownerId && buddy.BuddyId == buddyId))
+                .SingleOrDefault();
+        }
+
+        public BuddyType? GetBuddyType(long characterId, long buddyId) {
+            return Context.Buddy.SingleOrDefault(buddy => buddy.CharacterId == characterId && buddy.BuddyId == buddyId)
+                ?.Type;
+        }
+
+        public Buddy? CreateBuddy(long characterId, long buddyId, BuddyType type, string message = "") {
+            var model = new Model.Buddy{
+                CharacterId = characterId,
+                BuddyId = buddyId,
+                Type = type,
+                Message = type != BuddyType.Blocked ? message : "",
+                BlockMessage = type == BuddyType.Blocked ? message : "",
+            };
             Context.Buddy.Add(model);
 
             bool success = Context.TrySaveChanges();
@@ -29,6 +46,19 @@ public partial class GameStorage {
 
         public bool UpdateBuddy(Buddy buddy) {
             Context.Buddy.Update(buddy!);
+            return Context.TrySaveChanges();
+        }
+
+        public bool RemoveBuddy(params Buddy[] buddies) {
+            foreach (Buddy buddy in buddies) {
+                Model.Buddy? model = buddy;
+                if (model == null) {
+                    continue;
+                }
+
+                Context.Buddy.Remove(model);
+            }
+
             return Context.TrySaveChanges();
         }
 

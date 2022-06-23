@@ -85,7 +85,7 @@ internal class Character {
 
     public static implicit operator CharacterInfo?(Character? other) {
         return other == null ? null : new CharacterInfo(other.AccountId, other.Id, other.Name, other.Gender, other.Job,
-            other.Level, other.MapId, other.Profile.Picture, other.Profile.Motto, other.Online);
+            other.Level, other.MapId, other.Profile.Picture, other.Profile.Motto) {Online = other.Online};
     }
 
     public static void Configure(EntityTypeBuilder<Character> builder) {

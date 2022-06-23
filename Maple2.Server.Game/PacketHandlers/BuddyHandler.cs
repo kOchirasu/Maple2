@@ -14,7 +14,7 @@ public class BuddyHandler : PacketHandler<GameSession> {
         Decline = 4,
         Block = 5,
         Unblock = 6,
-        Remove = 7,
+        Delete = 7,
         UpdateBlock = 10,
         Cancel = 17,
         Unknown = 20,
@@ -24,7 +24,7 @@ public class BuddyHandler : PacketHandler<GameSession> {
         var command = packet.Read<Command>();
         switch (command) {
             case Command.Request:
-                Request(session, packet);
+                Invite(session, packet);
                 return;
             case Command.Accept:
                 Accept(session, packet);
@@ -38,8 +38,8 @@ public class BuddyHandler : PacketHandler<GameSession> {
             case Command.Unblock:
                 Unblock(session, packet);
                 break;
-            case Command.Remove:
-                Remove(session, packet);
+            case Command.Delete:
+                Delete(session, packet);
                 break;
             case Command.UpdateBlock:
                 UpdateBlock(session, packet);
@@ -53,17 +53,23 @@ public class BuddyHandler : PacketHandler<GameSession> {
         }
     }
 
-    private static void Request(GameSession session, IByteReader packet) {
+    private static void Invite(GameSession session, IByteReader packet) {
         string name = packet.ReadUnicodeString();
         string message = packet.ReadUnicodeString();
+
+        session.Buddy.SendInvite(name, message);
     }
 
     private static void Accept(GameSession session, IByteReader packet) {
         long entryId = packet.ReadLong();
+
+        session.Buddy.SendAccept(entryId);
     }
 
     private static void Decline(GameSession session, IByteReader packet) {
         long entryId = packet.ReadLong();
+
+        session.Buddy.SendDecline(entryId);
     }
 
     private static void Block(GameSession session, IByteReader packet) {
@@ -76,7 +82,7 @@ public class BuddyHandler : PacketHandler<GameSession> {
         long entryId = packet.ReadLong();
     }
 
-    private static void Remove(GameSession session, IByteReader packet) {
+    private static void Delete(GameSession session, IByteReader packet) {
         long entryId = packet.ReadLong();
     }
 
