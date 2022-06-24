@@ -5,6 +5,7 @@ using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Net.ClientFactory;
 using Maple2.Server.Core.Constants;
+using Maple2.Server.World.Containers;
 using Microsoft.Extensions.Caching.Memory;
 using Serilog;
 using ChannelClient = Maple2.Server.Channel.Service.Channel.ChannelClient;
@@ -15,12 +16,13 @@ public partial class WorldService : World.WorldBase {
     private readonly IReadOnlyDictionary<int, ChannelClient> channels;
     private readonly ILogger logger = Log.Logger.ForContext<WorldService>();
 
-    public WorldService(GrpcClientFactory factory, IMemoryCache tokenCache) {
+    public WorldService(GrpcClientFactory factory, IMemoryCache tokenCache, PlayerChannelLookup playerChannels) {
         var builder = ImmutableDictionary.CreateBuilder<int, ChannelClient>();
         builder[Target.GAME_CHANNEL] = factory.CreateClient<ChannelClient>(Target.GAME_CHANNEL.ToString());
 
         this.channels = builder.ToImmutable();
         this.tokenCache = tokenCache;
+        this.playerChannels = playerChannels;
     }
 
     public override Task<HealthResponse> Health(Empty request, ServerCallContext context) {

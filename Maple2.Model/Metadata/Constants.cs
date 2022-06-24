@@ -6,11 +6,15 @@ public static class Constant {
     #region custom constants
 
     public const int ServerMaxCharacters = 8;
+    public const int CharacterNameLengthMax = 12;
     public const long MaxMeret = 99999;
     public const long MaxMeso = 999999999;
     public const long StarPointMax = 999999;
     public const long MesoTokenMax = 100000;
     public const int MaxSkillTabCount = 3;
+    public const int BuddyMessageLengthMax = 25;
+    public const int MaxBuddyCount = 100;
+    public const int MaxBlockCount = 100;
 
     #endregion
 

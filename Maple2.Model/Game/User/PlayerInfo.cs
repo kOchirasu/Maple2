@@ -12,6 +12,7 @@ public record PlayerInfo(CharacterInfo Character, HomeInfo Home, Trophy Trophy) 
     public int MapId => Character.MapId;
     public string Picture => Character.Picture;
     public string Motto => Character.Motto;
+    public int Channel => Character.Channel;
     public bool Online => Character.Online;
 
     public static implicit operator PlayerInfo(Player player) {
@@ -24,6 +25,7 @@ public record HomeInfo(string Name, int PlotMapId, int PlotId, int ApartmentNumb
 public record CharacterInfo(long AccountId, long CharacterId, string Name, Gender Gender, Job Job, short Level,
     int MapId, string Picture, string Motto) {
 
+    public short Channel;
     public bool Online;
 
     public static implicit operator CharacterInfo(Player player) {
@@ -38,6 +40,7 @@ public record CharacterInfo(long AccountId, long CharacterId, string Name, Gende
             Picture: player.Character.Picture,
             Motto: player.Character.Motto
         ) {
+            Channel = player.Character.Channel,
             Online = player.Account.Online,
         };
     }

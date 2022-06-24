@@ -55,13 +55,13 @@ message BuddyRequest {
     int64 entry_id = 1;
   }
   message Block {
-
+    int64 sender_id = 1;
   }
-  message Unblock {
-
+  message Delete {
+    int64 entry_id = 1;
   }
   message Cancel {
-
+    int64 entry_id = 1;
   }
 
   int64 receiver_id = 1;
@@ -71,7 +71,7 @@ message BuddyRequest {
     Accept accept = 3;
     Decline decline = 4;
     Block block = 5;
-    Unblock unblock = 6;
+    Delete delete = 7;
     Cancel cancel = 17;
   }
 }

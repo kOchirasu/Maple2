@@ -76,23 +76,33 @@ public class BuddyHandler : PacketHandler<GameSession> {
         long entryId = packet.ReadLong();
         string name = packet.ReadUnicodeString();
         string message = packet.ReadUnicodeString();
+
+        session.Buddy.SendBlock(entryId, name, message);
     }
 
     private static void Unblock(GameSession session, IByteReader packet) {
         long entryId = packet.ReadLong();
+
+        session.Buddy.Unblock(entryId);
     }
 
     private static void Delete(GameSession session, IByteReader packet) {
         long entryId = packet.ReadLong();
+
+        session.Buddy.SendDelete(entryId);
     }
 
     private static void UpdateBlock(GameSession session, IByteReader packet) {
         long entryId = packet.ReadLong();
         string name = packet.ReadUnicodeString();
         string message = packet.ReadUnicodeString();
+
+        session.Buddy.UpdateBlock(entryId, name, message);
     }
 
     private static void Cancel(GameSession session, IByteReader packet) {
         long entryId = packet.ReadLong();
+
+        session.Buddy.SendCancel(entryId);
     }
 }

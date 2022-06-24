@@ -1,4 +1,5 @@
 ﻿using System;
+using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -6,23 +7,21 @@ namespace Maple2.Database.Model;
 
 internal class Buddy {
     public long Id { get; set; }
-    public long CharacterId { get; set; }
+    public long OwnerId { get; set; }
     public long BuddyId { get; set; }
     public Character BuddyCharacter { get; set; }
     public BuddyType Type { get; set; }
     public string Message { get; set; }
-    public string BlockMessage { get; set; }
 
     public DateTime LastModified { get; set; }
 
     public static implicit operator Buddy?(Maple2.Model.Game.Buddy? other) {
         return other == null ? null : new Buddy {
-            LastModified = other.LastModified,
             Id = other.Id,
+            OwnerId = other.OwnerId,
             BuddyId = other.BuddyInfo.CharacterId,
             Type = other.Type,
             Message = other.Message,
-            BlockMessage = other.BlockMessage,
         };
     }
 
@@ -31,13 +30,14 @@ internal class Buddy {
 
         builder.HasOne<Character>()
             .WithMany()
-            .HasForeignKey(buddy => buddy.CharacterId)
+            .HasForeignKey(buddy => buddy.OwnerId)
             .IsRequired();
         builder.HasOne<Character>(buddy => buddy.BuddyCharacter)
             .WithMany()
             .HasForeignKey(buddy => buddy.BuddyId)
             .IsRequired();
 
-        builder.Property(buddy => buddy.LastModified).IsRowVersion();
+        builder.Property(buddy => buddy.LastModified)
+            .ValueGeneratedOnAddOrUpdate();
     }
 }

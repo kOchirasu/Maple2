@@ -21,10 +21,13 @@ public partial class ChannelService {
                 session.Buddy.ReceiveDecline(request.Decline.EntryId);
                 break;
             case BuddyRequest.BuddyOneofCase.Block:
+                session.Buddy.ReceiveBlock(request.Block.SenderId);
                 break;
-            case BuddyRequest.BuddyOneofCase.Unblock:
+            case BuddyRequest.BuddyOneofCase.Delete:
+                session.Buddy.ReceiveDelete(request.Delete.EntryId);
                 break;
             case BuddyRequest.BuddyOneofCase.Cancel:
+                session.Buddy.ReceiveCancel(request.Cancel.EntryId);
                 break;
         }
 

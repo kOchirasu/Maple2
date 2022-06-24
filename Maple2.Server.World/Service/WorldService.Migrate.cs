@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Maple2.Server.Core.Constants;
+using Maple2.Server.World.Containers;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Maple2.Server.World.Service;
@@ -16,13 +15,13 @@ public partial class WorldService {
     private static readonly TimeSpan AuthExpiry = TimeSpan.FromSeconds(30);
 
     private readonly IMemoryCache tokenCache;
-    private readonly ConcurrentDictionary<long, int> playerChannels = new ConcurrentDictionary<long, int>();
+    private readonly PlayerChannelLookup playerChannels = new();
 
     public override Task<MigrateOutResponse> MigrateOut(MigrateOutRequest request, ServerCallContext context) {
         ulong token = UniqueToken();
         var entry = new TokenEntry(request.AccountId, request.CharacterId, new Guid(request.MachineId), request.Channel);
         tokenCache.Set(token, entry, AuthExpiry);
-        playerChannels.Remove(request.CharacterId, out _);
+        playerChannels.Remove(request.CharacterId, out int _);
 
         // TODO: Dynamic ip/port
         switch (request.Server) {
@@ -30,13 +29,13 @@ public partial class WorldService {
                 return Task.FromResult(new MigrateOutResponse {
                     IpAddress = Target.LOGIN_IP.ToString(),
                     Port = Target.LOGIN_PORT,
-                    Token = token
+                    Token = token,
                 });
             case MigrateOutRequest.Types.Server.Game:
                 return Task.FromResult(new MigrateOutResponse {
                     IpAddress = Target.GAME_IP.ToString(),
                     Port = Target.GAME_PORT,
-                    Token = token
+                    Token = token,
                 });
             default:
                 throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid server: {request.Server}"));

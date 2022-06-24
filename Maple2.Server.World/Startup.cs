@@ -1,6 +1,8 @@
-﻿using Autofac;
+﻿using System.Collections.Concurrent;
+using Autofac;
 using Maple2.Server.Core.Modules;
 using Maple2.Server.Global.Service;
+using Maple2.Server.World.Containers;
 using Maple2.Server.World.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
@@ -31,6 +33,9 @@ public class Startup {
         // Database
         builder.RegisterModule<GameDbModule>();
         builder.RegisterModule<DataDbModule>();
+
+        builder.RegisterType<PlayerChannelLookup>()
+            .SingleInstance();
     }
 
     // Configure is where you add middleware. This is called after ConfigureContainer. You can use

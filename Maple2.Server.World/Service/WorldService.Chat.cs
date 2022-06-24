@@ -30,12 +30,13 @@ public partial class WorldService {
 
     private Task<ChatResponse> WhisperChat(ChatRequest request) {
         // Ideally we would know which channel a character was on.
-        if (!playerChannels.TryGetValue(request.CharacterId, out int channel)) {
+        if (!playerChannels.Lookup(request.CharacterId, out int channel)) {
             throw new RpcException(new Status(StatusCode.NotFound,
                 $"Unable to whisper: {request.Whisper.RecipientName}"));
         }
 
         if (!channels.TryGetValue(channel, out ChannelClient? channelClient)) {
+            logger.Error("No registry for channel: {Channel}", channel);
             throw new RpcException(new Status(StatusCode.InvalidArgument,
                 $"Unable to whisper: {request.Whisper.RecipientName} on channel: {channel}"));
         }
@@ -48,13 +49,14 @@ public partial class WorldService {
             Whisper = new ChatRequest.Types.Whisper {
                 RecipientId = request.Whisper.RecipientId,
                 RecipientName = request.Whisper.RecipientName,
-            }
+            },
         };
 
         try {
             return Task.FromResult(channelClient.Chat(channelChat));
         } catch (RpcException ex) when (ex.StatusCode is StatusCode.NotFound) {
-            playerChannels.TryRemove(request.CharacterId, out _);
+            playerChannels.Remove(request.CharacterId, out _);
+            logger.Information("{CharacterId} not found...", request.CharacterId);
             return Task.FromResult(new ChatResponse());
         }
     }

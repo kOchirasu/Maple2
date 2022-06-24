@@ -9,8 +9,8 @@ namespace Maple2.Database.Storage;
 
 public partial class GameStorage {
     public partial class Request {
-        public IList<Buddy> ListBuddies(long characterId) {
-            return JoinBuddyInfo(Context.Buddy.Where(buddy => buddy.CharacterId == characterId))
+        public IList<Buddy> ListBuddies(long ownerId) {
+            return JoinBuddyInfo(Context.Buddy.Where(buddy => buddy.OwnerId == ownerId))
                 .ToList();
         }
 
@@ -21,22 +21,20 @@ public partial class GameStorage {
 
         public Buddy? GetBuddy(long ownerId, long buddyId) {
             return JoinBuddyInfo(Context.Buddy
-                    .Where(buddy => buddy.CharacterId == ownerId && buddy.BuddyId == buddyId))
+                    .Where(buddy => buddy.OwnerId == ownerId && buddy.BuddyId == buddyId))
                 .SingleOrDefault();
         }
 
-        public BuddyType? GetBuddyType(long characterId, long buddyId) {
-            return Context.Buddy.SingleOrDefault(buddy => buddy.CharacterId == characterId && buddy.BuddyId == buddyId)
-                ?.Type;
+        public BuddyType? GetBuddyType(long ownerId, long buddyId) {
+            return Context.Buddy.SingleOrDefault(buddy => buddy.OwnerId == ownerId && buddy.BuddyId == buddyId)?.Type;
         }
 
-        public Buddy? CreateBuddy(long characterId, long buddyId, BuddyType type, string message = "") {
+        public Buddy? CreateBuddy(long ownerId, long buddyId, BuddyType type, string message = "") {
             var model = new Model.Buddy{
-                CharacterId = characterId,
+                OwnerId = ownerId,
                 BuddyId = buddyId,
                 Type = type,
-                Message = type != BuddyType.Blocked ? message : "",
-                BlockMessage = type == BuddyType.Blocked ? message : "",
+                Message = message,
             };
             Context.Buddy.Add(model);
 
@@ -44,8 +42,15 @@ public partial class GameStorage {
             return success ? GetBuddy(model.Id) : null;
         }
 
-        public bool UpdateBuddy(Buddy buddy) {
-            Context.Buddy.Update(buddy!);
+        public int CountBuddy(long ownerId) {
+            return Context.Buddy.Count(buddy => buddy.OwnerId == ownerId && buddy.Type != BuddyType.Blocked);
+        }
+
+        public bool UpdateBuddy(params Buddy[] buddies) {
+            foreach (Buddy buddy in buddies) {
+                Context.Buddy.Update(buddy!);
+            }
+
             return Context.TrySaveChanges();
         }
 
@@ -67,12 +72,11 @@ public partial class GameStorage {
                 .Join(Context.Account,
                     buddy => buddy.BuddyCharacter.AccountId,
                     account => account.Id,
-                    (buddy, account) => new Buddy(new PlayerInfo(
-                        buddy.BuddyCharacter!, new HomeInfo("", 0, 0, 0, 0), account.Trophy)) {
+                    (buddy, account) => new Buddy(new PlayerInfo(buddy.BuddyCharacter!, new HomeInfo("", 0, 0, 0, 0), account.Trophy)) {
                         Id = buddy.Id,
-                        LastModified = buddy.LastModified,
+                        OwnerId = buddy.OwnerId,
+                        LastModified = buddy.LastModified.ToEpochSeconds(),
                         Message = buddy.Message,
-                        BlockMessage = buddy.BlockMessage,
                         Type = buddy.Type,
                     }
                 );

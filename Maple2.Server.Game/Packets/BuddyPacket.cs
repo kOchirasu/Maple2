@@ -16,13 +16,13 @@ public static class BuddyPacket {
         Decline = 4,
         Block = 5,
         Unblock = 6,
-        Delete = 7,
+        Remove = 7,
         UpdateInfo = 8,
         Append = 9,
         UpdateBlock = 10,
         NotifyAccept = 11,
         NotifyBlock = 12,
-        NotifyDelete = 13,
+        NotifyRemove = 13,
         NotifyOnline = 14,
         StartList = 15,
         Cancel = 17,
@@ -31,11 +31,14 @@ public static class BuddyPacket {
         Unknown = 20,
     }
 
-    public static ByteWriter Load(ICollection<Buddy> buddies) {
+    public static ByteWriter Load(ICollection<Buddy> buddies, ICollection<Buddy> blocked) {
         var pWriter = Packet.Of(SendOp.BUDDY);
         pWriter.Write<Command>(Command.Load);
-        pWriter.WriteInt(buddies.Count);
+        pWriter.WriteInt(buddies.Count + blocked.Count);
         foreach (Buddy buddy in buddies) {
+            pWriter.WriteClass<Buddy>(buddy);
+        }
+        foreach (Buddy buddy in blocked) {
             pWriter.WriteClass<Buddy>(buddy);
         }
 
@@ -73,13 +76,13 @@ public static class BuddyPacket {
         return pWriter;
     }
 
-    public static ByteWriter Block(Buddy buddy, BuddyError error = BuddyError.ok) {
+    public static ByteWriter Block(long entryId = 0, string name = "", string message = "", BuddyError error = BuddyError.ok) {
         var pWriter = Packet.Of(SendOp.BUDDY);
         pWriter.Write<Command>(Command.Block);
         pWriter.Write<BuddyError>(error);
-        pWriter.WriteLong(buddy.Id);
-        pWriter.WriteUnicodeString(buddy.BuddyInfo.Name);
-        pWriter.WriteUnicodeString(buddy.BlockMessage);
+        pWriter.WriteLong(entryId);
+        pWriter.WriteUnicodeString(name);
+        pWriter.WriteUnicodeString(message);
 
         return pWriter;
     }
@@ -93,9 +96,9 @@ public static class BuddyPacket {
         return pWriter;
     }
 
-    public static ByteWriter Delete(Buddy buddy) {
+    public static ByteWriter Remove(Buddy buddy) {
         var pWriter = Packet.Of(SendOp.BUDDY);
-        pWriter.Write<Command>(Command.Delete);
+        pWriter.Write<Command>(Command.Remove);
         pWriter.Write<BuddyError>(BuddyError.ok);
         pWriter.WriteLong(buddy.Id);
         pWriter.WriteLong(buddy.BuddyInfo.CharacterId);
@@ -108,8 +111,6 @@ public static class BuddyPacket {
     public static ByteWriter UpdateInfo(Buddy buddy) {
         var pWriter = Packet.Of(SendOp.BUDDY);
         pWriter.Write<Command>(Command.UpdateInfo);
-        pWriter.Write<BuddyError>(BuddyError.ok);
-        pWriter.WriteLong(buddy.Id);
         pWriter.WriteClass<Buddy>(buddy);
 
         return pWriter;
@@ -118,20 +119,18 @@ public static class BuddyPacket {
     public static ByteWriter Append(Buddy buddy) {
         var pWriter = Packet.Of(SendOp.BUDDY);
         pWriter.Write<Command>(Command.Append);
-        pWriter.Write<BuddyError>(BuddyError.ok);
-        pWriter.WriteLong(buddy.Id);
         pWriter.WriteClass<Buddy>(buddy);
 
         return pWriter;
     }
 
-    public static ByteWriter UpdateBlock(Buddy buddy, BuddyError error = BuddyError.ok) {
+    public static ByteWriter UpdateBlock(long entryId = 0, string name = "", string message = "", BuddyError error = BuddyError.ok) {
         var pWriter = Packet.Of(SendOp.BUDDY);
         pWriter.Write<Command>(Command.UpdateBlock);
         pWriter.Write<BuddyError>(error);
-        pWriter.WriteLong(buddy.Id);
-        pWriter.WriteUnicodeString(buddy.BuddyInfo.Name);
-        pWriter.WriteUnicodeString(buddy.BlockMessage);
+        pWriter.WriteLong(entryId);
+        pWriter.WriteUnicodeString(name);
+        pWriter.WriteUnicodeString(message);
 
         return pWriter;
     }
@@ -144,17 +143,18 @@ public static class BuddyPacket {
         return pWriter;
     }
 
-    public static ByteWriter NotifyBlock(BuddyError error = BuddyError.ok) {
+    public static ByteWriter NotifyBlock(string name, BuddyError error = BuddyError.ok) {
         var pWriter = Packet.Of(SendOp.BUDDY);
         pWriter.Write<Command>(Command.NotifyBlock);
         pWriter.Write<BuddyError>(error);
+        pWriter.WriteUnicodeString(name);
 
         return pWriter;
     }
 
-    public static ByteWriter NotifyDelete(Buddy buddy, string action) {
+    public static ByteWriter NotifyRemove(Buddy buddy, string action) {
         var pWriter = Packet.Of(SendOp.BUDDY);
-        pWriter.Write<Command>(Command.NotifyDelete);
+        pWriter.Write<Command>(Command.NotifyRemove);
         pWriter.WriteInt();
         pWriter.WriteUnicodeString(buddy.BuddyInfo.Name);
         pWriter.WriteUnicodeString(action);
@@ -166,7 +166,7 @@ public static class BuddyPacket {
     public static ByteWriter NotifyOnline(Buddy buddy) {
         var pWriter = Packet.Of(SendOp.BUDDY);
         pWriter.Write<Command>(Command.NotifyOnline);
-        pWriter.WriteBool(buddy.BuddyInfo.Online);
+        pWriter.WriteBool(!buddy.BuddyInfo.Online); // true == offline
         pWriter.WriteLong(buddy.Id);
         pWriter.WriteUnicodeString(buddy.BuddyInfo.Name);
 
