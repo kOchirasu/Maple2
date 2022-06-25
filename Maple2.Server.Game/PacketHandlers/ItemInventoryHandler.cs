@@ -10,7 +10,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class ItemInventoryHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.REQUEST_ITEM_INVENTORY;
+    public override RecvOp OpCode => RecvOp.RequestItemInventory;
 
     private enum Command : byte {
         Move = 3,

@@ -10,7 +10,7 @@ using Maple2.Tools.Extensions;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class SkillMacroHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.SKILL_MACRO;
+    public override RecvOp OpCode => RecvOp.SkillMacro;
 
     private const int TOTAL_SKILL_MACROS = 3;
 

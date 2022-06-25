@@ -11,7 +11,7 @@ using Maple2.Tools.Extensions;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class SkillBookHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.REQUEST_SKILL_BOOK_TREE;
+    public override RecvOp OpCode => RecvOp.RequestSkillBookTree;
 
     private enum Command : byte {
         Load = 0,

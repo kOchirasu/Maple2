@@ -12,7 +12,7 @@ using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class ResponseKeyHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.RESPONSE_KEY;
+    public override RecvOp OpCode => RecvOp.ResponseKey;
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
@@ -40,7 +40,7 @@ public class ResponseKeyHandler : PacketHandler<GameSession> {
             }
 
             // Finalize
-            session.Send(Packet.Of(SendOp.WORLD));
+            session.Send(Packet.Of(SendOp.World));
         } catch (Exception ex) when (ex is RpcException or InvalidOperationException) {
             session.Send(MigrationPacket.MoveResult(s_move_err_default));
             session.Disconnect();

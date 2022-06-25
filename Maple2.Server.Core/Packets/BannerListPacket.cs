@@ -7,7 +7,7 @@ public static class BannerListPacket {
     public static ByteWriter SetBanner() {
         short count = 0; // TODO: Load banners
 
-        var pWriter = Packet.Of(SendOp.BANNER_LIST);
+        var pWriter = Packet.Of(SendOp.BannerList);
         pWriter.WriteShort(count);
         for (int i = 0; i < count; i++) {
             pWriter.WriteInt(); // Id

@@ -9,7 +9,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class HomeBankHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.REQUEST_HOME_BANK;
+    public override RecvOp OpCode => RecvOp.RequestHomeBank;
 
     private enum Command : byte {
         Home = 0,
@@ -35,7 +35,7 @@ public class HomeBankHandler : PacketHandler<GameSession> {
     }
 
     private static ByteWriter HomeBank(long time) {
-        var pWriter = Packet.Of(SendOp.HOME_BANK);
+        var pWriter = Packet.Of(SendOp.HomeBank);
         pWriter.WriteLong(time);
 
         return pWriter;

@@ -27,7 +27,7 @@ public static class CharacterListPacket {
     }
 
     public static ByteWriter AddEntries(Account account, ICollection<(Character, Equips)> entry) {
-        var pWriter = Packet.Of(SendOp.CHARACTER_LIST);
+        var pWriter = Packet.Of(SendOp.CharacterList);
         pWriter.Write<Command>(Command.List);
         pWriter.WriteByte((byte) entry.Count); // CharCount
         foreach ((Character character, Equips equips) in entry) {
@@ -39,14 +39,14 @@ public static class CharacterListPacket {
 
     // Sent after creating a character to append to list
     public static ByteWriter AppendEntry(Account account, Character character, Equips equips) {
-        var pWriter = Packet.Of(SendOp.CHARACTER_LIST);
+        var pWriter = Packet.Of(SendOp.CharacterList);
         pWriter.Write<Command>(Command.AppendEntry);
         pWriter.WriteEntry(account, character, equips);
         return pWriter;
     }
 
     public static ByteWriter DeleteEntry(long characterId, CharacterDeleteError error = default) {
-        var pWriter = Packet.Of(SendOp.CHARACTER_LIST);
+        var pWriter = Packet.Of(SendOp.CharacterList);
         pWriter.Write<Command>(Command.DeleteEntry);
         pWriter.Write<CharacterDeleteError>(error);
         pWriter.WriteLong(characterId);
@@ -54,7 +54,7 @@ public static class CharacterListPacket {
     }
 
     public static ByteWriter BeginDelete(long characterId, long deleteTime, CharacterDeleteError error = default) {
-        var pWriter = Packet.Of(SendOp.CHARACTER_LIST);
+        var pWriter = Packet.Of(SendOp.CharacterList);
         pWriter.Write<Command>(Command.BeginDelete);
         pWriter.WriteLong(characterId);
         pWriter.Write<CharacterDeleteError>(error);
@@ -63,7 +63,7 @@ public static class CharacterListPacket {
     }
 
     public static ByteWriter CancelDelete(long characterId, CharacterDeleteError error = default) {
-        var pWriter = Packet.Of(SendOp.CHARACTER_LIST);
+        var pWriter = Packet.Of(SendOp.CharacterList);
         pWriter.Write<Command>(Command.CancelDelete);
         pWriter.WriteLong(characterId);
         pWriter.Write<CharacterDeleteError>(error);
@@ -71,21 +71,21 @@ public static class CharacterListPacket {
     }
 
     public static ByteWriter StartList() {
-        var pWriter = Packet.Of(SendOp.CHARACTER_LIST);
+        var pWriter = Packet.Of(SendOp.CharacterList);
         pWriter.Write<Command>(Command.StartList);
         return pWriter;
     }
 
     // This only needs to be sent if char count > 0
     public static ByteWriter EndList() {
-        var pWriter = Packet.Of(SendOp.CHARACTER_LIST);
+        var pWriter = Packet.Of(SendOp.CharacterList);
         pWriter.Write<Command>(Command.EndList);
         pWriter.WriteBool(false);
         return pWriter;
     }
 
     public static ByteWriter CreateError(CharacterCreateError error, string message = "") {
-        var pWriter = Packet.Of(SendOp.CHARACTER_CREATE);
+        var pWriter = Packet.Of(SendOp.CharacterCreate);
         pWriter.Write<CharacterCreateError>(error);
         pWriter.WriteUnicodeString(message);
 
@@ -93,7 +93,7 @@ public static class CharacterListPacket {
     }
 
     public static ByteWriter SetMax(int unlocked, int total) {
-        var pWriter = Packet.Of(SendOp.CHAR_MAX_COUNT);
+        var pWriter = Packet.Of(SendOp.CharMaxCount);
         pWriter.WriteInt(unlocked);
         pWriter.WriteInt(total);
         return pWriter;

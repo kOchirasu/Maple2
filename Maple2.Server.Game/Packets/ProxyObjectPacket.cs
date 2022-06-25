@@ -26,7 +26,7 @@ public static class ProxyObjectPacket {
     public static ByteWriter AddPlayer(FieldPlayer fieldPlayer) {
         Player player = fieldPlayer;
 
-        var pWriter = Packet.Of(SendOp.PROXY_GAME_OBJ);
+        var pWriter = Packet.Of(SendOp.ProxyGameObj);
         pWriter.Write<Command>(Command.AddPlayer);
         pWriter.WriteInt(fieldPlayer.ObjectId);
         pWriter.WriteLong(player.Character.Id);
@@ -51,7 +51,7 @@ public static class ProxyObjectPacket {
     }
 
     public static ByteWriter RemovePlayer(int objectId) {
-        var pWriter = Packet.Of(SendOp.PROXY_GAME_OBJ);
+        var pWriter = Packet.Of(SendOp.ProxyGameObj);
         pWriter.Write<Command>(Command.RemovePlayer);
         pWriter.WriteInt(objectId);
 
@@ -59,7 +59,7 @@ public static class ProxyObjectPacket {
     }
 
     public static ByteWriter UpdatePlayer(FieldPlayer fieldPlayer, byte flag = 0) {
-        var pWriter = Packet.Of(SendOp.PROXY_GAME_OBJ);
+        var pWriter = Packet.Of(SendOp.ProxyGameObj);
         pWriter.Write<Command>(Command.UpdatePlayer);
         pWriter.WriteInt(fieldPlayer.ObjectId);
 
@@ -91,7 +91,7 @@ public static class ProxyObjectPacket {
     }
 
     public static ByteWriter AddNpc(FieldNpc fieldNpc) {
-        var pWriter = Packet.Of(SendOp.PROXY_GAME_OBJ);
+        var pWriter = Packet.Of(SendOp.ProxyGameObj);
         pWriter.Write<Command>(Command.AddNpc);
         pWriter.WriteInt(fieldNpc.ObjectId);
         pWriter.WriteInt(fieldNpc.Value.Id);
@@ -103,7 +103,7 @@ public static class ProxyObjectPacket {
     }
 
     public static ByteWriter RemoveNpc(int objectId) {
-        var pWriter = Packet.Of(SendOp.PROXY_GAME_OBJ);
+        var pWriter = Packet.Of(SendOp.ProxyGameObj);
         pWriter.Write<Command>(Command.RemoveNpc);
         pWriter.WriteInt(objectId);
 
@@ -111,7 +111,7 @@ public static class ProxyObjectPacket {
     }
 
     public static ByteWriter UpdateNpc(FieldNpc fieldNpc) {
-        var pWriter = Packet.Of(SendOp.PROXY_GAME_OBJ);
+        var pWriter = Packet.Of(SendOp.ProxyGameObj);
         pWriter.Write<Command>(Command.UpdateNpc);
         pWriter.WriteInt(fieldNpc.ObjectId);
         pWriter.WriteByte(); // CProxyGameObject+3C
@@ -121,7 +121,7 @@ public static class ProxyObjectPacket {
     }
 
     public static ByteWriter AddPet(FieldEntity<NpcMetadata> fieldPet) {
-        var pWriter = Packet.Of(SendOp.PROXY_GAME_OBJ);
+        var pWriter = Packet.Of(SendOp.ProxyGameObj);
         pWriter.Write<Command>(Command.AddPet);
         pWriter.WriteInt(fieldPet.ObjectId);
         pWriter.WriteInt(fieldPet.Value.Id); // PetItemId
@@ -133,7 +133,7 @@ public static class ProxyObjectPacket {
     }
 
     public static ByteWriter RemovePet(int objectId) {
-        var pWriter = Packet.Of(SendOp.PROXY_GAME_OBJ);
+        var pWriter = Packet.Of(SendOp.ProxyGameObj);
         pWriter.Write<Command>(Command.RemovePet);
         pWriter.WriteInt(objectId);
 
@@ -141,7 +141,7 @@ public static class ProxyObjectPacket {
     }
 
     public static ByteWriter UpdatePet(FieldEntity<NpcMetadata> fieldPet) {
-        var pWriter = Packet.Of(SendOp.PROXY_GAME_OBJ);
+        var pWriter = Packet.Of(SendOp.ProxyGameObj);
         pWriter.Write<Command>(Command.UpdatePet);
         pWriter.WriteInt(fieldPet.ObjectId);
         pWriter.WriteByte(); // CProxyGameObject+3C

@@ -10,7 +10,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class ItemPickupHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.REQUEST_ITEM_PICKUP;
+    public override RecvOp OpCode => RecvOp.RequestItemPickup;
 
     public override void Handle(GameSession session, IByteReader packet) {
         int objectId = packet.ReadInt();

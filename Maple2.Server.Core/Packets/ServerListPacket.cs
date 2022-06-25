@@ -12,14 +12,14 @@ public static class ServerListPacket {
     }
 
     public static ByteWriter Error() {
-        var pWriter = Packet.Of(SendOp.SERVER_LIST);
+        var pWriter = Packet.Of(SendOp.ServerList);
         pWriter.Write<Command>(Command.Error);
 
         return pWriter;
     }
 
     public static ByteWriter Load(string serverName, IList<IPEndPoint> serverIps, ushort channels) {
-        var pWriter = Packet.Of(SendOp.SERVER_LIST);
+        var pWriter = Packet.Of(SendOp.ServerList);
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteInt(1); // Unknown
         pWriter.WriteUnicodeString(serverName);

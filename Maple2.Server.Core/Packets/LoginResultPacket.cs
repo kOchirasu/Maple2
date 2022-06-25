@@ -6,7 +6,7 @@ namespace Maple2.Server.Core.Packets;
 
 public static class LoginResultPacket {
     public static ByteWriter Success(long accountId) {
-        var pWriter = Packet.Of(SendOp.LOGIN_RESULT);
+        var pWriter = Packet.Of(SendOp.LoginResult);
         pWriter.WriteByte(); // Login State
         pWriter.WriteInt(); // Const
         pWriter.WriteUnicodeString(); // Ban reason
@@ -23,7 +23,7 @@ public static class LoginResultPacket {
 
     // Set 0 for all values in error login packet
     public static ByteWriter Error(byte code, string message, long accountId) {
-        var pWriter = Packet.Of(SendOp.LOGIN_RESULT);
+        var pWriter = Packet.Of(SendOp.LoginResult);
         pWriter.WriteByte(code); // Login State
         pWriter.WriteInt(); // Const
         pWriter.WriteUnicodeString(message); // Ban reason

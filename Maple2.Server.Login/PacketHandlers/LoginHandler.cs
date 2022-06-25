@@ -11,7 +11,7 @@ using GlobalClient = Maple2.Server.Global.Service.Global.GlobalClient;
 namespace Maple2.Server.Login.PacketHandlers;
 
 public class LoginHandler : PacketHandler<LoginSession> {
-    public override ushort OpCode => RecvOp.RESPONSE_LOGIN;
+    public override RecvOp OpCode => RecvOp.ResponseLogin;
 
     private enum Command : byte {
         ServerList = 1,

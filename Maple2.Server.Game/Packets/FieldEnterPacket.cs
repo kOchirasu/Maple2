@@ -11,7 +11,7 @@ namespace Maple2.Server.Game.Packets;
 
 public static class FieldEnterPacket {
     public static ByteWriter Request(IActor<Player> player) {
-        var pWriter = Packet.Of(SendOp.REQUEST_FIELD_ENTER);
+        var pWriter = Packet.Of(SendOp.RequestFieldEnter);
         pWriter.Write<MigrationError>(MigrationError.ok);
         pWriter.WriteInt(player.Value.Character.MapId);
         pWriter.WriteByte();
@@ -26,7 +26,7 @@ public static class FieldEnterPacket {
     }
 
     public static ByteWriter Error(MigrationError error) {
-        var pWriter = Packet.Of(SendOp.REQUEST_FIELD_ENTER);
+        var pWriter = Packet.Of(SendOp.RequestFieldEnter);
         pWriter.Write<MigrationError>(error);
 
         return pWriter;

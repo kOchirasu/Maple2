@@ -15,7 +15,7 @@ public static class EmotePacket {
     }
 
     public static ByteWriter Load(IList<Emote> emotes) {
-        var pWriter = Packet.Of(SendOp.EMOTE);
+        var pWriter = Packet.Of(SendOp.Emote);
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteInt(emotes.Count);
         foreach (Emote emote in emotes) {
@@ -26,7 +26,7 @@ public static class EmotePacket {
     }
 
     public static ByteWriter Learn(Emote emote) {
-        var pWriter = Packet.Of(SendOp.EMOTE);
+        var pWriter = Packet.Of(SendOp.Emote);
         pWriter.Write<Command>(Command.Learn);
         pWriter.Write<Emote>(emote);
 
@@ -34,7 +34,7 @@ public static class EmotePacket {
     }
 
     public static ByteWriter Error(EmoteError error) {
-        var pWriter = Packet.Of(SendOp.EMOTE);
+        var pWriter = Packet.Of(SendOp.Emote);
         pWriter.Write<Command>(Command.Error);
         pWriter.Write<EmoteError>(error);
 

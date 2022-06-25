@@ -14,7 +14,7 @@ using Maple2.Tools.Extensions;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class BeautyHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.BEAUTY;
+    public override RecvOp OpCode => RecvOp.Beauty;
 
     private enum Command : byte {
         Shop = 0,

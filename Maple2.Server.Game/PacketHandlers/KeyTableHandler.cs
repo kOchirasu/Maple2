@@ -8,7 +8,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class KeyTableHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.KEY_TABLE;
+    public override RecvOp OpCode => RecvOp.KeyTable;
 
     private enum Command : byte {
         SetGameKeyBind = 1,

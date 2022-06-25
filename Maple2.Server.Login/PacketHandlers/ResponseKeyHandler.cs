@@ -12,7 +12,7 @@ using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 namespace Maple2.Server.Login.PacketHandlers;
 
 public class ResponseKeyHandler : PacketHandler<LoginSession> {
-    public override ushort OpCode => RecvOp.RESPONSE_KEY;
+    public override RecvOp OpCode => RecvOp.ResponseKey;
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global

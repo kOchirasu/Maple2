@@ -26,7 +26,7 @@ public static class NoticePacket {
 
     public static ByteWriter Message(string message, bool htmlEncoded = false) {
         var text = new InterfaceText(message, htmlEncoded);
-        var pWriter = Packet.Of(SendOp.NOTICE);
+        var pWriter = Packet.Of(SendOp.Notice);
         pWriter.Write<Command>(Command.Notice);
         pWriter.Write<Flags>(Flags.Message);
         pWriter.WriteClass<InterfaceText>(text);
@@ -35,7 +35,7 @@ public static class NoticePacket {
     }
 
     public static ByteWriter Notice(Flags flags, InterfaceText text, short duration = 0) {
-        var pWriter = Packet.Of(SendOp.NOTICE);
+        var pWriter = Packet.Of(SendOp.Notice);
         pWriter.Write<Command>(Command.Notice);
         pWriter.Write<Flags>(flags);
         pWriter.WriteClass<InterfaceText>(text);
@@ -50,7 +50,7 @@ public static class NoticePacket {
 
     // Disconnects user and displays a message box.
     public static ByteWriter Disconnect(InterfaceText text) {
-        var pWriter = Packet.Of(SendOp.NOTICE);
+        var pWriter = Packet.Of(SendOp.Notice);
         pWriter.Write<Command>(Command.Disconnect);
         pWriter.Write<Flags>(Flags.Disconnect);
         pWriter.WriteClass<InterfaceText>(text);

@@ -26,7 +26,7 @@ public static class ItemInventoryPacket {
     }
 
     public static ByteWriter Add(Item item) {
-        var pWriter = Packet.Of(SendOp.ITEM_INVENTORY);
+        var pWriter = Packet.Of(SendOp.ItemInventory);
         pWriter.Write<Command>(Command.Add);
         pWriter.WriteInt(item.Id);
         pWriter.WriteLong(item.Uid);
@@ -39,7 +39,7 @@ public static class ItemInventoryPacket {
     }
 
     public static ByteWriter Remove(long uid) {
-        var pWriter = Packet.Of(SendOp.ITEM_INVENTORY);
+        var pWriter = Packet.Of(SendOp.ItemInventory);
         pWriter.Write<Command>(Command.Remove);
         pWriter.WriteLong(uid);
 
@@ -47,7 +47,7 @@ public static class ItemInventoryPacket {
     }
 
     public static ByteWriter UpdateAmount(long uid, int amount) {
-        var pWriter = Packet.Of(SendOp.ITEM_INVENTORY);
+        var pWriter = Packet.Of(SendOp.ItemInventory);
         pWriter.Write<Command>(Command.UpdateAmount);
         pWriter.WriteLong(uid);
         pWriter.WriteInt(amount);
@@ -56,7 +56,7 @@ public static class ItemInventoryPacket {
     }
 
     public static ByteWriter Move(long srcUid, short srcSlot, long dstUid, short dstSlot) {
-        var pWriter = Packet.Of(SendOp.ITEM_INVENTORY);
+        var pWriter = Packet.Of(SendOp.ItemInventory);
         pWriter.Write<Command>(Command.Move);
         pWriter.WriteLong(srcUid);
         pWriter.WriteShort(srcSlot);
@@ -67,7 +67,7 @@ public static class ItemInventoryPacket {
     }
 
     public static ByteWriter Load(ICollection<Item> items) {
-        var pWriter = Packet.Of(SendOp.ITEM_INVENTORY);
+        var pWriter = Packet.Of(SendOp.ItemInventory);
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteShort((short) items.Count);
         foreach (Item item in items) {
@@ -82,7 +82,7 @@ public static class ItemInventoryPacket {
     }
 
     public static ByteWriter NotifyNew(long uid, int amount) {
-        var pWriter = Packet.Of(SendOp.ITEM_INVENTORY);
+        var pWriter = Packet.Of(SendOp.ItemInventory);
         pWriter.Write<Command>(Command.NotifyNew);
         pWriter.WriteLong(uid);
         pWriter.WriteInt(amount);
@@ -92,7 +92,7 @@ public static class ItemInventoryPacket {
     }
 
     public static ByteWriter LoadTab(InventoryType type, ICollection<Item> items) {
-        var pWriter = Packet.Of(SendOp.ITEM_INVENTORY);
+        var pWriter = Packet.Of(SendOp.ItemInventory);
         pWriter.Write<Command>(Command.LoadTab);
         pWriter.WriteInt((int) type);
         pWriter.WriteShort((short) items.Count);
@@ -109,14 +109,14 @@ public static class ItemInventoryPacket {
 
     // s_msg_expand_inven_complete: Your inventory has been expanded.
     public static ByteWriter ExpandComplete() {
-        var pWriter = Packet.Of(SendOp.ITEM_INVENTORY);
+        var pWriter = Packet.Of(SendOp.ItemInventory);
         pWriter.Write<Command>(Command.ExpandComplete);
 
         return pWriter;
     }
 
     public static ByteWriter Reset(InventoryType type) {
-        var pWriter = Packet.Of(SendOp.ITEM_INVENTORY);
+        var pWriter = Packet.Of(SendOp.ItemInventory);
         pWriter.Write<Command>(Command.Reset);
         pWriter.WriteInt((int) type);
 
@@ -124,7 +124,7 @@ public static class ItemInventoryPacket {
     }
 
     public static ByteWriter ExpandCount(InventoryType type, int expansion) {
-        var pWriter = Packet.Of(SendOp.ITEM_INVENTORY);
+        var pWriter = Packet.Of(SendOp.ItemInventory);
         pWriter.Write<Command>(Command.ExpandCount);
         pWriter.Write<InventoryType>(type);
         pWriter.WriteInt(expansion);
@@ -133,7 +133,7 @@ public static class ItemInventoryPacket {
     }
 
     public static ByteWriter Error(ItemInventoryError error) {
-        var pWriter = Packet.Of(SendOp.ITEM_INVENTORY);
+        var pWriter = Packet.Of(SendOp.ItemInventory);
         pWriter.Write<Command>(Command.Error);
         pWriter.Write<ItemInventoryError>(error);
 
@@ -141,7 +141,7 @@ public static class ItemInventoryPacket {
     }
 
     public static ByteWriter UpdateItem(Item item) {
-        var pWriter = Packet.Of(SendOp.ITEM_INVENTORY);
+        var pWriter = Packet.Of(SendOp.ItemInventory);
         pWriter.Write<Command>(Command.UpdateItem);
         pWriter.WriteLong(item.Uid);
         pWriter.WriteClass<Item>(item);

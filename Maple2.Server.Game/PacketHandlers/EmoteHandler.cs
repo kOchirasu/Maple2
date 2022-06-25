@@ -10,7 +10,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class EmoteHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.EMOTE;
+    public override RecvOp OpCode => RecvOp.Emote;
 
     private enum Command : byte {
         Learn = 1,

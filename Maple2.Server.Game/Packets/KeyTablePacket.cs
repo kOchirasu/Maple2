@@ -15,7 +15,7 @@ public static class KeyTablePacket {
     }
 
     public static ByteWriter LoadDefault() {
-        var pWriter = Packet.Of(SendOp.KEY_TABLE);
+        var pWriter = Packet.Of(SendOp.KeyTable);
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteBool(true);
 
@@ -23,7 +23,7 @@ public static class KeyTablePacket {
     }
 
     public static ByteWriter Load(ICollection<KeyBind> keyBinds, short activeHotBar, IReadOnlyList<HotBar> hotBars) {
-        var pWriter = Packet.Of(SendOp.KEY_TABLE);
+        var pWriter = Packet.Of(SendOp.KeyTable);
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteBool(false);
         // KeyBind
@@ -46,7 +46,7 @@ public static class KeyTablePacket {
     }
 
     public static ByteWriter LoadHotBar(short activeHotBar, IReadOnlyList<HotBar> hotBars) {
-        var pWriter = Packet.Of(SendOp.KEY_TABLE);
+        var pWriter = Packet.Of(SendOp.KeyTable);
         pWriter.Write<Command>(Command.LoadHotBar);
         pWriter.WriteShort(activeHotBar);
         pWriter.WriteShort((short) hotBars.Count);
@@ -62,7 +62,7 @@ public static class KeyTablePacket {
     }
 
     public static ByteWriter Prompt() {
-        var pWriter = Packet.Of(SendOp.KEY_TABLE);
+        var pWriter = Packet.Of(SendOp.KeyTable);
         pWriter.Write<Command>(Command.Prompt);
 
         return pWriter;

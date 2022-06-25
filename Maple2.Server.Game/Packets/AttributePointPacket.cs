@@ -13,7 +13,7 @@ public static class AttributePointPacket {
     }
 
     public static ByteWriter Sources(StatAttributes statAttributes) {
-        var pWriter = Packet.Of(SendOp.ATTRIBUTE_POINT);
+        var pWriter = Packet.Of(SendOp.AttributePoint);
         pWriter.Write<Command>(Command.Sources);
         pWriter.WriteInt(statAttributes.TotalPoints);
         pWriter.WriteClass<StatAttributes.PointSources>(statAttributes.Sources);
@@ -22,7 +22,7 @@ public static class AttributePointPacket {
     }
 
     public static ByteWriter Allocation(StatAttributes statAttributes) {
-        var pWriter = Packet.Of(SendOp.ATTRIBUTE_POINT);
+        var pWriter = Packet.Of(SendOp.AttributePoint);
         pWriter.Write<Command>(Command.Allocation);
         pWriter.WriteInt(statAttributes.TotalPoints);
         pWriter.WriteClass<StatAttributes.PointAllocation>(statAttributes.Allocation);

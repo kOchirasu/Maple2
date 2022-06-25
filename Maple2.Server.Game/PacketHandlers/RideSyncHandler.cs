@@ -10,7 +10,7 @@ using Maple2.Tools.Extensions;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class RideSyncHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.RIDE_SYNC;
+    public override RecvOp OpCode => RecvOp.RideSync;
 
     public override void Handle(GameSession session, IByteReader packet) {
         if (session.State != SessionState.Connected) {

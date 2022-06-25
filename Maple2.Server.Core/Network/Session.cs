@@ -156,7 +156,7 @@ public abstract class Session : IDisposable {
 
     private void PerformHandshake() {
         var handshake = new ByteWriter(HANDSHAKE_SIZE);
-        handshake.Write<ushort>(SendOp.REQUEST_VERSION);
+        handshake.Write<SendOp>(SendOp.RequestVersion);
         handshake.Write<uint>(VERSION);
         handshake.Write<uint>(riv);
         handshake.Write<uint>(siv);

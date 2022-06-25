@@ -8,7 +8,7 @@ namespace Maple2.Server.Game.Packets;
 
 public static class RevivalPacket {
     public static ByteWriter Confirm(IActor<Player> player, int ticks = 0, int counter = 0) {
-        var pWriter = Packet.Of(SendOp.REVIVAL_CONFIRM);
+        var pWriter = Packet.Of(SendOp.RevivalConfirm);
         pWriter.WriteInt(player.ObjectId);
         pWriter.WriteInt(ticks); // 0 in house
         pWriter.WriteInt(counter); // (some counter); 0 in house
@@ -17,7 +17,7 @@ public static class RevivalPacket {
     }
 
     public static ByteWriter Count(int count) {
-        var pWriter = Packet.Of(SendOp.REVIVAL_COUNT);
+        var pWriter = Packet.Of(SendOp.RevivalCount);
         pWriter.WriteInt(count);
 
         return pWriter;

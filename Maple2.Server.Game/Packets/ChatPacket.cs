@@ -9,7 +9,7 @@ namespace Maple2.Server.Game.Packets;
 
 public static class ChatPacket {
     public static ByteWriter Message(Player player, ChatType type, string message) {
-        var pWriter = Packet.Of(SendOp.USER_CHAT);
+        var pWriter = Packet.Of(SendOp.UserChat);
         pWriter.WriteLong(player.Account.Id);
         pWriter.WriteLong(player.Character.Id);
         pWriter.WriteUnicodeString(player.Character.Name);
@@ -39,7 +39,7 @@ public static class ChatPacket {
     public static ByteWriter Whisper(long accountId, long characterId, string name, string message, string? unknown = null) {
         ChatType type = unknown == null ? ChatType.WhisperTo : ChatType.WhisperFrom;
 
-        var pWriter = Packet.Of(SendOp.USER_CHAT);
+        var pWriter = Packet.Of(SendOp.UserChat);
         pWriter.WriteLong(accountId);
         pWriter.WriteLong(characterId);
         pWriter.WriteUnicodeString(name);
@@ -59,7 +59,7 @@ public static class ChatPacket {
     }
 
     public static ByteWriter WhisperReject(string name) {
-        var pWriter = Packet.Of(SendOp.USER_CHAT);
+        var pWriter = Packet.Of(SendOp.UserChat);
         pWriter.WriteLong();
         pWriter.WriteLong();
         pWriter.WriteUnicodeString(name);
@@ -74,7 +74,7 @@ public static class ChatPacket {
     }
 
     public static ByteWriter System(string type, string message) {
-        var pWriter = Packet.Of(SendOp.USER_CHAT);
+        var pWriter = Packet.Of(SendOp.UserChat);
         pWriter.WriteLong();
         pWriter.WriteLong();
         pWriter.WriteUnicodeString(type);
@@ -89,7 +89,7 @@ public static class ChatPacket {
     }
 
     public static ByteWriter Alert(StringCode code) {
-        var pWriter = Packet.Of(SendOp.USER_CHAT);
+        var pWriter = Packet.Of(SendOp.UserChat);
         pWriter.WriteLong();
         pWriter.WriteLong();
         pWriter.WriteUnicodeString();
@@ -104,7 +104,7 @@ public static class ChatPacket {
     }
 
     public static ByteWriter Alert(string message, bool htmlEncoded = false) {
-        var pWriter = Packet.Of(SendOp.USER_CHAT);
+        var pWriter = Packet.Of(SendOp.UserChat);
         pWriter.WriteLong();
         pWriter.WriteLong();
         pWriter.WriteUnicodeString();

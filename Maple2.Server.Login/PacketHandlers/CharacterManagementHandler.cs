@@ -24,7 +24,7 @@ using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 namespace Maple2.Server.Login.PacketHandlers;
 
 public class CharacterManagementHandler : PacketHandler<LoginSession> {
-    public override ushort OpCode => RecvOp.CHARACTER_MANAGEMENT;
+    public override RecvOp OpCode => RecvOp.CharacterManagement;
 
     private enum Command : byte {
         Select = 0,

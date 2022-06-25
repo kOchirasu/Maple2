@@ -10,7 +10,7 @@ namespace Maple2.Server.Game.Packets;
 
 public static class EquipPacket {
     public static ByteWriter EquipItem(IActor<Player> player, Item item, byte type) {
-        var pWriter = Packet.Of(SendOp.ITEM_PUT_ON);
+        var pWriter = Packet.Of(SendOp.ItemPutOn);
         pWriter.WriteInt(player.ObjectId);
         pWriter.WriteInt(item.Id);
         pWriter.WriteLong(item.Uid);
@@ -23,7 +23,7 @@ public static class EquipPacket {
     }
 
     public static ByteWriter UnequipItem(IActor<Player> player, Item item) {
-        var pWriter = Packet.Of(SendOp.ITEM_PUT_OFF);
+        var pWriter = Packet.Of(SendOp.ItemPutOff);
         pWriter.WriteInt(player.ObjectId);
         pWriter.WriteLong(item.Uid);
 
@@ -36,7 +36,7 @@ public static class EquipPacket {
     }
 
     public static ByteWriter EquipBadge(IActor<Player> player, Item item) {
-        var pWriter = Packet.Of(SendOp.BADGE_EQUIP);
+        var pWriter = Packet.Of(SendOp.BadgeEquip);
         pWriter.Write<BadgeCommand>(BadgeCommand.Equip);
         pWriter.WriteInt(player.ObjectId);
         pWriter.WriteInt(item.Id);
@@ -49,7 +49,7 @@ public static class EquipPacket {
     }
 
     public static ByteWriter UnequipBadge(IActor<Player> player, BadgeType slot) {
-        var pWriter = Packet.Of(SendOp.BADGE_EQUIP);
+        var pWriter = Packet.Of(SendOp.BadgeEquip);
         pWriter.Write<BadgeCommand>(BadgeCommand.Unequip);
         pWriter.WriteInt(player.ObjectId);
         pWriter.Write<BadgeType>(slot);

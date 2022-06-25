@@ -12,7 +12,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class NpcTalkHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.NPC_TALK;
+    public override RecvOp OpCode => RecvOp.NpcTalk;
 
     private enum Command : byte {
         Close = 0,

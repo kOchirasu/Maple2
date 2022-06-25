@@ -18,7 +18,7 @@ public static class PortalPacket {
     public static ByteWriter Add(FieldEntity<Portal> fieldPortal) {
         Portal portal = fieldPortal;
 
-        var pWriter = Packet.Of(SendOp.FIELD_PORTAL);
+        var pWriter = Packet.Of(SendOp.FieldPortal);
         pWriter.Write<Command>(Command.Add);
         pWriter.WriteInt(portal.Id);
         pWriter.WriteBool(portal.Visible);
@@ -45,7 +45,7 @@ public static class PortalPacket {
     }
 
     public static ByteWriter Remove(int objectId) {
-        var pWriter = Packet.Of(SendOp.FIELD_PORTAL);
+        var pWriter = Packet.Of(SendOp.FieldPortal);
         pWriter.Write<Command>(Command.Remove);
         pWriter.WriteInt(objectId);
 
@@ -53,7 +53,7 @@ public static class PortalPacket {
     }
 
     public static ByteWriter Trigger(bool visible, bool enabled, bool minimapVisible, short unknown) {
-        var pWriter = Packet.Of(SendOp.FIELD_PORTAL);
+        var pWriter = Packet.Of(SendOp.FieldPortal);
         pWriter.Write<Command>(Command.Trigger);
         pWriter.WriteBool(visible);
         pWriter.WriteBool(enabled);
@@ -64,7 +64,7 @@ public static class PortalPacket {
     }
 
     public static ByteWriter Move(FieldEntity<Portal> fieldPortal) {
-        var pWriter = Packet.Of(SendOp.FIELD_PORTAL);
+        var pWriter = Packet.Of(SendOp.FieldPortal);
         pWriter.Write<Command>(Command.Move);
         pWriter.Write<Vector3>(fieldPortal.Position);
         pWriter.Write<Vector3>(fieldPortal.Rotation);
@@ -73,7 +73,7 @@ public static class PortalPacket {
     }
 
     public static ByteWriter MoveByPortal(IActor actor, Portal portal) {
-        var pWriter = Packet.Of(SendOp.USER_MOVE_BY_PORTAL);
+        var pWriter = Packet.Of(SendOp.UserMoveByPortal);
         pWriter.WriteInt(actor.ObjectId);
         pWriter.Write<Vector3>(portal.Position + new Vector3(0, 0, 25)); // Always seems to be offset by 25
         pWriter.Write<Vector3>(portal.Rotation);

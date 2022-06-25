@@ -13,7 +13,7 @@ using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class UserChatHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.USER_CHAT;
+    public override RecvOp OpCode => RecvOp.UserChat;
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global

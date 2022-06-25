@@ -183,7 +183,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         Scheduler.Start();
         State = SessionState.Connected;
 
-        var pWriter = Packet.Of(SendOp.USER_STATE);
+        var pWriter = Packet.Of(SendOp.UserState);
         pWriter.WriteInt(Player.ObjectId);
         pWriter.Write<ActorState>(ActorState.Fall);
         Send(pWriter);

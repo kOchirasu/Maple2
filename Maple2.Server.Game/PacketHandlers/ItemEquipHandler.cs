@@ -8,7 +8,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class ItemEquipHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.ITEM_EQUIP;
+    public override RecvOp OpCode => RecvOp.ItemEquip;
 
     private enum Command : byte {
         Equip = 0,

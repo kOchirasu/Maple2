@@ -10,7 +10,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class HomeDoctorHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.REQUEST_HOME_DOCTOR;
+    public override RecvOp OpCode => RecvOp.RequestHomeDoctor;
 
     private const int DOCTOR_COST_MESO = 10000;
 
@@ -32,7 +32,7 @@ public class HomeDoctorHandler : PacketHandler<GameSession> {
     }
 
     private static ByteWriter HomeDoctor(long time) {
-        var pWriter = Packet.Of(SendOp.HOME_DOCTOR);
+        var pWriter = Packet.Of(SendOp.HomeDoctor);
         pWriter.WriteLong(time);
 
         return pWriter;

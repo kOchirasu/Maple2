@@ -5,7 +5,7 @@ using Maple2.Server.Core.Network;
 namespace Maple2.Server.Core.PacketHandlers;
 
 public abstract class SystemInfoHandler<T> : PacketHandler<T> where T : Session {
-    public override ushort OpCode => RecvOp.SYSTEM_INFO;
+    public override RecvOp OpCode => RecvOp.SystemInfo;
 
     public override void Handle(T session, IByteReader packet) {
         string info = packet.ReadUnicodeString();

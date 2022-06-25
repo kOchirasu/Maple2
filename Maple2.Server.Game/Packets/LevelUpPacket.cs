@@ -8,7 +8,7 @@ namespace Maple2.Server.Game.Packets;
 
 public static class LevelUpPacket {
     public static ByteWriter LevelUp(IActor<Player> player) {
-        var pWriter = Packet.Of(SendOp.LEVEL_UP);
+        var pWriter = Packet.Of(SendOp.LevelUp);
         pWriter.WriteInt(player.ObjectId);
         pWriter.WriteShort(player.Value.Character.Level);
 

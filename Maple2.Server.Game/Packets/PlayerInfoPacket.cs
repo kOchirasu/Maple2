@@ -15,7 +15,7 @@ namespace Maple2.Server.Game.Packets;
 
 public static class PlayerInfoPacket {
     public static ByteWriter NotFound(long characterId) {
-        var pWriter = Packet.Of(SendOp.CHARACTER_INFO);
+        var pWriter = Packet.Of(SendOp.CharacterInfo);
         pWriter.WriteLong(characterId);
         pWriter.WriteBool(false);
 
@@ -23,7 +23,7 @@ public static class PlayerInfoPacket {
     }
 
     public static ByteWriter Load(GameSession session) {
-        var pWriter = Packet.Of(SendOp.CHARACTER_INFO);
+        var pWriter = Packet.Of(SendOp.CharacterInfo);
         pWriter.WriteLong(session.Player.Value.Character.Id);
         pWriter.WriteBool(true);
         pWriter.WriteLong(); // Unknown (AccountId probably, but why is it not set?)

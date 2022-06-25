@@ -12,7 +12,7 @@ using static Maple2.Model.Error.MigrationError;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class MoveFieldHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.REQUEST_MOVE_FIELD;
+    public override RecvOp OpCode => RecvOp.RequestMoveField;
 
     private const int DEFAULT_MAP_ID = 2000062; // Lith Harbor
 

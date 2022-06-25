@@ -20,7 +20,7 @@ public static class FieldPacket {
     public static ByteWriter AddPlayer(GameSession session) {
         Player player = session.Player;
 
-        var pWriter = Packet.Of(SendOp.FIELD_ADD_USER);
+        var pWriter = Packet.Of(SendOp.FieldAddUser);
         pWriter.WriteInt(session.Player.ObjectId);
         pWriter.WriteCharacter(session);
         pWriter.WriteClass<SkillInfo>(session.Config.Skill.SkillInfo);
@@ -119,14 +119,14 @@ public static class FieldPacket {
     }
 
     public static ByteWriter RemovePlayer(int objectId) {
-        var pWriter = Packet.Of(SendOp.FIELD_REMOVE_USER);
+        var pWriter = Packet.Of(SendOp.FieldRemoveUser);
         pWriter.WriteInt(objectId);
 
         return pWriter;
     }
 
     public static ByteWriter AddNpc(FieldNpc npc) {
-        var pWriter = Packet.Of(SendOp.FIELD_ADD_NPC);
+        var pWriter = Packet.Of(SendOp.FieldAddNpc);
         pWriter.WriteInt(npc.ObjectId);
         pWriter.WriteInt(npc.Value.Id);
         pWriter.Write<Vector3>(npc.Position);
@@ -168,7 +168,7 @@ public static class FieldPacket {
     }
 
     public static ByteWriter RemoveNpc(int objectId) {
-        var pWriter = Packet.Of(SendOp.FIELD_REMOVE_NPC);
+        var pWriter = Packet.Of(SendOp.FieldRemoveNpc);
         pWriter.WriteInt(objectId);
 
         return pWriter;
@@ -177,7 +177,7 @@ public static class FieldPacket {
     public static ByteWriter DropItem(FieldEntity<Item> fieldItem) {
         Item item = fieldItem;
 
-        var pWriter = Packet.Of(SendOp.FIELD_ADD_ITEM);
+        var pWriter = Packet.Of(SendOp.FieldAddItem);
         pWriter.WriteInt(fieldItem.ObjectId);
         pWriter.WriteInt(item.Id);
         pWriter.WriteInt(item.Amount);
@@ -204,7 +204,7 @@ public static class FieldPacket {
     }
 
     public static ByteWriter RemoveItem(int objectId) {
-        var pWriter = Packet.Of(SendOp.FIELD_REMOVE_ITEM);
+        var pWriter = Packet.Of(SendOp.FieldRemoveItem);
         pWriter.WriteInt(objectId);
 
         return pWriter;

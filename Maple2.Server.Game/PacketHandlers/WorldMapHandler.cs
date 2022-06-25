@@ -9,7 +9,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class WorldMapHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.REQUEST_WORLDMAP;
+    public override RecvOp OpCode => RecvOp.RequestWorldmap;
 
     private enum Command : byte {
         Load = 0,

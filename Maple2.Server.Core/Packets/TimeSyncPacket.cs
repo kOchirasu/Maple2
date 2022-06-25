@@ -17,7 +17,7 @@ public static class TimeSyncPacket {
     }
 
     public static ByteWriter Response(DateTimeOffset time, int key) {
-        var pWriter = Packet.Of(SendOp.RESPONSE_TIME_SYNC);
+        var pWriter = Packet.Of(SendOp.ResponseTimeSync);
         pWriter.Write<Command>(Command.Response);
         pWriter.WriteInt(Environment.TickCount);
         pWriter.WriteLong(time.ToUnixTimeSeconds()); // CMainSystem[28], CMainSystem[30]
@@ -29,7 +29,7 @@ public static class TimeSyncPacket {
     }
 
     public static ByteWriter Reset(DateTimeOffset time) {
-        var pWriter = Packet.Of(SendOp.RESPONSE_TIME_SYNC);
+        var pWriter = Packet.Of(SendOp.ResponseTimeSync);
         pWriter.Write<Command>(Command.Reset);
         pWriter.WriteInt(Environment.TickCount);
         pWriter.WriteLong(time.ToUnixTimeSeconds()); // CMainSystem[28], CMainSystem[30]
@@ -41,14 +41,14 @@ public static class TimeSyncPacket {
 
     // Request client to make a request
     public static ByteWriter Request() {
-        var pWriter = Packet.Of(SendOp.RESPONSE_TIME_SYNC);
+        var pWriter = Packet.Of(SendOp.ResponseTimeSync);
         pWriter.Write<Command>(Command.Request);
 
         return pWriter;
     }
 
     public static ByteWriter Set(DateTimeOffset time) {
-        var pWriter = Packet.Of(SendOp.RESPONSE_TIME_SYNC);
+        var pWriter = Packet.Of(SendOp.ResponseTimeSync);
         pWriter.Write<Command>(Command.Set);
         pWriter.WriteLong(time.ToUnixTimeSeconds()); // CMainSystem[32]
 
@@ -56,7 +56,7 @@ public static class TimeSyncPacket {
     }
 
     public static ByteWriter TimeScale(bool enable, float startScale, float endScale, float duration, byte interpolator) {
-        var pWriter = Packet.Of(SendOp.TIME_SCALE);
+        var pWriter = Packet.Of(SendOp.TimeScale);
         pWriter.WriteBool(enable);
         pWriter.WriteFloat(startScale);
         pWriter.WriteFloat(endScale);

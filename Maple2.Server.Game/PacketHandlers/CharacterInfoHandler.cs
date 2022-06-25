@@ -8,7 +8,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class CharacterInfoHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.CHARACTER_INFO;
+    public override RecvOp OpCode => RecvOp.CharacterInfo;
 
     public override void Handle(GameSession session, IByteReader packet) {
         long characterId = packet.ReadLong();

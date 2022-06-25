@@ -14,7 +14,7 @@ public static class SkillMacroPacket {
     }
 
     public static ByteWriter Load(ICollection<SkillMacro> skillMacros) {
-        var pWriter = Packet.Of(SendOp.SKILL_MACRO);
+        var pWriter = Packet.Of(SendOp.SkillMacro);
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteInt(skillMacros.Count);
         foreach (SkillMacro macro in skillMacros) {
@@ -25,7 +25,7 @@ public static class SkillMacroPacket {
     }
 
     public static ByteWriter Update(ICollection<SkillMacro> skillMacros) {
-        var pWriter = Packet.Of(SendOp.SKILL_MACRO);
+        var pWriter = Packet.Of(SendOp.SkillMacro);
         pWriter.Write<Command>(Command.Update);
         pWriter.WriteInt(skillMacros.Count);
         foreach (SkillMacro macro in skillMacros) {

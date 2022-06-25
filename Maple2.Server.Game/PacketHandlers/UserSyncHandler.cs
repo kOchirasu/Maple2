@@ -9,7 +9,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class UserSyncHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.USER_SYNC;
+    public override RecvOp OpCode => RecvOp.UserSync;
 
     public override void Handle(GameSession session, IByteReader packet) {
         if (session.State != SessionState.Connected) {

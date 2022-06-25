@@ -6,7 +6,7 @@ using Maple2.Server.Core.Network;
 namespace Maple2.Server.Core.PacketHandlers;
 
 public abstract class ResponseVersionHandler<T> : PacketHandler<T> where T : Session {
-    public override ushort OpCode => RecvOp.RESPONSE_VERSION;
+    public override RecvOp OpCode => RecvOp.ResponseVersion;
 
     public override void Handle(T session, IByteReader packet) {
         uint version = packet.Read<uint>();

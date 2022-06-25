@@ -8,7 +8,7 @@ namespace Maple2.Server.Game.Packets;
 
 public static class CurrencyPacket {
     public static ByteWriter UpdateMeso(Currency currency) {
-        var pWriter = Packet.Of(SendOp.MESO);
+        var pWriter = Packet.Of(SendOp.Meso);
         pWriter.WriteLong(currency.Meso);
         pWriter.WriteInt(); // PCBang related
 
@@ -16,7 +16,7 @@ public static class CurrencyPacket {
     }
 
     public static ByteWriter UpdateMeret(Currency currency, long delta) {
-        var pWriter = Packet.Of(SendOp.MERET);
+        var pWriter = Packet.Of(SendOp.Meret);
         pWriter.WriteLong(currency.Meret);
         pWriter.WriteLong(); // extra meret
         pWriter.WriteLong(currency.GameMeret);
@@ -27,7 +27,7 @@ public static class CurrencyPacket {
     }
 
     public static ByteWriter UpdateCurrency(Currency currency, CurrencyType type, long delta, long overflow) {
-        var pWriter = Packet.Of(SendOp.CURRENCY_TOKEN);
+        var pWriter = Packet.Of(SendOp.CurrencyToken);
         pWriter.Write<CurrencyType>(type);
         switch (type) {
             case CurrencyType.ValorToken:

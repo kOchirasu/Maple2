@@ -6,7 +6,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class BuddyHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.BUDDY;
+    public override RecvOp OpCode => RecvOp.Buddy;
 
     private enum Command : byte {
         Request = 2,

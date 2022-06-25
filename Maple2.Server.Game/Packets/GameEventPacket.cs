@@ -16,7 +16,7 @@ public static class GameEventPacket {
     }
 
     public static ByteWriter Load(IList<GameEvent> gameEvents) {
-        var pWriter = Packet.Of(SendOp.GAME_EVENT);
+        var pWriter = Packet.Of(SendOp.GameEvent);
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteInt(gameEvents.Count);
         foreach (GameEvent gameEvent in gameEvents) {
@@ -27,7 +27,7 @@ public static class GameEventPacket {
     }
 
     public static ByteWriter Unknown1(IList<GameEvent> gameEvents) {
-        var pWriter = Packet.Of(SendOp.GAME_EVENT);
+        var pWriter = Packet.Of(SendOp.GameEvent);
         pWriter.Write<Command>(Command.Unknown1);
         pWriter.WriteInt(gameEvents.Count);
         foreach (GameEvent gameEvent in gameEvents) {
@@ -38,7 +38,7 @@ public static class GameEventPacket {
     }
 
     public static ByteWriter Unknown2(IList<int> values) {
-        var pWriter = Packet.Of(SendOp.GAME_EVENT);
+        var pWriter = Packet.Of(SendOp.GameEvent);
         pWriter.Write<Command>(Command.Unknown2);
         pWriter.WriteInt(values.Count);
         foreach (int value in values) {
@@ -49,7 +49,7 @@ public static class GameEventPacket {
     }
 
     public static ByteWriter Unknown3(IList<GameEvent> gameEvents) {
-        var pWriter = Packet.Of(SendOp.GAME_EVENT);
+        var pWriter = Packet.Of(SendOp.GameEvent);
         pWriter.Write<Command>(Command.Unknown3);
         pWriter.WriteInt(gameEvents.Count);
         foreach (GameEvent gameEvent in gameEvents) {

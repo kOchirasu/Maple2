@@ -11,7 +11,7 @@ using static Maple2.Model.Error.BuddyEmoteError;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class BuddyEmoteHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.BUDDY_EMOTE;
+    public override RecvOp OpCode => RecvOp.BuddyEmote;
 
     private enum Command : byte {
         Invite = 0,

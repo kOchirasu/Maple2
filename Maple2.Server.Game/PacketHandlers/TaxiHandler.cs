@@ -13,7 +13,7 @@ using static Maple2.Model.Error.MigrationError;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class TaxiHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.REQUEST_TAXI;
+    public override RecvOp OpCode => RecvOp.RequestTaxi;
 
     private enum Command : byte {
         Taxi = 1,
@@ -101,7 +101,7 @@ public class TaxiHandler : PacketHandler<GameSession> {
     }
 
     private static ByteWriter RevealTaxi(params int[] taxis) {
-        var pWriter = Packet.Of(SendOp.TAXI);
+        var pWriter = Packet.Of(SendOp.Taxi);
         pWriter.WriteInt(taxis.Length);
         foreach (int taxi in taxis) {
             pWriter.WriteInt(taxi);

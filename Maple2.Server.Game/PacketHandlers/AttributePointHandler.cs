@@ -7,7 +7,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class AttributePointHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.ATTRIBUTE_POINT;
+    public override RecvOp OpCode => RecvOp.AttributePoint;
 
     private enum Command : byte {
         Increment = 2,

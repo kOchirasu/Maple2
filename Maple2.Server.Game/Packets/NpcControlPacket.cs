@@ -13,7 +13,7 @@ public static class NpcControlPacket {
     public const short ANI_JUMP_B = -3;
 
     public static ByteWriter Control(params FieldNpc[] npcs) {
-        var pWriter = Packet.Of(SendOp.NPC_CONTROL);
+        var pWriter = Packet.Of(SendOp.NpcControl);
         pWriter.WriteShort((short) npcs.Length);
 
         foreach (FieldNpc npc in npcs) {
@@ -27,7 +27,7 @@ public static class NpcControlPacket {
     }
 
     public static ByteWriter ControlPet(params FieldNpc[] pets) {
-        var pWriter = Packet.Of(SendOp.NPC_CONTROL);
+        var pWriter = Packet.Of(SendOp.NpcControl);
         pWriter.WriteShort((short) pets.Length);
 
         foreach (FieldNpc pet in pets) {

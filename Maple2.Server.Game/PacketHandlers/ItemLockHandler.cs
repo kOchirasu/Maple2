@@ -11,7 +11,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class ItemLockHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.REQUEST_ITEM_LOCK;
+    public override RecvOp OpCode => RecvOp.RequestItemLock;
 
     private enum Command : byte {
         Reset = 0,

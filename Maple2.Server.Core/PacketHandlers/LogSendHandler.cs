@@ -7,7 +7,7 @@ namespace Maple2.Server.Core.PacketHandlers;
 
 // Note: socket_exception debug offset includes +6 bytes from encrypted header
 public abstract class LogSendHandler<T> : PacketHandler<T> where T : Session {
-    public override ushort OpCode => RecvOp.LOG_SEND;
+    public override RecvOp OpCode => RecvOp.LogSend;
 
     private enum Command : byte {
         Log = 0,

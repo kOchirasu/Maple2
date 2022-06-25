@@ -1,4 +1,5 @@
 ﻿using Maple2.PacketLib.Tools;
+using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Serilog;
 
@@ -7,7 +8,7 @@ namespace Maple2.Server.Core.PacketHandlers;
 // All implementing classes should be thread safe and stateless.
 // All state should be stored in Session
 public abstract class PacketHandler<T> where T : Session {
-    public abstract ushort OpCode { get; }
+    public abstract RecvOp OpCode { get; }
 
     protected readonly ILogger Logger = Log.Logger.ForContext<T>();
 

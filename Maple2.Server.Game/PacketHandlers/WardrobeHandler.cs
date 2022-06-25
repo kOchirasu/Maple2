@@ -9,7 +9,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class WardrobeHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.WARDROBE;
+    public override RecvOp OpCode => RecvOp.Wardrobe;
 
     private enum Command : byte {
         Create = 0,

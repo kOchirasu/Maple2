@@ -7,7 +7,7 @@ using Maple2.Server.Login.Session;
 namespace Maple2.Server.Login.PacketHandlers;
 
 public class ServerEnterHandler : PacketHandler<LoginSession> {
-    public override ushort OpCode => RecvOp.SERVER_ENTER;
+    public override RecvOp OpCode => RecvOp.ServerEnter;
 
     public ServerEnterHandler() { }
 

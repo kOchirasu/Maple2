@@ -8,7 +8,7 @@ namespace Maple2.Server.Game.Packets;
 
 public static class StateSyncPacket {
     public static void Player(this PoolByteWriter buffer, int playerObjectId, params StateSync[] syncStates) {
-        buffer.Write<ushort>(SendOp.USER_SYNC);
+        buffer.Write<SendOp>(SendOp.UserSync);
         buffer.WriteInt(playerObjectId);
         buffer.WriteByte((byte) syncStates.Length);
         foreach (StateSync entry in syncStates) {
@@ -17,7 +17,7 @@ public static class StateSyncPacket {
     }
 
     public static void Ride(this PoolByteWriter buffer, int playerObjectId, params StateSync[] syncStates) {
-        buffer.Write<ushort>(SendOp.RIDE_SYNC);
+        buffer.Write<SendOp>(SendOp.RideSync);
         buffer.WriteInt(playerObjectId);
         buffer.WriteByte((byte) syncStates.Length);
         foreach (StateSync entry in syncStates) {
@@ -26,7 +26,7 @@ public static class StateSyncPacket {
     }
 
     public static ByteWriter SyncNumber(byte number) {
-        var pWriter = Packet.Of(SendOp.SYNC_NUMBER);
+        var pWriter = Packet.Of(SendOp.SyncNumber);
         pWriter.WriteByte(number);
 
         return pWriter;

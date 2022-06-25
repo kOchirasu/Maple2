@@ -19,14 +19,14 @@ public static class NpcTalkPacket {
     }
 
     public static ByteWriter Close() {
-        var pWriter = Packet.Of(SendOp.NPC_TALK);
+        var pWriter = Packet.Of(SendOp.NpcTalk);
         pWriter.Write<Command>(Command.Close);
 
         return pWriter;
     }
 
     public static ByteWriter Respond(FieldNpc npc, NpcTalkType type, NpcDialogue dialogue) {
-        var pWriter = Packet.Of(SendOp.NPC_TALK);
+        var pWriter = Packet.Of(SendOp.NpcTalk);
         pWriter.Write<Command>(Command.Respond);
         pWriter.WriteInt(npc.ObjectId);
         pWriter.Write<NpcTalkType>(type);
@@ -36,7 +36,7 @@ public static class NpcTalkPacket {
     }
 
     public static ByteWriter Continue(NpcTalkType type, NpcDialogue dialogue, int questId = 0) {
-        var pWriter = Packet.Of(SendOp.NPC_TALK);
+        var pWriter = Packet.Of(SendOp.NpcTalk);
         pWriter.Write<Command>(Command.Continue);
         pWriter.Write<NpcTalkType>(type);
         pWriter.WriteInt(questId);
@@ -46,7 +46,7 @@ public static class NpcTalkPacket {
     }
 
     public static ByteWriter MovePlayer(int portalId) {
-        var pWriter = Packet.Of(SendOp.NPC_TALK);
+        var pWriter = Packet.Of(SendOp.NpcTalk);
         pWriter.Write<Command>(Command.Action);
         pWriter.Write<NpcTalkAction>(NpcTalkAction.MovePlayer);
         pWriter.WriteInt(portalId);
@@ -55,7 +55,7 @@ public static class NpcTalkPacket {
     }
 
     public static ByteWriter OpenDialog(string name, string tags) {
-        var pWriter = Packet.Of(SendOp.NPC_TALK);
+        var pWriter = Packet.Of(SendOp.NpcTalk);
         pWriter.Write<Command>(Command.Action);
         pWriter.Write<NpcTalkAction>(NpcTalkAction.OpenDialog);
         pWriter.WriteUnicodeString(name);
@@ -65,7 +65,7 @@ public static class NpcTalkPacket {
     }
 
     public static ByteWriter RewardItem(IList<Item> items) {
-        var pWriter = Packet.Of(SendOp.NPC_TALK);
+        var pWriter = Packet.Of(SendOp.NpcTalk);
         pWriter.Write<Command>(Command.Action);
         pWriter.Write<NpcTalkAction>(NpcTalkAction.RewardItem);
         pWriter.WriteInt(items.Count);
@@ -80,7 +80,7 @@ public static class NpcTalkPacket {
     }
 
     public static ByteWriter RewardExp(long exp) {
-        var pWriter = Packet.Of(SendOp.NPC_TALK);
+        var pWriter = Packet.Of(SendOp.NpcTalk);
         pWriter.Write<Command>(Command.Action);
         pWriter.Write<NpcTalkAction>(NpcTalkAction.RewardExp);
         pWriter.WriteLong(exp);
@@ -89,7 +89,7 @@ public static class NpcTalkPacket {
     }
 
     public static ByteWriter RewardMeso(long mesos) {
-        var pWriter = Packet.Of(SendOp.NPC_TALK);
+        var pWriter = Packet.Of(SendOp.NpcTalk);
         pWriter.Write<Command>(Command.Action);
         pWriter.Write<NpcTalkAction>(NpcTalkAction.RewardMeso);
         pWriter.WriteLong(mesos);
@@ -98,7 +98,7 @@ public static class NpcTalkPacket {
     }
 
     public static ByteWriter Update(string text, string voiceId = "", string illustration = "") {
-        var pWriter = Packet.Of(SendOp.NPC_TALK);
+        var pWriter = Packet.Of(SendOp.NpcTalk);
         pWriter.Write<Command>(Command.Update);
         pWriter.WriteUnicodeString(text);
         pWriter.WriteUnicodeString(voiceId);

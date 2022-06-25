@@ -16,7 +16,7 @@ public static class SkillBookPacket {
     }
 
     public static ByteWriter Load(SkillBook skillBook) {
-        var pWriter = Packet.Of(SendOp.SKILL_BOOK_TREE);
+        var pWriter = Packet.Of(SendOp.SkillBookTree);
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteInt(skillBook.MaxSkillTabs);
         pWriter.WriteLong(skillBook.ActiveSkillTabId);
@@ -30,7 +30,7 @@ public static class SkillBookPacket {
     }
 
     public static ByteWriter Save(SkillBook skillBook, long savedTabId, SkillRank ranksSaved) {
-        var pWriter = Packet.Of(SendOp.SKILL_BOOK_TREE);
+        var pWriter = Packet.Of(SendOp.SkillBookTree);
         pWriter.Write<Command>(Command.Save);
         pWriter.WriteLong(skillBook.ActiveSkillTabId);
         pWriter.WriteLong(savedTabId);
@@ -40,7 +40,7 @@ public static class SkillBookPacket {
     }
 
     public static ByteWriter Rename(SkillTab skillTab, bool error = false) {
-        var pWriter = Packet.Of(SendOp.SKILL_BOOK_TREE);
+        var pWriter = Packet.Of(SendOp.SkillBookTree);
         pWriter.Write<Command>(Command.Rename);
         pWriter.WriteLong(skillTab.Id);
         pWriter.WriteUnicodeString(skillTab.Name);
@@ -50,7 +50,7 @@ public static class SkillBookPacket {
     }
 
     public static ByteWriter Expand(SkillBook skillBook) {
-        var pWriter = Packet.Of(SendOp.SKILL_BOOK_TREE);
+        var pWriter = Packet.Of(SendOp.SkillBookTree);
         pWriter.Write<Command>(Command.Expand);
         pWriter.WriteInt(skillBook.MaxSkillTabs);
 

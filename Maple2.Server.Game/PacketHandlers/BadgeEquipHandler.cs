@@ -7,7 +7,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class BadgeEquipHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.BADGE_EQUIP;
+    public override RecvOp OpCode => RecvOp.BadgeEquip;
 
     private enum Command : byte {
         Equip = 0,

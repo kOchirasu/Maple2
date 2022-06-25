@@ -29,7 +29,7 @@ public static class BeautyPacket {
     }
 
     public static ByteWriter BeautyShop(BeautyShop shop) {
-        var pWriter = Packet.Of(SendOp.BEAUTY);
+        var pWriter = Packet.Of(SendOp.Beauty);
         pWriter.Write<Command>(Command.BeautyShop);
         pWriter.WriteClass<BeautyShop>(shop);
 
@@ -37,7 +37,7 @@ public static class BeautyPacket {
     }
 
     public static ByteWriter DyeShop(BeautyShopData shop) {
-        var pWriter = Packet.Of(SendOp.BEAUTY);
+        var pWriter = Packet.Of(SendOp.Beauty);
         pWriter.Write<Command>(Command.DyeShop);
         pWriter.WriteClass<BeautyShopData>(shop);
 
@@ -45,7 +45,7 @@ public static class BeautyPacket {
     }
 
     public static ByteWriter SaveShop(BeautyShopData shop) {
-        var pWriter = Packet.Of(SendOp.BEAUTY);
+        var pWriter = Packet.Of(SendOp.Beauty);
         pWriter.Write<Command>(Command.SaveShop);
         pWriter.WriteClass<BeautyShopData>(shop);
 
@@ -53,7 +53,7 @@ public static class BeautyPacket {
     }
 
     public static ByteWriter Error(BeautyError error) {
-        var pWriter = Packet.Of(SendOp.BEAUTY);
+        var pWriter = Packet.Of(SendOp.Beauty);
         pWriter.Write<Command>(Command.Error);
         pWriter.Write<BeautyError>(error);
 
@@ -61,7 +61,7 @@ public static class BeautyPacket {
     }
 
     public static ByteWriter Voucher(int itemId, int amount) {
-        var pWriter = Packet.Of(SendOp.BEAUTY);
+        var pWriter = Packet.Of(SendOp.Beauty);
         pWriter.Write<Command>(Command.Voucher);
         pWriter.WriteInt(itemId);
         pWriter.WriteInt(amount);
@@ -70,7 +70,7 @@ public static class BeautyPacket {
     }
 
     public static ByteWriter RandomHair(int prevHairId, int newHairId) {
-        var pWriter = Packet.Of(SendOp.BEAUTY);
+        var pWriter = Packet.Of(SendOp.Beauty);
         pWriter.Write<Command>(Command.RandomHair);
         pWriter.WriteInt(prevHairId);
         pWriter.WriteInt(newHairId);
@@ -79,7 +79,7 @@ public static class BeautyPacket {
     }
 
     public static ByteWriter RandomHairResult(bool error = false, int argument = 0) {
-        var pWriter = Packet.Of(SendOp.BEAUTY);
+        var pWriter = Packet.Of(SendOp.Beauty);
         pWriter.Write<Command>(Command.RandomHairResult);
         pWriter.WriteInt(argument); // Not sure what this does
         pWriter.WriteBool(error);
@@ -88,14 +88,14 @@ public static class BeautyPacket {
     }
 
     public static ByteWriter StartList() {
-        var pWriter = Packet.Of(SendOp.BEAUTY);
+        var pWriter = Packet.Of(SendOp.Beauty);
         pWriter.Write<Command>(Command.StartList);
 
         return pWriter;
     }
 
     public static ByteWriter ListCount(short count) {
-        var pWriter = Packet.Of(SendOp.BEAUTY);
+        var pWriter = Packet.Of(SendOp.Beauty);
         pWriter.Write<Command>(Command.ListCount);
         pWriter.WriteShort(count);
 
@@ -103,7 +103,7 @@ public static class BeautyPacket {
     }
 
     public static ByteWriter ListHair(IList<Item> hairs) {
-        var pWriter = Packet.Of(SendOp.BEAUTY);
+        var pWriter = Packet.Of(SendOp.Beauty);
         pWriter.Write<Command>(Command.ListHair);
         pWriter.WriteShort((short) hairs.Count);
         for (int i = 0; i < hairs.Count; i++) {
@@ -123,14 +123,14 @@ public static class BeautyPacket {
     }
 
     public static ByteWriter SaveHair() {
-        var pWriter = Packet.Of(SendOp.BEAUTY);
+        var pWriter = Packet.Of(SendOp.Beauty);
         pWriter.Write<Command>(Command.SaveHair);
 
         return pWriter;
     }
 
     public static ByteWriter DeleteHair(long uid) {
-        var pWriter = Packet.Of(SendOp.BEAUTY);
+        var pWriter = Packet.Of(SendOp.Beauty);
         pWriter.Write<Command>(Command.DeleteHair);
         pWriter.WriteLong(uid);
 
@@ -138,7 +138,7 @@ public static class BeautyPacket {
     }
 
     public static ByteWriter SaveSlots(short extraSlots) {
-        var pWriter = Packet.Of(SendOp.BEAUTY);
+        var pWriter = Packet.Of(SendOp.Beauty);
         pWriter.Write<Command>(Command.SaveSlots);
         pWriter.WriteByte(); // TODO: unknown
         pWriter.WriteShort(extraSlots);
@@ -147,7 +147,7 @@ public static class BeautyPacket {
     }
 
     public static ByteWriter ApplySavedHair() {
-        var pWriter = Packet.Of(SendOp.BEAUTY);
+        var pWriter = Packet.Of(SendOp.Beauty);
         pWriter.Write<Command>(Command.ApplySavedHair);
 
         return pWriter;

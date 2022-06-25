@@ -12,7 +12,7 @@ public static class WardrobePacket {
     }
 
     public static ByteWriter Load(int index, Wardrobe wardrobe) {
-        var pWriter = Packet.Of(SendOp.WARDROBE);
+        var pWriter = Packet.Of(SendOp.Wardrobe);
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteInt(index);
         pWriter.WriteClass<Wardrobe>(wardrobe);

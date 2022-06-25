@@ -7,7 +7,7 @@ namespace Maple2.Server.Game.Packets;
 
 public static class SkillPacket {
     public static ByteWriter StateSkill(FieldPlayer player, int skillId, long skillCastUid) {
-        var pWriter = Packet.Of(SendOp.STATE_SKILL);
+        var pWriter = Packet.Of(SendOp.StateSkill);
         pWriter.WriteByte(0x06);
         pWriter.WriteInt(player.ObjectId);
         pWriter.WriteInt(); // ItemId??

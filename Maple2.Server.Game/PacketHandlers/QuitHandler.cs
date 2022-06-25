@@ -12,7 +12,7 @@ using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class QuitHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.REQUEST_QUIT;
+    public override RecvOp OpCode => RecvOp.RequestQuit;
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global

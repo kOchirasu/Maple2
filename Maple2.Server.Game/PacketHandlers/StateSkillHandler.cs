@@ -8,7 +8,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class StateSkillHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.STATE_SKILL;
+    public override RecvOp OpCode => RecvOp.StateSkill;
 
     public override void Handle(GameSession session, IByteReader packet) {
         byte function = packet.ReadByte();

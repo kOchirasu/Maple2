@@ -14,7 +14,7 @@ public static class WorldMapPacket {
 
     public static ByteWriter Load(IList<ICollection<MapWorldBoss>> bossGroups, ICollection<MapPopulation> populations,
             IList<ICollection<MapWorldBoss>>? otherBossGroups = null) {
-        var pWriter = Packet.Of(SendOp.WORLDMAP);
+        var pWriter = Packet.Of(SendOp.Worldmap);
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteWorldBosses(bossGroups);
 
@@ -33,7 +33,7 @@ public static class WorldMapPacket {
     }
 
     public static ByteWriter Population(ICollection<MapPopulation> populations) {
-        var pWriter = Packet.Of(SendOp.WORLDMAP);
+        var pWriter = Packet.Of(SendOp.Worldmap);
         pWriter.Write<Command>(Command.Population);
         pWriter.WriteByte(3); // Const
         pWriter.WriteInt(populations.Count);

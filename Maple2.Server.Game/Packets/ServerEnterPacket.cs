@@ -10,7 +10,7 @@ public static class ServerEnterPacket {
     public static ByteWriter Request(IActor<Player> fieldPlayer) {
         Player player = fieldPlayer.Value;
 
-        var pWriter = Packet.Of(SendOp.SERVER_ENTER);
+        var pWriter = Packet.Of(SendOp.ServerEnter);
         pWriter.WriteInt(fieldPlayer.ObjectId);
         pWriter.WriteLong(player.Character.Id);
         pWriter.WriteShort();

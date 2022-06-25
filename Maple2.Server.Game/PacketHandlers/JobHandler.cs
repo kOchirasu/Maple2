@@ -8,7 +8,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class JobHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.JOB;
+    public override RecvOp OpCode => RecvOp.Job;
 
     private enum Command : byte {
         Unknown = 7,

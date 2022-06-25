@@ -9,7 +9,7 @@ using Maple2.Server.Game.Session;
 namespace Maple2.Server.Game.PacketHandlers;
 
 public class MesoPickupHandler : PacketHandler<GameSession> {
-    public override ushort OpCode => RecvOp.REQUEST_MESO_PICKUP;
+    public override RecvOp OpCode => RecvOp.RequestMesoPickup;
 
     public override void Handle(GameSession session, IByteReader packet) {
         if (session.Field == null) {
