@@ -74,29 +74,31 @@ public class ItemLockHandler : PacketHandler<GameSession> {
     private static void HandleCommit(GameSession session, IByteReader packet) {
         bool unlock = packet.ReadBool(); // false - lock|true - unlock
 
-        var updatedItems = new List<Item>();
-        foreach (long itemUid in session.ItemLockStaging) {
-            if (itemUid == default) {
-                continue;
+        lock (session.Item) {
+            var updatedItems = new List<Item>();
+            foreach (long itemUid in session.ItemLockStaging) {
+                if (itemUid == default) {
+                    continue;
+                }
+
+                Item? item = session.Item.Inventory.Get(itemUid);
+                if (item == null) {
+                    continue;
+                }
+
+                if (unlock && item.IsLocked) {
+                    item.IsLocked = false;
+                    item.UnlockTime = DateTimeOffset.UtcNow.AddSeconds(Constant.ItemUnLockTime).ToUnixTimeSeconds();
+                    updatedItems.Add(item);
+                } else if (!unlock && !item.IsLocked) {
+                    item.IsLocked = true;
+                    item.UnlockTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                    updatedItems.Add(item);
+                }
             }
 
-            Item? item = session.Item.Inventory.Get(itemUid);
-            if (item == null) {
-                continue;
-            }
-
-            if (unlock && item.IsLocked) {
-                item.IsLocked = false;
-                item.UnlockTime = DateTimeOffset.UtcNow.AddSeconds(Constant.ItemUnLockTime).ToUnixTimeSeconds();
-                updatedItems.Add(item);
-            } else if (!unlock && !item.IsLocked) {
-                item.IsLocked = true;
-                item.UnlockTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-                updatedItems.Add(item);
-            }
+            Array.Clear(session.ItemLockStaging);
+            session.Send(ItemLockPacket.Commit(updatedItems));
         }
-
-        Array.Clear(session.ItemLockStaging);
-        session.Send(ItemLockPacket.Commit(updatedItems));
     }
 }

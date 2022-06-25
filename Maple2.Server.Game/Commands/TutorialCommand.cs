@@ -52,7 +52,14 @@ public class TutorialCommand : Command {
                             }
 
                             var item = new Item(metadata, rewardItem.Rarity, rewardItem.Count);
-                            session.Item.Inventory.Add(db.CreateItem(player.Character.Id, item));
+                            item = db.CreateItem(player.Character.Id, item);
+                            if (item == null) {
+                                ctx.Console.Error.WriteLine($"Failed to create item: {rewardItem.Id}");
+                                ctx.ExitCode = 1;
+                                return;
+                            }
+
+                            session.Item.Inventory.Add(item);
                         }
                         break;
                     }

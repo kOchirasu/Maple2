@@ -45,12 +45,11 @@ public class EmoteHandler : PacketHandler<GameSession> {
         }
 
         // Now that we know this item is valid and is an unlearned emote, try to consume it.
-        if (!session.Item.Inventory.Remove(itemUid, out item, amount: 1)) {
+        if (!session.Item.Inventory.Consume(itemUid, 1)) {
             session.Send(EmotePacket.Error(EmoteError.s_dynamic_action_item_invalid));
             return;
         }
 
-        session.Item.Inventory.Discard(item);
         session.Player.Value.Unlock.Emotes.Add(emoteId);
         session.Send(EmotePacket.Learn(new Emote(emoteId)));
     }

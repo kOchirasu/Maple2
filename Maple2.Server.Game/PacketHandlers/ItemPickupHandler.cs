@@ -20,21 +20,18 @@ public class ItemPickupHandler : PacketHandler<GameSession> {
             return;
         }
 
-        // Ensure object exists, and inventory can hold it
+        // Ensure item exists.
         if (!session.Field.TryGetItem(objectId, out FieldEntity<Item>? item)) {
-            return;
-        }
-        if (!item.Value.IsCurrency() && !session.Item.Inventory.CanAdd(item)) {
-            return;
-        }
-
-        // Remove objectId from Field, make sure item still exists (multiple looters)
-        if (!session.Field.PickupItem(session.Player, objectId, out item)) {
             return;
         }
 
         // Currency items are handled differently
         if (item.Value.IsCurrency()) {
+            // Remove objectId from Field, make sure item still exists (multiple looters)
+            if (!session.Field.PickupItem(session.Player, objectId, out item)) {
+                return;
+            }
+
             switch (item.Value.Id) {
                 // Meso: 90000001, 90000002, 90000003 (See: MesoPickupHandler)
                 case 90000004: // Meret
@@ -90,6 +87,17 @@ public class ItemPickupHandler : PacketHandler<GameSession> {
             return;
         }
 
-        session.Item.Inventory.Add(item, true);
+        lock (session.Item) {
+            if (!session.Item.Inventory.CanAdd(item)) {
+                return;
+            }
+
+            // Remove objectId from Field, make sure item still exists (multiple looters)
+            if (!session.Field.PickupItem(session.Player, objectId, out item)) {
+                return;
+            }
+
+            session.Item.Inventory.Add(item, true);
+        }
     }
 }

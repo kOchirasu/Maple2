@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using Maple2.Database.Storage;
 using Maple2.Model;
 using Maple2.Model.Enum;
@@ -23,14 +22,12 @@ public class InventoryManager {
     private const int EXPAND_SLOTS = 6;
 
     private readonly GameSession session;
-    private readonly ReaderWriterLockSlim mutex;
 
     private readonly Dictionary<InventoryType, ItemCollection> tabs;
     private readonly List<Item> delete;
 
     public InventoryManager(GameStorage.Request db, GameSession session) {
         this.session = session;
-        mutex = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         tabs = new Dictionary<InventoryType, ItemCollection>();
         foreach (InventoryType type in Enum.GetValues<InventoryType>()) {
             session.Player.Value.Unlock.Expand.TryGetValue(type, out short expand);
@@ -71,8 +68,7 @@ public class InventoryManager {
     }
 
     public void Load() {
-        mutex.EnterReadLock();
-        try {
+        lock (session.Item) {
             foreach ((InventoryType type, ItemCollection items) in tabs) {
                 session.Send(ItemInventoryPacket.Reset(type));
                 session.Send(ItemInventoryPacket.ExpandCount(type, items.Size - BaseSize(type)));
@@ -81,20 +77,17 @@ public class InventoryManager {
                     session.Send(ItemInventoryPacket.Load(batch));
                 }
             }
-        } finally {
-            mutex.ExitReadLock();
         }
     }
 
     public bool Move(long uid, short dstSlot) {
-        if (dstSlot < 0) {
-            session.Send(ItemInventoryPacket.Error(s_item_err_Invalid_slot));
-            return false;
-        }
+        lock (session.Item) {
+            if (dstSlot < 0) {
+                session.Send(ItemInventoryPacket.Error(s_item_err_Invalid_slot));
+                return false;
+            }
 
-        mutex.EnterWriteLock();
-        try {
-            ItemCollection? items = GetTab(uid);
+            ItemCollection? items = tabs.Values.FirstOrDefault(collection => collection.Contains(uid));
             if (items == null || dstSlot >= items.Size) {
 
                 return false;
@@ -105,20 +98,18 @@ public class InventoryManager {
                 if (items.RemoveSlot(dstSlot, out Item? removeDst)) {
                     items[srcSlot] = removeDst;
                 }
+
                 items[dstSlot] = removeSrc;
 
                 session.Send(ItemInventoryPacket.Move(removeDst?.Uid ?? 0, srcSlot, uid, dstSlot));
             }
 
             return true;
-        } finally {
-            mutex.ExitWriteLock();
         }
     }
 
     public bool Add(Item add, bool notifyNew = false) {
-        mutex.EnterWriteLock();
-        try {
+        lock (session.Item) {
             if (!tabs.TryGetValue(add.Inventory, out ItemCollection? items)) {
                 session.Send(ItemInventoryPacket.Error(s_item_err_not_active_tab));
                 return false;
@@ -146,60 +137,69 @@ public class InventoryManager {
             }
 
             return true;
-        } finally {
-            mutex.ExitWriteLock();
         }
     }
 
     public bool CanAdd(Item item) {
-        return tabs.TryGetValue(item.Inventory, out ItemCollection? items) && items.CanAdd(item);
+        lock (session.Item) {
+            return tabs.TryGetValue(item.Inventory, out ItemCollection? items) && items.CanAdd(item);
+        }
     }
 
     public bool Remove(long uid, [NotNullWhen(true)] out Item? removed, int amount = -1) {
-        mutex.EnterWriteLock();
-        try {
+        lock (session.Item) {
             return RemoveInternal(uid, amount, out removed);
-        } finally {
-            mutex.ExitWriteLock();
+        }
+    }
+
+    public bool Consume(long uid, int amount = -1) {
+        lock (session.Item) {
+            return ConsumeInternal(uid, amount);
         }
     }
 
     public void Sort(InventoryType type, bool removeExpired = false) {
-        if (!tabs.TryGetValue(type, out ItemCollection? items)) {
-            session.Send(ItemInventoryPacket.Error(s_item_err_not_active_tab));
-            return;
-        }
+        lock (session.Item) {
+            if (!tabs.TryGetValue(type, out ItemCollection? items)) {
+                session.Send(ItemInventoryPacket.Error(s_item_err_not_active_tab));
+                return;
+            }
 
-        if (removeExpired) {
-            long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-            IList<Item> toRemove = items.Where(item => item.ExpiryTime <= now).ToList();
-            foreach (Item item in toRemove) {
-                if (items.Remove(item.Uid, out Item? removed)) {
-                    Discard(removed);
+            if (removeExpired) {
+                long now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+                IList<Item> toRemove = items.Where(item => item.ExpiryTime <= now).ToList();
+                foreach (Item item in toRemove) {
+                    if (items.Remove(item.Uid, out Item? removed)) {
+                        Discard(removed);
+                    }
                 }
             }
-        }
 
-        items.Sort();
+            items.Sort();
 
-        session.Send(ItemInventoryPacket.Reset(type));
-        foreach (ImmutableList<Item> batch in items.Batch(BATCH_SIZE)) {
-            session.Send(ItemInventoryPacket.LoadTab(type, batch));
+            session.Send(ItemInventoryPacket.Reset(type));
+            foreach (ImmutableList<Item> batch in items.Batch(BATCH_SIZE)) {
+                session.Send(ItemInventoryPacket.LoadTab(type, batch));
+            }
         }
     }
 
     public void Expand(InventoryType type) {
-        if (!tabs.TryGetValue(type, out ItemCollection? items)) {
-            session.Send(ItemInventoryPacket.Error(s_item_err_not_active_tab));
-            return;
-        }
+        lock (session.Item) {
+            if (!tabs.TryGetValue(type, out ItemCollection? items)) {
+                session.Send(ItemInventoryPacket.Error(s_item_err_not_active_tab));
+                return;
+            }
 
-        if (session.Currency.Meret < Constant.InventoryExpandPrice1Row) {
-            session.Send(ItemInventoryPacket.Error(s_cannot_charge_merat));
-            return;
-        }
+            if (session.Currency.Meret < Constant.InventoryExpandPrice1Row) {
+                session.Send(ItemInventoryPacket.Error(s_cannot_charge_merat));
+                return;
+            }
 
-        if (items.Expand((short) (items.Size + EXPAND_SLOTS))) {
+            if (!items.Expand((short) (items.Size + EXPAND_SLOTS))) {
+                return;
+            }
+
             session.Currency.Meret -= Constant.InventoryExpandPrice1Row;
             if (session.Player.Value.Unlock.Expand.ContainsKey(type)) {
                 session.Player.Value.Unlock.Expand[type] += EXPAND_SLOTS;
@@ -213,56 +213,50 @@ public class InventoryManager {
     }
 
     public short FreeSlots(InventoryType type) {
-        return !tabs.TryGetValue(type, out ItemCollection? items) ? (short) 0 : items.OpenSlots;
-    }
-
-    // Just iterating instead of creating another map.
-    // Shouldn't really matter since there's <15 tabs.
-    public ItemCollection? GetTab(long uid) {
-        mutex.EnterReadLock();
-        try {
-            foreach (ItemCollection items in tabs.Values) {
-                if (items.Contains(uid)) {
-                    return items;
-                }
-            }
-        } finally {
-            mutex.ExitReadLock();
+        lock (session.Item) {
+            return !tabs.TryGetValue(type, out ItemCollection? items) ? (short) 0 : items.OpenSlots;
         }
-
-        return null;
     }
 
     public Item? Get(long uid) {
-        return GetTab(uid)?.Get(uid);
+        lock (session.Item) {
+            return tabs.Values.FirstOrDefault(collection => collection.Contains(uid))?.Get(uid);
+        }
     }
 
     public IEnumerable<Item> Find(int id, int rarity = -1) {
-        if (!session.ItemMetadata.TryGet(id, out ItemMetadata? metadata)) {
-            yield break;
-        }
+        lock (session.Item) {
+            if (!session.ItemMetadata.TryGet(id, out ItemMetadata? metadata)) {
+                yield break;
+            }
 
-        InventoryType type = metadata.Inventory();
-        if (!tabs.TryGetValue(type, out ItemCollection? items)) {
-            session.Send(ItemInventoryPacket.Error(s_item_err_not_active_tab));
-            yield break;
-        }
+            InventoryType type = metadata.Inventory();
+            if (!tabs.TryGetValue(type, out ItemCollection? items)) {
+                session.Send(ItemInventoryPacket.Error(s_item_err_not_active_tab));
+                yield break;
+            }
 
-        foreach (Item item in items) {
-            if (item.Id != id) continue;
-            if (rarity != -1 && item.Rarity != rarity) continue;
+            foreach (Item item in items) {
+                if (item.Id != id) continue;
+                if (rarity != -1 && item.Rarity != rarity) continue;
 
-            yield return item;
+                yield return item;
+            }
         }
     }
 
     public void Discard(Item item) {
+        // Only discard items that need to be saved to DB.
+        if (item.Uid == 0) {
+            return;
+        }
+
         delete.Add(item);
     }
 
     #region Internal (No Locks)
     private bool RemoveInternal(long uid, int amount, [NotNullWhen(true)] out Item? removed) {
-        ItemCollection? items = GetTab(uid);
+        ItemCollection? items = tabs.Values.FirstOrDefault(collection => collection.Contains(uid));
         if (items == null || amount == 0) {
             removed = null;
             return false;
@@ -297,12 +291,45 @@ public class InventoryManager {
 
         return false;
     }
+
+    private bool ConsumeInternal(long uid, int amount) {
+        ItemCollection? items = tabs.Values.FirstOrDefault(collection => collection.Contains(uid));
+        if (items == null || amount == 0) {
+            return false;
+        }
+
+        if (amount > 0) {
+            Item? item = items.Get(uid);
+            if (item == null || item.Amount < amount) {
+                return false;
+            }
+
+            // Otherwise, we would just do a full remove.
+            if (item.Amount > amount) {
+                item.Amount -= amount;
+
+                session.Send(ItemInventoryPacket.UpdateAmount(uid, item.Amount));
+                return true;
+            }
+        }
+
+        // Full remove of item
+        if (items.Remove(uid, out Item? removed)) {
+            Discard(removed);
+            session.Send(ItemInventoryPacket.Remove(uid));
+            return true;
+        }
+
+        return false;
+    }
     #endregion
 
     public void Save(GameStorage.Request db) {
-        db.SaveItems(0, delete.ToArray());
-        foreach (ItemCollection tab in tabs.Values) {
-            db.SaveItems(session.CharacterId, tab.ToArray());
+        lock (session.Item) {
+            db.SaveItems(0, delete.ToArray());
+            foreach (ItemCollection tab in tabs.Values) {
+                db.SaveItems(session.CharacterId, tab.ToArray());
+            }
         }
     }
 }

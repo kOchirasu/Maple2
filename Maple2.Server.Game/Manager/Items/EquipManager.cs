@@ -52,57 +52,59 @@ public class EquipManager {
     /// <param name="isSkin">Whether the item is a skin or not.</param>
     /// <returns>The items if any that were unequipped to equip this item.</returns>
     public bool Equip(long itemUid, EquipSlot slot, bool isSkin) {
-        // Check that item is valid and can be equipped.
-        Item? item = session.Item.Inventory.Get(itemUid);
-        if (item == null) {
-            return false;
-        }
-        if (item.Metadata.Property.IsSkin != isSkin) {
-            return false;
-        }
-        if (!ValidEquipSlotForItem(slot, item)) {
-            return false;
-        }
-
-        ConcurrentDictionary<EquipSlot, Item> equips = isSkin ? Outfit : Gear;
-        if (item.Metadata.SlotNames.Length > 1) { // Two-Handed Weapon, Overall Armor
-            int requiredFreeSlots = 0;
-            foreach (EquipSlot removeSlot in item.Metadata.SlotNames) {
-                if (equips.ContainsKey(removeSlot)) {
-                    requiredFreeSlots++;
-                }
-            }
-
-            // +1 because we will have a free slot from the item being equipped.
-            int freeSlots = session.Item.Inventory.FreeSlots(isSkin ? InventoryType.Outfit : InventoryType.Gear) + 1;
-            if (freeSlots <= requiredFreeSlots) {
+        lock (session.Item) {
+            // Check that item is valid and can be equipped.
+            Item? item = session.Item.Inventory.Get(itemUid);
+            if (item == null) {
                 return false;
             }
-        }
+            if (item.Metadata.Property.IsSkin != isSkin) {
+                return false;
+            }
+            if (!ValidEquipSlotForItem(slot, item)) {
+                return false;
+            }
 
-        // Remove item being equipped from inventory so unequipped items and be moved there.
-        if (!session.Item.Inventory.Remove(itemUid, out item)) {
-            return false;
-        }
+            ConcurrentDictionary<EquipSlot, Item> equips = isSkin ? Outfit : Gear;
+            if (item.Metadata.SlotNames.Length > 1) { // Two-Handed Weapon, Overall Armor
+                int requiredFreeSlots = 0;
+                foreach (EquipSlot removeSlot in item.Metadata.SlotNames) {
+                    if (equips.ContainsKey(removeSlot)) {
+                        requiredFreeSlots++;
+                    }
+                }
 
-        if (!UnequipInternal(slot, isSkin, item.Slot)) {
-            throw new InvalidOperationException("Failed to unequip item");
-        }
-        if (item.Metadata.SlotNames.Length > 1) { // Two-Handed Weapon, Overall Armor
-            foreach (EquipSlot unequipSlot in item.Metadata.SlotNames) {
-                if (!UnequipInternal(unequipSlot, isSkin)) {
-                    throw new InvalidOperationException("Failed to unequip item");
+                // +1 because we will have a free slot from the item being equipped.
+                int freeSlots = session.Item.Inventory.FreeSlots(isSkin ? InventoryType.Outfit : InventoryType.Gear) + 1;
+                if (freeSlots <= requiredFreeSlots) {
+                    return false;
                 }
             }
+
+            // Remove item being equipped from inventory so unequipped items and be moved there.
+            if (!session.Item.Inventory.Remove(itemUid, out item)) {
+                return false;
+            }
+
+            if (!UnequipInternal(slot, isSkin, item.Slot)) {
+                throw new InvalidOperationException("Failed to unequip item");
+            }
+            if (item.Metadata.SlotNames.Length > 1) { // Two-Handed Weapon, Overall Armor
+                foreach (EquipSlot unequipSlot in item.Metadata.SlotNames) {
+                    if (!UnequipInternal(unequipSlot, isSkin)) {
+                        throw new InvalidOperationException("Failed to unequip item");
+                    }
+                }
+            }
+
+            item.EquipTab = isSkin ? EquipTab.Outfit : EquipTab.Gear;
+            item.EquipSlot = slot;
+            item.Slot = -1;
+            equips[slot] = item;
+            session.Field?.Multicast(EquipPacket.EquipItem(session.Player, item, 0));
+
+            return true;
         }
-
-        item.EquipTab = isSkin ? EquipTab.Outfit : EquipTab.Gear;
-        item.EquipSlot = slot;
-        item.Slot = -1;
-        equips[slot] = item;
-        session.Field?.Multicast(EquipPacket.EquipItem(session.Player, item, 0));
-
-        return true;
     }
 
     /// <summary>
@@ -111,64 +113,71 @@ public class EquipManager {
     /// <param name="itemUid">The uid of the item to be unequipped</param>
     /// <returns></returns>
     public bool Unequip(long itemUid) {
-        // Unequip from Gear.
-        foreach ((EquipSlot slot, Item item) in Gear) {
-            if (itemUid == item.Uid) {
-                return UnequipInternal(slot, false);
+        lock (session.Item) {
+            // Unequip from Gear.
+            foreach ((EquipSlot slot, Item item) in Gear) {
+                if (itemUid == item.Uid) {
+                    return UnequipInternal(slot, false);
+                }
             }
-        }
 
-        // Unequip from Outfit.
-        foreach ((EquipSlot slot, Item item) in Outfit) {
-            if (itemUid == item.Uid) {
-                return UnequipInternal(slot, true);
+            // Unequip from Outfit.
+            foreach ((EquipSlot slot, Item item) in Outfit) {
+                if (itemUid == item.Uid) {
+                    return UnequipInternal(slot, true);
+                }
             }
-        }
 
-        return false;
+            return false;
+        }
     }
 
     public bool EquipBadge(long itemUid) {
-        Item? item = session.Item.Inventory.Get(itemUid);
-        if (item?.Badge == null) {
-            return false;
+        lock (session.Item) {
+            Item? item = session.Item.Inventory.Get(itemUid);
+            if (item?.Badge == null) {
+                return false;
+            }
+
+            // Remove item being equipped from inventory so unequipped items and be moved there.
+            if (!session.Item.Inventory.Remove(itemUid, out item) || item.Badge == null) {
+                return false;
+            }
+
+            if (!UnequipBadge(item.Badge.Type, item.Slot)) {
+                return false;
+            }
+
+            item.EquipTab = EquipTab.Badge;
+            item.EquipSlot = EquipSlot.Unknown;
+            item.Slot = -1;
+            session.Field?.Multicast(EquipPacket.EquipBadge(session.Player, item));
+
+            return true;
         }
-
-        // Remove item being equipped from inventory so unequipped items and be moved there.
-        if (!session.Item.Inventory.Remove(itemUid, out item) || item.Badge == null) {
-            return false;
-        }
-
-        if (!UnequipBadge(item.Badge.Type, item.Slot)) {
-            return false;
-        }
-
-        item.EquipTab = EquipTab.Badge;
-        item.EquipSlot = EquipSlot.Unknown;
-        item.Slot = -1;
-        session.Field?.Multicast(EquipPacket.EquipBadge(session.Player, item));
-
-        return true;
     }
 
     public bool UnequipBadge(BadgeType slot, short inventorySlot = -1) {
-        if (!Badge.TryRemove(slot, out Item? unequipItem)) {
-            return true;
-        }
+        lock (session.Item) {
+            if (!Badge.TryRemove(slot, out Item? unequipItem)) {
+                return true;
+            }
 
-        if (unequipItem.Badge == null) {
-            throw new InvalidOperationException("Unequipped badge that is not a badge");
-        }
+            if (unequipItem.Badge == null) {
+                throw new InvalidOperationException("Unequipped badge that is not a badge");
+            }
 
-        unequipItem.EquipTab = EquipTab.None;
-        unequipItem.EquipSlot = EquipSlot.Unknown;
-        unequipItem.Slot = inventorySlot;
-        bool success = session.Item.Inventory.Add(unequipItem);
+            unequipItem.EquipTab = EquipTab.None;
+            unequipItem.EquipSlot = EquipSlot.Unknown;
+            unequipItem.Slot = inventorySlot;
+            bool success = session.Item.Inventory.Add(unequipItem);
 
-        if (success) {
-            session.Field?.Multicast(EquipPacket.UnequipBadge(session.Player, unequipItem.Badge.Type));
+            if (success) {
+                session.Field?.Multicast(EquipPacket.UnequipBadge(session.Player, unequipItem.Badge.Type));
+            }
+
+            return success;
         }
-        return success;
     }
 
     private bool UnequipInternal(EquipSlot slot, bool isSkin, short inventorySlot = -1) {
@@ -213,8 +222,10 @@ public class EquipManager {
     }
 
     public void Save(GameStorage.Request db) {
-        db.SaveItems(session.CharacterId, Gear.Values.ToArray());
-        db.SaveItems(session.CharacterId, Outfit.Values.ToArray());
-        db.SaveItems(session.CharacterId, Badge.Values.ToArray());
+        lock (session.Item) {
+            db.SaveItems(session.CharacterId, Gear.Values.ToArray());
+            db.SaveItems(session.CharacterId, Outfit.Values.ToArray());
+            db.SaveItems(session.CharacterId, Badge.Values.ToArray());
+        }
     }
 }
