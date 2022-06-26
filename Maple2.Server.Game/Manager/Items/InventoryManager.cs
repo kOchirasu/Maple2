@@ -89,7 +89,6 @@ public class InventoryManager {
 
             ItemCollection? items = tabs.Values.FirstOrDefault(collection => collection.Contains(uid));
             if (items == null || dstSlot >= items.Size) {
-
                 return false;
             }
 
@@ -115,13 +114,28 @@ public class InventoryManager {
                 return false;
             }
 
+            // If we are adding an item without a Uid, it may need to be created in db.
+            if (add.Uid == 0) {
+                // Slot MUST be -1 so we don't add directly to a slot.
+                add.Slot = -1;
+                int remainStack = items.GetStackResult(add);
+                if (remainStack > 0) {
+                    using GameStorage.Request db = session.GameStorage.Context();
+                    Item? newAdd = db.CreateItem(session.CharacterId, add);
+                    if (newAdd == null) {
+                        return false;
+                    }
+
+                    add = newAdd;
+                }
+            }
+
             IList<(Item, int Added)> result = items.Add(add, true);
             if (result.Count == 0) {
                 session.Send(ItemInventoryPacket.Error(s_err_inventory));
                 return false;
             }
 
-            // Item was stacked onto existing slots.
             if (add.Amount == 0) {
                 Discard(add);
             }
@@ -142,7 +156,11 @@ public class InventoryManager {
 
     public bool CanAdd(Item item) {
         lock (session.Item) {
-            return tabs.TryGetValue(item.Inventory, out ItemCollection? items) && items.CanAdd(item);
+            if (tabs.TryGetValue(item.Inventory, out ItemCollection? items)) {
+                return items.OpenSlots > 0 || items.GetStackResult(item) == 0;
+            }
+
+            return false;
         }
     }
 
@@ -218,8 +236,12 @@ public class InventoryManager {
         }
     }
 
-    public Item? Get(long uid) {
+    public Item? Get(long uid, InventoryType? type = null) {
         lock (session.Item) {
+            if (type != null) {
+                return tabs[(InventoryType) type].Get(uid);
+            }
+
             return tabs.Values.FirstOrDefault(collection => collection.Contains(uid))?.Get(uid);
         }
     }

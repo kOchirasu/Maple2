@@ -15,13 +15,13 @@ public class Item : IByteSerializable, IByteDeserializable {
     public DateTime LastModified { get; init; }
 
     public long Uid { get; init; } = -1;
-    public int Rarity { get; init; } = 1;
+    public int Rarity { get; init; }
     public short Slot = -1;
     public EquipTab EquipTab = EquipTab.None;
     public EquipSlot EquipSlot = EquipSlot.Unknown;
 
     public int Id => Metadata.Id;
-    public int Amount = 1;
+    public int Amount;
 
     public long CreationTime;
     public long ExpiryTime;
@@ -65,7 +65,7 @@ public class Item : IByteSerializable, IByteDeserializable {
             EquipSlot.HR => new HairAppearance(default),
             EquipSlot.FD => new DecalAppearance(default),
             EquipSlot.CP => new CapAppearance(default),
-            _ => new ItemAppearance(default)
+            _ => new ItemAppearance(default),
         };
 
         Transfer = new ItemTransfer(GetTransferFlag(), Metadata.Property.TradableCount, Metadata.Property.RepackCount);

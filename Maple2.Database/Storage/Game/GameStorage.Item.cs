@@ -89,6 +89,10 @@ public partial class GameStorage {
         public bool SaveItems(long ownerId, params Item[] items) {
             var models = new Model.Item[items.Length];
             for (int i = 0; i < items.Length; i++) {
+                if (items[i].Uid == 0) {
+                    continue;
+                }
+
                 models[i] = items[i]!;
                 models[i].OwnerId = ownerId;
                 Context.Item.Update(models[i]);

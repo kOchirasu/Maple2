@@ -5,7 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Maple2.Model.Game;
 
-namespace Maple2.Server.Game.Model;
+namespace Maple2.Server.Game.Manager.Items;
 
 /// <remarks>
 /// This class is thread-safe.
@@ -60,8 +60,74 @@ public class ItemCollection : IEnumerable<Item> {
         }
     }
 
+    /// <summary>
+    /// Stacks the added item onto any available stacks
+    /// <paramref name="add"/> will be modified to reflect the remaining amount.
+    /// </summary>
+    /// <param name="add">The item to stack</param>
+    /// <returns>A list of items which were stacked on and their added amounts.</returns>
+    private IList<(Item, int Added)> Stack(Item add) {
+        var result = new List<(Item, int)>();
+        mutex.EnterReadLock();
+        try {
+            foreach (Item item in GetInternalEnumerator()) {
+                if (!CanStack(item, add)) {
+                    continue;
+                }
+
+                int available = item.Metadata.Property.SlotMax - item.Amount;
+                int added = Math.Min(available, add.Amount);
+                add.Amount -= added;
+                item.Amount += added;
+                result.Add((item, added));
+
+                if (add.Amount <= 0) {
+                    return result;
+                }
+            }
+        } finally {
+            mutex.ExitReadLock();
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Inserts the added item into the first open slot.
+    /// </summary>
+    /// <param name="insert">The item to insert</param>
+    /// <returns>true if the item was successfully inserted</returns>
+    private bool Append(Item insert) {
+        if (OpenSlots <= 0) {
+            return false;
+        }
+
+        for (short i = 0; i < Size; i++) {
+            if (this[i] != null) {
+                continue;
+            }
+
+            this[i] = insert;
+            insert.Slot = i;
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// - If the added item has an existing slot, it will attempt to add to that slot.
+    /// - If <paramref name="stack"/> is true, the item will first be stacked on existing
+    /// items of the same type.
+    /// - Any remaining amount will be added to the first open slot.
+    ///
+    /// If the item cannot be fully added, no action will take place.
+    /// </summary>
+    /// <param name="add">The item to add</param>
+    /// <param name="stack">Whether or not to attempt stacking the item to add</param>
+    /// <returns>A list of items which were stacked on and their added amounts.</returns>
     public IList<(Item, int Added)> Add(Item add, bool stack = false) {
-        if (!CanHold(add, stack)) {
+        if (OpenSlots <= 0 && (!stack || GetStackResult(add) > 0)) {
             return Array.Empty<(Item, int)>();
         }
 
@@ -71,67 +137,21 @@ public class ItemCollection : IEnumerable<Item> {
             return new []{(add, add.Amount)};
         }
 
-        var result = new List<(Item, int)>();
+        IList<(Item, int Added)> result = new List<(Item, int)>();
         if (stack) {
-            mutex.EnterReadLock();
-            try {
-                foreach (Item item in GetInternalEnumerator()) {
-                    if (!CanStack(item, add)) {
-                        continue;
-                    }
-
-                    int available = item.Metadata.Property.SlotMax - item.Amount;
-                    int added = Math.Min(available, add.Amount);
-                    add.Amount -= added;
-                    item.Amount += added;
-                    result.Add((item, added));
-
-                    if (add.Amount <= 0) {
-                        return result;
-                    }
-                }
-            } finally {
-                mutex.ExitReadLock();
+            result = Stack(add);
+            if (add.Amount <= 0) {
+                return result;
             }
         }
 
         // All stacks are maxed out at this point, remaining items go in first open slot.
-        for (short i = 0; i < Size; i++) {
-            if (this[i] != null) {
-                continue;
-            }
-
-            this[i] = add;
-            add.Slot = i;
+        if (Append(add)) {
             result.Add((add, add.Amount));
             return result;
         }
 
         return Array.Empty<(Item, int)>();
-    }
-
-    public bool CanAdd(Item item, int amount = -1) {
-        if (OpenSlots > 0) {
-            return true;
-        }
-
-        int remaining = amount < 0 ? item.Amount : amount;
-        mutex.EnterReadLock();
-        try {
-            foreach (Item existing in GetInternalEnumerator()) {
-                if (!CanStack(existing, item)) continue;
-
-                int available = existing.Metadata.Property.SlotMax - existing.Amount;
-                remaining -= available;
-                if (remaining <= 0) {
-                    return true;
-                }
-            }
-        } finally {
-            mutex.ExitReadLock();
-        }
-
-        return false;
     }
 
     public Item? Get(long uid) {
@@ -219,32 +239,24 @@ public class ItemCollection : IEnumerable<Item> {
         }
     }
 
-    public bool CanHold(Item item, bool stack = false, int amount = -1) {
-        if (OpenSlots > 0) {
-            return true;
-        }
-
-        if (!stack) {
-            return false;
-        }
-
+    public int GetStackResult(Item item, int amount = -1) {
+        int remaining = amount < 0 ? item.Amount : Math.Min(amount, item.Amount);
         mutex.EnterReadLock();
         try {
-            int remaining = amount < 0 ? item.Amount : amount;
             foreach (Item existing in GetInternalEnumerator()) {
                 if (!CanStack(existing, item)) continue;
 
                 int available = existing.Metadata.Property.SlotMax - existing.Amount;
                 remaining -= available;
                 if (remaining <= 0) {
-                    return true;
+                    return 0;
                 }
             }
         } finally {
             mutex.ExitReadLock();
         }
 
-        return false;
+        return remaining;
     }
 
     private bool ValidSlot(short slot) => slot >= 0 && slot < Size;

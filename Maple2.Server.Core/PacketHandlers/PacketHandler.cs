@@ -16,5 +16,5 @@ public abstract class PacketHandler<T> where T : Session {
 
     public abstract void Handle(T session, IByteReader packet);
 
-    public override string ToString() => $"[0x{OpCode:X4}] {GetType().Name}";
+    public override string ToString() => $"[0x{(ushort) OpCode:X4}] {GetType().Name}";
 }

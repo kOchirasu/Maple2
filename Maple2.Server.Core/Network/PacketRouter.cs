@@ -29,7 +29,7 @@ public class PacketRouter<T> where T : Session {
     }
 
     private void Register(ImmutableDictionary<RecvOp, PacketHandler<T>>.Builder builder, PacketHandler<T> packetHandler) {
-        logger.Debug("Registered [{OpCode}] {Name}", $"0x{packetHandler.OpCode:X4}", packetHandler.GetType().Name);
+        logger.Debug("Registered [{OpCode}] {Name}", $"0x{(ushort) packetHandler.OpCode:X4}", packetHandler.GetType().Name);
         builder.Add(packetHandler.OpCode, packetHandler);
     }
 }
