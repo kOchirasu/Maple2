@@ -3,17 +3,17 @@ using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 using Maple2.Tools.Extensions;
 
-namespace Maple2.Model.Game; 
+namespace Maple2.Model.Game;
 
 public class ItemSocket : IByteSerializable, IByteDeserializable {
     public static readonly ItemSocket Default = new ItemSocket(0, 0);
-    
+
     public byte MaxSlots;
     public byte UnlockSlots {
         get => (byte) Sockets.Length;
-        private set => Array.Resize(ref Sockets, value);
+        set => Array.Resize(ref Sockets, value);
     }
-    
+
     public ItemGemstone?[] Sockets;
 
     public ItemSocket(byte maxSlots, byte unlocked) {
@@ -25,7 +25,7 @@ public class ItemSocket : IByteSerializable, IByteDeserializable {
         MaxSlots = maxSlots;
         Sockets = sockets;
     }
-    
+
     public void WriteTo(IByteWriter writer) {
         writer.WriteByte(MaxSlots);
         writer.WriteByte(UnlockSlots);
@@ -62,15 +62,15 @@ public class ItemGemstone : IByteSerializable, IByteDeserializable {
         IsLocked = isLocked;
         UnlockTime = unlockTime;
     }
-    
+
     public void WriteTo(IByteWriter writer) {
         writer.WriteInt(ItemId);
-        
+
         writer.WriteBool(Binding != null);
         if (Binding != null) {
             writer.WriteClass<ItemBinding>(Binding);
         }
-        
+
         writer.WriteBool(IsLocked);
         if (IsLocked) {
             writer.WriteByte();
@@ -80,7 +80,7 @@ public class ItemGemstone : IByteSerializable, IByteDeserializable {
 
     public void ReadFrom(IByteReader reader) {
         ItemId = reader.ReadInt();
-        
+
         bool isBound = reader.ReadBool();
         if (isBound) {
             Binding = reader.ReadClass<ItemBinding>();
