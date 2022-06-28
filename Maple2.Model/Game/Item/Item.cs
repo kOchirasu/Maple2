@@ -14,7 +14,7 @@ public class Item : IByteSerializable, IByteDeserializable {
 
     public DateTime LastModified { get; init; }
 
-    public long Uid { get; init; } = -1;
+    public long Uid { get; init; }
     public int Rarity { get; init; }
     public short Slot = -1;
     public EquipTab EquipTab = EquipTab.None;

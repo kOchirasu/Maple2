@@ -10,5 +10,7 @@ public class TableMetadata {
 public abstract partial record Table([JsonDiscriminator] Table.Discriminator Type) {
     public enum Discriminator : uint {
         JobTable = 1,
+        ItemBreakTable = 2,
+        GemstoneUpgradeTable = 3,
     }
 }

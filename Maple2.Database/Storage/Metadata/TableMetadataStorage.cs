@@ -5,9 +5,13 @@ using Maple2.Model.Metadata;
 namespace Maple2.Database.Storage;
 
 public class TableMetadataStorage {
+    public readonly ItemBreakTable ItemBreakTable;
+    public readonly GemstoneUpgradeTable GemstoneUpgradeTable;
     public readonly JobTable JobTable;
 
     public TableMetadataStorage(MetadataContext context) {
+        ItemBreakTable = Retrieve<ItemBreakTable>(context, "itembreakingredient.xml");
+        GemstoneUpgradeTable = Retrieve<GemstoneUpgradeTable>(context, "itemgemstoneupgrade.xml");
         JobTable = Retrieve<JobTable>(context, "job.xml");
     }
 
