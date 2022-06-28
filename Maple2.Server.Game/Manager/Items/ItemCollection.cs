@@ -66,20 +66,32 @@ public class ItemCollection : IEnumerable<Item> {
     /// <paramref name="add"/> will be modified to reflect the remaining amount.
     /// </summary>
     /// <param name="add">The item to stack</param>
+    /// <param name="slot">The specific slot to stack on. If unspecified, attempt to stack on all possible items.</param>
     /// <returns>A list of items which were stacked on and their added amounts.</returns>
-    private IList<(Item, int Added)> Stack(Item add) {
+    public IList<(Item, int Added)> Stack(Item add, short slot = -1) {
         var result = new List<(Item, int)>();
         mutex.EnterReadLock();
         try {
+            if (slot >= 0) {
+                Item? item = items[slot];
+                if (item == null) {
+                    return result;
+                }
+
+                int added = StackItem(item, add);
+                if (added > 0) {
+                    result.Add((item, added));
+                }
+
+                return result;
+            }
+
             foreach (Item item in GetInternalEnumerator()) {
-                if (!CanStack(item, add)) {
+                int added = StackItem(item, add);
+                if (added == 0) {
                     continue;
                 }
 
-                int available = item.Metadata.Property.SlotMax - item.Amount;
-                int added = Math.Min(available, add.Amount);
-                add.Amount -= added;
-                item.Amount += added;
                 result.Add((item, added));
 
                 if (add.Amount <= 0) {
@@ -283,6 +295,19 @@ public class ItemCollection : IEnumerable<Item> {
             if (item == null) continue;
             yield return item;
         }
+    }
+
+    private static int StackItem(Item stackTo, Item stackFrom) {
+        if (!CanStack(stackTo, stackFrom)) {
+            return 0;
+        }
+
+        int available = stackTo.Metadata.Property.SlotMax - stackTo.Amount;
+        int added = Math.Min(available, stackFrom.Amount);
+        stackFrom.Amount -= added;
+        stackTo.Amount += added;
+
+        return added;
     }
 
     private static bool CanStack(Item item, Item stack) {

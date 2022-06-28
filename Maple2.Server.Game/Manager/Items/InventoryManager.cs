@@ -19,7 +19,6 @@ namespace Maple2.Server.Game.Manager.Items;
 
 public class InventoryManager {
     private const int BATCH_SIZE = 10;
-    private const int EXPAND_SLOTS = 6;
 
     private readonly GameSession session;
 
@@ -92,13 +91,33 @@ public class InventoryManager {
                 return false;
             }
 
-            if (items.Remove(uid, out Item? removeSrc)) {
-                short srcSlot = removeSrc.Slot;
+            // Attempt to stack
+            Item? srcItem = items.Get(uid);
+            if (srcItem != null) {
+                IList<(Item, int)> results = items.Stack(srcItem, dstSlot);
+                if (results.Count > 0) {
+                    (Item item, int _) = results.First();
+                    if (srcItem.Amount == 0) {
+                        items.Remove(uid, out _);
+                        Discard(srcItem);
+
+                        session.Send(ItemInventoryPacket.Remove(uid));
+                    } else {
+                        session.Send(ItemInventoryPacket.UpdateAmount(srcItem.Uid, srcItem.Amount));
+                    }
+                    session.Send(ItemInventoryPacket.UpdateAmount(item.Uid, item.Amount));
+
+                    return true;
+                }
+            }
+
+            if (items.Remove(uid, out srcItem)) {
+                short srcSlot = srcItem.Slot;
                 if (items.RemoveSlot(dstSlot, out Item? removeDst)) {
                     items[srcSlot] = removeDst;
                 }
 
-                items[dstSlot] = removeSrc;
+                items[dstSlot] = srcItem;
 
                 session.Send(ItemInventoryPacket.Move(removeDst?.Uid ?? 0, srcSlot, uid, dstSlot));
             }
@@ -214,15 +233,15 @@ public class InventoryManager {
                 return;
             }
 
-            if (!items.Expand((short) (items.Size + EXPAND_SLOTS))) {
+            if (!items.Expand((short) (items.Size + Constant.InventoryExpandRowCount))) {
                 return;
             }
 
             session.Currency.Meret -= Constant.InventoryExpandPrice1Row;
             if (session.Player.Value.Unlock.Expand.ContainsKey(type)) {
-                session.Player.Value.Unlock.Expand[type] += EXPAND_SLOTS;
+                session.Player.Value.Unlock.Expand[type] += Constant.InventoryExpandRowCount;
             } else {
-                session.Player.Value.Unlock.Expand[type] = EXPAND_SLOTS;
+                session.Player.Value.Unlock.Expand[type] = Constant.InventoryExpandRowCount;
             }
 
             session.Send(ItemInventoryPacket.ExpandCount(type, items.Size - BaseSize(type)));

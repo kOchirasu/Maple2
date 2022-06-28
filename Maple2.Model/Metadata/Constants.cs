@@ -16,6 +16,7 @@ public static class Constant {
     public const int MaxBuddyCount = 100;
     public const int MaxBlockCount = 100;
     public const int GemstoneGrade = 4;
+    public const int InventoryExpandRowCount = 6;
 
     #endregion
 
