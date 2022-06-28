@@ -1,4 +1,5 @@
-﻿using Maple2.Model.Enum;
+﻿using System;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -55,10 +56,7 @@ public class ItemInventoryHandler : PacketHandler<GameSession> {
 
         long uid = packet.ReadLong();
         int amount = packet.ReadInt();
-        if (session.Item.Inventory.Remove(uid, out Item? removed, amount)) {
-            FieldEntity<Item> fieldItem = session.Field.SpawnItem(session.Player, removed);
-            session.Field.Multicast(FieldPacket.DropItem(fieldItem));
-        }
+        DropItem(session, uid, amount);
     }
 
     private void HandleDropAll(GameSession session, IByteReader packet) {
@@ -67,10 +65,7 @@ public class ItemInventoryHandler : PacketHandler<GameSession> {
         }
 
         long uid = packet.ReadLong();
-        if (session.Item.Inventory.Remove(uid, out Item? removed)) {
-            FieldEntity<Item> fieldItem = session.Field.SpawnItem(session.Player, removed);
-            session.Field.Multicast(FieldPacket.DropItem(fieldItem));
-        }
+        DropItem(session, uid);
     }
 
     private void HandleSort(GameSession session, IByteReader packet) {
@@ -84,5 +79,40 @@ public class ItemInventoryHandler : PacketHandler<GameSession> {
         var type = packet.Read<InventoryType>();
 
         session.Item.Inventory.Expand(type);
+    }
+
+    /// <summary>
+    /// Common util to handle item dropping from inventory.
+    /// </summary>
+    /// <param name="session"></param>
+    /// <param name="uid">Uid of the item to drop</param>
+    /// <param name="amount">The amount to drop. -1 drops the entire stack.</param>
+    private void DropItem(GameSession session, long uid, int amount = -1) {
+        Item? drop = session.Item.Inventory.Get(uid);
+        if (drop == null) {
+            return;
+        }
+
+        if (drop.Metadata.Property.DisableDrop) {
+            session.Send(NoticePacket.Notice(NoticePacket.Flags.MessageBox, StringCode.s_item_err_drop));
+            return;
+        }
+
+        // If item is not splittable, force drop all.
+        if (drop.Transfer?.Flag.HasFlag(TransferFlag.Split) != true) {
+            amount = -1;
+        }
+
+        if (!session.Item.Inventory.Remove(uid, out drop, amount)) {
+            return;
+        }
+
+        if (drop.Transfer == null || !drop.Transfer.Flag.HasFlag(TransferFlag.Trade) || !drop.Transfer.Flag.HasFlag(TransferFlag.Split)) {
+            session.Item.Inventory.Discard(drop);
+            return;
+        }
+
+        FieldEntity<Item> fieldItem = session.Field!.SpawnItem(session.Player, drop);
+        session.Field.Multicast(FieldPacket.DropItem(fieldItem));
     }
 }

@@ -30,6 +30,8 @@ public class InterfaceText : IByteSerializable {
         this.message = string.Empty;
     }
 
+    public static implicit operator InterfaceText(StringCode code) => new InterfaceText(code);
+
     public void WriteTo(IByteWriter writer) {
         writer.WriteBool(isLocalized);
         writer.WriteInt(unknown);
