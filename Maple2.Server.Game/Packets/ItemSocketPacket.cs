@@ -1,5 +1,6 @@
 ﻿using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
@@ -59,19 +60,40 @@ public static class ItemSocketPacket {
         pWriter.Write<Command>(Command.UpgradeGemstone);
         pWriter.WriteLong(uid);
         pWriter.WriteByte();
-        pWriter.WriteBool(true);
-        pWriter.WriteLong(gem.Uid);
         pWriter.WriteBool(success);
-        if (success) {
+        pWriter.WriteByte(Constant.GemstoneGrade);
+        pWriter.WriteLong(gem.Uid);
+        pWriter.WriteBool(true);
+        if (true) {
             pWriter.WriteGemstone(gem);
         }
 
         return pWriter;
     }
 
-    public static ByteWriter StageUpgradeGemstone() {
+    public static ByteWriter UpgradeGemstone(long uid, bool success, long clientUid, ItemGemstone gem) {
+        var pWriter = Packet.Of(SendOp.ItemSocketSystem);
+        pWriter.Write<Command>(Command.UpgradeGemstone);
+        pWriter.WriteLong(uid);
+        pWriter.WriteByte();
+        pWriter.WriteBool(success);
+        pWriter.WriteByte(Constant.GemstoneGrade);
+        pWriter.WriteLong(clientUid);
+        pWriter.WriteBool(true);
+        if (true) {
+            pWriter.WriteGemstone(gem);
+        }
+
+        return pWriter;
+    }
+
+    public static ByteWriter StageUpgradeGemstone(long uid, sbyte slot, long gemUid, float rate) {
         var pWriter = Packet.Of(SendOp.ItemSocketSystem);
         pWriter.Write<Command>(Command.StageUpgradeGemstone);
+        pWriter.WriteLong(uid);
+        pWriter.Write<sbyte>(slot);
+        pWriter.WriteLong(gemUid);
+        pWriter.WriteFloat(rate);
 
         return pWriter;
     }

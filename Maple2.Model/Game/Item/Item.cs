@@ -84,6 +84,33 @@ public class Item : IByteSerializable, IByteDeserializable {
         }
     }
 
+    public Item Mutate(ItemMetadata metadata, int? rarity = null) {
+        return new Item(metadata, rarity ?? Rarity, Amount, false) {
+            LastModified = LastModified,
+            Uid = Uid,
+            CreationTime = CreationTime,
+            ExpiryTime = ExpiryTime,
+            TimeChangedOption = TimeChangedOption,
+            RemainUses = RemainUses,
+            IsLocked = IsLocked,
+            UnlockTime = UnlockTime,
+            GlamorForges = GlamorForges,
+            Appearance = Appearance,
+            Stats = Stats,
+            Enchant = Enchant,
+            LimitBreak = LimitBreak,
+            Transfer = Transfer,
+            Socket = Socket,
+            CoupleInfo = CoupleInfo,
+            Binding = Binding,
+            Template = Template,
+            Blueprint = Blueprint,
+            Pet = Pet,
+            Music = Music,
+            Badge = Badge,
+        };
+    }
+
     private TransferFlag GetTransferFlag() {
         bool zeroTrades = Metadata.Property.TradableCount <= 0;
         bool belowRarity = Rarity < Metadata.Limit.TradeMaxRarity;

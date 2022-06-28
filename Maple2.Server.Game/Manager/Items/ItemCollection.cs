@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Maple2.Model.Game;
 
@@ -265,10 +266,9 @@ public class ItemCollection : IEnumerable<Item> {
     public IEnumerator<Item> GetEnumerator() {
         mutex.EnterReadLock();
         try {
-            foreach (Item? item in items) {
-                if (item == null) continue;
-                yield return item;
-            }
+            return items.Where(item => item != null)
+                .Select(item => item!)
+                .GetEnumerator();
         } finally {
             mutex.ExitReadLock();
         }

@@ -15,6 +15,7 @@ public static class Constant {
     public const int BuddyMessageLengthMax = 25;
     public const int MaxBuddyCount = 100;
     public const int MaxBlockCount = 100;
+    public const int GemstoneGrade = 4;
 
     #endregion
 
