@@ -2,6 +2,7 @@
 using System.Reflection;
 using Autofac;
 using Autofac.Features.AttributeFilters;
+using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Modules;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.PacketHandlers;
@@ -43,6 +44,7 @@ public class Startup {
         builder.RegisterType<GameSession>()
             .PropertiesAutowired()
             .AsSelf();
+        builder.RegisterInstance(new Lua.Lua(Target.LOCALE));
 
         // Database
         builder.RegisterModule<GameDbModule>();

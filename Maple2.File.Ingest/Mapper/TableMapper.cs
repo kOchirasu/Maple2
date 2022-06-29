@@ -46,20 +46,20 @@ public class TableMapper : TypeMapper<TableMetadata> {
         var results = new Dictionary<int, GemstoneUpgradeTable.Entry>();
         foreach ((int itemId, ItemGemstoneUpgrade upgrade) in parser.ParseItemGemstoneUpgrade()) {
             var ingredients = new List<GemstoneUpgradeTable.Ingredient>();
-            if (upgrade.IngredientCount1 > 0 && upgrade.IngredientItemID1?.Length > 0 && int.TryParse(upgrade.IngredientItemID1[0], out int itemId1)) {
-                ingredients.Add(new GemstoneUpgradeTable.Ingredient(itemId1, upgrade.IngredientCount1));
+            if (upgrade.IngredientCount1 > 0 && upgrade.IngredientItemID1?.Length > 1) {
+                ingredients.Add(new GemstoneUpgradeTable.Ingredient(upgrade.IngredientItemID1[1], upgrade.IngredientCount1));
             }
-            if (upgrade.IngredientCount2 > 0 && upgrade.IngredientItemID2?.Length > 0 && int.TryParse(upgrade.IngredientItemID2[0], out int itemId2)) {
-                ingredients.Add(new GemstoneUpgradeTable.Ingredient(itemId2, upgrade.IngredientCount2));
+            if (upgrade.IngredientCount2 > 0 && upgrade.IngredientItemID2?.Length > 1) {
+                ingredients.Add(new GemstoneUpgradeTable.Ingredient(upgrade.IngredientItemID2[1], upgrade.IngredientCount2));
             }
-            if (upgrade.IngredientCount3 > 0 && upgrade.IngredientItemID3?.Length > 0 && int.TryParse(upgrade.IngredientItemID3[0], out int itemId3)) {
-                ingredients.Add(new GemstoneUpgradeTable.Ingredient(itemId3, upgrade.IngredientCount3));
+            if (upgrade.IngredientCount3 > 0 && upgrade.IngredientItemID3?.Length > 1) {
+                ingredients.Add(new GemstoneUpgradeTable.Ingredient(upgrade.IngredientItemID3[1], upgrade.IngredientCount3));
             }
-            if (upgrade.IngredientCount4 > 0 && upgrade.IngredientItemID4?.Length > 0 && int.TryParse(upgrade.IngredientItemID4[0], out int itemId4)) {
-                ingredients.Add(new GemstoneUpgradeTable.Ingredient(itemId4, upgrade.IngredientCount4));
+            if (upgrade.IngredientCount4 > 0 && upgrade.IngredientItemID4?.Length > 1) {
+                ingredients.Add(new GemstoneUpgradeTable.Ingredient(upgrade.IngredientItemID4[1], upgrade.IngredientCount4));
             }
 
-            results.Add(itemId, new GemstoneUpgradeTable.Entry(upgrade.NextItemID, ingredients));
+            results.Add(itemId, new GemstoneUpgradeTable.Entry(upgrade.GemLevel, upgrade.NextItemID, ingredients));
         }
 
         return new GemstoneUpgradeTable(results);

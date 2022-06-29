@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using Maple2.Database.Storage;
@@ -33,6 +34,7 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
     // ReSharper disable MemberCanBePrivate.Global
     public ItemMetadataStorage ItemMetadata { get; init; } = null!;
     public TableMetadataStorage TableMetadata { private get; init; } = null!;
+    public Lua.Lua Lua { private get; init; } = null!;
     // ReSharper restore All
     #endregion
 
@@ -75,7 +77,7 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
                 return;
             }
 
-            if (item.Socket == null || item.Socket.UnlockSlots < item.Socket.MaxSlots) {
+            if (item.Socket == null || item.Socket.UnlockSlots >= item.Socket.MaxSlots) {
                 session.Send(ItemSocketPacket.Error(error: s_itemsocketsystem_error_socket_unlock_all));
                 return;
             }
@@ -93,7 +95,9 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
                 }
             }
 
-            // TODO: Not enough crystal fragments -> s_itemsocketsystem_error_lack_price
+            if (!ConsumeSocketUnlockIngredients(item)) {
+                return;
+            }
 
             foreach (long materialUid in materialUids) {
                 if (!session.Item.Inventory.Consume(materialUid, amount: 1)) {
@@ -106,6 +110,20 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
             item.Socket.UnlockSlots++;
             session.Send(ItemSocketPacket.UnlockSocket(true, item));
         }
+
+        #region Local Function
+        bool ConsumeSocketUnlockIngredients(Item equip) {
+            (int _, string tag, int amount) =
+                Lua.CalcItemSocketUnlockIngredient(0, equip.Rarity, (ushort) equip.Metadata.Limit.Level, 0, equip.Metadata.Property.SkinType);
+
+            if (!ConsumeIngredients(session, new []{(tag, amount)})) {
+                session.Send(ItemSocketPacket.Error(error: s_itemsocketsystem_error_lack_price));
+                return false;
+            }
+
+            return true;
+        }
+        #endregion
     }
 
     private void HandleStageUnlockSocket(GameSession session, IByteReader packet) {
@@ -135,7 +153,7 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
                     return;
                 }
 
-                if (!ConsumeUpgradeIngredients(session, result.Value.entry)) {
+                if (!ConsumeGemstoneUpgradeIngredients(result.Value.entry)) {
                     return;
                 }
 
@@ -152,7 +170,7 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
                     return;
                 }
 
-                if (!ConsumeUpgradeIngredients(session, result.Value.entry)) {
+                if (!ConsumeGemstoneUpgradeIngredients(result.Value.entry)) {
                     return;
                 }
 
@@ -171,6 +189,19 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
                 session.Send(ItemSocketPacket.UpgradeGemstone(itemUid, true, upgradeGem));
             }
         }
+
+        #region Local Function
+        bool ConsumeGemstoneUpgradeIngredients(GemstoneUpgradeTable.Entry entry) {
+            (string ItemTag, int Amount)[] ingredients =
+                entry.Ingredients.Select(ingredient => (ingredient.ItemTag, ingredient.Amount)).ToArray();
+            if (!ConsumeIngredients(session, ingredients)) {
+                session.Send(ItemSocketPacket.Error(error: s_itemsocketsystem_error_invalid_target_ingredient_count));
+                return false;
+            }
+
+            return true;
+        }
+        #endregion
     }
 
     private void HandleStageUpgradeGemstone(GameSession session, IByteReader packet) {
@@ -262,6 +293,10 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
             // item.Socket cannot be null after CheckSocketSlot()
             // itemGemstone cannot be null if SocketState.Used
             ItemGemstone itemGemstone = item.Socket!.Sockets[socketSlot]!;
+            if (!ConsumeGemstoneUnequipIngredients(itemGemstone)) {
+                return;
+            }
+
             if (!ItemMetadata.TryGet(itemGemstone.ItemId, out ItemMetadata? metadata)) {
                 session.Send(ItemSocketPacket.Error(11, error: s_itemsocketsystem_error_server_default));
                 return;
@@ -275,6 +310,24 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
             item.Socket!.Sockets[socketSlot] = null;
             session.Send(ItemSocketPacket.UnequipGemstone(item.Uid, socketSlot));
         }
+
+        #region Local Function
+        bool ConsumeGemstoneUnequipIngredients(ItemGemstone gemstone) {
+            if (!TableMetadata.GemstoneUpgradeTable.Entries.TryGetValue(gemstone.ItemId, out GemstoneUpgradeTable.Entry? entry)) {
+                session.Send(ItemSocketPacket.Error(code: 12, error: s_itemsocketsystem_error_server_default));
+                return false;
+            }
+
+            (string tag, int amount) =
+                Lua.CalcGetGemStonePutOffPrice(Constant.GemstoneGrade, (ushort) entry.Level, 0);
+            if (!ConsumeIngredients(session, new []{(tag, amount)})) {
+                session.Send(ItemSocketPacket.Error(error: s_itemsocketsystem_error_lack_price));
+                return false;
+            }
+
+            return true;
+        }
+        #endregion
     }
 
     private (ItemGemstone, GemstoneUpgradeTable.Entry)? CheckUpgradeGemstoneOnItem(GameSession session, long itemUid, sbyte slot) {
@@ -329,35 +382,41 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
         return (entry, upgrade);
     }
 
-    // Caller MUST have lock on |session.Item|.
-    private bool ConsumeUpgradeIngredients(GameSession session, GemstoneUpgradeTable.Entry entry) {
-        foreach (GemstoneUpgradeTable.Ingredient ingredient in entry.Ingredients) {
-            int remaining = ingredient.Amount;
-            foreach (Item item in session.Item.Inventory.Find(ingredient.ItemId)) {
-                remaining -= item.Amount;
-                if (remaining <= 0) {
-                    break;
+    private bool ConsumeIngredients(GameSession session, params (string Tag, int Amount)[] ingredients) {
+        // Build this index so we don't need to find materials twice.
+        Dictionary<string, List<Item>> materialsByTag = ingredients.ToDictionary(
+            entry => entry.Tag,
+            entry => session.Item.Inventory.FindByTag(entry.Tag).ToList()
+        );
+
+        lock (session.Item) {
+            foreach ((string tag, int amount) in ingredients) {
+                int remaining = amount;
+                foreach (Item material in materialsByTag[tag]) {
+                    remaining -= material.Amount;
+                    if (remaining <= 0) {
+                        break;
+                    }
+                }
+
+                if (remaining > 0) {
+                    return false;
                 }
             }
 
-            if (remaining > 0) {
-                session.Send(ItemSocketPacket.Error(error: s_itemsocketsystem_error_invalid_target_ingredient_count));
-                return false;
-            }
-        }
+            foreach ((string tag, int amount) in ingredients) {
+                int remaining = amount;
+                foreach (Item material in materialsByTag[tag]) {
+                    int consume = Math.Min(remaining, material.Amount);
+                    if (!session.Item.Inventory.Consume(material.Uid, consume)) {
+                        Logger.Fatal("Failed to consume item {ItemUid}", material.Uid);
+                        throw new InvalidOperationException($"Fatal: Consuming item: {material.Uid}");
+                    }
 
-        foreach (GemstoneUpgradeTable.Ingredient ingredient in entry.Ingredients) {
-            int remaining = ingredient.Amount;
-            foreach (Item item in session.Item.Inventory.Find(ingredient.ItemId)) {
-                int consume = Math.Min(remaining, item.Amount);
-                if (!session.Item.Inventory.Consume(item.Uid, consume)) {
-                    Logger.Fatal("Failed to consume item {ItemUid} for gemstone upgrade.", item.Uid);
-                    throw new InvalidOperationException("Fatal: Consuming items for gemstone upgrade: {}");
-                }
-
-                remaining -= consume;
-                if (remaining <= 0) {
-                    break;
+                    remaining -= consume;
+                    if (remaining <= 0) {
+                        break;
+                    }
                 }
             }
         }

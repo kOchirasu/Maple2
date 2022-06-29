@@ -43,6 +43,7 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     SlotMax: data.property.slotMax,
                     Type: data.property.type,
                     SubType: data.property.subtype,
+                    Tag: data.basic.stringTag,
                     Group: data.property.itemGroup,
                     Collection: data.property.collection,
                     GearScore: data.property.gearScore,

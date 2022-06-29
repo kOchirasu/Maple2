@@ -286,6 +286,18 @@ public class InventoryManager {
         }
     }
 
+    public IEnumerable<Item> FindByTag(string tag) {
+        lock (session.Item) {
+            foreach (ItemCollection collection in tabs.Values) {
+                foreach (Item item in collection) {
+                    if (item.Metadata.Property.Tag == tag) {
+                        yield return item;
+                    }
+                }
+            }
+        }
+    }
+
     public void Discard(Item item) {
         // Only discard items that need to be saved to DB.
         if (item.Uid == 0) {

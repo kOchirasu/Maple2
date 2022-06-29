@@ -5,9 +5,10 @@ namespace Maple2.Server.Core.Constants;
 public static class Target {
     public const string GAME_DB_CONNECTION = "Server=localhost;Database=game-server;User=root;Password=maplestory";
     public const string DATA_DB_CONNECTION = "Server=localhost;Database=maple-data;User=root;Password=maplestory";
-    
+
     public const string SEVER_NAME = "Paperwood";
-    
+    public const string LOCALE = "NA";
+
     public static readonly IPAddress LOGIN_IP = IPAddress.Loopback;
     public const ushort LOGIN_PORT = 20001;
 
