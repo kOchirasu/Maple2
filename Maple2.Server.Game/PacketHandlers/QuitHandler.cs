@@ -38,7 +38,7 @@ public class QuitHandler : PacketHandler<GameSession> {
             };
 
             MigrateOutResponse response = World.MigrateOut(request);
-            var endpoint = new IPEndPoint(Target.LOGIN_IP, Target.LOGIN_PORT);
+            var endpoint = new IPEndPoint(IPAddress.Parse(response.IpAddress), response.Port);
             session.Send(MigrationPacket.GameToLogin(endpoint, response.Token));
         } catch (RpcException) {
             session.Send(MigrationPacket.GameToLoginError(s_move_err_default));

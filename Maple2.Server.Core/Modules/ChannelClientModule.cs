@@ -12,12 +12,6 @@ public class ChannelClientModule : GrpcClientModule {
     }
 
     protected override void Options(GrpcClientFactoryOptions options) {
-        options.Address = new Uri($"https://{Target.GRPC_CHANNEL_IP}:{Target.GRPC_CHANNEL_PORT}");
-        options.ChannelOptionsActions.Add(chOptions => {
-            // Return "true" to allow certificates that are untrusted/invalid
-            chOptions.HttpHandler = new HttpClientHandler {
-                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            };
-        });
+        options.Address = new Uri($"http://{Target.GRPC_CHANNEL_IP}:{Target.GRPC_CHANNEL_PORT}");
     }
 }

@@ -13,12 +13,6 @@ public class WorldClientModule : GrpcClientModule {
     }
 
     protected override void Options(GrpcClientFactoryOptions options) {
-        options.Address = new Uri($"https://{Target.GRPC_WORLD_IP}:{Target.GRPC_WORLD_PORT}");
-        options.ChannelOptionsActions.Add(chOptions => {
-            // Return "true" to allow certificates that are untrusted/invalid
-            chOptions.HttpHandler = new HttpClientHandler {
-                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            };
-        });
+        options.Address = new Uri($"http://{Target.GRPC_WORLD_IP}:{Target.GRPC_WORLD_PORT}");
     }
 }

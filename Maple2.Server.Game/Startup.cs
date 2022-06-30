@@ -75,7 +75,6 @@ public class Startup {
     // Configure is where you add middleware. This is called after ConfigureContainer. You can use
     // IApplicationBuilder.ApplicationServices here if you need to resolve things from the container.
     public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory) {
-        app.UseHttpsRedirection();
         app.UseRouting();
         app.UseEndpoints(builder => {
             builder.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client..");
