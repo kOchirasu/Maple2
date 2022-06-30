@@ -2,7 +2,6 @@
 using System.IO;
 using Autofac.Extensions.DependencyInjection;
 using Maple2.Database.Context;
-using Maple2.Server.Core.Constants;
 using Maple2.Server.World;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +18,11 @@ Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(configRoot)
     .CreateLogger();
 
+string? gameDbConnection = Environment.GetEnvironmentVariable("GAME_DB_CONNECTION");
+if (gameDbConnection == null) {
+    throw new ArgumentException("GAME_DB_CONNECTION environment variable was not set");
+}
+
 IHostBuilder builder = Host.CreateDefaultBuilder()
     .ConfigureLogging(logging => {
         logging.ClearProviders();
@@ -28,7 +32,7 @@ IHostBuilder builder = Host.CreateDefaultBuilder()
     .ConfigureWebHostDefaults(builder => builder.UseStartup<Startup>());
 
 DbContextOptions options = new DbContextOptionsBuilder()
-    .UseMySql(Target.GAME_DB_CONNECTION, ServerVersion.AutoDetect(Target.GAME_DB_CONNECTION)).Options;
+    .UseMySql(gameDbConnection, ServerVersion.AutoDetect(gameDbConnection)).Options;
 await using (var initContext = new InitializationContext(options)) {
     // Initialize database if needed
     if (!initContext.Initialize()) {

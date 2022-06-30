@@ -11,8 +11,8 @@
 
     <ItemGroup>
         <PackageReference Include="Caching.dll" Version="2.0.0.1" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.5" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.5" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.6" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.6" />
         <PackageReference Include="Wivuu.JsonPolymorphism" Version="1.0.16" />
     </ItemGroup>
 

@@ -1,0 +1,33 @@
+services:
+  world:
+    image: maple2-world
+    network_mode: bridge
+    ports:
+      - "127.0.0.1:20100:20100"
+    environment:
+      GAME_DB_CONNECTION: "Server=host.docker.internal;Database=game-server;User=root;Password=maplestory"
+      DATA_DB_CONNECTION: "Server=host.docker.internal;Database=maple-data;User=root;Password=maplestory"
+
+  login:
+    image: maple2-login
+    depends_on: 
+      - world
+    network_mode: bridge
+    ports:
+      - "20001:20001"
+    environment:
+      GAME_DB_CONNECTION: "Server=host.docker.internal;Database=game-server;User=root;Password=maplestory"
+      DATA_DB_CONNECTION: "Server=host.docker.internal;Database=maple-data;User=root;Password=maplestory"
+
+  game:
+    image: maple2-game
+    depends_on:
+      - world
+      - login
+    network_mode: bridge
+    ports:
+      - "22001:22001"
+      - "127.0.0.1:22100:22100"
+    environment:
+      GAME_DB_CONNECTION: "Server=host.docker.internal;Database=game-server;User=root;Password=maplestory"
+      DATA_DB_CONNECTION: "Server=host.docker.internal;Database=maple-data;User=root;Password=maplestory"

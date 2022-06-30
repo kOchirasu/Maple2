@@ -11,15 +11,19 @@ const string locale = "NA";
 const string env = "Live";
 const string xmlPath = @"C:\Nexon\Library\Library\maplestory2\appdata\Data\Xml.m2d";
 const string exportedPath = @"C:\Nexon\Library\Library\maplestory2\appdata\Data\Resource\Exported.m2d";
-const string connectionString = "Server=localhost;Database=maple-data;User=root;Password=maplestory";
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+string? dataDbConnection = Environment.GetEnvironmentVariable("DATA_DB_CONNECTION");
+if (dataDbConnection == null) {
+    throw new ArgumentException("DATA_DB_CONNECTION environment variable was not set");
+}
 
 using var xmlReader = new M2dReader(xmlPath);
 using var exportedReader = new M2dReader(exportedPath);
 
 DbContextOptions options = new DbContextOptionsBuilder()
-    .UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)).Options;
+    .UseMySql(dataDbConnection, ServerVersion.AutoDetect(dataDbConnection)).Options;
 
 using var metadataContext = new MetadataContext(options);
 metadataContext.Database.EnsureCreated();

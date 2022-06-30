@@ -1,8 +1,8 @@
-﻿using Autofac;
+﻿using System;
+using Autofac;
 using Maple2.Database.Context;
 using Maple2.Database.Storage;
 using Maple2.Model.Metadata;
-using Maple2.Server.Core.Constants;
 using Microsoft.EntityFrameworkCore;
 using Module = Autofac.Module;
 
@@ -12,8 +12,13 @@ public class DataDbModule : Module {
     private readonly DbContextOptions options;
 
     public DataDbModule() {
+        string? dataDbConnection = Environment.GetEnvironmentVariable("DATA_DB_CONNECTION");
+        if (dataDbConnection == null) {
+            throw new ArgumentException("DATA_DB_CONNECTION environment variable was not set");
+        }
+
         options = new DbContextOptionsBuilder()
-            .UseMySql(Target.DATA_DB_CONNECTION, ServerVersion.AutoDetect(Target.DATA_DB_CONNECTION))
+            .UseMySql(dataDbConnection, ServerVersion.AutoDetect(dataDbConnection))
             .Options;
     }
 

@@ -1,7 +1,7 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using Autofac;
 using Maple2.Database.Storage;
-using Maple2.Server.Core.Constants;
 using Microsoft.EntityFrameworkCore;
 using Module = Autofac.Module;
 
@@ -13,8 +13,13 @@ public class GameDbModule : Module {
     private readonly DbContextOptions options;
 
     public GameDbModule() {
+        string? gameDbConnection = Environment.GetEnvironmentVariable("GAME_DB_CONNECTION");
+        if (gameDbConnection == null) {
+            throw new ArgumentException("GAME_DB_CONNECTION environment variable was not set");
+        }
+
         options = new DbContextOptionsBuilder()
-            .UseMySql(Target.GAME_DB_CONNECTION, ServerVersion.AutoDetect(Target.GAME_DB_CONNECTION))
+            .UseMySql(gameDbConnection, ServerVersion.AutoDetect(gameDbConnection))
             .Options;
     }
 
