@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Grpc.Core;
@@ -27,13 +28,13 @@ public partial class WorldService {
         switch (request.Server) {
             case MigrateOutRequest.Types.Server.Login:
                 return Task.FromResult(new MigrateOutResponse {
-                    IpAddress = Target.LOGIN_IP.ToString(),
+                    IpAddress = Environment.GetEnvironmentVariable("LOGIN_IP") ?? IPAddress.Loopback.ToString(),
                     Port = Target.LOGIN_PORT,
                     Token = token,
                 });
             case MigrateOutRequest.Types.Server.Game:
                 return Task.FromResult(new MigrateOutResponse {
-                    IpAddress = Target.GAME_IP.ToString(),
+                    IpAddress = Environment.GetEnvironmentVariable("GAME_IP") ?? IPAddress.Loopback.ToString(),
                     Port = Target.GAME_PORT,
                     Token = token,
                 });

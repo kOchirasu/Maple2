@@ -13,7 +13,7 @@ public abstract class Server<T> : BackgroundService where T : Session {
     private enum ServerState {
         Unstarted,
         Running,
-        Stopped
+        Stopped,
     }
 
     private readonly ushort port;
@@ -30,6 +30,8 @@ public abstract class Server<T> : BackgroundService where T : Session {
         this.context = context ?? throw new ArgumentException("null context provided");
     }
 
+    public abstract void OnConnected(T session);
+    public abstract void OnDisconnected(T session);
     protected abstract void AddSession(T session);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {

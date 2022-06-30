@@ -16,6 +16,9 @@ namespace Maple2.Server.Login.Session;
 public class LoginSession : Core.Network.Session {
     protected override PatchType Type => PatchType.Delete;
 
+    private bool disposed;
+    private readonly LoginServer server;
+
     public long AccountId { get; private set; }
     public Guid MachineId { get; private set; }
 
@@ -27,19 +30,26 @@ public class LoginSession : Core.Network.Session {
 
     private Account account = null!;
 
-    public LoginSession(TcpClient tcpClient) : base(tcpClient) {
-        State = SessionState.Connected;
+    public LoginSession(TcpClient tcpClient, LoginServer server) : base(tcpClient) {
+        this.server = server;
+        State = SessionState.Moving;
     }
 
     public void Init(long accountId, Guid machineId) {
         AccountId = accountId;
         MachineId = machineId;
+
+        State = SessionState.Connected;
+        server.OnConnected(this);
     }
 
     public void ListServers() {
+        // TODO: Fetch login ip from WorldService
+        string loginIp = Environment.GetEnvironmentVariable("LOGIN_IP") ?? IPAddress.Loopback.ToString();
+
         Send(BannerListPacket.SetBanner());
         Send(ServerListPacket.Load(Target.SEVER_NAME,
-            new []{new IPEndPoint(Target.LOGIN_IP, Target.LOGIN_PORT)}, 1));
+            new []{new IPEndPoint(IPAddress.Parse(loginIp), Target.LOGIN_PORT)}, channels: 1));
     }
 
     public void ListCharacters() {
@@ -88,4 +98,21 @@ public class LoginSession : Core.Network.Session {
         Send(CharacterListPacket.AppendEntry(account, character,
             new Dictionary<EquipTab, List<Item>> {{EquipTab.Outfit, outfits}}));
     }
+
+    #region Dispose
+    ~LoginSession() => Dispose(false);
+
+    protected override void Dispose(bool disposing) {
+        if (disposed) return;
+        disposed = true;
+
+        try {
+            server.OnDisconnected(this);
+            State = SessionState.Disconnected;
+            Complete();
+        } finally {
+            base.Dispose(disposing);
+        }
+    }
+    #endregion
 }

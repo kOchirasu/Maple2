@@ -52,7 +52,7 @@ public static class NoticePacket {
     public static ByteWriter Disconnect(InterfaceText text) {
         var pWriter = Packet.Of(SendOp.Notice);
         pWriter.Write<Command>(Command.Disconnect);
-        pWriter.Write<Flags>(Flags.Disconnect);
+        pWriter.Write<Flags>(Flags.MessageBox);
         pWriter.WriteClass<InterfaceText>(text);
 
         return pWriter;

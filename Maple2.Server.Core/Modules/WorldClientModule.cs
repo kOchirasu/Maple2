@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Net.Http;
+using System.Net;
 using Grpc.Net.ClientFactory;
 using Maple2.Server.Core.Constants;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,6 +13,7 @@ public class WorldClientModule : GrpcClientModule {
     }
 
     protected override void Options(GrpcClientFactoryOptions options) {
-        options.Address = new Uri($"http://{Target.GRPC_WORLD_IP}:{Target.GRPC_WORLD_PORT}");
+        string worldService = Environment.GetEnvironmentVariable("WORLD_SERVICE") ?? IPAddress.Loopback.ToString();
+        options.Address = new Uri($"http://{worldService}:{Target.GRPC_WORLD_PORT}");
     }
 }

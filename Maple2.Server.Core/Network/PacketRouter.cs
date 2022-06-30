@@ -21,7 +21,7 @@ public class PacketRouter<T> where T : Session {
     }
 
     public void OnPacket(object? sender, IByteReader reader) {
-        RecvOp op = reader.Read<RecvOp>();
+        var op = reader.Read<RecvOp>();
         PacketHandler<T>? handler = handlers.GetValueOrDefault(op);
         if (sender is T session) {
             handler?.Handle(session, reader);
