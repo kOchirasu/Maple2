@@ -384,9 +384,9 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
 
     private bool ConsumeIngredients(GameSession session, params (string Tag, int Amount)[] ingredients) {
         // Build this index so we don't need to find materials twice.
-        Dictionary<string, List<Item>> materialsByTag = ingredients.ToDictionary(
+        Dictionary<string, IList<Item>> materialsByTag = ingredients.ToDictionary(
             entry => entry.Tag,
-            entry => session.Item.Inventory.FindByTag(entry.Tag).ToList()
+            entry => session.Item.Inventory.Filter(item => item.Metadata.Property.Tag == entry.Tag)
         );
 
         lock (session.Item) {
@@ -424,7 +424,7 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
         return true;
     }
 
-    private bool IsSocketMaterialEqual(Item item, Item material) {
+    private static bool IsSocketMaterialEqual(Item item, Item material) {
         return item.Id == material.Id
                && item.Rarity == material.Rarity
                && item.Socket != null
@@ -432,7 +432,7 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
                && item.Socket.UnlockSlots == material.Socket.UnlockSlots;
     }
 
-    private bool AllSocketsEmpty(Item material) {
+    private static bool AllSocketsEmpty(Item material) {
         return material.Socket == null || material.Socket.Sockets.All(gem => gem == null);
     }
 

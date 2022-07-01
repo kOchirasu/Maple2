@@ -265,6 +265,16 @@ public class InventoryManager {
         }
     }
 
+    public IList<Item> Filter(Func<Item, bool> condition, InventoryType? type = null) {
+        lock (session.Item) {
+            if (type != null) {
+                return tabs[(InventoryType) type].Where(condition).ToList();
+            }
+
+            return tabs.Values.SelectMany(tab => tab.Where(condition)).ToList();
+        }
+    }
+
     public IEnumerable<Item> Find(int id, int rarity = -1) {
         lock (session.Item) {
             if (!session.ItemMetadata.TryGet(id, out ItemMetadata? metadata)) {
@@ -282,18 +292,6 @@ public class InventoryManager {
                 if (rarity != -1 && item.Rarity != rarity) continue;
 
                 yield return item;
-            }
-        }
-    }
-
-    public IEnumerable<Item> FindByTag(string tag) {
-        lock (session.Item) {
-            foreach (ItemCollection collection in tabs.Values) {
-                foreach (Item item in collection) {
-                    if (item.Metadata.Property.Tag == tag) {
-                        yield return item;
-                    }
-                }
             }
         }
     }
