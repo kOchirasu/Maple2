@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using Maple2.Database.Storage;
 using Maple2.Model.Metadata;
+using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 

@@ -6,7 +6,7 @@ using Autofac;
 using Maple2.Model.Game;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
-using Maple2.Server.Game.Packets;
+using Maple2.Server.Core.Packets;
 using Maple2.Server.Login.Session;
 
 namespace Maple2.Server.Login;

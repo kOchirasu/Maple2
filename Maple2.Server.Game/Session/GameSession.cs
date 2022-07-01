@@ -99,12 +99,11 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         //session.Send(Packet.Of(SendOp.REQUEST_SYSTEM_INFO));
         Send(MigrationPacket.MoveResult(MigrationError.ok));
 
-        Buddy.Load();
         // Survival
         // MeretMarket
         // UserConditionEvent
         // PCBangBonus
-        // Buddy
+        Buddy.Load();
 
         Send(TimeSyncPacket.Reset(DateTimeOffset.UtcNow));
         Send(TimeSyncPacket.Set(DateTimeOffset.UtcNow));

@@ -229,7 +229,8 @@ public class ItemCollection : IEnumerable<Item> {
             // Update the slot mapping
             uidToSlot.Clear();
             short i = 0;
-            while (items[i] != null) {
+            while (items[i] is { } item) {
+                item.Slot = i;
                 uidToSlot[items[i]!.Uid] = i;
                 i++;
             }

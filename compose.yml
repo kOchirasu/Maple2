@@ -1,6 +1,9 @@
 services:
   world:
-    image: maple2-world
+    build:
+      context: .
+      dockerfile: ./Maple2.Server.World/Dockerfile
+    image: maple2-world:dev
     ports:
       - "127.0.0.1:20100:20100"
     environment:
@@ -11,8 +14,11 @@ services:
       GAME_IP: "127.0.0.1"
 
   login:
-    image: maple2-login
-    depends_on: 
+    build:
+      context: .
+      dockerfile: ./Maple2.Server.Login/Dockerfile
+    image: maple2-login:dev
+    depends_on:
       - world
     ports:
       - "20001:20001"
@@ -25,7 +31,10 @@ services:
       LOGIN_IP: "127.0.0.1"
 
   game:
-    image: maple2-game
+    build:
+      context: .
+      dockerfile: ./Maple2.Server.Game/Dockerfile
+    image: maple2-game:dev
     depends_on:
       - world
       - login
