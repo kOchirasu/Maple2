@@ -39,6 +39,13 @@ public sealed partial class FieldManager : IDisposable {
             SpawnPortal(portal);
         }
 
+        foreach ((Guid guid, BreakableActor breakable) in entities.BreakableActors) {
+            string entityId = guid.ToString("N");
+            if (breakable.Position != default && breakable.Rotation != default) {
+                SpawnBreakable(entityId, breakable);
+            }
+        }
+
         foreach (SpawnPointNPC spawnPointNpc in entities.NpcSpawns) {
             if (spawnPointNpc.RegenCheckTime > 0) {
                 npcSpawns.Add(spawnPointNpc);
@@ -68,6 +75,9 @@ public sealed partial class FieldManager : IDisposable {
             }
             foreach (FieldNpc npc in fieldNpcs.Values) {
                 npc.Sync();
+            }
+            foreach (FieldBreakable breakable in fieldBreakables.Values) {
+                breakable.Sync();
             }
             Thread.Sleep(50);
         }
@@ -99,6 +109,10 @@ public sealed partial class FieldManager : IDisposable {
 
     public bool TryGetItem(int objectId, [NotNullWhen(true)] out FieldEntity<Item>? fieldItem) {
         return fieldItems.TryGetValue(objectId, out fieldItem);
+    }
+
+    public bool TryGetBreakable(string entityId, [NotNullWhen(true)] out FieldBreakable? fieldBreakable) {
+        return fieldBreakables.TryGetValue(entityId, out fieldBreakable);
     }
 
     public void Multicast(ByteWriter packet, GameSession? sender = null) {

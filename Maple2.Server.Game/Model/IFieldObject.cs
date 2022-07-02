@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Numerics;
+﻿using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Server.Game.Manager.Field;
 
@@ -21,8 +20,6 @@ public interface IFieldEntity<out T> : IFieldEntity {
 
 public interface IActor : IFieldEntity {
     public FieldManager Field { get; }
-    public IReadOnlyDictionary<int, Buff> Buffs { get; }
-    public Stats Stats { get; }
 
     // Syncs the object to the field
     public virtual void Sync() { }

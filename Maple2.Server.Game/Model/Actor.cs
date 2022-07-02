@@ -7,7 +7,7 @@ using Maple2.Tools.Scheduler;
 
 namespace Maple2.Server.Game.Model;
 
-public abstract class Actor<T> : IActor<T>, IDisposable {
+public abstract class ActorBase<T> : IActor<T> {
     public FieldManager Field { get; }
     public T Value { get; }
 
@@ -18,15 +18,22 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
     public ActorState State { get; set; }
     public ActorSubState SubState { get; set; }
 
+    protected ActorBase(FieldManager field, int objectId, T value) {
+        Field = field;
+        ObjectId = objectId;
+        Value = value;
+    }
+
+    public virtual void Sync() { }
+}
+
+public abstract class Actor<T> : ActorBase<T>, IDisposable {
     public abstract IReadOnlyDictionary<int, Buff> Buffs { get; }
     public abstract Stats Stats { get; }
 
     protected readonly EventQueue Scheduler;
 
-    protected Actor(FieldManager field, int objectId, T value) {
-        Field = field;
-        ObjectId = objectId;
-        Value = value;
+    protected Actor(FieldManager field, int objectId, T value) : base(field, objectId, value) {
         Scheduler = new EventQueue();
     }
 

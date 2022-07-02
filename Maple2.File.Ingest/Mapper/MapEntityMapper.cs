@@ -1,6 +1,7 @@
 ﻿using Maple2.Database.Context;
 using Maple2.File.Flat;
 using Maple2.File.Flat.maplestory2library;
+using Maple2.File.Flat.standardmodellibrary;
 using Maple2.File.IO;
 using Maple2.File.Parser.Flat;
 using Maple2.File.Parser.MapXBlock;
@@ -23,6 +24,21 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
     private IEnumerable<MapEntity> ParseMap(string xblock, IEnumerable<IMapEntity> entities) {
         foreach (IMapEntity entity in entities) {
             switch (entity) {
+                case IActor actor: {
+                    switch (actor) {
+                        case IMS2BreakableActor breakable:
+                            yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                                Block = new BreakableActor(actor.IsVisible, (int) breakable.TriggerBreakableID, breakable.hideTimer, breakable.resetTimer, breakable.Position, breakable.Rotation)
+                            };
+                            continue;
+                        case IMS2InteractActor interact:
+                            yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                                Block = new InteractActor(interact.interactID, interact.MinimapInVisible, interact.Position, interact.Rotation)
+                            };
+                            continue;
+                    }
+                    continue;
+                }
                 case IPortal portal:
                     if (!FeatureEnabled(portal.feature) || !HasLocale(portal.locale)) continue;
                     yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
@@ -69,31 +85,20 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
                                 Block = new TaxiStation(taxiStation.Position, taxiStation.Rotation)
                             };
                             continue;
+                        // Intentionally do not parse IMS2Vibrate, there are 4M entries.
+                        // case IMS2Vibrate vibrate:
                     }
                     continue;
-                case IMS2Breakable breakable:
-                    switch (breakable) {
-                        case IMS2BreakableActor actor:
-                            yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                                Block = new Breakable(actor.IsVisible, (int) actor.TriggerBreakableID, actor.hideTimer, actor.resetTimer)
-                            };
-                            continue;
-                        case IMS2BreakableNIF nif:
-                            yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                                Block = new Breakable(nif.IsVisible, (int) nif.TriggerBreakableID, nif.hideTimer, nif.resetTimer)
-                            };
-                            continue;
-                    }
-                    continue;
-                case IMS2InteractObject interactObject:
-                    switch (interactObject) {
-                        case IMS2InteractActor actor:
-                            yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                                Block = new InteractActor(actor.interactID, actor.MinimapInVisible, actor.Position, actor.Rotation)
-                            };
-                            continue;
-                    }
-                    continue;
+                // case IMS2Breakable breakable: {
+                //     switch (breakable) {
+                //         case IMS2BreakableNIF nif:
+                //             yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                //                 Block = new Breakable(nif.IsVisible, (int) nif.TriggerBreakableID, nif.hideTimer, nif.resetTimer, nif.Position, nif.Rotation)
+                //             };
+                //             continue;
+                //     }
+                //     continue;
+                // }
                 // case IMS2TriggerObject triggerObject:
                 //     switch (triggerObject) {
                 //         case IMS2TriggerActor actor:

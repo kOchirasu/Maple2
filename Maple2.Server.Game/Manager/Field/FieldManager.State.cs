@@ -20,6 +20,7 @@ public partial class FieldManager {
     private readonly ConcurrentDictionary<int, FieldNpc> fieldNpcs = new();
     private readonly ConcurrentDictionary<int, FieldEntity<Portal>> fieldPortals = new();
     private readonly ConcurrentDictionary<int, FieldEntity<Item>> fieldItems = new();
+    private readonly ConcurrentDictionary<string, FieldBreakable> fieldBreakables = new();
 
     #region Spawn
     public FieldPlayer SpawnPlayer(GameSession session, Player player, int portalId = -1,
@@ -32,7 +33,7 @@ public partial class FieldManager {
         int objectId = Interlocked.Increment(ref objectIdCounter);
         var fieldPlayer = new FieldPlayer(objectId, session, player) {
             Position = position,
-            Rotation = rotation
+            Rotation = rotation,
         };
 
         // Use Portal if needed.
@@ -93,6 +94,17 @@ public partial class FieldManager {
 
         return fieldItem;
     }
+
+    public FieldBreakable SpawnBreakable(string entityId, BreakableActor breakable) {
+        int objectId = Interlocked.Increment(ref objectIdCounter);
+        var fieldBreakable = new FieldBreakable(this, objectId, entityId, breakable) {
+            Position = breakable.Position,
+            Rotation = breakable.Rotation,
+        };
+
+        fieldBreakables[entityId] = fieldBreakable;
+        return fieldBreakable;
+    }
     #endregion
 
     #region Remove
@@ -126,7 +138,7 @@ public partial class FieldManager {
         fieldPlayers[added.ObjectId] = added;
         // LOAD:
         // Liftable
-        // Breakable
+        added.Session.Send(BreakablePacket.BatchUpdate(fieldBreakables.Values));
         // InteractObject
         foreach (FieldPlayer fieldPlayer in fieldPlayers.Values) {
             added.Session.Send(FieldPacket.AddPlayer(fieldPlayer.Session));

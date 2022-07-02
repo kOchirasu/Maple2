@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using System.Text.Json.Serialization;
 
 namespace Maple2.Model.Metadata;
@@ -28,6 +29,8 @@ public abstract partial record MapBlock([JsonDiscriminator] MapBlock.Discriminat
         Liftable = 52914141,
         Breakable = 3551547141,
         //MS2InteractObject = 1928632421,
+
+        BreakableActor = 2510283231,
         InteractActor = 3797506670,
     }
 }

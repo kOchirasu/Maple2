@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Context;
 using Maple2.Model.Common;
@@ -16,20 +17,26 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
             return mapEntity;
         }
 
-        var breakables = new Dictionary<int, Breakable>();
-        var interactActors = new Dictionary<int, InteractActor>();
+        var breakables = new Dictionary<Guid, Breakable>();
         var liftables = new Dictionary<Vector3B, Liftable>();
         var portals = new Dictionary<int, Portal>();
         var playerSpawns = new Dictionary<int, SpawnPointPC>();
         var npcSpawns = new List<SpawnPointNPC>();
         var eventNpcSpawns = new Dictionary<int, EventSpawnPointNPC>();
         TaxiStation? taxi = null;
+        var breakableActors = new Dictionary<Guid, BreakableActor>();
+        var interactActors = new Dictionary<int, InteractActor>();
         lock (Context) {
             foreach (MapEntity entity in Context.MapEntity.Where(entity => entity.XBlock == xblock)) {
                 switch (entity.Block.Class) {
                     case MapBlock.Discriminator.Breakable:
                         if (entity.Block is Breakable breakable) {
-                            breakables[breakable.Id] = breakable;
+                            breakables[entity.Guid] = breakable;
+                        }
+                        break;
+                    case MapBlock.Discriminator.BreakableActor:
+                        if (entity.Block is BreakableActor breakableActor) {
+                            breakableActors[entity.Guid] = breakableActor;
                         }
                         break;
                     case MapBlock.Discriminator.InteractActor:
@@ -73,13 +80,14 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
 
         mapEntity = new MapEntityMetadata {
             Breakables = breakables,
-            InteractActors = interactActors,
             Liftables = liftables,
             Portals = portals,
             PlayerSpawns = playerSpawns,
             NpcSpawns = npcSpawns,
             EventNpcSpawns = eventNpcSpawns,
             Taxi = taxi,
+            BreakableActors = breakableActors,
+            InteractActors = interactActors,
         };
         Cache.AddReplace(xblock, mapEntity);
 

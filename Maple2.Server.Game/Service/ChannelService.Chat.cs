@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Grpc.Core;
-using Maple2.Server.Channel.Service;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 

@@ -8,7 +8,6 @@ using System.Text;
 using Maple2.Database.Storage;
 using Maple2.Model.Metadata;
 using Maple2.Server.Core.Packets;
-using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.Commands.Common;

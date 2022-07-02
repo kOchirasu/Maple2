@@ -12,7 +12,7 @@ public static class StatsPacket {
         Update = 0
     }
 
-    public static ByteWriter Init(IActor<Player> entity) {
+    public static ByteWriter Init(Actor<Player> entity) {
         Stats stats = entity.Stats;
 
         var pWriter = Packet.Of(SendOp.Stat);
@@ -27,7 +27,7 @@ public static class StatsPacket {
         return pWriter;
     }
 
-    public static ByteWriter Update<T>(IActor<T> entity) {
+    public static ByteWriter Update<T>(Actor<T> entity) {
         var pWriter = Packet.Of(SendOp.Stat);
         pWriter.WriteInt(entity.ObjectId);
         pWriter.Write<Command>(Command.Update);
@@ -43,7 +43,7 @@ public static class StatsPacket {
         return pWriter;
     }
 
-    public static ByteWriter Update(IActor entity, params StatAttribute[] attributes) {
+    public static ByteWriter Update<T>(Actor<T> entity, params StatAttribute[] attributes) {
         var pWriter = Packet.Of(SendOp.Stat);
         pWriter.WriteInt(entity.ObjectId);
         pWriter.Write<Command>(Command.Update);
