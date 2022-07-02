@@ -10,14 +10,8 @@ namespace Maple2.Database.Storage;
 
 public class SkillMetadataStorage : MetadataStorage<int, SkillMetadata>, ISearchable<SkillMetadata> {
     private const int CACHE_SIZE = 10000; // ~10k total items
-    private const int MAGIC_PATH_CACHE_SIZE = 3000;
 
-    protected readonly LRUCache<long, MagicPathMetadata> MagicPathCache;
-
-    public SkillMetadataStorage(MetadataContext context) : base(context, CACHE_SIZE) {
-        MagicPathCache =
-            new LRUCache<long, MagicPathMetadata>(MAGIC_PATH_CACHE_SIZE, (int)(MAGIC_PATH_CACHE_SIZE * 0.05));
-    }
+    public SkillMetadataStorage(MetadataContext context) : base(context, CACHE_SIZE) { }
 
     public bool TryGet(int id, [NotNullWhen(true)] out SkillMetadata? skill) {
         if (Cache.TryGet(id, out skill)) {
@@ -33,23 +27,6 @@ public class SkillMetadataStorage : MetadataStorage<int, SkillMetadata>, ISearch
         }
 
         Cache.AddReplace(id, skill);
-        return true;
-    }
-
-    public bool TryGetMagicPath(long id, [NotNullWhen(true)] out MagicPathMetadata? magicPath) {
-        if (MagicPathCache.TryGet(id, out magicPath)) {
-            return true;
-        }
-
-        lock (Context) {
-            magicPath = Context.MagicPathMetadata.Find(id);
-        }
-
-        if (magicPath == null) {
-            return false;
-        }
-
-        MagicPathCache.AddReplace(id, magicPath);
         return true;
     }
 

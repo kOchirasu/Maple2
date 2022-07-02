@@ -21,6 +21,7 @@ public record ItemMetadataProperty(
     int Group,
     int Collection,
     int GearScore,
+    int Ride,
     int TradableCount,
     int TradableCountDeduction,
     int RepackCount,

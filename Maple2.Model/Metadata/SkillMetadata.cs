@@ -4,7 +4,6 @@ using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
 
-#region skill
 public record SkillMetadata(
     int Id,
     string? Name,
@@ -102,26 +101,3 @@ public record SkillMetadataDamage(
     bool IsConstDamage, // Use 'Value' to determine damage
     long Value,
     float DamageByTargetMaxHp);
-#endregion skill
-
-#region magicpath
-public record MagicPathMetadata(
-    long Id,
-    List<MagicPathMetadataMove> Moves);
-
-public record MagicPathMetadataMove(
-    bool Align,
-    int AlignHeight,
-    bool Rotate,
-    bool IgnoreAdjust,
-    Vector3 Direction,
-    Vector3 FireOffset,
-    Vector3 FireFixed,
-    float Velocity,
-    float Distance,
-    float RotateZDegree,
-    float LifeTime,
-    float DelayTime,
-    float SpawnTime,
-    float DestroyTime);
-#endregion

@@ -11,10 +11,10 @@ public sealed class MetadataContext : DbContext {
     public DbSet<AnimationMetadata> AnimationMetadata { get; set; } = null!;
     public DbSet<ItemMetadata> ItemMetadata { get; set; } = null!;
     public DbSet<NpcMetadata> NpcMetadata { get; set; } = null!;
-    public DbSet<MagicPathMetadata> MagicPathMetadata { get; set; } = null!;
     public DbSet<MapMetadata> MapMetadata { get; set; } = null!;
     public DbSet<MapEntity> MapEntity { get; set; } = null!;
     public DbSet<QuestMetadata> QuestMetadata { get; set; } = null!;
+    public DbSet<RideMetadata> RideMetadata { get; set; } = null!;
     public DbSet<SkillMetadata> SkillMetadata { get; set; } = null!;
     public DbSet<TableMetadata> TableMetadata { get; set; } = null!;
     public DbSet<UgcMapMetadata> UgcMapMetadata { get; set; } = null!;
@@ -27,10 +27,10 @@ public sealed class MetadataContext : DbContext {
         modelBuilder.Entity<AnimationMetadata>(ConfigureAnimationMetadata);
         modelBuilder.Entity<ItemMetadata>(ConfigureItemMetadata);
         modelBuilder.Entity<NpcMetadata>(ConfigureNpcMetadata);
-        modelBuilder.Entity<MagicPathMetadata>(ConfigureMagicPathMetadata);
         modelBuilder.Entity<MapMetadata>(ConfigureMapMetadata);
         modelBuilder.Entity<MapEntity>(ConfigureMapEntity);
         modelBuilder.Entity<QuestMetadata>(ConfigureQuestMetadata);
+        modelBuilder.Entity<RideMetadata>(ConfigureRideMetadata);
         modelBuilder.Entity<SkillMetadata>(ConfigureSkillMetadata);
         modelBuilder.Entity<TableMetadata>(ConfigureTableMetadata);
         modelBuilder.Entity<UgcMapMetadata>(ConfigureUgcMapMetadata);
@@ -60,12 +60,6 @@ public sealed class MetadataContext : DbContext {
         builder.Property(npc => npc.Dead).HasJsonConversion();
     }
 
-    private static void ConfigureMagicPathMetadata(EntityTypeBuilder<MagicPathMetadata> builder) {
-        builder.ToTable("magicpath");
-        builder.HasKey(magicPath => magicPath.Id);
-        builder.Property(magicPath => magicPath.Moves).HasJsonConversion();
-    }
-
     private static void ConfigureMapMetadata(EntityTypeBuilder<MapMetadata> builder) {
         builder.ToTable("map");
         builder.HasKey(map => map.Id);
@@ -88,6 +82,14 @@ public sealed class MetadataContext : DbContext {
         builder.Property(quest => quest.Require).HasJsonConversion();
         builder.Property(quest => quest.AcceptReward).HasJsonConversion();
         builder.Property(quest => quest.CompleteReward).HasJsonConversion();
+    }
+
+    private static void ConfigureRideMetadata(EntityTypeBuilder<RideMetadata> builder) {
+        builder.ToTable("ride");
+        builder.HasKey(ride => ride.Id);
+        builder.Property(ride => ride.Basic).HasJsonConversion();
+        builder.Property(ride => ride.Speed).HasJsonConversion();
+        builder.Property(ride => ride.Stats).HasJsonConversion();
     }
 
     private static void ConfigureSkillMetadata(EntityTypeBuilder<SkillMetadata> builder) {

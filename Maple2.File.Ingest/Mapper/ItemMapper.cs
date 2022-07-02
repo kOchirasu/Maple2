@@ -47,6 +47,7 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     Group: data.property.itemGroup,
                     Collection: data.property.collection,
                     GearScore: data.property.gearScore,
+                    Ride: data.ride.rideMonster,
                     TradableCount: tradableCount,
                     TradableCountDeduction: tradableCountDeduction,
                     RepackCount: data.property.rePackingLimitCount,

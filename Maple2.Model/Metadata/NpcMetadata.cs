@@ -13,7 +13,7 @@ public record NpcMetadata(
     NpcMetadataDead Dead) : ISearchResult;
 
 public record NpcMetadataStat(
-    IDictionary<StatAttribute, long> Stats,
+    IReadOnlyDictionary<StatAttribute, long> Stats,
     float[] ScaleStatRate,
     long[] ScaleBaseTap,
     long[] ScaleBaseDef,

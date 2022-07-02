@@ -4,6 +4,7 @@ using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using JobTable = Maple2.Model.Metadata.JobTable;
+using MagicPath = Maple2.Model.Metadata.MagicPath;
 
 namespace Maple2.File.Ingest.Mapper;
 
@@ -20,6 +21,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "itembreakingredient.xml", Table = ParseItemBreakIngredient()};
         yield return new TableMetadata {Name = "itemgemstoneupgrade.xml", Table = ParseItemGemstoneUpgrade()};
         yield return new TableMetadata {Name = "job.xml", Table = ParseJobTable()};
+        yield return new TableMetadata {Name = "magicpath.xml", Table = ParseMagicPath()};
     }
 
     private ItemBreakTable ParseItemBreakIngredient() {
@@ -94,5 +96,35 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
 
         return new JobTable(results);
+    }
+
+    private MagicPathTable ParseMagicPath() {
+        var results = new Dictionary<long, IReadOnlyList<MagicPath>>();
+        foreach ((long id, MagicType type) in parser.ParseMagicPath()) {
+            // Dropping duplicates for now (60073021, 50000303, 5009, 5101)
+            if (results.ContainsKey(id)) {
+                continue;
+            }
+
+            List<MagicPath> moves = type.move.Select(move => new MagicPath(
+                Align: move.align,
+                AlignHeight: move.alignCubeHeight,
+                Rotate: move.rotation,
+                IgnoreAdjust: move.ignoreAdjustCubePosition,
+                Direction: move.direction,
+                FireOffset: move.fireOffsetPosition,
+                FireFixed: move.fireFixedPosition,
+                Velocity: move.vel,
+                Distance: move.distance,
+                RotateZDegree: move.dirRotZDegree,
+                LifeTime: move.lifeTime,
+                DelayTime: move.delayTime,
+                SpawnTime: move.spawnTime,
+                DestroyTime: move.destroyTime
+            )).ToList();
+            results[id] = moves;
+        }
+
+        return new MagicPathTable(results);
     }
 }

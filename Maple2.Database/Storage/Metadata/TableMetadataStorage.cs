@@ -5,24 +5,39 @@ using Maple2.Model.Metadata;
 namespace Maple2.Database.Storage;
 
 public class TableMetadataStorage {
-    public readonly ItemBreakTable ItemBreakTable;
-    public readonly GemstoneUpgradeTable GemstoneUpgradeTable;
-    public readonly JobTable JobTable;
+    private readonly Lazy<ItemBreakTable> itemBreakTable;
+    private readonly Lazy<GemstoneUpgradeTable> gemstoneUpgradeTable;
+    private readonly Lazy<JobTable> jobTable;
+    private readonly Lazy<MagicPathTable> magicPathTable;
+
+    public ItemBreakTable ItemBreakTable => itemBreakTable.Value;
+    public GemstoneUpgradeTable GemstoneUpgradeTable => gemstoneUpgradeTable.Value;
+    public JobTable JobTable => jobTable.Value;
+    public MagicPathTable MagicPathTable => magicPathTable.Value;
 
     public TableMetadataStorage(MetadataContext context) {
-        ItemBreakTable = Retrieve<ItemBreakTable>(context, "itembreakingredient.xml");
-        GemstoneUpgradeTable = Retrieve<GemstoneUpgradeTable>(context, "itemgemstoneupgrade.xml");
-        JobTable = Retrieve<JobTable>(context, "job.xml");
+        itemBreakTable = Retrieve<ItemBreakTable>(context, "itembreakingredient.xml");
+        gemstoneUpgradeTable = Retrieve<GemstoneUpgradeTable>(context, "itemgemstoneupgrade.xml");
+        jobTable = Retrieve<JobTable>(context, "job.xml");
+        magicPathTable = Retrieve<MagicPathTable>(context, "magicpath.xml");
     }
 
-    private static T Retrieve<T>(MetadataContext context, string key) where T : Table {
-        lock (context) {
-            TableMetadata? row = context.TableMetadata.Find(key);
-            if (row?.Table is not T result) {
-                throw new InvalidOperationException($"Row does not exist: {key}");
-            }
+    private static Lazy<T> Retrieve<T>(MetadataContext context, string key) where T : Table {
+        var result = new Lazy<T>(() => {
+            lock (context) {
+                TableMetadata? row = context.TableMetadata.Find(key);
+                if (row?.Table is not T result) {
+                    throw new InvalidOperationException($"Row does not exist: {key}");
+                }
 
-            return result;
-        }
+                return result;
+            }
+        });
+
+#if !DEBUG
+        // No lazy loading for RELEASE build.
+        _ = result.Value;
+#endif
+        return result;
     }
 }
