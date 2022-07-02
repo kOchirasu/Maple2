@@ -2,6 +2,7 @@
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.Manager.Items;
@@ -37,6 +38,12 @@ public class ItemManager {
     public Item? GetOutfit(long uid) {
         Item? item = Inventory.Get(uid, InventoryType.Outfit);
         return item ?? Equips.Outfit.Values.FirstOrDefault(outfit => outfit.Uid == uid);
+    }
+
+    public void Bind(Item item) {
+        if (item.Transfer?.Bind(session.Player.Value.Character) == true) {
+            session.Send(ItemInventoryPacket.UpdateItem(item));
+        }
     }
 
     public void Save(GameStorage.Request db) {

@@ -22,6 +22,20 @@ public class ItemTransfer : IByteSerializable, IByteDeserializable {
         Binding = binding;
     }
 
+    public bool Bind(Character character) {
+        if (!Flag.HasFlag(TransferFlag.Bind)) {
+            return false;
+        }
+
+        if (Binding != null) {
+            return false;
+        }
+
+        Binding = new ItemBinding(character.Id, character.Name);
+        RemainTrades = 0;
+        return true;
+    }
+
     public void WriteTo(IByteWriter writer) {
         // CItemTransfer is CItem[66]
         writer.Write<TransferFlag>(Flag); // CItemTransfer[5]

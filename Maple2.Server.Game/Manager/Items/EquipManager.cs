@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Storage;
+using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Server.Game.Packets;
@@ -44,6 +45,12 @@ public class EquipManager {
         }
     }
 
+    public Item? Get(long itemUid) {
+        return Gear.Values.FirstOrDefault(item => item.Uid == itemUid)
+               ?? Outfit.Values.FirstOrDefault(item => item.Uid == itemUid)
+               ?? Badge.Values.FirstOrDefault(item => item.Uid == itemUid);
+    }
+
     /// <summary>
     /// Equips an item to its specified slot
     /// </summary>
@@ -55,7 +62,7 @@ public class EquipManager {
         lock (session.Item) {
             // Check that item is valid and can be equipped.
             Item? item = session.Item.Inventory.Get(itemUid);
-            if (item == null) {
+            if (item == null || item.IsExpired()) {
                 return false;
             }
             if (item.Metadata.Property.IsSkin != isSkin) {
@@ -97,6 +104,10 @@ public class EquipManager {
                 }
             }
 
+            if (item.Metadata.Limit.TransferType == 3) {
+                session.Item.Bind(item);
+            }
+
             item.EquipTab = isSkin ? EquipTab.Outfit : EquipTab.Gear;
             item.EquipSlot = slot;
             item.Slot = -1;
@@ -135,7 +146,7 @@ public class EquipManager {
     public bool EquipBadge(long itemUid) {
         lock (session.Item) {
             Item? item = session.Item.Inventory.Get(itemUid);
-            if (item?.Badge == null) {
+            if (item?.Badge == null || item.IsExpired()) {
                 return false;
             }
 
@@ -146,6 +157,10 @@ public class EquipManager {
 
             if (!UnequipBadge(item.Badge.Type, item.Slot)) {
                 return false;
+            }
+
+            if (item.Metadata.Limit.TransferType == 3) {
+                session.Item.Bind(item);
             }
 
             item.EquipTab = EquipTab.Badge;

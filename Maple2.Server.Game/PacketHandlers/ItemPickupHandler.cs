@@ -97,7 +97,9 @@ public class ItemPickupHandler : PacketHandler<GameSession> {
                 return;
             }
 
-            session.Item.Inventory.Add(item, true);
+            if (session.Item.Inventory.Add(item, true) && item.Value.Metadata.Limit.TransferType == 2) {
+                session.Item.Bind(item);
+            }
         }
     }
 }
