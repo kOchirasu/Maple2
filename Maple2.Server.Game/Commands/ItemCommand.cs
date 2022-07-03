@@ -63,6 +63,11 @@ public class ItemCommand : Command {
 
             using (GameStorage.Request db = session.GameStorage.Context()) {
                 item = db.CreateItem(session.CharacterId, item);
+                if (item == null) {
+                    ctx.Console.Error.WriteLine($"Failed to create item:{itemId} in database");
+                    ctx.ExitCode = 1;
+                    return;
+                }
             }
 
             if (!session.Item.Inventory.Add(item, true)) {

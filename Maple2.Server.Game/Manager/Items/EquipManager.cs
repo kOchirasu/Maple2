@@ -110,7 +110,7 @@ public class EquipManager {
                 }
             }
 
-            if (item.Metadata.Limit.TransferType == 3) {
+            if (item.Metadata.Limit.TransferType == TransferType.BindOnEquip) {
                 session.Item.Bind(item);
             }
 
@@ -170,7 +170,7 @@ public class EquipManager {
                 return false;
             }
 
-            if (item.Metadata.Limit.TransferType == 3) {
+            if (item.Metadata.Limit.TransferType == TransferType.BindOnEquip) {
                 session.Item.Bind(item);
             }
 

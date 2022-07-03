@@ -13,12 +13,12 @@ public class FieldNpc : Actor<Npc> {
 
     public NpcState StateData;
 
-    public ActorState State {
+    public override ActorState State {
         get => StateData.State;
         set => throw new InvalidOperationException("Cannot set Npc State");
     }
 
-    public ActorSubState SubState {
+    public override ActorSubState SubState {
         get => StateData.SubState;
         set => throw new InvalidOperationException("Cannot set Npc SubState");
     }

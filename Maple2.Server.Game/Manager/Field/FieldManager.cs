@@ -13,6 +13,9 @@ using Serilog;
 namespace Maple2.Server.Game.Manager.Field;
 
 public sealed partial class FieldManager : IDisposable {
+    private static int globalIdCounter = 10000000;
+    private int localIdCounter = 50000000;
+
     public readonly MapMetadata Metadata;
     private readonly MapEntityMetadata entities;
     private readonly NpcMetadataStorage npcMetadata;
@@ -26,8 +29,6 @@ public sealed partial class FieldManager : IDisposable {
 
     public int MapId => Metadata.Id;
     public readonly int InstanceId;
-
-    public int NextObjectId() => Interlocked.Increment(ref objectIdCounter);
 
     private FieldManager(int instanceId, MapMetadata metadata, MapEntityMetadata entities, NpcMetadataStorage npcMetadata) {
         InstanceId = instanceId;
@@ -69,6 +70,18 @@ public sealed partial class FieldManager : IDisposable {
 
         thread.Start();
     }
+
+    /// <summary>
+    /// Generates an ObjectId unique across all map instances.
+    /// </summary>
+    /// <returns>Returns a globally unique ObjectId</returns>
+    public static int NextGlobalId() => Interlocked.Increment(ref globalIdCounter);
+
+    /// <summary>
+    /// Generates an ObjectId unique to this specific map instance.
+    /// </summary>
+    /// <returns>Returns a local ObjectId</returns>
+    private int NextLocalId() => Interlocked.Increment(ref localIdCounter);
 
     private void Sync() {
         while (!cancel.IsCancellationRequested) {

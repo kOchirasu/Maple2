@@ -2,7 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
-using System.Threading;
 using Maple2.Model;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -14,8 +13,6 @@ using Maple2.Tools.Extensions;
 namespace Maple2.Server.Game.Manager.Field;
 
 public partial class FieldManager {
-    private int objectIdCounter = 10000000;
-
     private readonly ConcurrentDictionary<int, FieldPlayer> fieldPlayers = new();
     private readonly ConcurrentDictionary<int, FieldNpc> fieldNpcs = new();
     private readonly ConcurrentDictionary<int, FieldEntity<Portal>> fieldPortals = new();
@@ -30,8 +27,7 @@ public partial class FieldManager {
         player.Character.InstanceMapId = MapId;
         player.Character.InstanceId = InstanceId;
 
-        int objectId = Interlocked.Increment(ref objectIdCounter);
-        var fieldPlayer = new FieldPlayer(objectId, session, player) {
+        var fieldPlayer = new FieldPlayer(session, player) {
             Position = position,
             Rotation = rotation,
         };
@@ -62,42 +58,38 @@ public partial class FieldManager {
     }
 
     public FieldNpc SpawnNpc(NpcMetadata npc, Vector3 position, Vector3 rotation) {
-        int objectId = Interlocked.Increment(ref objectIdCounter);
-        var fieldNpc = new FieldNpc(this, objectId, new Npc(npc)) {
+        var fieldNpc = new FieldNpc(this, NextLocalId(), new Npc(npc)) {
             Position = position,
             Rotation = rotation,
         };
-        fieldNpcs[objectId] = fieldNpc;
+        fieldNpcs[fieldNpc.ObjectId] = fieldNpc;
 
         return fieldNpc;
     }
 
     public FieldEntity<Portal> SpawnPortal(Portal portal, Vector3 position = default, Vector3 rotation = default) {
-        int objectId = Interlocked.Increment(ref objectIdCounter);
-        var fieldPortal = new FieldEntity<Portal>(objectId, portal) {
+        var fieldPortal = new FieldEntity<Portal>(NextLocalId(), portal) {
             Position = position != default ? position : portal.Position,
             Rotation = rotation != default ? rotation : portal.Rotation,
         };
-        fieldPortals[objectId] = fieldPortal;
+        fieldPortals[fieldPortal.ObjectId] = fieldPortal;
 
         return fieldPortal;
     }
 
     public FieldEntity<Item> SpawnItem(IFieldEntity owner, Item item) {
-        int objectId = Interlocked.Increment(ref objectIdCounter);
-        var fieldItem = new FieldEntity<Item>(objectId, item) {
+        var fieldItem = new FieldEntity<Item>(NextLocalId(), item) {
             Owner = owner,
             Position = owner.Position,
             Rotation = owner.Rotation,
         };
-        fieldItems[objectId] = fieldItem;
+        fieldItems[fieldItem.ObjectId] = fieldItem;
 
         return fieldItem;
     }
 
     public FieldBreakable SpawnBreakable(string entityId, BreakableActor breakable) {
-        int objectId = Interlocked.Increment(ref objectIdCounter);
-        var fieldBreakable = new FieldBreakable(this, objectId, entityId, breakable) {
+        var fieldBreakable = new FieldBreakable(this, NextLocalId(), entityId, breakable) {
             Position = breakable.Position,
             Rotation = breakable.Rotation,
         };

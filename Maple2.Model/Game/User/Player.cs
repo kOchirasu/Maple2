@@ -7,13 +7,15 @@ namespace Maple2.Model.Game;
 public class Player {
     public readonly Account Account;
     public readonly Character Character;
+    public readonly int ObjectId;
 
     public Currency Currency { get; init; }
     public Unlock Unlock { get; init; }
 
-    public Player(Account account, Character character) {
+    public Player(Account account, Character character, int objectId) {
         Account = account;
         Character = character;
+        ObjectId = objectId;
     }
 }
 

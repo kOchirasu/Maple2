@@ -15,8 +15,8 @@ public abstract class ActorBase<T> : IActor<T> {
     public Vector3 Position { get; set; }
     public Vector3 Rotation { get; set; }
 
-    public ActorState State { get; set; }
-    public ActorSubState SubState { get; set; }
+    public virtual ActorState State { get; set; }
+    public virtual ActorSubState SubState { get; set; }
 
     protected ActorBase(FieldManager field, int objectId, T value) {
         Field = field;
@@ -37,7 +37,7 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
         Scheduler = new EventQueue();
     }
 
-    public virtual void Sync() {
+    public override void Sync() {
         Scheduler.InvokeAll();
     }
 

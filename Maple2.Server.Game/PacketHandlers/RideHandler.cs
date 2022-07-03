@@ -8,6 +8,7 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
+using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
@@ -80,11 +81,11 @@ public class RideHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (item.Metadata.Limit.TransferType == 4) {
+        if (item.Metadata.Limit.TransferType == TransferType.BindOnUse) {
             session.Item.Bind(item);
         }
 
-        int objectId = session.Field.NextObjectId();
+        int objectId = FieldManager.NextGlobalId();
         var action = new RideOnActionUseItem(rideId, objectId, item);
         session.Ride = new Ride(session.Player.ObjectId, metadata, action);
         session.Field.Multicast(RidePacket.Start(session.Ride));

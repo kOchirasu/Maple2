@@ -12,7 +12,7 @@ public class FieldPlayer : Actor<Player> {
     public override Stats Stats => Session.Stats.Values;
     public bool InBattle;
 
-    public FieldPlayer(int objectId, GameSession session, Player player) : base (session.Field!, objectId, player) {
+    public FieldPlayer(GameSession session, Player player) : base(session.Field!, player.ObjectId, player) {
         Session = session;
 
         Scheduler.ScheduleRepeated(() => Field.Multicast(ProxyObjectPacket.UpdatePlayer(this, 66)), 2000);

@@ -99,12 +99,12 @@ public class SkillManager {
             return false;
         }
 
-        skillTab = db.CreateSkillTab(session.CharacterId, skillTab);
-        if (skillTab == null) {
+        SkillTab? createdSkillTab = db.CreateSkillTab(session.CharacterId, skillTab);
+        if (createdSkillTab == null) {
             return false;
         }
 
-        SkillBook.SkillTabs.Add(skillTab);
+        SkillBook.SkillTabs.Add(createdSkillTab);
         return true;
     }
     #endregion

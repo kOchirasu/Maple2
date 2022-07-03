@@ -9,9 +9,9 @@ namespace Maple2.Server.Game.Model;
 public class FieldBreakable : ActorBase<BreakableActor> {
     private readonly FieldManager field;
     public readonly string EntityId;
-    private int NextTick;
+    private int nextTick;
 
-    public BreakableState State { get; private set; }
+    public new BreakableState State { get; private set; }
     public int BaseTick { get; private set; }
 
     private bool visible;
@@ -43,13 +43,13 @@ public class FieldBreakable : ActorBase<BreakableActor> {
 
         switch (State) {
             case BreakableState.Show:
-                NextTick = 0;
+                nextTick = 0;
                 break;
             case BreakableState.Break:
-                NextTick = Environment.TickCount + Value.HideTime / 2;
+                nextTick = Environment.TickCount + Value.HideTime / 2;
                 break;
             case BreakableState.Hide:
-                NextTick = Environment.TickCount + Value.ResetTime / 4;
+                nextTick = Environment.TickCount + Value.ResetTime / 4;
                 break;
             case BreakableState.Unknown5:
                 break;
@@ -62,7 +62,7 @@ public class FieldBreakable : ActorBase<BreakableActor> {
 
     public override void Sync() {
         int ticks = Environment.TickCount;
-        if (NextTick == 0 || ticks < NextTick) {
+        if (nextTick == 0 || ticks < nextTick) {
             return;
         }
 

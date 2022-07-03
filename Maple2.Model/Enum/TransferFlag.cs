@@ -10,3 +10,14 @@ public enum TransferFlag {
     Bind = 8,
     LimitTrade = 16,
 }
+
+public enum TransferType {
+    Tradable = 0,
+    Untradeable = 1,
+    BindOnLoot = 2,
+    BindOnEquip = 3,
+    BindOnUse = 4,
+    BindOnTrade = 5,
+    Unknown = 6,
+    BindPet = 7,
+}

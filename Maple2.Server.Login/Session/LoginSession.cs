@@ -54,8 +54,12 @@ public class LoginSession : Core.Network.Session {
 
     public void ListCharacters() {
         using GameStorage.Request db = GameStorage.Context();
-        (account, IList<Character> characters) = db.ListCharacters(AccountId);
+        (Account? readAccount, IList<Character>? characters) = db.ListCharacters(AccountId);
+        if (readAccount == null || characters == null) {
+            throw new InvalidOperationException($"Failed to load characters for account: {AccountId}");
+        }
 
+        account = readAccount;
         var entries = new List<(Character, IDictionary<EquipTab, List<Item>>)>();
         foreach (Character character in characters) {
             IDictionary<EquipTab, List<Item>> equips =
@@ -70,10 +74,13 @@ public class LoginSession : Core.Network.Session {
         Send(CharacterListPacket.EndList());
     }
 
-    public void CreateCharacter(Character character, List<Item> outfits) {
+    public void CreateCharacter(Character createCharacter, List<Item> createOutfits) {
         using (GameStorage.Request db = GameStorage.Context()) {
             db.BeginTransaction();
-            character = db.CreateCharacter(character);
+            Character? character = db.CreateCharacter(createCharacter);
+            if (character == null) {
+                throw new InvalidOperationException($"Failed to create character: {createCharacter.Id}");
+            }
 
             var unlock = new Unlock();
             unlock.Emotes.UnionWith(new[] {
@@ -86,17 +93,17 @@ public class LoginSession : Core.Network.Session {
             });
             db.InitNewCharacter(character.Id, unlock);
 
-            outfits = db.CreateItems(character.Id, outfits.ToArray());
+            List<Item>? outfits = db.CreateItems(character.Id, createOutfits.ToArray());
 
-            if (!db.Commit()) {
+            if (outfits == null || !db.Commit()) {
                 Send(CharacterListPacket.CreateError(s_char_err_system));
                 return;
             }
-        }
 
-        Send(CharacterListPacket.SetMax(account.MaxCharacters, Constant.ServerMaxCharacters));
-        Send(CharacterListPacket.AppendEntry(account, character,
-            new Dictionary<EquipTab, List<Item>> {{EquipTab.Outfit, outfits}}));
+            Send(CharacterListPacket.SetMax(account.MaxCharacters, Constant.ServerMaxCharacters));
+            Send(CharacterListPacket.AppendEntry(account, character,
+                new Dictionary<EquipTab, List<Item>> {{EquipTab.Outfit, outfits}}));
+        }
     }
 
     #region Dispose

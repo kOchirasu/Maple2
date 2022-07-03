@@ -64,7 +64,7 @@ UpdateDatabase(metadataContext, new UgcMapMapper(xmlReader));
 // new SkillParser(xmlReader).Parse().ToList();
 
 void UpdateDatabase<T>(DbContext context, TypeMapper<T> mapper) where T : class {
-    string tableName = context.GetTableName<T>();
+    string? tableName = context.GetTableName<T>();
     Debug.Assert(!string.IsNullOrEmpty(tableName), $"Invalid table name: {tableName}");
 
     uint crc32C = mapper.Process();

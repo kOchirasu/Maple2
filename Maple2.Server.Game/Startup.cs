@@ -31,7 +31,7 @@ public class Startup {
         services.RegisterModule<WorldClientModule>();
 
         services.AddSingleton<GameServer>();
-        services.AddHostedService<GameServer>(provider => provider.GetService<GameServer>());
+        services.AddHostedService<GameServer>(provider => provider.GetService<GameServer>()!);
     }
 
     // ConfigureContainer is where you can register things directly with Autofac. This runs after

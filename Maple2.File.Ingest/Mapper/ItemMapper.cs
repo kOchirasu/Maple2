@@ -56,7 +56,7 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                 Limit: new ItemMetadataLimit(
                     Gender: (Gender) data.limit.genderLimit,
                     Level: data.limit.levelLimit,
-                    TransferType: transferType,
+                    TransferType: (TransferType) transferType,
                     TradeMaxRarity: data.limit.tradeLimitRank,
                     ShopSell: data.limit.shopSell,
                     EnableBreak: data.limit.enableBreak,

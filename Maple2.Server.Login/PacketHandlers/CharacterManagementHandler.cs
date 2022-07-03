@@ -149,7 +149,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
 
         using GameStorage.Request db = GameStorage.Context();
         Character? character = db.GetCharacter(characterId, session.AccountId);
-        if (!ValidateDeleteRequest(session, characterId, character)) {
+        if (character == null || !ValidateDeleteRequest(session, characterId, character)) {
             return;
         }
 
@@ -181,7 +181,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
 
         using GameStorage.Request db = GameStorage.Context();
         Character? character = db.GetCharacter(characterId, session.AccountId);
-        if (!ValidateDeleteRequest(session, characterId, character)) {
+        if (character == null || !ValidateDeleteRequest(session, characterId, character)) {
             return;
         }
 

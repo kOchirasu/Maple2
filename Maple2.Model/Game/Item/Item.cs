@@ -115,18 +115,18 @@ public class Item : IByteSerializable, IByteDeserializable {
         bool zeroTrades = Metadata.Property.TradableCount <= 0;
         bool belowRarity = Rarity < Metadata.Limit.TradeMaxRarity;
         switch (Metadata.Limit.TransferType) {
-            case 0: // Tradeable
+            case TransferType.Tradable:
                 if (belowRarity) {
                     return TransferFlag.Trade | TransferFlag.Split;
                 }
                 return zeroTrades ? TransferFlag.None : TransferFlag.LimitTrade;
-            case 1: // Untradeable
+            case TransferType.Untradeable:
                 return zeroTrades ? TransferFlag.None : TransferFlag.LimitTrade;
-            case 2: // Binds on loot
-            case 3: // Binds on equip
-            case 4: // Binds on use
-            case 5: // Binds on trade
-            case 7: // Binds pet (summon/enchant/reroll)
+            case TransferType.BindOnLoot:
+            case TransferType.BindOnEquip:
+            case TransferType.BindOnUse:
+            case TransferType.BindOnTrade:
+            case TransferType.BindPet: // summon/enchant/reroll
                 var result = TransferFlag.Bind;
                 if (zeroTrades) {
                     if (belowRarity) {
@@ -136,7 +136,7 @@ public class Item : IByteSerializable, IByteDeserializable {
                     result &= TransferFlag.LimitTrade;
                 }
                 return result;
-            case 6:
+            case TransferType.Unknown:
                 if (!zeroTrades || belowRarity) {
                     return TransferFlag.Trade;
                 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using Maple2.Database.Storage;
 using Maple2.Model.Metadata;
 using Serilog;
@@ -7,7 +8,7 @@ using Serilog;
 namespace Maple2.Server.Game.Manager.Field;
 
 public partial class FieldManager {
-    public class Factory : IDisposable {
+    public sealed class Factory : IDisposable {
         #region Autofac Autowired
         // ReSharper disable MemberCanBePrivate.Global
         public MapMetadataStorage MapMetadata { private get; init; } = null!;
@@ -16,7 +17,7 @@ public partial class FieldManager {
         // ReSharper restore All
         #endregion
 
-        private readonly ILogger logger = Log.Logger.ForContext<FieldManager.Factory>();
+        private readonly ILogger logger = Log.Logger.ForContext<Factory>();
 
         private readonly ConcurrentDictionary<(int MapId, int InstanceId), FieldManager> managers;
 
@@ -32,7 +33,11 @@ public partial class FieldManager {
 
             // ReSharper disable once HeapView.CanAvoidClosure, defer instantiation unless it's needed.
             return managers.GetOrAdd((mapId, instanceId), _ => {
-                MapEntityMetadata entities = MapEntities.Get(metadata.XBlock);
+                MapEntityMetadata? entities = MapEntities.Get(metadata.XBlock);
+                if (entities == null) {
+                    throw new InvalidOperationException($"Failed to load entities for map: {mapId}");
+                }
+
                 return new FieldManager(instanceId, metadata, entities, NpcMetadata);
             });
         }

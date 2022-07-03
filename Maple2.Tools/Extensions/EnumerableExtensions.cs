@@ -20,7 +20,7 @@ public static class EnumerableExtensions {
         }
     }
 
-    public static T ElementAtOrDefault<T>(this IList<T> list, int index, T fallback = default) {
+    public static T? ElementAtOrDefault<T>(this IList<T> list, int index, T? fallback = default) {
         if (list == null) {
             throw new ArgumentNullException(nameof(list));
         }
@@ -37,8 +37,8 @@ public static class EnumerableExtensions {
         return function.Invoke(enumerable);
     }
 
-    public static V GetValueOrDefault<K, V>(this IDictionary<K, V> dictionary, K key, V @default = default) {
-        return dictionary.TryGetValue(key, out V value) ? value : @default;
+    public static TV? GetValueOrDefault<TK, TV>(this IDictionary<TK, TV> dictionary, TK key, TV? @default = default) {
+        return dictionary.TryGetValue(key, out TV? value) ? value : @default;
     }
 
     public delegate bool TryFunc<in T, TResult>(T input, out TResult value);

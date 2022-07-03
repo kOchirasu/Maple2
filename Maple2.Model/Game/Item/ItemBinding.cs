@@ -2,11 +2,11 @@
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
-namespace Maple2.Model.Game; 
+namespace Maple2.Model.Game;
 
 public class ItemBinding : IByteSerializable, IByteDeserializable {
     public static readonly ItemBinding Default = new ItemBinding();
-    
+
     public long CharacterId { get; private set; }
     public string Name { get; private set; }
 
@@ -25,7 +25,7 @@ public class ItemBinding : IByteSerializable, IByteDeserializable {
         Name = reader.ReadUnicodeString();
     }
 
-    public override bool Equals(object obj) {
+    public override bool Equals(object? obj) {
         if (ReferenceEquals(this, obj)) return true;
         if (!(obj is ItemBinding other)) return false;
         return CharacterId == other.CharacterId && Name == other.Name;

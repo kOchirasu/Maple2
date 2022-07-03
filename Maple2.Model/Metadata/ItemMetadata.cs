@@ -30,7 +30,7 @@ public record ItemMetadataProperty(
 public record ItemMetadataLimit(
     Gender Gender,
     int Level,
-    int TransferType, // [0-7]
+    TransferType TransferType, // [0-7]
     int TradeMaxRarity,
     bool ShopSell,
     bool EnableBreak,

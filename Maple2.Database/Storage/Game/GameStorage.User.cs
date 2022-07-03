@@ -73,7 +73,8 @@ public partial class GameStorage {
                 .SingleOrDefault();
         }
 
-        public Player? LoadPlayer(long accountId, long characterId) {
+        // We pass in objectId only for Player initialization.
+        public Player? LoadPlayer(long accountId, long characterId, int objectId) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
 
             Model.Account? account = Context.Account.Find(accountId);
@@ -99,7 +100,7 @@ public partial class GameStorage {
             Context.Character.Update(character);
             Context.SaveChanges();
 
-            var player = new Player(account!, character!) {
+            var player = new Player(account!, character!, objectId) {
                 Currency = new Currency{
                     Meret = account.Currency.Meret,
                     GameMeret = account.Currency.GameMeret,

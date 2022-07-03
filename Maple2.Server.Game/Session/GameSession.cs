@@ -75,15 +75,15 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
 
         using GameStorage.Request db = GameStorage.Context();
         db.BeginTransaction();
-        Player player = db.LoadPlayer(AccountId, CharacterId);
+        int objectId = FieldManager.NextGlobalId();
+        Player? player = db.LoadPlayer(AccountId, CharacterId, objectId);
         if (player == null) {
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
             return false;
         }
         db.Commit();
 
-        // Create a placeholder FieldPlayer
-        Player = new FieldPlayer(0, this, player);
+        Player = new FieldPlayer(this, player);
         Currency = new CurrencyManager(this);
         Stats = new StatsManager(this);
 
