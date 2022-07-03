@@ -22,6 +22,7 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
         var portals = new Dictionary<int, Portal>();
         var playerSpawns = new Dictionary<int, SpawnPointPC>();
         var npcSpawns = new List<SpawnPointNPC>();
+        var regionSpawns = new Dictionary<int, RegionSpawn>();
         var eventNpcSpawns = new Dictionary<int, EventSpawnPointNPC>();
         TaxiStation? taxi = null;
         var breakableActors = new Dictionary<Guid, BreakableActor>();
@@ -52,6 +53,11 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                     case MapBlock.Discriminator.Portal:
                         if (entity.Block is Portal portal) {
                             portals[portal.Id] = portal;
+                        }
+                        break;
+                    case MapBlock.Discriminator.RegionSpawn:
+                        if (entity.Block is RegionSpawn regionSpawn) {
+                            regionSpawns[regionSpawn.Id] = regionSpawn;
                         }
                         break;
                     case MapBlock.Discriminator.SpawnPointPC:
@@ -85,6 +91,7 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
             PlayerSpawns = playerSpawns,
             NpcSpawns = npcSpawns,
             EventNpcSpawns = eventNpcSpawns,
+            RegionSpawns = regionSpawns,
             Taxi = taxi,
             BreakableActors = breakableActors,
             InteractActors = interactActors,

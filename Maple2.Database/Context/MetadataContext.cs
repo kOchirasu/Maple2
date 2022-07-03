@@ -54,6 +54,7 @@ public sealed class MetadataContext : DbContext {
     private static void ConfigureNpcMetadata(EntityTypeBuilder<NpcMetadata> builder) {
         builder.ToTable("npc");
         builder.HasKey(npc => npc.Id);
+        builder.Property(npc => npc.Tags).HasJsonConversion();
         builder.Property(npc => npc.Stat).HasJsonConversion();
         builder.Property(npc => npc.Basic).HasJsonConversion();
         builder.Property(npc => npc.Action).HasJsonConversion();
@@ -65,6 +66,7 @@ public sealed class MetadataContext : DbContext {
         builder.HasKey(map => map.Id);
         builder.Property(map => map.Property).HasJsonConversion();
         builder.Property(map => map.Limit).HasJsonConversion();
+        builder.Property(map => map.Spawns).HasJsonConversion();
         builder.Property(map => map.CashCall).HasJsonConversion();
         builder.Property(map => map.EntranceBuffs).HasJsonConversion();
     }

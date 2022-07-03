@@ -9,6 +9,7 @@ public record MapMetadata(
     string XBlock,
     MapMetadataProperty Property,
     MapMetadataLimit Limit,
+    IReadOnlyList<MapMetadataSpawn> Spawns,
     MapMetadataCashCall CashCall,
     MapEntranceBuff[] EntranceBuffs) : ISearchResult;
 
@@ -46,6 +47,16 @@ public record MapMetadataLimit(
     bool Dash,
     bool Ride,
     bool Pet);
+
+public record MapMetadataSpawn(
+    int Id,
+    int MinDifficulty,
+    int MaxDifficulty,
+    int Population,
+    int Cooldown,
+    string[] Tags,
+    int PetPopulation,
+    int PetSpawnRate);
 
 public record MapMetadataCashCall(
     bool TaxiDeparture,

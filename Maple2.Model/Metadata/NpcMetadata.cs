@@ -6,6 +6,7 @@ namespace Maple2.Model.Metadata;
 public record NpcMetadata(
     int Id,
     string? Name,
+    string[] Tags,
     string Model,
     NpcMetadataStat Stat,
     NpcMetadataBasic Basic,

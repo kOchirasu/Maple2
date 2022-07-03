@@ -89,6 +89,11 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
                         // case IMS2Vibrate vibrate:
                     }
                     continue;
+                case IMS2RegionSpawnBase spawn:
+                    yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                        Block = new RegionSpawn(spawn.SpawnPointID, spawn.UseRotAsSpawnDir, spawn.Position, spawn.Rotation)
+                    };
+                    continue;
                 // case IMS2Breakable breakable: {
                 //     switch (breakable) {
                 //         case IMS2BreakableNIF nif:

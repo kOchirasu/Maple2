@@ -20,8 +20,10 @@ public class NpcMapper : TypeMapper<NpcMetadata> {
             yield return new NpcMetadata(
                 Id: id,
                 Name: name,
+                Tags: data.basic.mainTags,
                 Model: data.model.kfm,
-                Stat: new NpcMetadataStat(Stats: MapStats(data.stat),
+                Stat: new NpcMetadataStat(
+                    Stats: MapStats(data.stat),
                     ScaleStatRate: new[] {
                         data.stat.scaleStatRate_1,
                         data.stat.scaleStatRate_2,
@@ -46,7 +48,8 @@ public class NpcMapper : TypeMapper<NpcMetadata> {
                         data.stat.scaleBaseSpaRate_3,
                         data.stat.scaleBaseSpaRate_4,
                     }),
-                new NpcMetadataBasic(Friendly: data.basic.friendly,
+                new NpcMetadataBasic(
+                    Friendly: data.basic.friendly,
                     AttackGroup: data.basic.npcAttackGroup,
                     DefenseGroup: data.basic.npcDefenseGroup,
                     Kind: data.basic.kind,
@@ -61,13 +64,15 @@ public class NpcMapper : TypeMapper<NpcMetadata> {
                     RareDegree: data.basic.rareDegree,
                     Difficulty: data.basic.difficulty,
                     CustomExp: data.exp.customExp),
-                Action: new NpcMetadataAction(RotateSpeed: data.speed.rotation,
+                Action: new NpcMetadataAction(
+                    RotateSpeed: data.speed.rotation,
                     WalkSpeed: data.speed.walk,
                     RunSpeed: data.speed.run,
                     Actions: data.normal.action.Zip(data.normal.prob, (action, prob) => new NpcAction(action, prob / probDiv)).ToArray(),
                     MoveArea: data.normal.movearea,
                     MaidExpired: data.normal.maidExpired),
-                Dead: new NpcMetadataDead(Time: data.dead.time,
+                Dead: new NpcMetadataDead(
+                    Time: data.dead.time,
                     Revival: data.dead.revival,
                     Count: data.dead.count,
                     LifeTime: data.dead.lifeTime,

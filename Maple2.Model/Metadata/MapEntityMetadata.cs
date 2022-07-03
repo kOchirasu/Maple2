@@ -10,6 +10,7 @@ public class MapEntityMetadata {
     public IReadOnlyDictionary<int, Portal> Portals { get; init; }
     public IReadOnlyDictionary<int, SpawnPointPC> PlayerSpawns { get; init; }
     public IReadOnlyList<SpawnPointNPC> NpcSpawns { get; init; }
+    public IReadOnlyDictionary<int, RegionSpawn> RegionSpawns { get; init; }
     public IReadOnlyDictionary<int, EventSpawnPointNPC> EventNpcSpawns { get; init; }
     public TaxiStation? Taxi { get; init; }
 
