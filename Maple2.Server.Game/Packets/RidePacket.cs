@@ -1,4 +1,4 @@
-﻿using Maple2.Model.Game;
+using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
@@ -11,16 +11,16 @@ public static class RidePacket {
         Start = 0,
         Stop = 1,
         Change = 2,
-        StartShared = 3,
-        StopShared = 4,
+        Join = 3,
+        Leave = 4,
         ChangeShared = 5,
     }
 
-    public static ByteWriter Start(int ownerId, RideOnAction action) {
+    public static ByteWriter Start(Ride ride) {
         var pWriter = Packet.Of(SendOp.ResponseRide);
         pWriter.Write<Command>(Command.Start);
-        pWriter.WriteInt(ownerId);
-        pWriter.WriteClass<RideOnAction>(action);
+        pWriter.WriteInt(ride.OwnerId);
+        pWriter.WriteClass<RideOnAction>(ride.Action);
 
         return pWriter;
     }
@@ -34,31 +34,31 @@ public static class RidePacket {
         return pWriter;
     }
 
-    public static ByteWriter Change() {
+    public static ByteWriter Change(int ownerId, int rideId, long itemUid) {
         var pWriter = Packet.Of(SendOp.ResponseRide);
         pWriter.Write<Command>(Command.Change);
-        pWriter.WriteInt();
-        pWriter.WriteInt();
-        pWriter.WriteLong();
+        pWriter.WriteInt(ownerId);
+        pWriter.WriteInt(rideId);
+        pWriter.WriteLong(itemUid);
 
         return pWriter;
     }
 
-    public static ByteWriter StartShared() {
+    public static ByteWriter Join(int ownerId, int joinerId, sbyte index) {
         var pWriter = Packet.Of(SendOp.ResponseRide);
-        pWriter.Write<Command>(Command.StartShared);
-        pWriter.WriteInt();
-        pWriter.WriteInt();
-        pWriter.WriteByte();
+        pWriter.Write<Command>(Command.Join);
+        pWriter.WriteInt(ownerId);
+        pWriter.WriteInt(joinerId);
+        pWriter.Write<sbyte>(index);
 
         return pWriter;
     }
 
-    public static ByteWriter StopShared() {
+    public static ByteWriter Leave(int ownerId, int leaverId) {
         var pWriter = Packet.Of(SendOp.ResponseRide);
-        pWriter.Write<Command>(Command.StopShared);
-        pWriter.WriteInt();
-        pWriter.WriteInt();
+        pWriter.Write<Command>(Command.Leave);
+        pWriter.WriteInt(ownerId);
+        pWriter.WriteInt(leaverId);
 
         return pWriter;
     }

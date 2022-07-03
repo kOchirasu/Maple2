@@ -47,7 +47,7 @@ public static class ModelExtensions {
     public static bool IsStamina(this Item item) => item.Id is 90000010;
     public static bool IsCustomMusicScore(this Item item) => item.Id / 100000 == 351;
     public static bool IsEmote(this Item item) => item.Metadata.Property.Type == 2 && item.Metadata.Property.SubType == 14;
-    public static bool IsExpired(this Item item) => DateTimeOffset.UtcNow.ToUnixTimeSeconds() > item.ExpiryTime;
+    public static bool IsExpired(this Item item) => item.ExpiryTime > 0 && DateTimeOffset.UtcNow.ToUnixTimeSeconds() > item.ExpiryTime;
 
     public static ActorState State(this ActorSubState subState) {
         return subState switch {

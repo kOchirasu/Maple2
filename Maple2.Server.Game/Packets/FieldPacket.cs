@@ -44,7 +44,13 @@ public static class FieldPacket {
 
         pWriter.Write<SkinColor>(player.Character.SkinColor);
         pWriter.WriteUnicodeString(player.Character.Picture);
-        pWriter.WriteBool(false); // TODO: Mount
+        pWriter.WriteBool(session.Ride != null);
+        if (session.Ride != null) {
+            pWriter.WriteClass<RideOnAction>(session.Ride.Action);
+
+            pWriter.WriteByte(); // Unknown Count for Loop
+        }
+
         pWriter.WriteInt();
         pWriter.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds()); // ???
         pWriter.WriteInt(); // Weekly Architect Score

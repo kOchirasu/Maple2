@@ -6,9 +6,11 @@ namespace Maple2.Model.Game;
 
 public class RideOffAction : IByteSerializable {
     private readonly RideOffType type;
-    private readonly byte unknown = 0;
+    private readonly bool forced;
 
-    public RideOffAction() : this(RideOffType.Default) { }
+    public RideOffAction(bool forced) : this(RideOffType.Default) {
+        this.forced = forced;
+    }
 
     protected RideOffAction(RideOffType type) {
         this.type = type;
@@ -16,7 +18,7 @@ public class RideOffAction : IByteSerializable {
 
     public virtual void WriteTo(IByteWriter writer) {
         writer.Write<RideOffType>(type);
-        writer.WriteByte(unknown);
+        writer.WriteBool(forced);
     }
 }
 

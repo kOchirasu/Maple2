@@ -97,6 +97,7 @@ public class ItemPickupHandler : PacketHandler<GameSession> {
                 return;
             }
 
+            item.Value.Slot = -1;
             if (session.Item.Inventory.Add(item, true) && item.Value.Metadata.Limit.TransferType == 2) {
                 session.Item.Bind(item);
             }

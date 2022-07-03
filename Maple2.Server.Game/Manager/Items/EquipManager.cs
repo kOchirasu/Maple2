@@ -6,6 +6,7 @@ using Maple2.Database.Storage;
 using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -62,7 +63,12 @@ public class EquipManager {
         lock (session.Item) {
             // Check that item is valid and can be equipped.
             Item? item = session.Item.Inventory.Get(itemUid);
-            if (item == null || item.IsExpired()) {
+            if (item == null) {
+                session.Send(NoticePacket.MessageBox(StringCode.s_item_invalid_do_not_have));
+                return false;
+            }
+            if (item.IsExpired()) {
+                session.Send(NoticePacket.MessageBox(StringCode.s_item_err_puton_expired));
                 return false;
             }
             if (item.Metadata.Property.IsSkin != isSkin) {
@@ -146,7 +152,12 @@ public class EquipManager {
     public bool EquipBadge(long itemUid) {
         lock (session.Item) {
             Item? item = session.Item.Inventory.Get(itemUid);
-            if (item?.Badge == null || item.IsExpired()) {
+            if (item == null) {
+                session.Send(NoticePacket.MessageBox(StringCode.s_item_invalid_do_not_have));
+                return false;
+            }
+            if (item.IsExpired()) {
+                session.Send(NoticePacket.MessageBox(StringCode.s_item_err_puton_expired));
                 return false;
             }
 

@@ -1,6 +1,7 @@
 ﻿using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
@@ -25,23 +26,24 @@ public class RideOnAction : IByteSerializable {
 }
 
 public class RideOnActionUseItem : RideOnAction {
-    public readonly int ItemId; // Same as MountId?
-    public readonly long ItemUid;
+    private readonly Item item;
+    public int ItemId => item.Id;
+    public long ItemUid => item.Uid;
 
-    public RideOnActionUseItem(int rideId, int objectId, int itemId, long itemUid) : base(RideOnType.UseItem, rideId, objectId) {
-        ItemId = itemId;
-        ItemUid = itemUid;
+    public RideOnActionUseItem(int rideId, int objectId, Item item) : base(RideOnType.UseItem, rideId, objectId) {
+        this.item = item;
     }
 
     public override void WriteTo(IByteWriter writer) {
         base.WriteTo(writer);
-        writer.WriteInt(ItemId);
-        writer.WriteLong(ItemUid);
+        writer.WriteInt(item.Id);
+        writer.WriteLong(item.Uid);
+        writer.WriteClass<UgcItemLook>(item.Template ?? UgcItemLook.Default);
     }
 }
 
 public class RideOnActionAdditionalEffect : RideOnAction {
-    public readonly int SkillId; // Same as MountId?
+    public readonly int SkillId;
     public readonly short SkillLevel;
 
     public RideOnActionAdditionalEffect(int rideId, int objectId, int skillId, short skillLevel) : base(RideOnType.AdditionalEffect, rideId, objectId) {

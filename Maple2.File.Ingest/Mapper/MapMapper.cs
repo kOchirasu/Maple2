@@ -1,9 +1,11 @@
 ﻿using Maple2.File.IO;
 using Maple2.File.Parser;
+using Maple2.File.Parser.Xml.Item;
 using Maple2.File.Parser.Xml.Map;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 
-namespace Maple2.File.Ingest.Mapper; 
+namespace Maple2.File.Ingest.Mapper;
 
 public class MapMapper : TypeMapper<MapMetadata> {
     private readonly MapParser parser;
@@ -11,7 +13,7 @@ public class MapMapper : TypeMapper<MapMetadata> {
     public MapMapper(M2dReader xmlReader) {
         parser = new MapParser(xmlReader);
     }
-    
+
     protected override IEnumerable<MapMetadata> Map() {
         foreach ((int id, string name, MapData data) in parser.Parse()) {
             yield return new MapMetadata(
@@ -47,7 +49,11 @@ public class MapMapper : TypeMapper<MapMetadata> {
                     DisableSkills:data.property.skillUseDisable,
                     Climb:data.property.checkClimb,
                     Fly:data.property.checkFly,
-                    Move:data.property.limitMove
+                    Move:data.property.limitMove,
+                    FallDamage:data.ui.fallDamage,
+                    Dash:data.ui.useEPSkill,
+                    Ride:data.ui.useRidee,
+                    Pet:data.ui.usePet
                 ),
                 CashCall:new MapMetadataCashCall(
                     TaxiDeparture:!data.cashCall.cashTaxiNotDeparture,
@@ -57,7 +63,7 @@ public class MapMapper : TypeMapper<MapMetadata> {
                     Recall:!data.cashCall.RecallOtherUserProhibit
                 ),
                 // TODO: There are also EntranceBuffs for Survival
-                EntranceBuffs:data.property.enteranceBuffIDs.Zip(data.property.enteranceBuffLevels, 
+                EntranceBuffs:data.property.enteranceBuffIDs.Zip(data.property.enteranceBuffLevels,
                     (skillId, level) => new MapEntranceBuff(skillId, (short)level)).ToArray()
             );
         }

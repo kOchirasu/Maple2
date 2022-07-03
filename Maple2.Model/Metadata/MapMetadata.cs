@@ -41,7 +41,11 @@ public record MapMetadataLimit(
     int[] DisableSkills,
     bool Climb,
     bool Fly,
-    bool Move);
+    bool Move,
+    bool FallDamage,
+    bool Dash,
+    bool Ride,
+    bool Pet);
 
 public record MapMetadataCashCall(
     bool TaxiDeparture,

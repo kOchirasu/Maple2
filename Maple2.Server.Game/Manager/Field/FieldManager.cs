@@ -27,6 +27,8 @@ public sealed partial class FieldManager : IDisposable {
     public int MapId => Metadata.Id;
     public readonly int InstanceId;
 
+    public int NextObjectId() => Interlocked.Increment(ref objectIdCounter);
+
     private FieldManager(int instanceId, MapMetadata metadata, MapEntityMetadata entities, NpcMetadataStorage npcMetadata) {
         InstanceId = instanceId;
         this.Metadata = metadata;

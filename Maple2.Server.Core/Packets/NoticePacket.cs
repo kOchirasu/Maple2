@@ -33,6 +33,15 @@ public static class NoticePacket {
         return pWriter;
     }
 
+    public static ByteWriter MessageBox(InterfaceText text) {
+        var pWriter = Packet.Of(SendOp.Notice);
+        pWriter.Write<Command>(Command.Notice);
+        pWriter.Write<Flags>(Flags.MessageBox);
+        pWriter.WriteClass<InterfaceText>(text);
+
+        return pWriter;
+    }
+
     public static ByteWriter Notice(Flags flags, InterfaceText text, short duration = 0) {
         var pWriter = Packet.Of(SendOp.Notice);
         pWriter.Write<Command>(Command.Notice);

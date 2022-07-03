@@ -28,13 +28,6 @@ public class RideSyncHandler : PacketHandler<GameSession> {
 
         var stateSyncs = new StateSync[segments];
         for (int i = 0; i < segments; i++) {
-            var playerState = packet.Peek<ActorState>();
-            // TODO: Not sure if this is actually a requirement.
-            if (playerState != ActorState.Idle) {
-                Logger.Error("RideSync with invalid state: {State}", playerState);
-                return;
-            }
-
             stateSyncs[i] = packet.ReadClass<StateSync>();
             packet.ReadInt(); // ClientTicks
             packet.ReadInt(); // ServerTicks

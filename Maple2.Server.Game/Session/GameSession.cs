@@ -176,9 +176,13 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
     }
 
     public bool EnterField() {
+        if (Field == null) {
+            return false;
+        }
+
         Player.Value.Unlock.Maps.Add(Player.Value.Character.MapId);
 
-        Field?.OnAddPlayer(Player);
+        Field.OnAddPlayer(Player);
         Scheduler.Start();
         State = SessionState.Connected;
 
