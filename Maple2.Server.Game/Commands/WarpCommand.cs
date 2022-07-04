@@ -5,7 +5,6 @@ using System.CommandLine.IO;
 using Maple2.Database.Storage;
 using Maple2.Model.Error;
 using Maple2.Model.Metadata;
-using Maple2.Server.Game.Commands.Common;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -21,8 +20,6 @@ public class WarpCommand : Command {
     public WarpCommand(GameSession session, MapMetadataStorage mapStorage) : base(NAME, DESCRIPTION) {
         this.session = session;
         this.mapStorage = mapStorage;
-
-        AddCommand(new FindCommand<MapMetadata>(session, mapStorage));
 
         var mapId = new Argument<int>("id", "Id of map to warp to.");
         var portalId = new Option<int>(new[] {"--portal", "-p"}, () => -1, "Id of portal to teleport to.");

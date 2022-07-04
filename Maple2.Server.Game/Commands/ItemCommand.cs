@@ -6,7 +6,6 @@ using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
-using Maple2.Server.Game.Commands.Common;
 using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.Commands;
@@ -24,8 +23,6 @@ public class ItemCommand : Command {
     public ItemCommand(GameSession session, ItemMetadataStorage itemStorage) : base(NAME, DESCRIPTION) {
         this.session = session;
         this.itemStorage = itemStorage;
-
-        AddCommand(new FindCommand<ItemMetadata>(session, itemStorage));
 
         var id = new Argument<int>("id", "Id of item to spawn.");
         var amount = new Option<int>(new[] {"--amount", "-a"}, () => 1, "Amount of the item.");

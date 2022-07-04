@@ -5,7 +5,6 @@ using System.CommandLine.IO;
 using System.Numerics;
 using Maple2.Database.Storage;
 using Maple2.Model.Metadata;
-using Maple2.Server.Game.Commands.Common;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
@@ -22,8 +21,6 @@ public class NpcCommand : Command {
     public NpcCommand(GameSession session, NpcMetadataStorage npcStorage) : base(NAME, DESCRIPTION) {
         this.session = session;
         this.npcStorage = npcStorage;
-
-        AddCommand(new FindCommand<NpcMetadata>(session, npcStorage));
 
         var id = new Argument<int>("id", "Id of npc to spawn.");
 
