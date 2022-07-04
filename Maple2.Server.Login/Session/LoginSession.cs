@@ -60,10 +60,10 @@ public class LoginSession : Core.Network.Session {
         }
 
         account = readAccount;
-        var entries = new List<(Character, IDictionary<EquipTab, List<Item>>)>();
+        var entries = new List<(Character, IDictionary<ItemGroup, List<Item>>)>();
         foreach (Character character in characters) {
-            IDictionary<EquipTab, List<Item>> equips =
-                db.GetEquips(character.Id, EquipTab.Gear, EquipTab.Outfit, EquipTab.Badge);
+            IDictionary<ItemGroup, List<Item>> equips =
+                db.GetItemGroups(character.Id, ItemGroup.Gear, ItemGroup.Outfit, ItemGroup.Badge);
             entries.Add((character, equips));
         }
 
@@ -102,7 +102,7 @@ public class LoginSession : Core.Network.Session {
 
             Send(CharacterListPacket.SetMax(account.MaxCharacters, Constant.ServerMaxCharacters));
             Send(CharacterListPacket.AppendEntry(account, character,
-                new Dictionary<EquipTab, List<Item>> {{EquipTab.Outfit, outfits}}));
+                new Dictionary<ItemGroup, List<Item>> {{ItemGroup.Outfit, outfits}}));
         }
     }
 

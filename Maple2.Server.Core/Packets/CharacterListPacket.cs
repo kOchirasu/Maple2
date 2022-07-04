@@ -10,7 +10,7 @@ using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets.Helper;
-using Equips = System.Collections.Generic.IDictionary<Maple2.Model.Enum.EquipTab,
+using Equips = System.Collections.Generic.IDictionary<Maple2.Model.Enum.ItemGroup,
     System.Collections.Generic.List<Maple2.Model.Game.Item>>;
 
 namespace Maple2.Server.Core.Packets;
@@ -104,9 +104,9 @@ public static class CharacterListPacket {
         pWriter.WriteUnicodeString(character.Picture);
         pWriter.WriteLong(character.DeleteTime);
 
-        equips.TryGetValue(EquipTab.Gear, out List<Item>? gears);
+        equips.TryGetValue(ItemGroup.Gear, out List<Item>? gears);
         gears ??= new List<Item>();
-        equips.TryGetValue(EquipTab.Outfit, out List<Item>? outfits);
+        equips.TryGetValue(ItemGroup.Outfit, out List<Item>? outfits);
         outfits ??= new List<Item>();
         pWriter.WriteByte((byte) (gears.Count + outfits.Count));
         foreach (Item gear in gears) {
@@ -116,7 +116,7 @@ public static class CharacterListPacket {
             pWriter.WriteEquip(outfit);
         }
 
-        equips.TryGetValue(EquipTab.Badge, out List<Item>? badges);
+        equips.TryGetValue(ItemGroup.Badge, out List<Item>? badges);
         badges ??= new List<Item>();
         pWriter.WriteByte((byte) badges.Count);
         foreach (Item badge in badges) {

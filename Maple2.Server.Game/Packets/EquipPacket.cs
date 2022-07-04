@@ -1,4 +1,5 @@
-﻿using Maple2.Model.Enum;
+﻿using Maple2.Model;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -14,7 +15,7 @@ public static class EquipPacket {
         pWriter.WriteInt(player.ObjectId);
         pWriter.WriteInt(item.Id);
         pWriter.WriteLong(item.Uid);
-        pWriter.WriteUnicodeString(item.EquipSlot.ToString());
+        pWriter.WriteUnicodeString(item.EquipSlot().ToString());
         pWriter.WriteInt(item.Rarity);
         pWriter.WriteByte(type); // 0, 1, 2 (rest invalid)
         pWriter.WriteClass<Item>(item);

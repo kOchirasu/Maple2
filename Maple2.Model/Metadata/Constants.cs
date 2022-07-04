@@ -22,6 +22,7 @@ public static class Constant {
     public const byte MaxHomeArea = 25;
     public const byte MinHomeHeight = 3;
     public const byte MaxHomeHeight = 15;
+    public const short FurnishingStorageMaxSlot = 512;
 
     #endregion
 

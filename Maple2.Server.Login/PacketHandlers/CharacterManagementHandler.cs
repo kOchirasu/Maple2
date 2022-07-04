@@ -121,8 +121,8 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
             }
 
             var outfit = new Item(metadata) {
-                EquipTab = EquipTab.Outfit,
-                EquipSlot = slot,
+                Group = ItemGroup.Outfit,
+                Slot = (short) slot,
             };
             Debug.Assert(outfit.Appearance != null, "equip.Appearance == null");
             outfit.Appearance.ReadFrom(packet);

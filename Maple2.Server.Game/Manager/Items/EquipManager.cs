@@ -27,16 +27,16 @@ public class EquipManager {
         Badge = new ConcurrentDictionary<BadgeType, Item>();
 
         // Load from DB
-        foreach ((EquipTab tab, List<Item> items) in db.GetEquips(session.CharacterId, EquipTab.Gear, EquipTab.Outfit, EquipTab.Badge)) {
+        foreach ((ItemGroup tab, List<Item> items) in db.GetItemGroups(session.CharacterId, ItemGroup.Gear, ItemGroup.Outfit, ItemGroup.Badge)) {
             foreach (Item item in items) {
                 switch (tab) {
-                    case EquipTab.Gear:
-                        Gear[item.EquipSlot] = item;
+                    case ItemGroup.Gear:
+                        Gear[item.EquipSlot()] = item;
                         break;
-                    case EquipTab.Outfit:
-                        Outfit[item.EquipSlot] = item;
+                    case ItemGroup.Outfit:
+                        Outfit[item.EquipSlot()] = item;
                         break;
-                    case EquipTab.Badge:
+                    case ItemGroup.Badge:
                         if (item.Badge != null) {
                             Badge[item.Badge.Type] = item;
                         }
@@ -114,9 +114,8 @@ public class EquipManager {
                 session.Item.Bind(item);
             }
 
-            item.EquipTab = isSkin ? EquipTab.Outfit : EquipTab.Gear;
-            item.EquipSlot = slot;
-            item.Slot = -1;
+            item.Group = isSkin ? ItemGroup.Outfit : ItemGroup.Gear;
+            item.Slot = (short) slot;
             equips[slot] = item;
             session.Field?.Multicast(EquipPacket.EquipItem(session.Player, item, 0));
 
@@ -174,8 +173,7 @@ public class EquipManager {
                 session.Item.Bind(item);
             }
 
-            item.EquipTab = EquipTab.Badge;
-            item.EquipSlot = EquipSlot.Unknown;
+            item.Group = ItemGroup.Default;
             item.Slot = -1;
             session.Field?.Multicast(EquipPacket.EquipBadge(session.Player, item));
 
@@ -193,8 +191,7 @@ public class EquipManager {
                 throw new InvalidOperationException("Unequipped badge that is not a badge");
             }
 
-            unequipItem.EquipTab = EquipTab.None;
-            unequipItem.EquipSlot = EquipSlot.Unknown;
+            unequipItem.Group = ItemGroup.Default;
             unequipItem.Slot = inventorySlot;
             bool success = session.Item.Inventory.Add(unequipItem);
 
@@ -212,15 +209,14 @@ public class EquipManager {
             return true;
         }
 
-        unequipItem.EquipTab = EquipTab.None;
-        unequipItem.EquipSlot = EquipSlot.Unknown;
+        unequipItem.Group = ItemGroup.Default;
+        unequipItem.Slot = inventorySlot;
 
         bool success;
         if (slot is EquipSlot.HR or EquipSlot.ER or EquipSlot.FA or EquipSlot.FD) {
             session.Item.Inventory.Discard(unequipItem);
             success = true;
         } else {
-            unequipItem.Slot = inventorySlot;
             success = session.Item.Inventory.Add(unequipItem);
         }
 

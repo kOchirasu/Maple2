@@ -89,6 +89,7 @@ internal struct HomeInfo {
     public int PlotId { get; set; }
     public int PlotMapId { get; set; }
     public int ApartmentNumber { get; set; }
+    public PlotState State { get; set; }
     public int WeeklyArchitectScore { get; set; }
     public int ArchitectScore { get; set; }
 
@@ -112,6 +113,7 @@ internal struct HomeInfo {
             PlotId = other.PlotId,
             PlotMapId = other.PlotMapId,
             ApartmentNumber = other.ApartmentNumber,
+            State = other.State,
             WeeklyArchitectScore = other.WeeklyArchitectScore,
             ArchitectScore = other.ArchitectScore,
             Area = other.Area,
@@ -128,7 +130,7 @@ internal struct HomeInfo {
     }
 
     public static implicit operator Maple2.Model.Game.HomeInfo(HomeInfo other) {
-        return new Maple2.Model.Game.HomeInfo(other.MapId, other.PlotId, other.PlotMapId, other.ApartmentNumber, other.WeeklyArchitectScore,
+        return new Maple2.Model.Game.HomeInfo(other.MapId, other.PlotId, other.PlotMapId, other.ApartmentNumber, other.State, other.WeeklyArchitectScore,
             other.ArchitectScore, other.Area, other.Height, other.Background, other.Lighting, other.Camera, other.Name, other.Greeting,
             other.ExpiryTime.ToEpochSeconds(), other.UpdateTime.ToEpochSeconds(), other.Permissions);
     }

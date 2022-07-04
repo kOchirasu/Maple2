@@ -48,12 +48,3 @@ public enum EquipSlot : sbyte {
     [Description("Unknown")]
     Unknown = 20,
 }
-
-public enum EquipTab {
-    None = 0,
-    Gear = 1,
-    Outfit = 2,
-    Outfit2 = 3,
-    Badge = 4,
-    Lapenshard = 5,
-}

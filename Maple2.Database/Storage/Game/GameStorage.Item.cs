@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
+using Maple2.Database.Model;
+using Maple2.Model;
 using Maple2.Model.Enum;
-using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Item = Maple2.Model.Game.Item;
 
 namespace Maple2.Database.Storage;
 
@@ -24,8 +26,7 @@ public partial class GameStorage {
             model.Amount = amount;
             model.OwnerId = ownerId;
             model.Slot = -1;
-            model.EquipSlot = EquipSlot.Unknown;
-            model.EquipTab = EquipTab.None;
+            model.Group = ItemGroup.Default;
             model.Id = 0;
             Context.Item.Add(model);
 
@@ -57,10 +58,10 @@ public partial class GameStorage {
             return game.itemMetadata.TryGet(model.ItemId, out ItemMetadata? metadata) ? model.Convert(metadata) : null;
         }
 
-        public IDictionary<EquipTab, List<Item>> GetEquips(long characterId, params EquipTab[] tab) {
-            return Context.Item.Where(item => item.OwnerId == characterId && tab.Contains(item.EquipTab))
+        public IDictionary<ItemGroup, List<Item>> GetItemGroups(long characterId, params ItemGroup[] group) {
+            return Context.Item.Where(item => item.OwnerId == characterId && group.Contains(item.Group))
                 .AsEnumerable()
-                .GroupBy(item => item.EquipTab)
+                .GroupBy(item => item.Group)
                 .ToDictionary(
                     group => group.Key,
                     group => group.Select(ToItem).Where(item => item != null).ToList()
@@ -68,7 +69,7 @@ public partial class GameStorage {
         }
 
         public Dictionary<InventoryType, List<Item>> GetInventory(long characterId) {
-            return Context.Item.Where(item => item.OwnerId == characterId && item.EquipTab == EquipTab.None)
+            return Context.Item.Where(item => item.OwnerId == characterId && item.Group == ItemGroup.Default)
                 .AsEnumerable()
                 .Select(ToItem)
                 .Where(item => item != null)
@@ -79,8 +80,16 @@ public partial class GameStorage {
                 )!;
         }
 
-        public List<Item> GetItems(long characterId) {
-            return Context.Item.Where(item => item.OwnerId == characterId)
+        public List<Item> GetStorage(long accountId) {
+            return Context.Item.Where(item => item.OwnerId == accountId && item.Group == ItemGroup.Default)
+                .AsEnumerable()
+                .Select(ToItem)
+                .Where(item => item != null)
+                .ToList()!;
+        }
+
+        public List<Item> GetAllItems(long ownerId) {
+            return Context.Item.Where(item => item.OwnerId == ownerId)
                 .AsEnumerable()
                 .Select(ToItem)
                 .Where(item => item != null)

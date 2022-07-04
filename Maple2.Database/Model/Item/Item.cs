@@ -13,8 +13,7 @@ internal class Item {
     public int ItemId { get; set; }
     public int Rarity { get; set; }
     public short Slot { get; set; } = -1;
-    public EquipTab EquipTab { get; set; } = EquipTab.None;
-    public EquipSlot EquipSlot { get; set; } = EquipSlot.Unknown;
+    public ItemGroup Group { get; set; } = ItemGroup.Default;
     public int Amount { get; set; } = 1;
     public DateTime ExpiryTime { get; set; }
     public int TimeChangedOption { get; set; }
@@ -49,8 +48,7 @@ internal class Item {
             ItemId = other.Id,
             Rarity = other.Rarity,
             Slot = other.Slot,
-            EquipTab = other.EquipTab,
-            EquipSlot = other.EquipSlot,
+            Group = other.Group,
             Amount = other.Amount,
             CreationTime = other.CreationTime.FromEpochSeconds(),
             ExpiryTime = other.ExpiryTime.FromEpochSeconds(),
@@ -63,7 +61,7 @@ internal class Item {
                 Maple2.Model.Game.HairAppearance hair => (HairAppearance) hair!,
                 Maple2.Model.Game.DecalAppearance decal => (DecalAppearance) decal!,
                 Maple2.Model.Game.CapAppearance cap => (CapAppearance) cap!,
-                _ => (ColorAppearance) other.Appearance!
+                _ => (ColorAppearance) other.Appearance!,
             },
             Stats = other.Stats,
             Enchant = other.Enchant,
@@ -93,8 +91,7 @@ internal class Item {
             LastModified = LastModified,
             Uid = Id,
             Slot = Slot,
-            EquipTab = EquipTab,
-            EquipSlot = EquipSlot,
+            Group = Group,
             CreationTime = CreationTime.ToEpochSeconds(),
             ExpiryTime = ExpiryTime.ToEpochSeconds(),
             TimeChangedOption = TimeChangedOption,

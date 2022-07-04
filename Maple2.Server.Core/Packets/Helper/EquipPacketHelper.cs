@@ -1,4 +1,5 @@
 ﻿using System;
+using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
@@ -10,7 +11,7 @@ public static class EquipPacketHelper {
     public static void WriteEquip(this IByteWriter writer, Item equip) {
         writer.WriteInt(equip.Id);
         writer.WriteLong(equip.Uid);
-        writer.WriteUnicodeString(equip.EquipSlot.ToString());
+        writer.WriteUnicodeString(equip.EquipSlot().ToString());
         writer.WriteInt(equip.Rarity);
         writer.WriteClass<Item>(equip);
     }

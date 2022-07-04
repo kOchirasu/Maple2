@@ -14,6 +14,7 @@ public class HomeInfo : IByteSerializable {
     public int PlotMapId { get; private set; }
     public int PlotId { get; private set; }
     public int ApartmentNumber { get; private set; }
+    public PlotState State { get; private set; }
     public int WeeklyArchitectScore { get; private set; }
     public int ArchitectScore { get; private set; }
 
@@ -32,13 +33,14 @@ public class HomeInfo : IByteSerializable {
 
     public readonly IDictionary<HomePermission, HomePermissionSetting> Permissions;
 
-    public HomeInfo(int mapId, int plotMapId, int plotId, int apartmentNumber, int weeklyArchitectScore, int architectScore, byte area, byte height,
-                    byte background, byte lighting, byte camera, string? name, string? greeting, long expiryTime, long updateTime,
+    public HomeInfo(int mapId, int plotMapId, int plotId, int apartmentNumber, PlotState state, int weeklyArchitectScore, int architectScore, byte area,
+                    byte height, byte background, byte lighting, byte camera, string? name, string? greeting, long expiryTime, long updateTime,
                     IDictionary<HomePermission, HomePermissionSetting>? permissions) {
         MapId = mapId != 0 ? mapId : Constant.DefaultHomeMapId;
         PlotMapId = plotMapId;
         PlotId = plotId;
         ApartmentNumber = apartmentNumber;
+        State = state;
         WeeklyArchitectScore = weeklyArchitectScore;
         ArchitectScore = architectScore;
         Area = Math.Clamp(area, Constant.MinHomeArea, Constant.MaxHomeArea);
@@ -61,7 +63,7 @@ public class HomeInfo : IByteSerializable {
         writer.WriteInt(ArchitectScore);
         writer.WriteInt(PlotId);
         writer.WriteInt(PlotMapId);
-        writer.WriteBool(false); // inDecorPlanner
+        writer.Write<PlotState>(State);
         writer.WriteByte(Area);
         writer.WriteByte(Height);
         writer.WriteByte(Background);

@@ -5,7 +5,6 @@ using Maple2.Model.Common;
 namespace Maple2.Database.Model;
 
 internal abstract partial record ItemAppearance([JsonDiscriminator] ItemAppearance.Discriminator Type, EquipColor Color) {
-
     public enum Discriminator { Default = 1, Hair = 2, Decal = 3, Cap = 4 }
 }
 

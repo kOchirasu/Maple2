@@ -17,8 +17,7 @@ public class Item : IByteSerializable, IByteDeserializable {
     public long Uid { get; init; }
     public int Rarity { get; init; }
     public short Slot = -1;
-    public EquipTab EquipTab = EquipTab.None;
-    public EquipSlot EquipSlot = EquipSlot.Unknown;
+    public ItemGroup Group = ItemGroup.Default;
 
     public int Id => Metadata.Id;
     public int Amount;
