@@ -16,15 +16,11 @@ public record PlayerInfo(CharacterInfo Character, HomeInfo Home, Trophy Trophy) 
     public bool Online => Character.Online;
 
     public static implicit operator PlayerInfo(Player player) {
-        return new PlayerInfo(player, new HomeInfo("", 0, 0, 0, 0), player.Account.Trophy);
+        return new PlayerInfo(player, player.Account.Home, player.Account.Trophy);
     }
 }
 
-public record HomeInfo(string Name, int PlotMapId, int PlotId, int ApartmentNumber, long PlotExpiration);
-
-public record CharacterInfo(long AccountId, long CharacterId, string Name, Gender Gender, Job Job, short Level,
-    int MapId, string Picture, string Motto) {
-
+public record CharacterInfo(long AccountId, long CharacterId, string Name, Gender Gender, Job Job, short Level, int MapId, string Picture, string Motto) {
     public short Channel;
     public bool Online;
 

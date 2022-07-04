@@ -53,8 +53,8 @@ public static class FieldPacket {
 
         pWriter.WriteInt();
         pWriter.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds()); // ???
-        pWriter.WriteInt(); // Weekly Architect Score
-        pWriter.WriteInt(); // Architect Score
+        pWriter.WriteInt(player.Account.Home.WeeklyArchitectScore);
+        pWriter.WriteInt(player.Account.Home.ArchitectScore);
 
         using (var buffer = new PoolByteWriter()) {
             int count = session.Item.Equips.Gear.Count + session.Item.Equips.Outfit.Count;

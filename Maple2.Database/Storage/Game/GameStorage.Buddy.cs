@@ -72,7 +72,7 @@ public partial class GameStorage {
                 .Join(Context.Account,
                     buddy => buddy.BuddyCharacter.AccountId,
                     account => account.Id,
-                    (buddy, account) => new Buddy(new PlayerInfo(buddy.BuddyCharacter!, new HomeInfo("", 0, 0, 0, 0), account.Trophy)) {
+                    (buddy, account) => new Buddy(new PlayerInfo(buddy.BuddyCharacter!, account.Home, account.Trophy)) {
                         Id = buddy.Id,
                         OwnerId = buddy.OwnerId,
                         LastModified = buddy.LastModified.ToEpochSeconds(),

@@ -1,9 +1,10 @@
-﻿using System.Text.Json.Serialization;
+﻿using System;
+using System.Text.Json.Serialization;
 
 namespace Maple2.Database.Model;
 
 internal abstract partial record ItemSubType([JsonDiscriminator] ItemSubType.Discriminator Type) {
-    public enum Discriminator { Ugc, Pet, Music, Badge }
+    public enum Discriminator { Ugc = 1, Pet = 2, Music = 3, Badge = 4 }
 }
 
 internal record ItemUgc(UgcItemLook Template, ItemBlueprint Blueprint) : ItemSubType(Discriminator.Ugc);

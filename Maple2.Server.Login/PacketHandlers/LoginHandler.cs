@@ -24,8 +24,6 @@ public class LoginHandler : PacketHandler<LoginSession> {
     // ReSharper restore All
     #endregion
 
-    public LoginHandler() { }
-
     public override void Handle(LoginSession session, IByteReader packet) {
         var command = packet.Read<Command>();
         string user = packet.ReadUnicodeString();

@@ -194,6 +194,8 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         Send(EmotePacket.Load(Player.Value.Unlock.Emotes.Select(id => new Emote(id)).ToList()));
         Config.LoadMacros();
 
+        Send(CubePacket.LoadHome(Player, true));
+        Send(CubePacket.ReturnMap(Player.Value.Character.ReturnMapId));
         Send(RevivalPacket.Count(0)); // TODO: Consumed daily revivals?
         Send(RevivalPacket.Confirm(Player));
         Config.LoadStatAttributes();
