@@ -15,7 +15,7 @@ public static class PortalPacket {
         Move = 3,
     }
 
-    public static ByteWriter Add(FieldEntity<Portal> fieldPortal) {
+    public static ByteWriter Add(FieldObject<Portal> fieldPortal) {
         Portal portal = fieldPortal;
 
         var pWriter = Packet.Of(SendOp.FieldPortal);
@@ -63,7 +63,7 @@ public static class PortalPacket {
         return pWriter;
     }
 
-    public static ByteWriter Move(FieldEntity<Portal> fieldPortal) {
+    public static ByteWriter Move(FieldObject<Portal> fieldPortal) {
         var pWriter = Packet.Of(SendOp.FieldPortal);
         pWriter.Write<Command>(Command.Move);
         pWriter.Write<Vector3>(fieldPortal.Position);

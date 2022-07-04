@@ -1,23 +1,30 @@
 ﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
-using Maple2.Model;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Tools;
 using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.Manager.Field;
 
 public partial class FieldManager {
+    // Actors
     private readonly ConcurrentDictionary<int, FieldPlayer> fieldPlayers = new();
     private readonly ConcurrentDictionary<int, FieldNpc> fieldNpcs = new();
-    private readonly ConcurrentDictionary<int, FieldEntity<Portal>> fieldPortals = new();
-    private readonly ConcurrentDictionary<int, FieldEntity<Item>> fieldItems = new();
+
+    // Entities
     private readonly ConcurrentDictionary<string, FieldBreakable> fieldBreakables = new();
+    private readonly ConcurrentDictionary<int, FieldItem> fieldItems = new();
+    private readonly ConcurrentDictionary<int, FieldMobSpawn> fieldMobSpawns = new();
+
+    // Objects
+    private readonly ConcurrentDictionary<int, FieldObject<Portal>> fieldPortals = new();
 
     #region Spawn
     public FieldPlayer SpawnPlayer(GameSession session, Player player, int portalId = -1,
@@ -67,8 +74,8 @@ public partial class FieldManager {
         return fieldNpc;
     }
 
-    public FieldEntity<Portal> SpawnPortal(Portal portal, Vector3 position = default, Vector3 rotation = default) {
-        var fieldPortal = new FieldEntity<Portal>(NextLocalId(), portal) {
+    public FieldObject<Portal> SpawnPortal(Portal portal, Vector3 position = default, Vector3 rotation = default) {
+        var fieldPortal = new FieldObject<Portal>(NextLocalId(), portal) {
             Position = position != default ? position : portal.Position,
             Rotation = rotation != default ? rotation : portal.Rotation,
         };
@@ -77,8 +84,8 @@ public partial class FieldManager {
         return fieldPortal;
     }
 
-    public FieldEntity<Item> SpawnItem(IFieldEntity owner, Item item) {
-        var fieldItem = new FieldEntity<Item>(NextLocalId(), item) {
+    public FieldItem SpawnItem(IFieldEntity owner, Item item) {
+        var fieldItem = new FieldItem(this, NextLocalId(), item) {
             Owner = owner,
             Position = owner.Position,
             Rotation = owner.Rotation,
@@ -88,7 +95,7 @@ public partial class FieldManager {
         return fieldItem;
     }
 
-    public FieldBreakable SpawnBreakable(string entityId, BreakableActor breakable) {
+    public FieldBreakable AddBreakable(string entityId, BreakableActor breakable) {
         var fieldBreakable = new FieldBreakable(this, NextLocalId(), entityId, breakable) {
             Position = breakable.Position,
             Rotation = breakable.Rotation,
@@ -96,6 +103,34 @@ public partial class FieldManager {
 
         fieldBreakables[entityId] = fieldBreakable;
         return fieldBreakable;
+    }
+
+    public FieldMobSpawn? AddMobSpawn(MapMetadataSpawn metadata, RegionSpawn regionSpawn, ICollection<int> npcIds) {
+        var spawnNpcs = new WeightedSet<NpcMetadata>();
+        foreach (int npcId in npcIds) {
+            if (!NpcMetadata.TryGet(npcId, out NpcMetadata? npc)) {
+                continue;
+            }
+            if (npc.Basic.Difficulty < metadata.MinDifficulty || npc.Basic.Difficulty > metadata.MaxDifficulty) {
+                continue;
+            }
+
+            int spawnWeight = Lua.CalcNpcSpawnWeight(npc.Basic.MainTags.Length, npc.Basic.SubTags.Length, npc.Basic.RareDegree, npc.Basic.Difficulty);
+            spawnNpcs.Add(npc, spawnWeight);
+        }
+
+        if (spawnNpcs.Count <= 0) {
+            logger.Warning("No valid Npcs found from: {NpcIds}", string.Join(",", npcIds));
+            return null;
+        }
+
+        var fieldMobSpawn = new FieldMobSpawn(this, NextLocalId(), metadata, spawnNpcs) {
+            Position = regionSpawn.Position,
+            Rotation = regionSpawn.UseRotAsSpawnDir ? regionSpawn.Rotation : default,
+        };
+
+        fieldMobSpawns[fieldMobSpawn.ObjectId] = fieldMobSpawn;
+        return fieldMobSpawn;
     }
     #endregion
 
@@ -109,17 +144,14 @@ public partial class FieldManager {
         return false;
     }
 
-    public bool PickupItem(FieldPlayer looter, int objectId, [NotNullWhen(true)] out FieldEntity<Item>? fieldItem) {
-        if (!fieldItems.TryRemove(objectId, out fieldItem)) return false;
-
-        if (fieldItem.Value.IsMeso()) {
-            Multicast(ItemPickupPacket.PickupMeso(objectId, looter, fieldItem.Value.Amount));
-        } else if (fieldItem.Value.IsStamina()) {
-            Multicast(ItemPickupPacket.PickupStamina(objectId, looter, fieldItem.Value.Amount));
-        } else {
-            Multicast(ItemPickupPacket.PickupItem(objectId, looter));
+    public bool PickupItem(FieldPlayer looter, int objectId, [NotNullWhen(true)] out Item? item) {
+        if (!fieldItems.TryRemove(objectId, out FieldItem? fieldItem)) {
+            item = null;
+            return false;
         }
 
+        item = fieldItem.Value;
+        fieldItem.Pickup(looter);
         Multicast(FieldPacket.RemoveItem(objectId));
         return true;
     }
@@ -137,14 +169,14 @@ public partial class FieldManager {
         }
         Multicast(FieldPacket.AddPlayer(added.Session), added.Session);
         Multicast(ProxyObjectPacket.AddPlayer(added), added.Session);
-        foreach (FieldEntity<Item> fieldItem in fieldItems.Values) {
+        foreach (FieldItem fieldItem in fieldItems.Values) {
             added.Session.Send(FieldPacket.DropItem(fieldItem));
         }
         foreach (FieldNpc fieldNpc in fieldNpcs.Values) {
             added.Session.Send(FieldPacket.AddNpc(fieldNpc));
         }
         // FieldAddPet
-        foreach (FieldEntity<Portal> fieldPortal in fieldPortals.Values) {
+        foreach (FieldObject<Portal> fieldPortal in fieldPortals.Values) {
             added.Session.Send(PortalPacket.Add(fieldPortal));
         }
         // ProxyGameObj

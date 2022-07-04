@@ -6,12 +6,12 @@ using Maple2.Server.Game.Packets;
 
 namespace Maple2.Server.Game.Model;
 
-public class FieldBreakable : ActorBase<BreakableActor> {
+public class FieldBreakable : FieldEntity<BreakableActor> {
     private readonly FieldManager field;
     public readonly string EntityId;
     private int nextTick;
 
-    public new BreakableState State { get; private set; }
+    public BreakableState State { get; private set; }
     public int BaseTick { get; private set; }
 
     private bool visible;
@@ -46,10 +46,10 @@ public class FieldBreakable : ActorBase<BreakableActor> {
                 nextTick = 0;
                 break;
             case BreakableState.Break:
-                nextTick = Environment.TickCount + Value.HideTime / 2;
+                nextTick = Environment.TickCount + Value.HideTime;
                 break;
             case BreakableState.Hide:
-                nextTick = Environment.TickCount + Value.ResetTime / 4;
+                nextTick = Environment.TickCount + Value.ResetTime;
                 break;
             case BreakableState.Unknown5:
                 break;

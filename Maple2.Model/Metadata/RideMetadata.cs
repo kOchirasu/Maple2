@@ -8,8 +8,7 @@ public record RideMetadata(
     string Model,
     RideMetadataBasic Basic,
     RideMetadataSpeed Speed,
-    IReadOnlyDictionary<StatAttribute, long> Stats,
-    int Passengers);
+    IReadOnlyDictionary<StatAttribute, long> Stats);
 
 public record RideMetadataBasic(
     int Type,
@@ -17,7 +16,8 @@ public record RideMetadataBasic(
     float SummonTime,
     long RunXStamina,
     bool EnableSwim,
-    int FallDamageDown);
+    int FallDamageDown,
+    int Passengers);
 
 public record RideMetadataSpeed(
     float WalkSpeed,

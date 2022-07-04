@@ -12,6 +12,6 @@ public class Ride {
         OwnerId = ownerId;
         Metadata = metadata;
         Action = action;
-        Passengers = new int[metadata.Passengers];
+        Passengers = new int[metadata.Basic.Passengers];
     }
 }

@@ -180,7 +180,7 @@ public static class FieldPacket {
         return pWriter;
     }
 
-    public static ByteWriter DropItem(FieldEntity<Item> fieldItem) {
+    public static ByteWriter DropItem(FieldItem fieldItem) {
         Item item = fieldItem;
 
         var pWriter = Packet.Of(SendOp.FieldAddItem);

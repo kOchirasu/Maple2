@@ -1,11 +1,14 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Maple2.Database.Extensions;
 
 internal static class PropertyBuilderExtensions {
-    private static readonly JsonSerializerOptions Options = new JsonSerializerOptions();
+    private static readonly JsonSerializerOptions Options = new() {
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+    };
 
     static PropertyBuilderExtensions() {
         Options.Converters.Add(new Vector3Converter());

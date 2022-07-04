@@ -20,7 +20,6 @@ public class NpcMapper : TypeMapper<NpcMetadata> {
             yield return new NpcMetadata(
                 Id: id,
                 Name: name,
-                Tags: data.basic.mainTags,
                 Model: data.model.kfm,
                 Stat: new NpcMetadataStat(
                     Stats: MapStats(data.stat),
@@ -62,6 +61,8 @@ public class NpcMapper : TypeMapper<NpcMetadata> {
                     MaxSpawnCount: data.basic.maxSpawnCount,
                     GroupSpawnCount: data.basic.groupSpawnCount,
                     RareDegree: data.basic.rareDegree,
+                    MainTags: data.basic.mainTags,
+                    SubTags: data.basic.subTags,
                     Difficulty: data.basic.difficulty,
                     CustomExp: data.exp.customExp),
                 Action: new NpcMetadataAction(

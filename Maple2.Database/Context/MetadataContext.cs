@@ -54,7 +54,6 @@ public sealed class MetadataContext : DbContext {
     private static void ConfigureNpcMetadata(EntityTypeBuilder<NpcMetadata> builder) {
         builder.ToTable("npc");
         builder.HasKey(npc => npc.Id);
-        builder.Property(npc => npc.Tags).HasJsonConversion();
         builder.Property(npc => npc.Stat).HasJsonConversion();
         builder.Property(npc => npc.Basic).HasJsonConversion();
         builder.Property(npc => npc.Action).HasJsonConversion();

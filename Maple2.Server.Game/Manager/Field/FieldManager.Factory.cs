@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading;
+using Autofac;
 using Maple2.Database.Storage;
 using Maple2.Model.Metadata;
 using Serilog;
+using Serilog.Core;
 
 namespace Maple2.Server.Game.Manager.Field;
 
@@ -13,15 +15,17 @@ public partial class FieldManager {
         // ReSharper disable MemberCanBePrivate.Global
         public MapMetadataStorage MapMetadata { private get; init; } = null!;
         public MapEntityStorage MapEntities { private get; init; } = null!;
-        public NpcMetadataStorage NpcMetadata { private get; init; } = null!;
         // ReSharper restore All
         #endregion
 
         private readonly ILogger logger = Log.Logger.ForContext<Factory>();
 
+        private readonly IComponentContext context;
         private readonly ConcurrentDictionary<(int MapId, int InstanceId), FieldManager> managers;
 
-        public Factory() {
+        public Factory(IComponentContext context) {
+            this.context = context;
+
             managers = new ConcurrentDictionary<(int, int), FieldManager>();
         }
 
@@ -38,7 +42,10 @@ public partial class FieldManager {
                     throw new InvalidOperationException($"Failed to load entities for map: {mapId}");
                 }
 
-                return new FieldManager(instanceId, metadata, entities, NpcMetadata);
+                var field = new FieldManager(instanceId, metadata, entities);
+                context.InjectProperties(field);
+                field.Init();
+                return field;
             });
         }
 

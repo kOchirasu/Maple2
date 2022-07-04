@@ -1,10 +1,13 @@
-﻿using Maple2.PacketLib.Tools;
+﻿using System.Numerics;
+using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
 namespace Maple2.Server.Game.Model;
 
 public class Buff : IFieldObject, IByteSerializable {
     public int ObjectId { get; init; }
+    public Vector3 Position { get; set; }
+    public Vector3 Rotation { get; set; }
 
     public readonly int Id;
     public readonly IActor Owner;

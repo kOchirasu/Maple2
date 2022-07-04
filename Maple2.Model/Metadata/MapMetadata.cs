@@ -56,7 +56,8 @@ public record MapMetadataSpawn(
     int Cooldown,
     string[] Tags,
     int PetPopulation,
-    int PetSpawnRate);
+    int PetSpawnRate,
+    int[] PetIds);
 
 public record MapMetadataCashCall(
     bool TaxiDeparture,

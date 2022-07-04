@@ -120,7 +120,7 @@ public static class ProxyObjectPacket {
         return pWriter;
     }
 
-    public static ByteWriter AddPet(FieldEntity<NpcMetadata> fieldPet) {
+    public static ByteWriter AddPet(FieldObject<NpcMetadata> fieldPet) {
         var pWriter = Packet.Of(SendOp.ProxyGameObj);
         pWriter.Write<Command>(Command.AddPet);
         pWriter.WriteInt(fieldPet.ObjectId);
@@ -140,7 +140,7 @@ public static class ProxyObjectPacket {
         return pWriter;
     }
 
-    public static ByteWriter UpdatePet(FieldEntity<NpcMetadata> fieldPet) {
+    public static ByteWriter UpdatePet(FieldObject<NpcMetadata> fieldPet) {
         var pWriter = Packet.Of(SendOp.ProxyGameObj);
         pWriter.Write<Command>(Command.UpdatePet);
         pWriter.WriteInt(fieldPet.ObjectId);

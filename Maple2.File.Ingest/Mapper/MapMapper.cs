@@ -16,6 +16,11 @@ public class MapMapper : TypeMapper<MapMetadata> {
     }
 
     protected override IEnumerable<MapMetadata> Map() {
+        var pets = new Dictionary<int, int[]>();
+        foreach ((int mapId, IEnumerable<PetSpawnInfo> infos) in spawnParser.ParsePetSpawnInfo()) {
+            pets[mapId] = infos.Select(info => info.petID).ToArray();
+        }
+
         var spawns = new Dictionary<int, IReadOnlyList<MapMetadataSpawn>>();
         foreach ((int mapId, IEnumerable<MapSpawnTag.Region> regions) in spawnParser.ParseMapSpawnTag()) {
             spawns[mapId] = regions.Select(region => new MapMetadataSpawn(
@@ -26,7 +31,8 @@ public class MapMapper : TypeMapper<MapMetadata> {
                 Cooldown: region.coolTime,
                 Tags: region.tag,
                 PetPopulation: region.petPopulation,
-                PetSpawnRate: region.petSpawnProbability)
+                PetSpawnRate: region.petSpawnProbability,
+                PetIds: pets.GetValueOrDefault(mapId, Array.Empty<int>()))
             ).ToList();
         }
 

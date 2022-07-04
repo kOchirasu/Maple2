@@ -51,8 +51,8 @@ public class QuestMapper : TypeMapper<QuestMetadata> {
         List<Reward.Item> essentialItem = reward.essentialItem;
         List<Reward.Item> essentialJobItem = reward.essentialJobItem;
         if (FeatureLocaleFilter.FeatureEnabled("GlobalQuestRewardItem")) {
-            essentialItem = reward.globalEssentialItem ?? essentialItem;
-            essentialJobItem = reward.globalEssentialJobItem ?? essentialJobItem;
+            essentialItem = reward.globalEssentialItem.Count > 0 ? reward.globalEssentialItem : essentialItem;
+            essentialJobItem = reward.globalEssentialJobItem.Count > 0 ? reward.globalEssentialJobItem : essentialJobItem;
         }
 
         return new QuestMetadataReward(
@@ -66,9 +66,9 @@ public class QuestMapper : TypeMapper<QuestMetadata> {
             MenteeCoin: reward.menteeCoin,
             MissionPoint: reward.missionPoint,
             EssentialItem: essentialItem.Select(item =>
-                new QuestMetadataReward.Item(item.count, item.rank, item.count)).ToList(),
+                new QuestMetadataReward.Item(item.code, item.rank, item.count)).ToList(),
             EssentialJobItem: essentialJobItem.Select(item =>
-                new QuestMetadataReward.Item(item.count, item.rank, item.count)).ToList()
+                new QuestMetadataReward.Item(item.code, item.rank, item.count)).ToList()
         );
     }
 }

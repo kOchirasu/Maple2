@@ -27,6 +27,10 @@ public abstract class ActorBase<T> : IActor<T> {
     public virtual void Sync() { }
 }
 
+/// <summary>
+/// Actor is an ActorBase that can engage in combat.
+/// </summary>
+/// <typeparam name="T">The type contained by this object</typeparam>
 public abstract class Actor<T> : ActorBase<T>, IDisposable {
     public abstract IReadOnlyDictionary<int, Buff> Buffs { get; }
     public abstract Stats Stats { get; }

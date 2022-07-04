@@ -113,7 +113,7 @@ public class ItemInventoryHandler : PacketHandler<GameSession> {
             return;
         }
 
-        FieldEntity<Item> fieldItem = session.Field!.SpawnItem(session.Player, drop);
+        FieldItem fieldItem = session.Field!.SpawnItem(session.Player, drop);
         session.Field.Multicast(FieldPacket.DropItem(fieldItem));
     }
 }

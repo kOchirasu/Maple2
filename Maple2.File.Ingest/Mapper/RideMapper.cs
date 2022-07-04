@@ -28,14 +28,14 @@ public class RideMapper : TypeMapper<RideMetadata> {
                     SummonTime: data.basic.rideSummonCastTime,
                     RunXStamina: data.basic.runXConsumeEp,
                     EnableSwim: data.basic.enableSwim,
-                    FallDamageDown: data.basic.fallDamageDown),
+                    FallDamageDown: data.basic.fallDamageDown,
+                    Passengers: passengers.GetValueOrDefault(id)),
                 Speed: new RideMetadataSpeed(
                     WalkSpeed: data.basic.walkSpeed,
                     RunSpeed:data.basic.runSpeed,
                     RunXSpeed:data.basic.runXSpeed,
                     SwimSpeed: data.basic.swimSpeed),
-                Stats: data.stat.ToDictionary(),
-                Passengers: passengers.GetValueOrDefault(id)
+                Stats: data.stat.ToDictionary()
             );
         }
     }

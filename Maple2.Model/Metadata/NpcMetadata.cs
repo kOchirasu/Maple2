@@ -6,7 +6,6 @@ namespace Maple2.Model.Metadata;
 public record NpcMetadata(
     int Id,
     string? Name,
-    string[] Tags,
     string Model,
     NpcMetadataStat Stat,
     NpcMetadataBasic Basic,
@@ -35,6 +34,8 @@ public record NpcMetadataBasic(
     int GroupSpawnCount,
     int RareDegree,
     int Difficulty,
+    string[] MainTags,
+    string[] SubTags,
     long CustomExp);
 
 public record NpcMetadataAction(

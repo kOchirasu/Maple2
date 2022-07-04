@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Maple2.Database.Storage;
-using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Game.Model;
@@ -12,13 +12,21 @@ using Serilog;
 
 namespace Maple2.Server.Game.Manager.Field;
 
+// FieldManager is instantiated by Autofac
+// ReSharper disable once ClassNeverInstantiated.Global
 public sealed partial class FieldManager : IDisposable {
     private static int globalIdCounter = 10000000;
     private int localIdCounter = 50000000;
 
+    #region Autofac Autowired
+    // ReSharper disable MemberCanBePrivate.Global
+    public NpcMetadataStorage NpcMetadata { private get; init; } = null!;
+    public Lua.Lua Lua { private get; init; } = null!;
+    // ReSharper restore All
+    #endregion
+
     public readonly MapMetadata Metadata;
     private readonly MapEntityMetadata entities;
-    private readonly NpcMetadataStorage npcMetadata;
 
     private readonly ConcurrentBag<SpawnPointNPC> npcSpawns = new();
 
@@ -30,14 +38,16 @@ public sealed partial class FieldManager : IDisposable {
     public int MapId => Metadata.Id;
     public readonly int InstanceId;
 
-    private FieldManager(int instanceId, MapMetadata metadata, MapEntityMetadata entities, NpcMetadataStorage npcMetadata) {
+    public FieldManager(int instanceId, MapMetadata metadata, MapEntityMetadata entities) {
         InstanceId = instanceId;
         this.Metadata = metadata;
         this.entities = entities;
-        this.npcMetadata = npcMetadata;
         this.cancel = new CancellationTokenSource();
         this.thread = new Thread(Sync);
+    }
 
+    // Init is separate from constructor to allow properties to be injected first.
+    private void Init() {
         foreach (Portal portal in entities.Portals.Values) {
             SpawnPortal(portal);
         }
@@ -45,7 +55,7 @@ public sealed partial class FieldManager : IDisposable {
         foreach ((Guid guid, BreakableActor breakable) in entities.BreakableActors) {
             string entityId = guid.ToString("N");
             if (breakable.Position != default && breakable.Rotation != default) {
-                SpawnBreakable(entityId, breakable);
+                AddBreakable(entityId, breakable);
             }
         }
 
@@ -58,13 +68,32 @@ public sealed partial class FieldManager : IDisposable {
                 for (int i = 0; i < spawnPointNpc.NpcCount; i++) {
                     // TODO: get other NpcIds too
                     int npcId = spawnPointNpc.NpcIds[0];
-                    if (!npcMetadata.TryGet(npcId, out NpcMetadata? npc)) {
+                    if (!NpcMetadata.TryGet(npcId, out NpcMetadata? npc)) {
                         logger.Warning("Npc {NpcId} failed to load for map {MapId}", npcId, MapId);
                         continue;
                     }
 
                     SpawnNpc(npc, spawnPointNpc.Position, spawnPointNpc.Rotation);
                 }
+            }
+        }
+
+        foreach (MapMetadataSpawn spawn in Metadata.Spawns) {
+            if (!entities.RegionSpawns.TryGetValue(spawn.Id, out RegionSpawn? regionSpawn)) {
+                continue;
+            }
+
+            var npcIds = new HashSet<int>();
+            foreach (string tag in spawn.Tags) {
+                if (NpcMetadata.TryLookupTag(tag, out IReadOnlyCollection<int>? tagNpcIds)) {
+                    foreach (int tagNpcId in tagNpcIds) {
+                        npcIds.Add(tagNpcId);
+                    }
+                }
+            }
+
+            if (npcIds.Count > 0 && spawn.Population > 0) {
+                AddMobSpawn(spawn, regionSpawn, npcIds);
             }
         }
 
@@ -85,15 +114,11 @@ public sealed partial class FieldManager : IDisposable {
 
     private void Sync() {
         while (!cancel.IsCancellationRequested) {
-            foreach (FieldPlayer player in fieldPlayers.Values) {
-                player.Sync();
-            }
-            foreach (FieldNpc npc in fieldNpcs.Values) {
-                npc.Sync();
-            }
-            foreach (FieldBreakable breakable in fieldBreakables.Values) {
-                breakable.Sync();
-            }
+            foreach (FieldPlayer player in fieldPlayers.Values) player.Sync();
+            foreach (FieldNpc npc in fieldNpcs.Values) npc.Sync();
+            foreach (FieldBreakable breakable in fieldBreakables.Values) breakable.Sync();
+            foreach (FieldItem item in fieldItems.Values) item.Sync();
+            foreach (FieldMobSpawn mobSpawn in fieldMobSpawns.Values) mobSpawn.Sync();
             Thread.Sleep(50);
         }
     }
@@ -122,7 +147,7 @@ public sealed partial class FieldManager : IDisposable {
         return entities.Portals.TryGetValue(portalId, out portal);
     }
 
-    public bool TryGetItem(int objectId, [NotNullWhen(true)] out FieldEntity<Item>? fieldItem) {
+    public bool TryGetItem(int objectId, [NotNullWhen(true)] out FieldItem? fieldItem) {
         return fieldItems.TryGetValue(objectId, out fieldItem);
     }
 

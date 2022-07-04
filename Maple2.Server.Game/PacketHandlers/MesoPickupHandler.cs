@@ -20,14 +20,14 @@ public class MesoPickupHandler : PacketHandler<GameSession> {
         for (byte i = 0; i < count; i++) {
             int objectId = packet.ReadInt();
             // Check that the item being looted is mesos
-            if (!session.Field.TryGetItem(objectId, out FieldEntity<Item>? item) || !item.Value.IsMeso()) {
+            if (!session.Field.TryGetItem(objectId, out FieldItem? fieldItem) || !fieldItem.Value.IsMeso()) {
                 continue;
             }
 
             // If item is mesos, attempt to loot it
-            if (session.Field.PickupItem(session.Player, objectId, out item)) {
+            if (session.Field.PickupItem(session.Player, objectId, out Item? item)) {
                 session.Item.Inventory.Discard(item);
-                session.Currency.Meso += item.Value.Amount;
+                session.Currency.Meso += item.Amount;
             }
         }
     }
