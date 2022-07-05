@@ -9,6 +9,7 @@ public class Player {
     public readonly Character Character;
     public readonly int ObjectId;
 
+    public Home Home { get; set; }
     public Currency Currency { get; init; }
     public Unlock Unlock { get; init; }
 

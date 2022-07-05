@@ -37,11 +37,11 @@ public class Buddy : IByteSerializable {
         writer.WriteUnicodeString(BuddyInfo.Picture);
         writer.WriteUnicodeString(BuddyInfo.Motto);
         writer.WriteUnicodeString(Type == BuddyType.Blocked ? Message : "");
-        writer.WriteInt();
-        writer.WriteInt();
-        writer.WriteInt();
-        writer.WriteUnicodeString(BuddyInfo.Home.Name);
-        writer.WriteLong();
+        writer.WriteInt(BuddyInfo.PlotMapId);
+        writer.WriteInt(BuddyInfo.PlotNumber);
+        writer.WriteInt(PlayerInfo.ApartmentNumber);
+        writer.WriteUnicodeString(BuddyInfo.HomeName);
+        writer.WriteLong(); // Home expiry time?
         writer.Write<Trophy>(BuddyInfo.Trophy);
     }
 }

@@ -15,7 +15,6 @@ public class Account {
     public int MaxCharacters { get; set; }
     public int PrestigeLevel { get; set; }
     public long PrestigeExp { get; set; }
-    public HomeInfo Home { get; set; }
     public Trophy Trophy { get; set; }
     public long PremiumTime { get; set; }
 }

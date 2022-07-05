@@ -9,7 +9,7 @@ public class UgcItemCube : IByteSerializable, IByteDeserializable {
     public long Uid { get; private set; }
     public UgcItemLook? Template { get; private set; }
 
-    public UgcItemCube(int id, long uid, UgcItemLook? template) {
+    public UgcItemCube(int id, long uid, UgcItemLook? template = null) {
         Id = id;
         Uid = uid;
         Template = template;

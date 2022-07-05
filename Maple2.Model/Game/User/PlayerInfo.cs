@@ -2,7 +2,7 @@
 
 namespace Maple2.Model.Game;
 
-public record PlayerInfo(CharacterInfo Character, HomeInfo Home, Trophy Trophy) {
+public record PlayerInfo(CharacterInfo Character, int PlotMapId, int PlotNumber, string HomeName, Trophy Trophy) {
     public long AccountId => Character.AccountId;
     public long CharacterId => Character.CharacterId;
     public string Name => Character.Name;
@@ -15,8 +15,11 @@ public record PlayerInfo(CharacterInfo Character, HomeInfo Home, Trophy Trophy) 
     public int Channel => Character.Channel;
     public bool Online => Character.Online;
 
+    // Not used...
+    public static int ApartmentNumber => 0;
+
     public static implicit operator PlayerInfo(Player player) {
-        return new PlayerInfo(player, player.Account.Home, player.Account.Trophy);
+        return new PlayerInfo(player, player.Home.PlotMapId, player.Home.PlotNumber, player.Home.Name, player.Account.Trophy);
     }
 }
 

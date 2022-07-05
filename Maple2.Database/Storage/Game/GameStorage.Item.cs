@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model;
-using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Item = Maple2.Model.Game.Item;
+using UgcItemLook = Maple2.Model.Game.UgcItemLook;
 
 namespace Maple2.Database.Storage;
 
@@ -58,8 +57,17 @@ public partial class GameStorage {
             return game.itemMetadata.TryGet(model.ItemId, out ItemMetadata? metadata) ? model.Convert(metadata) : null;
         }
 
-        public IDictionary<ItemGroup, List<Item>> GetItemGroups(long characterId, params ItemGroup[] group) {
-            return Context.Item.Where(item => item.OwnerId == characterId && group.Contains(item.Group))
+        public UgcItemLook? GetTemplate(long itemUid) {
+            ItemSubType? model = Context.Item.Select(item => new {item.Id, item.SubType})
+                .SingleOrDefault(result => result.Id == itemUid)?.SubType;
+            if (model is not ItemUgc ugcModel) {
+                return null;
+            }
+
+            return ugcModel.Template;
+        }
+        public IDictionary<ItemGroup, List<Item>> GetItemGroups(long ownerId, params ItemGroup[] groups) {
+            return Context.Item.Where(item => item.OwnerId == ownerId && groups.Contains(item.Group))
                 .AsEnumerable()
                 .GroupBy(item => item.Group)
                 .ToDictionary(

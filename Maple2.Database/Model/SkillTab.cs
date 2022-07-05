@@ -49,8 +49,3 @@ internal class SkillTab {
         creationTime.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
     }
 }
-
-internal class SkillTabEntry {
-    public int SkillId { get; set; }
-    public int Points { get; set; }
-}

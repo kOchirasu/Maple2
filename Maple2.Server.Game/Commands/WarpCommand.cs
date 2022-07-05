@@ -32,7 +32,7 @@ public class WarpCommand : Command {
     private void Handle(InvocationContext ctx, int mapId, int portalId) {
         try {
             if (!mapStorage.TryGet(mapId, out MapMetadata? map)) {
-                ctx.ExitCode = 1;
+                ctx.Console.Error.WriteLine($"Invalid Map: {mapId}");
                 return;
             }
 

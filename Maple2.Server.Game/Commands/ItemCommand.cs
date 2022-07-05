@@ -39,7 +39,7 @@ public class ItemCommand : Command {
     private void Handle(InvocationContext ctx, int itemId, int amount, int rarity, int[] socket) {
         try {
             if (!itemStorage.TryGet(itemId, out ItemMetadata? metadata)) {
-                ctx.ExitCode = 1;
+                ctx.Console.Error.WriteLine($"Invalid Item: {itemId}");
                 return;
             }
 

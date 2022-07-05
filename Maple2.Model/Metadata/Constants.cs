@@ -18,6 +18,7 @@ public static class Constant {
     public const int GemstoneGrade = 4;
     public const int InventoryExpandRowCount = 6;
     public const int DefaultHomeMapId = 62000000;
+    public const int DefaultHomeNumber = 1;
     public const byte MinHomeArea = 4;
     public const byte MaxHomeArea = 25;
     public const byte MinHomeHeight = 3;

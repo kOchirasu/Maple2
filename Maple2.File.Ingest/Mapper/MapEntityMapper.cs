@@ -139,16 +139,15 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
     }
 
     protected override IEnumerable<MapEntity> Map() {
-        IEnumerable<MapEntity> results = Enumerable.Empty<MapEntity>();
-        parser.Parse((xblock, entities) => {
-            xblock = xblock.ToLower();
+        return parser.Parallel().SelectMany(map => {
+            string xblock = map.xblock.ToLower();
             if (!xBlocks.Contains(xblock)) {
-                return;
+                return Enumerable.Empty<MapEntity>();
             }
 
-            results = results.Concat(ParseMap(xblock, entities));
-        });
-
-        return results;
+            return ParseMap(xblock, map.entities);
+        }) // Ordering to ensure deterministic checksums.
+        .OrderBy(entity => entity.XBlock)
+        .ThenBy(entity => entity.Guid);
     }
 }

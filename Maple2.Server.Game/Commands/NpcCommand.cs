@@ -31,7 +31,7 @@ public class NpcCommand : Command {
     private void Handle(InvocationContext ctx, int npcId) {
         try {
             if (session.Field == null || !npcStorage.TryGet(npcId, out NpcMetadata? metadata)) {
-                ctx.ExitCode = 1;
+                ctx.Console.Error.WriteLine($"Invalid Npc: {npcId}");
                 return;
             }
 

@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
-using Maple2.Model.Game;
-using Microsoft.EntityFrameworkCore;
+using Club = Maple2.Model.Game.Club;
+using ClubMember = Maple2.Model.Game.ClubMember;
 
 namespace Maple2.Database.Storage;
 
@@ -46,16 +46,16 @@ public partial class GameStorage {
         }
 
         public IList<ClubMember> GetClubMembers(long clubId) {
-            return Context.ClubMember.Where(member => member.ClubId == clubId)
-                .Include(member => member.Character)
-                .Join(Context.Account,
-                    member => member.Character.AccountId,
-                    account => account.Id,
-                    (member, account) => new ClubMember(
-                        new PlayerInfo(member.Character!, account.Home, account.Trophy),
+            return (from member in Context.ClubMember where member.ClubId == clubId
+                    join account in Context.Account on member.Character.AccountId equals account.Id
+                    join housing in Context.Housing on member.Character.AccountId equals housing.AccountId
+                    join homePlot in Context.Plot on housing.HomePlotId equals homePlot.Id
+                    join mapPlot in Context.Plot on housing.MapPlotId equals mapPlot.Id into grouping
+                    from mapPlot in grouping.DefaultIfEmpty()
+                    select new ClubMember(
+                        BuildPlayerInfo(member.Character, mapPlot, homePlot, account.Trophy),
                         member.CreationTime.ToEpochSeconds(),
-                        member.Character.LastModified.ToEpochSeconds())
-                ).ToList();
+                        member.Character.LastModified.ToEpochSeconds())).ToList();
         }
     }
 }
