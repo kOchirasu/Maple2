@@ -2,13 +2,16 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Maple2.Database.Storage;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Session;
 using Serilog;
+using Serilog.Core;
 
 namespace Maple2.Server.Game.Manager.Field;
 
@@ -20,15 +23,18 @@ public sealed partial class FieldManager : IDisposable {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
+    public GameStorage GameStorage { get; init; } = null!;
     public NpcMetadataStorage NpcMetadata { private get; init; } = null!;
     public Lua.Lua Lua { private get; init; } = null!;
     // ReSharper restore All
     #endregion
 
     public readonly MapMetadata Metadata;
+    private readonly UgcMapMetadata ugcMetadata;
     private readonly MapEntityMetadata entities;
 
     private readonly ConcurrentBag<SpawnPointNPC> npcSpawns = new();
+    private readonly ConcurrentDictionary<int, Plot> plots = new();
 
     private readonly CancellationTokenSource cancel;
     private readonly Thread thread;
@@ -38,16 +44,42 @@ public sealed partial class FieldManager : IDisposable {
     public int MapId => Metadata.Id;
     public readonly int InstanceId;
 
-    public FieldManager(int instanceId, MapMetadata metadata, MapEntityMetadata entities) {
-        InstanceId = instanceId;
-        this.Metadata = metadata;
+    public ICollection<Plot> Plots => plots.Values;
+
+    public FieldManager(MapMetadata metadata, UgcMapMetadata ugcMetadata, MapEntityMetadata entities, int instanceId = 0) {
+        Metadata = metadata;
+        this.ugcMetadata = ugcMetadata;
         this.entities = entities;
+
+        InstanceId = instanceId;
         this.cancel = new CancellationTokenSource();
         this.thread = new Thread(Sync);
     }
 
     // Init is separate from constructor to allow properties to be injected first.
     private void Init() {
+        // Plots = ugcMetadata.Groups.ToDictionary(entry => entry.GroupId, entry => entry);
+        logger.Information("Loading ugc maps total: {Count}", ugcMetadata.Groups.Count);
+        if (ugcMetadata.Groups.Count > 0) {
+            using GameStorage.Request db = GameStorage.Context();
+            foreach (Plot plot in db.LoadPlotsForMap(MapId)) {
+                Console.WriteLine($"Loaded plot for {plot.OwnerId}");
+                plots[plot.Number] = plot;
+            }
+
+            foreach (UgcMapGroup group in ugcMetadata.Groups) {
+                if (plots.ContainsKey(group.GroupId)) {
+                    continue;
+                }
+
+                plots[group.GroupId] = new Plot(group) {
+                    MapId = MapId,
+                    Number = group.GroupId,
+                    ApartmentNumber = group.HouseNumber,
+                };
+            }
+        }
+
         foreach (Portal portal in entities.Portals.Values) {
             SpawnPortal(portal);
         }

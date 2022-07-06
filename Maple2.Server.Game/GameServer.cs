@@ -64,11 +64,11 @@ public class GameServer : Server<GameSession> {
     public override Task StopAsync(CancellationToken cancellationToken) {
         lock (mutex) {
             foreach (GameSession session in connectingSessions) {
-                session.Send(NoticePacket.Disconnect(new InterfaceText("Server Maintenance")));
+                session.Send(NoticePacket.Disconnect(new InterfaceText("GameServer Maintenance")));
                 session.Dispose();
             }
             foreach (GameSession session in sessions.Values) {
-                session.Send(NoticePacket.Disconnect(new InterfaceText("Server Maintenance")));
+                session.Send(NoticePacket.Disconnect(new InterfaceText("GameServer Maintenance")));
                 session.Dispose();
             }
             fieldFactory.Dispose();

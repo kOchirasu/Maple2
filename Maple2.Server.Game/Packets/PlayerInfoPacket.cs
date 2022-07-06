@@ -106,10 +106,10 @@ public static class PlayerInfoPacket {
         buffer.WriteUnicodeString(); // GuildName
         buffer.WriteUnicodeString(); // GuildRank
 
-        buffer.WriteUnicodeString(player.Account.Home?.Name ?? "");
-        buffer.WriteInt(player.Account.Home?.PlotMapId ?? 0);
-        buffer.WriteInt(player.Account.Home?.PlotId ?? 0);
-        buffer.WriteInt(player.Account.Home?.ApartmentNumber ?? 0);
+        buffer.WriteUnicodeString(player.Home.Name);
+        buffer.WriteInt(player.Home.PlotMapId);
+        buffer.WriteInt(player.Home.PlotNumber);
+        buffer.WriteInt(player.Home.ApartmentNumber);
 
         buffer.WriteInt(player.Character.Title);
         buffer.WriteInt(player.Unlock.Titles.Count);

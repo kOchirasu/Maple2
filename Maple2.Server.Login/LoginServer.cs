@@ -54,11 +54,11 @@ public class LoginServer : Server<LoginSession> {
     public override Task StopAsync(CancellationToken cancellationToken) {
         lock (mutex) {
             foreach (LoginSession session in connectingSessions) {
-                session.Send(NoticePacket.Disconnect(new InterfaceText("Server Maintenance")));
+                session.Send(NoticePacket.Disconnect(new InterfaceText("LoginServer Maintenance")));
                 session.Dispose();
             }
             foreach (LoginSession session in sessions.Values) {
-                session.Send(NoticePacket.Disconnect(new InterfaceText("Server Maintenance")));
+                session.Send(NoticePacket.Disconnect(new InterfaceText("LoginServer Maintenance")));
                 session.Dispose();
             }
         }

@@ -61,13 +61,13 @@ public static class CubePacket {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.LoadHome);
         pWriter.WriteInt(player.ObjectId);
-        pWriter.WriteInt(player.Account.Home.MapId);
-        pWriter.WriteInt(player.Account.Home.PlotMapId);
-        pWriter.WriteInt(player.Account.Home.PlotId);
-        pWriter.WriteInt(player.Account.Home.ApartmentNumber);
-        pWriter.WriteUnicodeString(player.Account.Home.Name);
-        pWriter.WriteLong(player.Account.Home.ExpiryTime);
-        pWriter.WriteLong(player.Account.Home.UpdateTime);
+        pWriter.WriteInt(player.Home.HomePlot.MapId);
+        pWriter.WriteInt(player.Home.PlotMapId);
+        pWriter.WriteInt(player.Home.PlotNumber);
+        pWriter.WriteInt(player.Home.ApartmentNumber);
+        pWriter.WriteUnicodeString(player.Home.Name);
+        pWriter.WriteLong(player.Home.MapPlot?.ExpiryTime ?? 0);
+        pWriter.WriteLong(player.Home.MapPlot?.LastModified ?? 0);
         pWriter.WriteBool(load);
 
         return pWriter;

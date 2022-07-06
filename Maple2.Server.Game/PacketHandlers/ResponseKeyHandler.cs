@@ -42,6 +42,7 @@ public class ResponseKeyHandler : PacketHandler<GameSession> {
             // Finalize
             session.Send(Packet.Of(SendOp.World));
         } catch (Exception ex) when (ex is RpcException or InvalidOperationException) {
+            Logger.Error(ex, "Failed to login to game for accountId:{AccountId}", accountId);
             session.Send(MigrationPacket.MoveResult(s_move_err_default));
             session.Disconnect();
         }
