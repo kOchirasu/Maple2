@@ -24,6 +24,7 @@ public static class Constant {
     public const byte MinHomeHeight = 3;
     public const byte MaxHomeHeight = 15;
     public const short FurnishingStorageMaxSlot = 512;
+    public const int ConstructionCubeItemId = 50200183;
 
     #endregion
 

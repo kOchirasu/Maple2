@@ -1,4 +1,5 @@
-﻿using Maple2.Model.Enum;
+﻿using System;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -23,6 +24,8 @@ public class BreakableHandler : PacketHandler<GameSession> {
 
         if (session.Field?.TryGetBreakable(entityId, out FieldBreakable? breakable) == true) {
             breakable.UpdateState(BreakableState.Break);
+        } else {
+            Console.WriteLine(entityId + " does not exist...");
         }
     }
 }

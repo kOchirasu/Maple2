@@ -59,7 +59,6 @@ public sealed partial class FieldManager : IDisposable {
     // Init is separate from constructor to allow properties to be injected first.
     private void Init() {
         // Plots = ugcMetadata.Groups.ToDictionary(entry => entry.GroupId, entry => entry);
-        logger.Information("Loading ugc maps total: {Count}", ugcMetadata.Groups.Count);
         if (ugcMetadata.Groups.Count > 0) {
             using GameStorage.Request db = GameStorage.Context();
             foreach (Plot plot in db.LoadPlotsForMap(MapId)) {
@@ -85,10 +84,7 @@ public sealed partial class FieldManager : IDisposable {
         }
 
         foreach ((Guid guid, BreakableActor breakable) in entities.BreakableActors) {
-            string entityId = guid.ToString("N");
-            if (breakable.Position != default && breakable.Rotation != default) {
-                AddBreakable(entityId, breakable);
-            }
+            AddBreakable(guid.ToString("N"), breakable);
         }
 
         foreach (SpawnPointNPC spawnPointNpc in entities.NpcSpawns) {

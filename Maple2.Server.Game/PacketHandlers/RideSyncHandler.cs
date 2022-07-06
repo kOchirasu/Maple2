@@ -13,7 +13,7 @@ public class RideSyncHandler : PacketHandler<GameSession> {
     public override RecvOp OpCode => RecvOp.RideSync;
 
     public override void Handle(GameSession session, IByteReader packet) {
-        if (session.State != SessionState.Connected) {
+        if (session.State != SessionState.Connected || session.Field == null) {
             return;
         }
 

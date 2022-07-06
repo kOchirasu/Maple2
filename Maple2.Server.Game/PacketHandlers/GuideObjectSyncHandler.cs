@@ -1,4 +1,5 @@
-﻿using Maple2.Model.Enum;
+﻿using System.Numerics;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -8,17 +9,18 @@ using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
-public class UserSyncHandler : PacketHandler<GameSession> {
-    public override RecvOp OpCode => RecvOp.UserSync;
+public class GuideObjectSyncHandler : PacketHandler<GameSession> {
+    public override RecvOp OpCode => RecvOp.GuideObjectSync;
 
     public override void Handle(GameSession session, IByteReader packet) {
-        if (session.State != SessionState.Connected || session.Field == null) {
+        if (session.State != SessionState.Connected || session.Field == null || session.GuideObject == null) {
             return;
         }
 
-        packet.ReadByte(); // Unknown
-        packet.ReadInt(); // ServerTicks
-        packet.ReadInt(); // ClientTicks
+        var type = packet.Read<GuideObjectType>();
+        if (type != session.GuideObject.Value.Type) {
+            return;
+        }
 
         byte segments = packet.ReadByte();
         if (segments == 0) {
@@ -32,7 +34,7 @@ public class UserSyncHandler : PacketHandler<GameSession> {
                 ActorState.MicroGameRps => new StateSyncRps(),
                 ActorState.MicroGameCoupleDance => new StateSyncCoupleDance(),
                 ActorState.WeddingEmotion => new StateSyncWeddingEmotion(),
-                _ => new StateSync()
+                _ => new StateSync(),
             };
 
             stateSync.ReadFrom(packet);
@@ -43,10 +45,11 @@ public class UserSyncHandler : PacketHandler<GameSession> {
         }
 
         using (var buffer = new PoolByteWriter()) {
-            buffer.Player(session.Player.ObjectId, stateSyncs);
-            session.Field?.Multicast(buffer, sender: session);
+            buffer.GuideObject(session.GuideObject.ObjectId, stateSyncs);
+            session.Field.Multicast(buffer, sender: session);
         }
 
-        session.OnStateSync(stateSyncs[^1]);
+        session.GuideObject.Position = stateSyncs[^1].Position;
+        session.GuideObject.Rotation = new Vector3(0, 0, stateSyncs[^1].Rotation);
     }
 }

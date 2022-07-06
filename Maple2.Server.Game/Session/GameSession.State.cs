@@ -15,5 +15,7 @@ public partial class GameSession {
 
     public Ride? Ride;
 
+    public FieldGuideObject? GuideObject;
+
     public NpcScript? NpcScript;
 }
