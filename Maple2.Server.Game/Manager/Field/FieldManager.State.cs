@@ -95,6 +95,17 @@ public partial class FieldManager {
         return fieldItem;
     }
 
+    // GuideObject is not added to the field, it will be managed by |GameSession.State|
+    public FieldGuideObject SpawnGuideObject(IActor<Player> owner, IGuideObject guideObject) {
+        var fieldGuideObject = new FieldGuideObject(this, NextLocalId(), guideObject) {
+            CharacterId = owner.Value.Character.Id,
+            Position = owner.Position,
+            // rotation?
+        };
+
+        return fieldGuideObject;
+    }
+
     public FieldBreakable AddBreakable(string entityId, BreakableActor breakable) {
         var fieldBreakable = new FieldBreakable(this, NextLocalId(), entityId, breakable) {
             Position = breakable.Position,

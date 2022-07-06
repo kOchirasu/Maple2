@@ -78,6 +78,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         int objectId = FieldManager.NextGlobalId();
         Player? player = db.LoadPlayer(AccountId, CharacterId, objectId);
         if (player == null) {
+            Logger.Warning("Failed to load player from database: {AccountId}, {CharacterId}", AccountId, CharacterId);
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
             return false;
         }
@@ -124,7 +125,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         // SyncWorld
         // Prestige
         Item.Inventory.Load();
-        // FurnishingStorage
+        Item.Furnishing.Load();
         // FurnishingInventory
         // Quest
         // Achieve

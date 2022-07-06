@@ -12,12 +12,14 @@ public class ItemManager {
 
     public readonly EquipManager Equips;
     public readonly InventoryManager Inventory;
+    public readonly FurnishingManager Furnishing;
 
     public ItemManager(GameStorage.Request db, GameSession session) {
         this.session = session;
 
         Equips = new EquipManager(db, session);
         Inventory = new InventoryManager(db, session);
+        Furnishing = new FurnishingManager(db, session);
     }
 
     /// <summary>
@@ -49,5 +51,6 @@ public class ItemManager {
     public void Save(GameStorage.Request db) {
         Equips.Save(db);
         Inventory.Save(db);
+        Furnishing.Save(db);
     }
 }
