@@ -18,23 +18,24 @@ public sealed class InitializationContext : Ms2Context {
             return false;
         }
 
+        TestTables();
+
         Database.ExecuteSqlRaw("ALTER TABLE `account` AUTO_INCREMENT = 10000000000");
         Database.ExecuteSqlRaw("ALTER TABLE `character` AUTO_INCREMENT = 20000000000");
         Database.ExecuteSqlRaw("ALTER TABLE `club` AUTO_INCREMENT = 30000000000");
         Database.ExecuteSqlRaw("ALTER TABLE `buddy` AUTO_INCREMENT = 40000000000");
-        Database.ExecuteSqlRaw("ALTER TABLE `plot` AUTO_INCREMENT = 50000000000");
+        Database.ExecuteSqlRaw("ALTER TABLE `ugcmap` AUTO_INCREMENT = 50000000000");
 
         // item is the entity that could grow the most, so put it last
         Database.ExecuteSqlRaw("ALTER TABLE `item` AUTO_INCREMENT = 1000000000000");
 
-        TestTables();
-
         return true;
     }
 
-    public void TestTables() {
+    private void TestTables() {
         var account = new Account {
-            Username = "Username",
+            Id = 1,
+            Username = "System",
             Trophy = new Trophy(),
             Currency = new AccountCurrency(),
         };
@@ -43,7 +44,8 @@ public sealed class InitializationContext : Ms2Context {
 
         var character = new Character {
             AccountId = account.Id,
-            Name = "First",
+            Id = 1,
+            Name = "System",
             Experience = new Experience {
                 Exp = 1000000,
                 Mastery = new Mastery {
@@ -56,8 +58,9 @@ public sealed class InitializationContext : Ms2Context {
         };
         Character.Add(character);
         var character2 = new Character {
+            Id = 2,
             AccountId = account.Id,
-            Name = "Second",
+            Name = "Admin",
             Experience = new Experience(),
             Profile = new Profile(),
             Cooldown = new Cooldown(),
@@ -67,6 +70,7 @@ public sealed class InitializationContext : Ms2Context {
         SaveChanges();
 
         var club = new Club();
+        club.Id = 0;
         club.Name = "Club";
         club.LeaderId = character.Id;
         club.Members = new List<ClubMember>();

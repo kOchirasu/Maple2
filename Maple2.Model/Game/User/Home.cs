@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Maple2.Model.Common;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
@@ -10,56 +11,57 @@ namespace Maple2.Model.Game;
 public class Home : IByteSerializable {
     private const byte HOME_PERMISSION_COUNT = 9;
 
-    public int WeeklyArchitectScore { get; private set; }
-    public int ArchitectScore { get; private set; }
-
-    public string Message { get; private set; }
+    public long AccountId { get; init; }
+    public int MapId { get; init; }
+    public int Number { get; init; }
+    public string Name { get; set; }
+    public string Message { get; set; }
     public byte Area { get; private set; }
     public byte Height { get; private set; }
 
+    public int CurrentArchitectScore { get; set; }
+    public int ArchitectScore { get; set; }
+
     // Interior Settings
-    public byte Background { get; private set; }
-    public byte Lighting { get; private set; }
-    public byte Camera { get; private set; }
+    public byte Background { get; set; }
+    public byte Lighting { get; set; }
+    public byte Camera { get; set; }
+    public string? Password { get; set; }
     public readonly IDictionary<HomePermission, HomePermissionSetting> Permissions;
 
-    public Plot HomePlot { get; private set; }
-    public Plot? MapPlot { get; private set; }
+    public IDictionary<Vector3B, (UgcItemCube Cube, float Rotation)> Cubes
+        = new Dictionary<Vector3B, (UgcItemCube Cube, float Rotation)>();
 
-    public string Name => MapPlot?.Name ?? HomePlot.Name;
-    public int PlotMapId => MapPlot?.MapId ?? 0;
-    public int PlotNumber => MapPlot?.Number ?? 0;
-    public int ApartmentNumber => 0;
-    public PlotState State => MapPlot?.State ?? PlotState.Open;
 
-    public Home(int weeklyArchitectScore, int architectScore, string message, byte area, byte height, byte background, byte lighting, byte camera,
-                IDictionary<HomePermission, HomePermissionSetting>? permissions) {
-        WeeklyArchitectScore = weeklyArchitectScore;
-        ArchitectScore = architectScore;
-        Message = string.IsNullOrWhiteSpace(message) ? "Thanks for visiting. Come back soon!" : message;
+    public Plot? Plot { get; set; }
+
+    public int PlotMapId => Plot?.MapId ?? 0;
+    public int PlotNumber => Plot?.Number ?? 0;
+    public int ApartmentNumber => Plot?.ApartmentNumber ?? 0;
+    public PlotState State => Plot?.State ?? PlotState.Open;
+
+    public Home() {
+        Name = "Unknown";
+        Message = "Thanks for visiting. Come back soon!";
+        Permissions = new Dictionary<HomePermission, HomePermissionSetting>();
+    }
+
+    public byte SetArea(byte area) {
         Area = Math.Clamp(area, Constant.MinHomeArea, Constant.MaxHomeArea);
+        return area;
+    }
+
+    public byte SetHeight(byte height) {
         Height = Math.Clamp(height, Constant.MinHomeHeight, Constant.MaxHomeHeight);
-        Background = background;
-        Lighting = lighting;
-        Camera = camera;
-        Permissions = permissions ?? new Dictionary<HomePermission, HomePermissionSetting>();
-    }
-
-    public void SetHomePlot(Plot plot) {
-        HomePlot = plot;
-        HomePlot.MapId = Constant.DefaultHomeMapId;
-    }
-
-    public void SetMapPlot(Plot plot) {
-        MapPlot = plot;
+        return height;
     }
 
     public void WriteTo(IByteWriter writer) {
-        writer.WriteLong(HomePlot.OwnerId);
+        writer.WriteLong(AccountId);
         writer.WriteUnicodeString(Name);
         writer.WriteUnicodeString(Message);
         writer.WriteByte();
-        writer.WriteInt(WeeklyArchitectScore);
+        writer.WriteInt(CurrentArchitectScore);
         writer.WriteInt(ArchitectScore);
         writer.WriteInt(PlotNumber);
         writer.WriteInt(PlotMapId);

@@ -3,6 +3,8 @@ using System.IO;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Maple2.Database.Context;
+using Maple2.Database.Storage;
+using Maple2.Model.Metadata;
 using Maple2.Server.Core.Modules;
 using Maple2.Server.Global.Service;
 using Maple2.Server.World.Containers;
@@ -53,11 +55,24 @@ if (gameDbConnection == null) {
     throw new ArgumentException("GAME_DB_CONNECTION environment variable was not set");
 }
 
+
 DbContextOptions options = new DbContextOptionsBuilder()
     .UseMySql(gameDbConnection, ServerVersion.AutoDetect(gameDbConnection)).Options;
 await using (var initContext = new InitializationContext(options)) {
     // Initialize database if needed
-    if (!initContext.Initialize()) {
+    if (initContext.Initialize()) {
+        ILifetimeScope root = app.Services.GetAutofacRoot();
+        var gameStorage = root.Resolve<GameStorage>();
+        var mapStorage = root.Resolve<MapMetadataStorage>();
+
+        using GameStorage.Request db = gameStorage.Context();
+        if (!db.InitUgcMap(mapStorage.GetAllUgc())) {
+            Log.Fatal("Failed to initialize UgcMap");
+            return;
+        }
+
+        Log.Debug("Database has been initialized");
+    } else {
         Log.Debug("Database has already been initialized");
     }
 }

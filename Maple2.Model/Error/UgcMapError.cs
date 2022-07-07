@@ -4,7 +4,7 @@ using System.ComponentModel;
 
 namespace Maple2.Model.Error;
 
-public enum UgcMapError {
+public enum UgcMapError : byte {
     [Description("")]
     s_ugcmap_ok = 0,
     [Description("")]

@@ -2,6 +2,28 @@
 
 namespace Maple2.Model.Metadata;
 
+public record UgcMapGroup(
+    int Number,
+    int ApartmentNumber,
+    int Type,
+    UgcMapGroup.Cost ContractCost,
+    UgcMapGroup.Cost ExtensionCost,
+    UgcMapGroup.Limits Limit) {
+
+    public record Cost(
+        int Amount,
+        int ItemId,
+        int Days);
+
+    public record Limits(
+        int Height,
+        int Area,
+        int Maid,
+        int Trigger,
+        int InstallNpc,
+        int InstallBuilding);
+}
+
 #region map
 public record MapMetadata(
     int Id,
@@ -72,28 +94,5 @@ public record MapEntranceBuff(int Id, short Level);
 #region ugcmap
 public record UgcMapMetadata(
     int Id,
-    List<UgcMapGroup> Groups);
-
-public record UgcMapGroup(
-    int GroupId,
-    int Type,
-    int HouseBlock,
-    int HouseNumber,
-    UgcMapGroup.Cost ContractCost,
-    UgcMapGroup.Cost ExtensionCost,
-    UgcMapGroup.Limits Limit) {
-
-    public record Cost(
-        int Amount,
-        int ItemId,
-        int Days);
-
-    public record Limits(
-        int Height,
-        int Area,
-        int Maid,
-        int Trigger,
-        int InstallNpc,
-        int InstallBuilding);
-}
+    IReadOnlyDictionary<int, UgcMapGroup> Plots);
 #endregion

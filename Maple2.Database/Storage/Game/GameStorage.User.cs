@@ -10,6 +10,7 @@ using Maple2.Server.Game.Manager.Config;
 using Microsoft.EntityFrameworkCore;
 using Account = Maple2.Model.Game.Account;
 using Character = Maple2.Model.Game.Character;
+using Home = Maple2.Database.Model.Home;
 using Plot = Maple2.Model.Game.Plot;
 using SkillMacro = Maple2.Model.Game.SkillMacro;
 using SkillBook = Maple2.Model.Game.SkillBook;
@@ -102,7 +103,8 @@ public partial class GameStorage {
             Context.Character.Update(character);
             Context.SaveChanges();
 
-            Housing? home = Context.Housing.Find(accountId);
+            Home? home = Context.Home.Include(home => home.Plot)
+                .SingleOrDefault(home => home.AccountId == accountId);
             if (home == null) {
                 return null;
             }
@@ -124,29 +126,11 @@ public partial class GameStorage {
                     MesoToken = account.Currency.MesoToken,
                 },
                 Unlock = Context.CharacterUnlock.Find(characterId)!,
-                Home = new Home(
-                    home.WeeklyArchitectScore,
-                    home.ArchitectScore,
-                    home.HomeSettings.Message,
-                    home.HomeSettings.Area,
-                    home.HomeSettings.Height,
-                    home.HomeSettings.Background,
-                    home.HomeSettings.Lighting,
-                    home.HomeSettings.Camera,
-                    home.HomeSettings.Permissions
-                ),
+                Home = home!,
             };
 
-            Plot? homePlot = GetPlot(home.HomePlotId);
-            if (homePlot != null) {
-                player.Home.SetHomePlot(homePlot);
-            }
-
-            if (home.MapPlotId != null) {
-                Plot? mapPlot = GetPlot(home.MapPlotId.Value);
-                if (mapPlot != null) {
-                    player.Home.SetMapPlot(mapPlot);
-                }
+            if (home.Plot != null) {
+                player.Home.Plot = ToPlot(home.Plot, layout: null);
             }
 
             return player;
@@ -254,28 +238,17 @@ public partial class GameStorage {
 
         #region Create
         public Account? CreateAccount(Account account) {
-            BeginTransaction();
             Model.Account model = account!;
             model.Id = 0;
             Context.Account.Add(model);
             Context.SaveChanges(); // Exception if failed.
 
-            var plot = new Model.Plot {
-                OwnerId = model.Id,
-                MapId = Constant.DefaultHomeMapId,
-                Number = Constant.DefaultHomeNumber,
-            };
-            Context.Plot.Add(plot);
-            Context.SaveChanges(); // Exception if failed.
-
-            Context.Housing.Add(new Housing {
+            Context.Home.Add(new Home {
                 AccountId = model.Id,
-                HomeSettings = new HomeSettings(),
-                HomePlotId = plot.Id,
             });
             Context.SaveChanges(); // Exception if failed.
 
-            return Commit() ? model : null;
+            return model;
         }
 
         public Character? CreateCharacter(Character character) {

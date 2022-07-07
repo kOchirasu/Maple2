@@ -39,7 +39,7 @@ public class Buddy : IByteSerializable {
         writer.WriteUnicodeString(Type == BuddyType.Blocked ? Message : "");
         writer.WriteInt(BuddyInfo.PlotMapId);
         writer.WriteInt(BuddyInfo.PlotNumber);
-        writer.WriteInt(PlayerInfo.ApartmentNumber);
+        writer.WriteInt(BuddyInfo.ApartmentNumber);
         writer.WriteUnicodeString(BuddyInfo.HomeName);
         writer.WriteLong(); // Home expiry time?
         writer.Write<Trophy>(BuddyInfo.Trophy);

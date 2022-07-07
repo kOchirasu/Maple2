@@ -42,10 +42,14 @@ public partial class GlobalService : Global.GlobalBase {
                 Username = username,
                 MachineId = machineId,
             };
+
+            db.BeginTransaction();
             account = db.CreateAccount(account);
             if (account == null) {
                 throw new RpcException(new Status(StatusCode.Internal, "Failed to create account."));
             }
+
+            db.Commit();
         } else {
 #if !DEBUG
             if (account.Online) {

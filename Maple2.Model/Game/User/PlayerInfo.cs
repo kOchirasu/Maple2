@@ -16,7 +16,7 @@ public record PlayerInfo(CharacterInfo Character, int PlotMapId, int PlotNumber,
     public bool Online => Character.Online;
 
     // Not used...
-    public static int ApartmentNumber => 0;
+    public int ApartmentNumber => 0;
 
     public static implicit operator PlayerInfo(Player player) {
         return new PlayerInfo(player, player.Home.PlotMapId, player.Home.PlotNumber, player.Home.Name, player.Account.Trophy);

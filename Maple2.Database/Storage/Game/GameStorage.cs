@@ -1,7 +1,9 @@
 ﻿using Maple2.Database.Context;
+using Maple2.Database.Model;
 using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Home = Maple2.Database.Model.Home;
 
 namespace Maple2.Database.Storage;
 
@@ -35,7 +37,7 @@ public partial class GameStorage {
         }
     }
 
-    private static PlayerInfo BuildPlayerInfo(Model.Character character, Model.Plot homePlot, Model.Plot? mapPlot, Trophy trophy) {
-        return new PlayerInfo(character!, mapPlot?.MapId ?? 0, mapPlot?.Number ?? 0, mapPlot?.Name ?? homePlot.Name, trophy);
+    private static PlayerInfo BuildPlayerInfo(Model.Character character, Home home, Trophy trophy) {
+        return new PlayerInfo(character!, home.Plot?.MapId ?? 0, home.Plot?.Number ?? 0, home.Name, trophy);
     }
 }

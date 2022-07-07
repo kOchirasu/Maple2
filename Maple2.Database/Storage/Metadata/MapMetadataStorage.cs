@@ -52,6 +52,15 @@ public class MapMetadataStorage : MetadataStorage<int, MapMetadata>, ISearchable
         return true;
     }
 
+    public IEnumerable<UgcMapMetadata> GetAllUgc() {
+        lock (Context) {
+            foreach (UgcMapMetadata map in Context.UgcMapMetadata) {
+                UgcCache.AddReplace(map.Id, map);
+                yield return map;
+            }
+        }
+    }
+
     public List<MapMetadata> Search(string name) {
         lock (Context) {
             return Context.MapMetadata

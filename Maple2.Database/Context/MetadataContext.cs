@@ -110,6 +110,6 @@ public sealed class MetadataContext : DbContext {
     private static void ConfigureUgcMapMetadata(EntityTypeBuilder<UgcMapMetadata> builder) {
         builder.ToTable("ugcmap");
         builder.HasKey(map => map.Id);
-        builder.Property(map => map.Groups).HasJsonConversion().IsRequired();
+        builder.Property(map => map.Plots).HasJsonConversion().IsRequired();
     }
 }
