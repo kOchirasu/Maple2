@@ -32,14 +32,14 @@ public class UgcHandler : PacketHandler<GameSession> {
         int mapId = packet.ReadInt();
         Debug.Assert(mapId == session.Field?.MapId);
 
-        session.Send(LoadCubesPacket.PlotOwners(session.Field.Plots));
-        foreach (Plot plot in session.Field.Plots) {
+        session.Send(LoadCubesPacket.PlotOwners(session.Field.Plots.Values));
+        foreach (Plot plot in session.Field.Plots.Values) {
             if (plot.Cubes.Count > 0) {
                 session.Send(LoadCubesPacket.Load(plot));
             }
         }
 
-        Plot[] ownedPlots = session.Field.Plots.Where(plot => plot.State != PlotState.Open).ToArray();
+        Plot[] ownedPlots = session.Field.Plots.Values.Where(plot => plot.State != PlotState.Open).ToArray();
         if (ownedPlots.Length > 0) {
             session.Send(LoadCubesPacket.PlotState(ownedPlots));
             session.Send(LoadCubesPacket.PlotExpiry(ownedPlots));

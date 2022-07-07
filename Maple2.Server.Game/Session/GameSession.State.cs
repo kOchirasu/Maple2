@@ -16,6 +16,7 @@ public partial class GameSession {
     public Ride? Ride;
 
     public FieldGuideObject? GuideObject;
+    public UgcItemCube HeldCube = UgcItemCube.Default;
 
     public NpcScript? NpcScript;
 }

@@ -35,7 +35,7 @@ public partial class FieldManager {
             }
 
             if (!MapMetadata.TryGetUgc(mapId, out UgcMapMetadata? ugcMetadata)) {
-                ugcMetadata = new UgcMapMetadata(mapId, new List<UgcMapGroup>());
+                ugcMetadata = new UgcMapMetadata(mapId, new Dictionary<int, UgcMapGroup>());
             }
 
             // ReSharper disable once HeapView.CanAvoidClosure, defer instantiation unless it's needed.

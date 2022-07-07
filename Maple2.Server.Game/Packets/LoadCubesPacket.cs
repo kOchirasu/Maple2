@@ -56,7 +56,7 @@ public static class LoadCubesPacket {
         foreach (Plot plot in plots) {
             pWriter.WriteInt(plot.Number);
             pWriter.WriteInt(plot.ApartmentNumber); // unsure
-            pWriter.WriteUnicodeString(plot.Name);
+            pWriter.WriteUnicodeString(); // plot Name
             pWriter.WriteLong(plot.OwnerId);
         }
 

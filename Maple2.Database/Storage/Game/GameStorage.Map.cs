@@ -118,6 +118,10 @@ public partial class GameStorage {
 
         public bool InitUgcMap(IEnumerable<UgcMapMetadata> maps) {
             foreach (UgcMapMetadata map in maps) {
+                if (map.Id == Constant.DefaultHomeMapId) {
+                    continue;
+                }
+
                 foreach (UgcMapGroup group in map.Plots.Values) {
                     Context.UgcMap.Add(new UgcMap {
                         MapId = map.Id,

@@ -103,7 +103,9 @@ public partial class GameStorage {
             Context.Character.Update(character);
             Context.SaveChanges();
 
-            Home? home = Context.Home.Include(home => home.Plot)
+            Home? home = Context.Home
+                .Include(home => home.Indoor)
+                .Include(home => home.Plot)
                 .SingleOrDefault(home => home.AccountId == accountId);
             if (home == null) {
                 return null;
@@ -245,6 +247,11 @@ public partial class GameStorage {
 
             Context.Home.Add(new Home {
                 AccountId = model.Id,
+                Indoor = new UgcMap {
+                    OwnerId = model.Id,
+                    MapId = Constant.DefaultHomeMapId,
+                    Number = Constant.DefaultHomeNumber,
+                },
             });
             Context.SaveChanges(); // Exception if failed.
 

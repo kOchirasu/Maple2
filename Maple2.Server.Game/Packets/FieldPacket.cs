@@ -32,13 +32,7 @@ public static class FieldPacket {
 
         #region Unknown Cube Section
         pWriter.WriteByte();
-        #region CubeItemInfo
-        pWriter.WriteInt(); // ItemId
-        pWriter.WriteLong(); // ItemUid
-        pWriter.WriteLong(); // Unknown
-        pWriter.WriteBool(false); // IsUgc
-        //pWriter.WriteClass<UgcItemLook>(...);
-        #endregion
+        pWriter.WriteClass<UgcItemCube>(session.HeldCube);
         pWriter.WriteInt();
         #endregion
 
@@ -53,7 +47,7 @@ public static class FieldPacket {
 
         pWriter.WriteInt();
         pWriter.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds()); // ???
-        pWriter.WriteInt(player.Home.WeeklyArchitectScore);
+        pWriter.WriteInt(player.Home.CurrentArchitectScore);
         pWriter.WriteInt(player.Home.ArchitectScore);
 
         using (var buffer = new PoolByteWriter()) {

@@ -38,6 +38,6 @@ public partial class GameStorage {
     }
 
     private static PlayerInfo BuildPlayerInfo(Model.Character character, Home home, Trophy trophy) {
-        return new PlayerInfo(character!, home.Plot?.MapId ?? 0, home.Plot?.Number ?? 0, home.Name, trophy);
+        return new PlayerInfo(character!, home.Plot?.MapId ?? 0, home.Plot?.Number ?? 0, home.Plot?.Name ?? home.Indoor.Name, trophy);
     }
 }

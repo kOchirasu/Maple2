@@ -11,6 +11,7 @@ public class Plot {
 
     public long Id { get; set; }
     public long OwnerId { get; set; }
+    public string Name { get; set; }
     public int MapId { get; set; }
     public int Number { get; init; }
     public int ApartmentNumber { get; init; }

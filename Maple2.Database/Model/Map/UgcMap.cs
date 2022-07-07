@@ -9,6 +9,7 @@ internal class UgcMap {
     public long Id { get; set; }
     public long OwnerId { get; set; }
 
+    public string Name { get; set; } = string.Empty;
     public int MapId { get; set; }
     public int Number { get; set; }
     public int ApartmentNumber { get; set; }

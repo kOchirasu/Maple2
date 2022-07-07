@@ -203,4 +203,14 @@ public partial class FieldManager {
         Multicast(StatsPacket.Update(added), added.Session);
     }
     #endregion Events
+
+    public bool UpdatePlot(Plot plot) {
+        if (MapId != plot.MapId || !Plots.ContainsKey(plot.Number)) {
+            return false;
+        }
+
+        Plots[plot.Number] = plot;
+        Multicast(CubePacket.UpdatePlot(plot));
+        return true;
+    }
 }

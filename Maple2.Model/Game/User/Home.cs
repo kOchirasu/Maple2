@@ -14,8 +14,27 @@ public class Home : IByteSerializable {
     public long AccountId { get; init; }
     public int MapId { get; init; }
     public int Number { get; init; }
-    public string Name { get; set; }
-    public string Message { get; set; }
+
+    private string name;
+    public string Name {
+        get => name;
+        set {
+            if (!string.IsNullOrWhiteSpace(value)) {
+                name = value;
+            }
+        }
+    }
+
+    private string message;
+    public string Message {
+        get => message;
+        set {
+            if (!string.IsNullOrWhiteSpace(value)) {
+                message = value;
+            }
+        }
+    }
+
     public byte Area { get; private set; }
     public byte Height { get; private set; }
 
@@ -63,9 +82,9 @@ public class Home : IByteSerializable {
         writer.WriteByte();
         writer.WriteInt(CurrentArchitectScore);
         writer.WriteInt(ArchitectScore);
-        writer.WriteInt(PlotNumber);
         writer.WriteInt(PlotMapId);
-        writer.Write<PlotState>(State);
+        writer.WriteInt(PlotNumber);
+        writer.WriteByte(); // (1=Removes Top-Right UI)
         writer.WriteByte(Area);
         writer.WriteByte(Height);
         writer.WriteByte(Background);

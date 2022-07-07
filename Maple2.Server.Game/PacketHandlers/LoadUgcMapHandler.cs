@@ -17,7 +17,7 @@ public class LoadUgcMapHandler : PacketHandler<GameSession> {
         }
 
         // TODO: This is treating home map as users home always.
-        session.Send(session.Field.MapId == session.Player.Value.Home.HomePlot.MapId // IsHome
+        session.Send(session.Field.MapId == session.Player.Value.Home.MapId // IsHome
             ? LoadUgcMapPacket.LoadHome(session.Player.Value.Home)
             : LoadUgcMapPacket.Load());
     }

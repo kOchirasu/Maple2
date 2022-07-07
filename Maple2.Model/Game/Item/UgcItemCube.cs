@@ -5,6 +5,8 @@ using Maple2.Tools.Extensions;
 namespace Maple2.Model.Game;
 
 public class UgcItemCube : IByteSerializable, IByteDeserializable {
+    public static readonly UgcItemCube Default = new UgcItemCube(0, 0);
+
     public int Id { get; private set; }
     public long Uid { get; private set; }
     public UgcItemLook? Template { get; private set; }

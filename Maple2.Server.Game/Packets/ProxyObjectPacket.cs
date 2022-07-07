@@ -39,8 +39,8 @@ public static class ProxyObjectPacket {
         pWriter.WriteShort(player.Character.Level);
         pWriter.Write<JobCode>(player.Character.Job.Code());
         pWriter.Write<Job>(player.Character.Job);
-        pWriter.WriteInt(player.Home.PlotNumber);
         pWriter.WriteInt(player.Home.PlotMapId);
+        pWriter.WriteInt(player.Home.PlotNumber);
         pWriter.WriteInt(player.Home.ApartmentNumber);
         pWriter.WriteUnicodeString(player.Home.Name);
         pWriter.WriteInt(fieldPlayer.Stats.GearScore);

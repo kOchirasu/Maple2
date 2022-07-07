@@ -2,7 +2,6 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Threading;
 using Maple2.Database.Storage;
 using Maple2.Model.Game;
@@ -11,7 +10,6 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Session;
 using Serilog;
-using Serilog.Core;
 
 namespace Maple2.Server.Game.Manager.Field;
 
@@ -34,7 +32,6 @@ public sealed partial class FieldManager : IDisposable {
     private readonly MapEntityMetadata entities;
 
     private readonly ConcurrentBag<SpawnPointNPC> npcSpawns = new();
-    private readonly ConcurrentDictionary<int, Plot> plots = new();
 
     private readonly CancellationTokenSource cancel;
     private readonly Thread thread;
@@ -44,7 +41,7 @@ public sealed partial class FieldManager : IDisposable {
     public int MapId => Metadata.Id;
     public readonly int InstanceId;
 
-    public ICollection<Plot> Plots => plots.Values;
+    public readonly ConcurrentDictionary<int, Plot> Plots = new();
 
     public FieldManager(MapMetadata metadata, UgcMapMetadata ugcMetadata, MapEntityMetadata entities, int instanceId = 0) {
         Metadata = metadata;
@@ -52,30 +49,16 @@ public sealed partial class FieldManager : IDisposable {
         this.entities = entities;
 
         InstanceId = instanceId;
-        this.cancel = new CancellationTokenSource();
-        this.thread = new Thread(Sync);
+        cancel = new CancellationTokenSource();
+        thread = new Thread(Sync);
     }
 
     // Init is separate from constructor to allow properties to be injected first.
     private void Init() {
-        // Plots = ugcMetadata.Groups.ToDictionary(entry => entry.GroupId, entry => entry);
-        if (ugcMetadata.Groups.Count > 0) {
+        if (ugcMetadata.Plots.Count > 0) {
             using GameStorage.Request db = GameStorage.Context();
             foreach (Plot plot in db.LoadPlotsForMap(MapId)) {
-                Console.WriteLine($"Loaded plot for {plot.OwnerId}");
-                plots[plot.Number] = plot;
-            }
-
-            foreach (UgcMapGroup group in ugcMetadata.Groups) {
-                if (plots.ContainsKey(group.GroupId)) {
-                    continue;
-                }
-
-                plots[group.GroupId] = new Plot(group) {
-                    MapId = MapId,
-                    Number = group.GroupId,
-                    ApartmentNumber = group.HouseNumber,
-                };
+                Plots[plot.Number] = plot;
             }
         }
 

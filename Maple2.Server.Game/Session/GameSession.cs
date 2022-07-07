@@ -50,6 +50,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
     public ConfigManager Config { get; set; }
     public BuddyManager Buddy { get; set; }
     public ItemManager Item { get; set; }
+    public HousingManager Housing { get; set; }
     public CurrencyManager Currency { get; set; }
     public StatsManager Stats { get; set; }
     public FieldManager? Field { get; set; }
@@ -87,6 +88,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         Player = new FieldPlayer(this, player);
         Currency = new CurrencyManager(this);
         Stats = new StatsManager(this);
+        Housing = new HousingManager(this);
 
         Config = new ConfigManager(db, this);
         Buddy = new BuddyManager(db, this);
@@ -195,7 +197,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         Send(EmotePacket.Load(Player.Value.Unlock.Emotes.Select(id => new Emote(id)).ToList()));
         Config.LoadMacros();
 
-        Send(CubePacket.LoadHome(Player, true));
+        Send(CubePacket.UpdateHomeProfile(Player, true));
         Send(CubePacket.ReturnMap(Player.Value.Character.ReturnMapId));
         Send(RevivalPacket.Count(0)); // TODO: Consumed daily revivals?
         Send(RevivalPacket.Confirm(Player));
