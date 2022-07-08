@@ -22,14 +22,14 @@ public static class LoadCubesPacket {
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteBool(false);
         pWriter.WriteInt(plot.Cubes.Count);
-        foreach ((Vector3B position, (UgcItemCube? cube, float rotation)) in plot.Cubes) {
-            pWriter.Write<Vector3B>(position);
-            pWriter.WriteLong(cube.Uid);
+        foreach (UgcItemCube cube in plot.Cubes.Values) {
+            pWriter.Write<Vector3B>(cube.Position);
+            pWriter.WriteLong(cube.Id);
             pWriter.WriteClass<UgcItemCube>(cube);
             pWriter.WriteInt(1);
             pWriter.WriteInt();
             pWriter.WriteBool(false);
-            pWriter.WriteFloat(rotation);
+            pWriter.WriteFloat(cube.Rotation);
             pWriter.WriteInt();
             pWriter.WriteBool(false); // Binding?
         }

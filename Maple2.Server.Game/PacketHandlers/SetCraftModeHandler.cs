@@ -53,7 +53,7 @@ public class SetCraftModeHandler : PacketHandler<GameSession> {
         }
 
         var cubeItem = packet.ReadClass<UgcItemCube>();
-        if (cubeItem.Id != Constant.ConstructionCubeItemId || cubeItem.Template != null) {
+        if (cubeItem.ItemId != Constant.ConstructionCubeItemId || cubeItem.Template != null) {
             return;
         }
 

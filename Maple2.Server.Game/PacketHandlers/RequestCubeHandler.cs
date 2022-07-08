@@ -1,5 +1,8 @@
-﻿using Maple2.Model.Common;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using Maple2.Model.Common;
 using Maple2.Model.Enum;
+using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -14,6 +17,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
     public override RecvOp OpCode => RecvOp.RequestCube;
 
     private enum Command : byte {
+        HoldCube = 1,
         BuyPlot = 2,
         ForfeitPlot = 6,
         ExtendPlot = 9,
@@ -50,6 +54,9 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
     public override void Handle(GameSession session, IByteReader packet) {
         var command = packet.Read<Command>();
         switch (command) {
+            case Command.HoldCube:
+                HandleHoldCube(session, packet);
+                return;
             case Command.BuyPlot:
                 HandleBuyPlot(session, packet);
                 return;
@@ -146,6 +153,17 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
         }
     }
 
+    private void HandleHoldCube(GameSession session, IByteReader packet) {
+        var cubeItem = packet.ReadClass<UgcItemCube>();
+
+        if (session.GuideObject == null || session.GuideObject.Value.Type != GuideObjectType.Construction) {
+            return;
+        }
+
+        session.HeldCube = cubeItem;
+        session.Field?.Multicast(CubePacket.HoldCube(session));
+    }
+
     private void HandleBuyPlot(GameSession session, IByteReader packet) {
         int plotNumber = packet.ReadInt();
         packet.ReadInt(); // ApartmentNumber?
@@ -170,21 +188,65 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
         var position = packet.Read<Vector3B>();
         var cubeItem = packet.ReadClass<UgcItemCube>();
         float rotation = packet.ReadFloat();
+
+        Plot? plot = session.Housing.GetFieldPlot();
+        if (plot == null) {
+            return;
+        }
+
+        if (TryPlaceCube(session, cubeItem, plot, position, rotation, out UgcItemCube? placedCube)) {
+            session.Field?.Multicast(CubePacket.PlaceCube(session.Player.ObjectId, plot, position, rotation, placedCube));
+        }
     }
 
     private void HandleRemoveCube(GameSession session, IByteReader packet) {
         var position = packet.Read<Vector3B>();
+
+        Plot? plot = session.Housing.GetFieldPlot();
+        if (plot == null) {
+            return;
+        }
+
+        if (TryRemoveCube(session, plot, position)) {
+            session.Field?.Multicast(CubePacket.RemoveCube(session.Player.ObjectId, position));
+        }
     }
 
     private void HandleRotateCube(GameSession session, IByteReader packet) {
         var position = packet.Read<Vector3B>();
         bool clockwise = packet.ReadBool();
+
+        Plot? plot = session.Housing.GetFieldPlot();
+        if (plot == null) {
+            return;
+        }
+        if (!plot.Cubes.TryGetValue(position, out UgcItemCube? cube)) {
+            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_no_cube_to_rotate));
+            return;
+        }
+
+        if (clockwise) {
+            cube.Rotation = (cube.Rotation + 270f) % 360f; // Rotate clockwise
+        } else {
+            cube.Rotation = (cube.Rotation + 90f) % 360f; // Rotate counter-clockwise
+        }
+
+        session.Field?.Multicast(CubePacket.RotateCube(session.Player.ObjectId, cube));
     }
 
     private void HandleReplaceCube(GameSession session, IByteReader packet) {
         var position = packet.Read<Vector3B>();
         var cubeItem = packet.ReadClass<UgcItemCube>();
         float rotation = packet.ReadFloat();
+
+        Plot? plot = session.Housing.GetFieldPlot();
+        if (plot == null) {
+            return;
+        }
+
+        if (TryPlaceCube(session, cubeItem, plot, position, rotation, out UgcItemCube? placedCube)) {
+            session.Field?.Multicast(CubePacket.ReplaceCube(session.Player.ObjectId, position, rotation, placedCube));
+        }
     }
 
     private void HandleLiftupObject(GameSession session, IByteReader packet) {
@@ -321,4 +383,49 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
     private void HandleLoadBlueprint(GameSession session, IByteReader packet) {
         int slot = packet.ReadInt();
     }
+
+    #region Helpers
+    private static bool TryPlaceCube(GameSession session, UgcItemCube cube, Plot plot, in Vector3B position, float rotation,
+                                     [NotNullWhen(true)] out UgcItemCube? result) {
+        // Cannot overlap cubes
+        if (plot.Cubes.ContainsKey(position)) {
+            result = null;
+            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_cant_create_on_place));
+            return false;
+        }
+
+        if (!session.Item.Furnishing.TryPlaceCube(cube.Id, out result)) {
+            long itemUid = session.Item.Furnishing.PurchaseCube(cube.ItemId);
+            if (itemUid == 0) {
+                session.Send(CubePacket.Error(UgcMapError.s_ugcmap_not_for_sale));
+                return false;
+            }
+
+            session.Send(CubePacket.PurchaseCube(session.Player.ObjectId));
+            // Now that we have purchased the cube, it must be placeable.
+            if (!session.Item.Furnishing.TryPlaceCube(itemUid, out result)) {
+                session.Send(CubePacket.Error(UgcMapError.s_ugcmap_not_owned_item));
+                return false;
+            }
+        }
+
+        result.Position = position;
+        result.Rotation = rotation;
+        plot.Cubes.Add(position, result);
+        return true;
+    }
+
+    private static bool TryRemoveCube(GameSession session, Plot plot, in Vector3B position) {
+        if (!plot.Cubes.Remove(position, out UgcItemCube? cube)) {
+            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_no_cube_to_remove));
+            return false;
+        }
+
+        if (!session.Item.Furnishing.RetrieveCube(cube.Id)) {
+            throw new InvalidOperationException($"Failed to deposit cube {cube.Id} back into storage.");
+        }
+
+        return true;
+    }
+    #endregion
 }

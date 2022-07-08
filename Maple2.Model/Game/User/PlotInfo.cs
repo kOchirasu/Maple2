@@ -46,7 +46,7 @@ public class PlotInfo {
 }
 
 public class Plot : PlotInfo {
-    public IDictionary<Vector3B, (UgcItemCube Cube, float Rotation)> Cubes = new Dictionary<Vector3B, (UgcItemCube Cube, float Rotation)>();
+    public readonly Dictionary<Vector3B, UgcItemCube> Cubes = new();
 
     public Plot(UgcMapGroup metadata) : base(metadata) { }
 }

@@ -19,7 +19,7 @@ public enum UgcMapError : byte {
     s_ugcmap_cant_be_created = 5,
     [Description("This cannot be placed at this location.")]
     s_ugcmap_cant_create_on_place = 6,
-    [Description("hat cannot be placed at this location.")]
+    [Description("That cannot be placed at this location.")]
     s_ugcmap_no_base_cube = 7,
     [Description("You do not own this area.")]
     s_ugcmap_dont_have_ownership = 8,

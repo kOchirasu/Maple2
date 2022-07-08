@@ -10,17 +10,44 @@ using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Z.EntityFramework.Plus;
 using Home = Maple2.Model.Game.Home;
+using Item = Maple2.Model.Game.Item;
 
 namespace Maple2.Database.Storage;
 
 public partial class GameStorage {
     public partial class Request {
-        public IEnumerable<Plot> LoadPlotsForMap(int mapId) {
+        public IList<Plot> LoadPlotsForMap(int mapId) {
             return Context.UgcMap.Include(map => map.Cubes)
                 .Where(map => map.MapId == mapId)
                 .AsEnumerable()
                 .Select(ToPlot)
                 .ToList()!;
+        }
+
+        public IList<UgcItemCube> LoadCubesForOwner(long ownerId) {
+            return Context.UgcMap.Where(map => map.OwnerId == ownerId)
+                .Join(Context.UgcMapCube, ugcMap => ugcMap.Id, cube => cube.UgcMapId, (ugcMap, cube) => cube)
+                .AsEnumerable()
+                .Select<UgcMapCube, UgcItemCube>(cube => cube!)
+                .ToList();
+        }
+
+        public UgcItemCube? CreateCube(Item item, int mapId, in Vector3B position = default, float rotation = default) {
+            if (item.Amount <= 0) {
+                return null;
+            }
+
+            var model = new UgcMapCube {
+                UgcMapId = mapId,
+                X = position.X,
+                Y = position.Y,
+                Z = position.Z,
+                Rotation = rotation,
+                ItemId = item.Id,
+                Template = item.Template,
+            };
+            Context.UgcMapCube.Add(model);
+            return Context.TrySaveChanges() ? model : null;
         }
 
         public PlotInfo? BuyPlot(long ownerId, PlotInfo plot, TimeSpan days) {
@@ -95,7 +122,7 @@ public partial class GameStorage {
             return true;
         }
 
-        public bool SavePlot(params PlotInfo[] plotInfos) {
+        public bool SavePlotInfo(params PlotInfo[] plotInfos) {
             foreach (PlotInfo plotInfo in plotInfos) {
                 UgcMap? model = Context.UgcMap.Find(plotInfo.Id);
                 if (model == null) {
@@ -111,6 +138,37 @@ public partial class GameStorage {
             }
 
             return Context.TrySaveChanges();
+        }
+
+        public ICollection<UgcItemCube>? SaveCubes(PlotInfo plotInfo, IEnumerable<UgcItemCube> cubes) {
+            Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
+
+            var results = new List<UgcMapCube>();
+            var updated = new HashSet<long>();
+            foreach (UgcItemCube cube in cubes) {
+                UgcMapCube model = cube!;
+                model.UgcMapId = plotInfo.Id;
+                if (model.Id >= Constant.FurnishingBaseId) {
+                    model.Id = 0; // This needs to be auto-generated.
+                    results.Add(model);
+                    Context.UgcMapCube.Add(model);
+                } else {
+                    updated.Add(model.Id);
+                    results.Add(model);
+                    Context.UgcMapCube.Update(model);
+                }
+            }
+            foreach (UgcMapCube cube in Context.UgcMapCube.Where(cube => cube.UgcMapId == plotInfo.Id)) {
+                if (!updated.Contains(cube.Id)) {
+                    Context.UgcMapCube.Remove(cube);
+                }
+            }
+
+            if (!Context.TrySaveChanges()) {
+                return null;
+            }
+
+            return results.Select<UgcMapCube, UgcItemCube>(cube => cube!).ToArray();
         }
 
         public bool InitUgcMap(IEnumerable<UgcMapMetadata> maps) {
@@ -149,8 +207,8 @@ public partial class GameStorage {
                 ExpiryTime = ugcMap.ExpiryTime.ToEpochSeconds(),
             };
 
-            foreach ((UgcItemCube cube, Vector3B position, float rotation) entry in ugcMap.Cubes) {
-                plot.Cubes.Add(entry.position, (entry.cube, entry.rotation));
+            foreach (UgcItemCube? cube in ugcMap.Cubes) {
+                plot.Cubes.Add(cube!.Position, cube);
             }
 
             return plot;

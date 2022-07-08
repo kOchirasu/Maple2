@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
@@ -13,13 +16,20 @@ using Serilog;
 namespace Maple2.Server.Game.Manager.Items;
 
 public class FurnishingManager {
+    private static long cubeIdCounter = Constant.FurnishingBaseId;
+    private static long NextCubeId() => Interlocked.Increment(ref cubeIdCounter);
+
     private readonly GameSession session;
 
     private readonly ItemCollection storage;
+    private readonly ConcurrentDictionary<long, UgcItemCube> inventory;
+
+    private readonly ILogger logger = Log.Logger.ForContext<FurnishingManager>();
 
     public FurnishingManager(GameStorage.Request db, GameSession session) {
         this.session = session;
         storage = new ItemCollection(Constant.FurnishingStorageMaxSlot);
+        inventory = new ConcurrentDictionary<long, UgcItemCube>();
 
         List<Item>? items = db.GetItemGroups(session.AccountId, ItemGroup.Furnishing)
             .GetValueOrDefault(ItemGroup.Furnishing);
@@ -32,6 +42,10 @@ public class FurnishingManager {
                 Log.Error("Failed to add furnishing:{Uid}", item.Uid);
             }
         }
+
+        foreach (UgcItemCube cube in db.LoadCubesForOwner(session.AccountId)) {
+            inventory[cube.Id] = cube;
+        }
     }
 
     public void Load() {
@@ -43,22 +57,35 @@ public class FurnishingManager {
                 session.Send(FurnishingStoragePacket.Add(item));
             }
             session.Send(FurnishingStoragePacket.EndList());
+
+            // FurnishingInventory
+            session.Send(FurnishingInventoryPacket.StartList());
+            foreach (UgcItemCube cube in inventory.Values) {
+                session.Send(FurnishingInventoryPacket.Add(cube));
+            }
+            session.Send(FurnishingInventoryPacket.EndList());
         }
     }
 
     /// <summary>
-    /// Withdraws <param>amount</param> from the specified item uid.
+    /// Places a cube of the specified item uid at the requested location.
     /// If there are no amount remaining, we still keep the entry to allow reuse of the item uid.
     /// </summary>
     /// <param name="uid">Uid of the item to withdraw from</param>
+    /// <param name="cube">The cube to be placed</param>
     /// <returns>Information about the withdrawn cube</returns>
-    public UgcItemCube? Withdraw(long uid) {
-        const int amount = 1; // We always withdraw 1 cube
-
+    public bool TryPlaceCube(long uid, [NotNullWhen(true)] out UgcItemCube? cube) {
+        const int amount = 1;
         lock (session.Item) {
+            if (session.Field == null) {
+                cube = null;
+                return false;
+            }
+
             Item? item = storage.Get(uid);
             if (item == null || item.Amount < amount) {
-                return null;
+                cube = null;
+                return false;
             }
 
             // We do not remove item from inventory even if it hits 0
@@ -68,65 +95,97 @@ public class FurnishingManager {
                 ? FurnishingStoragePacket.Update(item.Uid, item.Amount)
                 : FurnishingStoragePacket.Remove(item.Uid));
 
-            return new UgcItemCube(item.Id, item.Uid, item.Template);
-        }
-    }
-
-    /// <summary>
-    /// Deposits <param>amount</param> onto item with the specified item uid.
-    /// This solely increments the amount and will not generate any new items in the database.
-    /// </summary>
-    /// <param name="uid">Uid of the item to stack on</param>
-    /// <param name="amount">Amount of the item to deposit</param>
-    /// <returns>Whether or not the deposit was successful</returns>
-    public bool Deposit(long uid, int amount = 1) {
-        lock (session.Item) {
-            Item? item = storage.Get(uid);
-            if (item == null || amount <= 0) {
-                return false;
+            cube = new UgcItemCube(NextCubeId(), item.Id, item.Template);
+            if (!AddInventory(cube)) {
+                logger.Fatal("Failed to add cube: {CubeId} to inventory", cube.Id);
+                throw new InvalidOperationException($"Failed to add cube: {cube.Id} to inventory");
             }
 
-            bool added = item.Amount <= 0;
-            item.Amount = Math.Clamp(item.Amount + amount, amount, item.Metadata.Property.SlotMax);
-            session.Send(added
-                ? FurnishingStoragePacket.Add(item)
-                : FurnishingStoragePacket.Update(item.Uid, item.Amount));
             return true;
         }
     }
 
-    public bool Deposit(Item item) {
+    // TODO: NOTE - This should also be called for opening a furnishing box
+    public long PurchaseCube(int id) {
+        const int amount = 1;
         lock (session.Item) {
-            // We already have this item to create
-            Item? stored = storage.FirstOrDefault(existing => existing.Id == item.Id);
-            if (stored != null) {
-                return Deposit(stored.Uid, item.Amount);
+
+            int count = storage.Count;
+            long itemUid = AddStorage(id);
+            if (itemUid == 0) {
+                return 0;
             }
 
-            if (storage.OpenSlots < 1) {
+            session.Send(FurnishingStoragePacket.Purchase(id, amount));
+            if (storage.Count != count) {
+                session.Send(FurnishingStoragePacket.Count(storage.Count));
+            }
+            return itemUid;
+        }
+    }
+
+    public bool RetrieveCube(long uid) {
+        lock (session.Item) {
+            if (!RemoveInventory(uid, out UgcItemCube? cube)) {
                 return false;
             }
 
+            long itemUid = AddStorage(cube.ItemId);
+            if (itemUid == 0) {
+                logger.Fatal("Failed to return cube: {CubeId} to storage", cube.Id);
+                throw new InvalidOperationException($"Failed to return cube: {cube.Id} to storage");
+            }
+
+            return true;
+        }
+    }
+
+    private long AddStorage(int itemId) {
+        const int amount = 1;
+        if (!session.ItemMetadata.TryGet(itemId, out ItemMetadata? metadata)) {
+            return 0;
+        }
+
+        Item? stored = storage.FirstOrDefault(existing => existing.Id == itemId);
+        if (stored == null) {
+            var item = new Item(metadata) {
+                Group = ItemGroup.Furnishing,
+            };
             using GameStorage.Request db = session.GameStorage.Context();
-            Item? created = db.CreateItem(session.AccountId, item);
-            if (created == null || storage.Add(created).Count <= 0) {
-                return false;
+            item = db.CreateItem(session.AccountId, item);
+            if (item == null || storage.Add(item).Count <= 0) {
+                return 0;
             }
 
-            FurnishingStoragePacket.Add(created);
-            return true;
+            session.Send(FurnishingStoragePacket.Add(item));
+            return item.Uid;
         }
+
+        if (stored.Amount + amount > metadata.Property.SlotMax) {
+            return 0;
+        }
+
+        stored.Amount += amount;
+        session.Send(FurnishingStoragePacket.Update(stored.Uid, stored.Amount));
+        return stored.Uid;
     }
 
-    public UgcItemCube? Get(long uid) {
-        lock (session.Item) {
-            Item? item = storage.Get(uid);
-            if (item == null) {
-                return null;
-            }
-
-            return new UgcItemCube(item.Id, item.Uid, item.Template);
+    private bool AddInventory(UgcItemCube cube) {
+        if (!inventory.TryAdd(cube.Id, cube)) {
+            return false;
         }
+
+        session.Send(FurnishingInventoryPacket.Add(cube));
+        return true;
+    }
+
+    private bool RemoveInventory(long uid, [NotNullWhen(true)] out UgcItemCube? cube) {
+        if (!inventory.Remove(uid, out cube)) {
+            return false;
+        }
+
+        session.Send(FurnishingInventoryPacket.Remove(uid));
+        return true;
     }
 
     public void Save(GameStorage.Request db) {

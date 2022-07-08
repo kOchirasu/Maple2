@@ -35,7 +35,6 @@ public static class FurnishingStoragePacket {
     public static ByteWriter Add(Item item) {
         var pWriter = Packet.Of(SendOp.FurnishingStorage);
         pWriter.Write<Command>(Command.Add);
-        pWriter.WriteByte(0x03);
         pWriter.WriteInt(item.Id);
         pWriter.WriteLong(item.Uid);
         pWriter.WriteByte((byte) item.Rarity);

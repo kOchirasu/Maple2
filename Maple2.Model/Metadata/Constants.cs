@@ -29,6 +29,8 @@ public static class Constant {
     public const int HomeMessageMaxLength = 100;
     public const int HomePasscodeLength = 6;
 
+    public const long FurnishingBaseId = 2870000000000000000;
+
     #endregion
 
     #region client constants

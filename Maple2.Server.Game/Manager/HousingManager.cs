@@ -87,9 +87,9 @@ public class HousingManager {
     public bool SavePlots() {
         using GameStorage.Request db = session.GameStorage.Context();
         if (Home.Outdoor != null) {
-            return db.SavePlot(Home.Indoor, Home.Outdoor);
+            return db.SavePlotInfo(Home.Indoor, Home.Outdoor);
         }
-        return db.SavePlot(Home.Indoor);
+        return db.SavePlotInfo(Home.Indoor);
     }
 
     // Retrieves plot directly from field which includes cube data.
@@ -155,7 +155,7 @@ public class HousingManager {
         }
 
         CheckCost(session, contract, deduct: true); // Deduct cost
-        if (session.Field.UpdatePlot(plotInfo) != true) {
+        if (session.Field.UpdatePlotInfo(plotInfo) != true) {
             logger.Warning("Failed to update map plot in field: {PlotId}", plotInfo.Id);
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_system_error));
             return false;
@@ -191,7 +191,7 @@ public class HousingManager {
             return null;
         }
 
-        if (session.Field.UpdatePlot(plotInfo) != true) {
+        if (session.Field.UpdatePlotInfo(plotInfo) != true) {
             logger.Warning("Failed to update map plot in field: {PlotId}", plotInfo.Id);
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_system_error));
             return null;
@@ -234,7 +234,7 @@ public class HousingManager {
         }
 
         CheckCost(session, extension, deduct: true); // Deduct cost
-        if (session.Field?.UpdatePlot(plotInfo) != true) {
+        if (session.Field?.UpdatePlotInfo(plotInfo) != true) {
             logger.Warning("Failed to update map plot in field: {PlotId}", Home.Outdoor.Id);
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_system_error));
             return;
@@ -274,9 +274,9 @@ public class HousingManager {
     public void Save(GameStorage.Request db) {
         db.SaveHome(Home);
         if (Home.Outdoor != null) {
-            db.SavePlot(Home.Indoor, Home.Outdoor);
+            db.SavePlotInfo(Home.Indoor, Home.Outdoor);
         } else {
-            db.SavePlot(Home.Indoor);
+            db.SavePlotInfo(Home.Indoor);
         }
     }
 }

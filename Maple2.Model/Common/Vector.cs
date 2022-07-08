@@ -23,6 +23,11 @@ public readonly record struct Vector3B(sbyte X, sbyte Y, sbyte Z) {
             vector.Z * BLOCK_SIZE
         );
     }
+
+    // We override GetHashCode because only 3/4 bytes are relevant.
+    public override int GetHashCode() {
+        return X << 16 | Y << 8 | (byte) Z;
+    }
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 2, Size = 6)]

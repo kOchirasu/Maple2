@@ -1,4 +1,5 @@
-﻿using Maple2.PacketLib.Tools;
+﻿using Maple2.Model.Common;
+using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 using Maple2.Tools.Extensions;
 
@@ -7,19 +8,22 @@ namespace Maple2.Model.Game;
 public class UgcItemCube : IByteSerializable, IByteDeserializable {
     public static readonly UgcItemCube Default = new UgcItemCube(0, 0);
 
-    public int Id { get; private set; }
-    public long Uid { get; private set; }
+    public long Id { get; private set; }
+    public int ItemId { get; private set; }
     public UgcItemLook? Template { get; private set; }
 
-    public UgcItemCube(int id, long uid, UgcItemLook? template = null) {
+    public Vector3B Position { get; set; }
+    public float Rotation { get; set; }
+
+    public UgcItemCube(long id, int itemId, UgcItemLook? template = null) {
+        ItemId = itemId;
         Id = id;
-        Uid = uid;
         Template = template;
     }
 
     public void WriteTo(IByteWriter writer) {
-        writer.WriteInt(Id);
-        writer.WriteLong(Uid);
+        writer.WriteInt(ItemId);
+        writer.WriteLong(Id);
         writer.WriteLong();
 
         writer.WriteBool(Template != null);
@@ -29,8 +33,8 @@ public class UgcItemCube : IByteSerializable, IByteDeserializable {
     }
 
     public void ReadFrom(IByteReader reader) {
-        Id = reader.ReadInt();
-        Uid = reader.ReadLong();
+        ItemId = reader.ReadInt();
+        Id = reader.ReadLong();
         reader.ReadLong();
 
         bool hasTemplate = reader.ReadBool();

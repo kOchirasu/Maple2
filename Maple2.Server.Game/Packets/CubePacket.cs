@@ -131,16 +131,26 @@ public static class CubePacket {
         return pWriter;
     }
 
-    public static ByteWriter PlaceCube(PlotInfo plot, in Vector3B position, float rotation, UgcItemCube cube) {
+    public static ByteWriter PurchaseCube(int objectId) {
+        var pWriter = Packet.Of(SendOp.ResponseCube);
+        pWriter.Write<Command>(Command.PlaceCube);
+        pWriter.Write<UgcMapError>(UgcMapError.s_empty_string);
+        pWriter.WriteInt(objectId); // Owner
+        pWriter.WriteInt(objectId); // Player
+
+        return pWriter;
+    }
+
+    public static ByteWriter PlaceCube(int objectId, PlotInfo plot, in Vector3B position, float rotation, UgcItemCube cube) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.PlaceCube);
         pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
-        pWriter.WriteInt();
-        pWriter.WriteInt();
+        pWriter.WriteInt(objectId); // Owner
+        pWriter.WriteInt(objectId); // Player
         pWriter.WriteInt(plot.Number);
         pWriter.WriteInt(plot.ApartmentNumber);
         pWriter.Write<Vector3B>(position);
-        pWriter.WriteLong(cube.Uid); // Some uid
+        pWriter.WriteLong(cube.Id);
         pWriter.WriteClass<UgcItemCube>(cube);
         pWriter.WriteBool(false); // Unknown
         pWriter.WriteFloat(rotation);
@@ -150,38 +160,38 @@ public static class CubePacket {
         return pWriter;
     }
 
-    public static ByteWriter RemoveCube(in Vector3B position) {
+    public static ByteWriter RemoveCube(int objectId, in Vector3B position) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.RemoveCube);
         pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
-        pWriter.WriteInt();
-        pWriter.WriteInt();
+        pWriter.WriteInt(objectId); // Owner
+        pWriter.WriteInt(objectId); // Player
         pWriter.Write<Vector3B>(position);
         pWriter.WriteBool(false);
 
         return pWriter;
     }
 
-    public static ByteWriter RotateCube(in Vector3B position, float rotation) {
+    public static ByteWriter RotateCube(int objectId, UgcItemCube cube) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.RotateCube);
         pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
-        pWriter.WriteInt();
-        pWriter.WriteInt();
-        pWriter.Write<Vector3B>(position);
-        pWriter.WriteFloat(rotation);
+        pWriter.WriteInt(objectId); // Owner
+        pWriter.WriteInt(objectId); // Player
+        pWriter.Write<Vector3B>(cube.Position);
+        pWriter.WriteFloat(cube.Rotation);
 
         return pWriter;
     }
 
-    public static ByteWriter ReplaceCube(in Vector3B position, float rotation, UgcItemCube cube) {
+    public static ByteWriter ReplaceCube(int objectId, in Vector3B position, float rotation, UgcItemCube cube) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.ReplaceCube);
         pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
-        pWriter.WriteInt();
-        pWriter.WriteInt();
+        pWriter.WriteInt(objectId); // Owner
+        pWriter.WriteInt(objectId); // Player
         pWriter.Write<Vector3B>(position);
-        pWriter.WriteLong(cube.Uid); // Some uid
+        pWriter.WriteLong(cube.Id);
         pWriter.WriteClass<UgcItemCube>(cube);
         pWriter.WriteBool(false); // Unknown
         pWriter.WriteFloat(rotation);

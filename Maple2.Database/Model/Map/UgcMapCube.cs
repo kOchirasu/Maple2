@@ -15,11 +15,25 @@ internal class UgcMapCube {
     public float Rotation { get; set; }
 
     public int ItemId { get; set; }
-    public long ItemUid { get; set; }
     public UgcItemLook? Template { get; set; }
 
-    public static implicit operator (UgcItemCube Cube, Vector3B Position, float Rotation)(UgcMapCube other) {
-        return (new UgcItemCube(other.ItemId, other.ItemUid, other.Template), new Vector3B(other.X, other.Y, other.Z), other.Rotation);
+    public static implicit operator UgcItemCube?(UgcMapCube? other) {
+        return other == null ? null : new UgcItemCube(other.Id, other.ItemId, other.Template) {
+            Position = new Vector3B(other.X, other.Y, other.Z),
+            Rotation = other.Rotation,
+        };
+    }
+
+    public static implicit operator UgcMapCube?(UgcItemCube? other) {
+        return other == null ? null : new UgcMapCube {
+            Id = other.Id,
+            X = other.Position.X,
+            Y = other.Position.Y,
+            Z = other.Position.Z,
+            Rotation = other.Rotation,
+            ItemId = other.ItemId,
+            Template = other.Template,
+        };
     }
 
     public static void Configure(EntityTypeBuilder<UgcMapCube> builder) {

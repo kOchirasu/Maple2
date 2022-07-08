@@ -41,8 +41,6 @@ public sealed partial class FieldManager : IDisposable {
     public int MapId => Metadata.Id;
     public readonly int InstanceId;
 
-    public readonly ConcurrentDictionary<int, Plot> Plots = new();
-
     public FieldManager(MapMetadata metadata, UgcMapMetadata ugcMetadata, MapEntityMetadata entities, int instanceId = 0) {
         Metadata = metadata;
         this.ugcMetadata = ugcMetadata;

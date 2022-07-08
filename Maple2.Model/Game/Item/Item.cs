@@ -148,7 +148,7 @@ public class Item : IByteSerializable, IByteDeserializable {
     public void WriteTo(IByteWriter writer) {
         writer.WriteInt(Amount);
         writer.WriteInt();
-        writer.WriteInt();
+        writer.WriteInt(-1);
         writer.WriteLong(CreationTime);
         writer.WriteLong(ExpiryTime);
         writer.WriteLong();

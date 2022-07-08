@@ -148,6 +148,7 @@ public partial class FieldManager {
     #region Remove
     public bool RemovePlayer(int objectId, [NotNullWhen(true)] out FieldPlayer? fieldPlayer) {
         if (fieldPlayers.TryRemove(objectId, out fieldPlayer)) {
+            CommitPlot(fieldPlayer.Session);
             Multicast(FieldPacket.RemovePlayer(objectId));
             return true;
         }
@@ -203,22 +204,4 @@ public partial class FieldManager {
         Multicast(StatsPacket.Update(added), added.Session);
     }
     #endregion Events
-
-    public bool UpdatePlot(PlotInfo plotInfo) {
-        if (MapId != plotInfo.MapId || !Plots.ContainsKey(plotInfo.Number)) {
-            return false;
-        }
-
-        if (plotInfo is Plot plot) {
-            Plots[plot.Number] = plot;
-        } else {
-            plot = Plots[plotInfo.Number];
-            plot.OwnerId = plotInfo.OwnerId;
-            plot.Name = plotInfo.Name;
-            plot.ExpiryTime = plotInfo.ExpiryTime;
-        }
-
-        Multicast(CubePacket.UpdatePlot(plot));
-        return true;
-    }
 }
