@@ -37,11 +37,11 @@ public static class LoadCubesPacket {
         return pWriter;
     }
 
-    public static ByteWriter PlotState(ICollection<Plot> plots) {
+    public static ByteWriter PlotState(ICollection<PlotInfo> plots) {
         var pWriter = Packet.Of(SendOp.LoadCubes);
         pWriter.Write<Command>(Command.PlotState);
         pWriter.WriteInt(plots.Count);
-        foreach (Plot plot in plots) {
+        foreach (PlotInfo plot in plots) {
             pWriter.WriteInt(plot.Number);
             pWriter.Write<PlotState>(plot.State);
         }
@@ -63,12 +63,12 @@ public static class LoadCubesPacket {
         return pWriter;
     }
 
-    public static ByteWriter PlotExpiry(ICollection<Plot> plots) {
+    public static ByteWriter PlotExpiry(ICollection<PlotInfo> plots) {
         var pWriter = Packet.Of(SendOp.LoadCubes);
         pWriter.Write<Command>(Command.PlotExpiry);
 
         pWriter.WriteInt(plots.Count);
-        foreach (Plot plot in plots) {
+        foreach (PlotInfo plot in plots) {
             pWriter.WriteInt(plot.Number);
             pWriter.WriteInt(plot.ApartmentNumber); // unsure
             pWriter.Write<PlotState>(plot.State);

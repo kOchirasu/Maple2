@@ -204,12 +204,20 @@ public partial class FieldManager {
     }
     #endregion Events
 
-    public bool UpdatePlot(Plot plot) {
-        if (MapId != plot.MapId || !Plots.ContainsKey(plot.Number)) {
+    public bool UpdatePlot(PlotInfo plotInfo) {
+        if (MapId != plotInfo.MapId || !Plots.ContainsKey(plotInfo.Number)) {
             return false;
         }
 
-        Plots[plot.Number] = plot;
+        if (plotInfo is Plot plot) {
+            Plots[plot.Number] = plot;
+        } else {
+            plot = Plots[plotInfo.Number];
+            plot.OwnerId = plotInfo.OwnerId;
+            plot.Name = plotInfo.Name;
+            plot.ExpiryTime = plotInfo.ExpiryTime;
+        }
+
         Multicast(CubePacket.UpdatePlot(plot));
         return true;
     }

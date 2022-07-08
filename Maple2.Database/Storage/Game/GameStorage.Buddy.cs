@@ -2,7 +2,6 @@
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
-using Microsoft.EntityFrameworkCore;
 using Buddy = Maple2.Model.Game.Buddy;
 
 namespace Maple2.Database.Storage;
@@ -12,8 +11,12 @@ public partial class GameStorage {
         public IList<Buddy> ListBuddies(long ownerId) {
             return (from buddy in Context.Buddy where buddy.Id == ownerId
                     join account in Context.Account on buddy.BuddyCharacter.AccountId equals account.Id
-                    join home in Context.Home.Include(home => home.Plot) on buddy.BuddyCharacter.AccountId equals home.AccountId
-                    select new Buddy(BuildPlayerInfo(buddy.BuddyCharacter, home, account.Trophy)) {
+                    join indoor in Context.UgcMap on
+                        new {OwnerId=buddy.BuddyCharacter.AccountId, Indoor=true} equals new {indoor.OwnerId, indoor.Indoor}
+                    join outdoor in Context.UgcMap on
+                        new {OwnerId=buddy.BuddyCharacter.AccountId, Indoor=true} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
+                    from outdoor in plot.DefaultIfEmpty()
+                    select new Buddy(BuildPlayerInfo(buddy.BuddyCharacter, indoor, outdoor, account.Trophy)) {
                         Id = buddy.Id,
                         OwnerId = buddy.OwnerId,
                         LastModified = buddy.LastModified.ToEpochSeconds(),
@@ -25,8 +28,12 @@ public partial class GameStorage {
         public Buddy? GetBuddy(long id) {
             return (from buddy in Context.Buddy where buddy.Id == id
                     join account in Context.Account on buddy.BuddyCharacter.AccountId equals account.Id
-                    join home in Context.Home.Include(home => home.Plot) on buddy.BuddyCharacter.AccountId equals home.AccountId
-                    select new Buddy(BuildPlayerInfo(buddy.BuddyCharacter, home, account.Trophy)) {
+                    join indoor in Context.UgcMap on
+                        new {OwnerId=buddy.BuddyCharacter.AccountId, Indoor=true} equals new {indoor.OwnerId, indoor.Indoor}
+                    join outdoor in Context.UgcMap on
+                        new {OwnerId=buddy.BuddyCharacter.AccountId, Indoor=true} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
+                    from outdoor in plot.DefaultIfEmpty()
+                    select new Buddy(BuildPlayerInfo(buddy.BuddyCharacter, indoor, outdoor, account.Trophy)) {
                         Id = buddy.Id,
                         OwnerId = buddy.OwnerId,
                         LastModified = buddy.LastModified.ToEpochSeconds(),
@@ -38,8 +45,12 @@ public partial class GameStorage {
         public Buddy? GetBuddy(long ownerId, long buddyId) {
             return (from buddy in Context.Buddy where buddy.Id == buddyId && buddy.OwnerId == ownerId
                     join account in Context.Account on buddy.BuddyCharacter.AccountId equals account.Id
-                    join home in Context.Home.Include(home => home.Plot) on buddy.BuddyCharacter.AccountId equals home.AccountId
-                    select new Buddy(BuildPlayerInfo(buddy.BuddyCharacter, home, account.Trophy)) {
+                    join indoor in Context.UgcMap on
+                        new {OwnerId=buddy.BuddyCharacter.AccountId, Indoor=true} equals new {indoor.OwnerId, indoor.Indoor}
+                    join outdoor in Context.UgcMap on
+                        new {OwnerId=buddy.BuddyCharacter.AccountId, Indoor=true} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
+                    from outdoor in plot.DefaultIfEmpty()
+                    select new Buddy(BuildPlayerInfo(buddy.BuddyCharacter, indoor, outdoor, account.Trophy)) {
                         Id = buddy.Id,
                         OwnerId = buddy.OwnerId,
                         LastModified = buddy.LastModified.ToEpochSeconds(),

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Maple2.Database.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -11,13 +12,16 @@ internal class UgcMap {
 
     public string Name { get; set; } = string.Empty;
     public int MapId { get; set; }
+    public bool Indoor { get; set; }
     public int Number { get; set; }
     public int ApartmentNumber { get; set; }
+
+    public ICollection<UgcMapCube> Cubes;
 
     public DateTime ExpiryTime { get; set; }
     public DateTime LastModified { get; set; }
 
-    public static implicit operator UgcMap?(Maple2.Model.Game.Plot? other) {
+    public static implicit operator UgcMap?(Maple2.Model.Game.PlotInfo? other) {
         return other == null ? null : new UgcMap {
             Id = other.Id,
             OwnerId = other.OwnerId,
@@ -33,9 +37,6 @@ internal class UgcMap {
         builder.HasKey(map => map.Id);
         builder.HasIndex(map => map.OwnerId);
         builder.HasIndex(map => map.MapId);
-
-        builder.OneToOne<UgcMap, UgcMapLayout>()
-            .HasForeignKey<UgcMapLayout>(layout => layout.Id);
 
         builder.Property(layout => layout.LastModified)
             .IsRowVersion();

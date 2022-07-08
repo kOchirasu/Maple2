@@ -8,94 +8,66 @@ using Maple2.Model.Common;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
-using Plot = Maple2.Model.Game.Plot;
+using Z.EntityFramework.Plus;
+using Home = Maple2.Model.Game.Home;
 
 namespace Maple2.Database.Storage;
 
 public partial class GameStorage {
     public partial class Request {
-        public Plot? GetPlot(long id) {
-            UgcMap? model = Context.UgcMap.Find(id);
-            return ToPlot(model, layout: null);
-        }
-
         public IEnumerable<Plot> LoadPlotsForMap(int mapId) {
-            var results = (from plot in Context.UgcMap where plot.MapId == mapId
-                join plotCubes in Context.UgcMapLayout on plot.Id equals plotCubes.Id into grouping
-                from plotCubes in grouping.DefaultIfEmpty()
-                select new {plot, plotCubes}).ToList();
-
-            foreach (var result in results) {
-                if (result == null) {
-                    continue;
-                }
-
-                yield return ToPlot(result.plot, result.plotCubes)!;
-            }
+            return Context.UgcMap.Include(map => map.Cubes)
+                .Where(map => map.MapId == mapId)
+                .AsEnumerable()
+                .Select(ToPlot)
+                .ToList()!;
         }
 
-        public Plot? BuyPlot(long ownerId, Plot plot, TimeSpan days) {
+        public PlotInfo? BuyPlot(long ownerId, PlotInfo plot, TimeSpan days) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
 
-            Model.Home? home = Context.Home.Find(ownerId);
-            if (home == null) {
+            UgcMap? ugcMap = Context.UgcMap.SingleOrDefault(map => map.Id == plot.Id && !map.Indoor);
+            if (ugcMap == null) {
                 return null;
             }
 
-            home.Plot = Context.UgcMap.Find(plot.Id);
-            if (home.Plot == null) {
+            Debug.Assert(ugcMap.MapId == plot.MapId && ugcMap.Number == plot.Number && ugcMap.ApartmentNumber == plot.ApartmentNumber);
+            if (ugcMap.OwnerId != 0 || ugcMap.ExpiryTime >= DateTime.Now) {
                 return null;
             }
 
-            Debug.Assert(home.Plot.MapId == plot.MapId && home.Plot.Number == plot.Number && home.Plot.ApartmentNumber == plot.ApartmentNumber);
-            if (home.Plot.OwnerId != 0 || home.Plot.ExpiryTime >= DateTime.Now) {
-                return null;
-            }
+            ugcMap.OwnerId = ownerId;
+            ugcMap.ExpiryTime = DateTime.UtcNow + days;
+            Context.UgcMap.Update(ugcMap);
+            Context.UgcMapCube.Where(cube => cube.UgcMapId == ugcMap.Id).Delete();
 
-            home.Plot.OwnerId = ownerId;
-            home.Plot.ExpiryTime = DateTime.UtcNow + days;
-            Context.Home.Update(home);
-
-            UgcMapLayout? layout = Context.UgcMapLayout.Find(home.Plot.Id);
-            if (layout != null) {
-                Context.UgcMapLayout.Remove(layout);
-            }
-
-            return Context.TrySaveChanges() ? ToPlot(home.Plot, layout: null) : null;
+            return Context.TrySaveChanges() ? ToPlotInfo(ugcMap) : null;
         }
 
-        public bool ExtendPlot(Plot plot, TimeSpan days) {
+        public PlotInfo? ExtendPlot(PlotInfo plot, TimeSpan days) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
 
             UgcMap? model = Context.UgcMap.Find(plot.Id);
             if (model == null) {
-                return false;
+                return null;
             }
 
             Debug.Assert(model.MapId == plot.MapId && model.Number == plot.Number && model.ApartmentNumber == plot.ApartmentNumber);
             if (model.ExpiryTime < DateTime.Now) {
-                return false;
+                return null;
             }
 
             model.ExpiryTime += days;
             Context.UgcMap.Update(model);
 
-            return Context.TrySaveChanges();
+            return Context.TrySaveChanges() ? ToPlotInfo(model) : null;
         }
 
-        public Plot? ForfeitPlot(long ownerId, Plot plot) {
+        public PlotInfo? ForfeitPlot(long ownerId, PlotInfo plot) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
 
-            Model.Home? home = Context.Home.Find(ownerId);
-            if (home == null) {
-                return null;
-            }
-
-            home.PlotId = null;
-            Context.Home.Update(home);
-
             UgcMap? model = Context.UgcMap.Find(plot.Id);
-            if (model == null) {
+            if (model == null || model.OwnerId != ownerId) {
                 return null;
             }
 
@@ -105,15 +77,16 @@ public partial class GameStorage {
             }
 
             model.OwnerId = 0;
-            model.ExpiryTime = DateTime.UtcNow.AddDays(3);
+            model.ExpiryTime = DateTime.UtcNow;
+            Context.UgcMapCube.Where(cube => cube.UgcMapId == model.Id).Delete();
             Context.UgcMap.Update(model);
 
-            UgcMapLayout? layout = Context.UgcMapLayout.Find(model.Id);
-            if (layout != null) {
-                Context.UgcMapLayout.Remove(layout);
-            }
+            return Context.TrySaveChanges() ? ToPlotInfo(model) : null;
+        }
 
-            return Context.TrySaveChanges() ? ToPlot(model, layout: null) : null;
+        public bool SaveHome(Home home) {
+            Context.Home.Update(home!);
+            return Context.TrySaveChanges();
         }
 
         public bool InitUgcMap(IEnumerable<UgcMapMetadata> maps) {
@@ -134,7 +107,7 @@ public partial class GameStorage {
             return Context.TrySaveChanges();
         }
 
-        private Plot? ToPlot(UgcMap? ugcMap, UgcMapLayout? layout) {
+        private Plot? ToPlot(UgcMap? ugcMap) {
             if (ugcMap == null || !game.mapMetadata.TryGetUgc(ugcMap.MapId, out UgcMapMetadata? metadata)) {
                 return null;
             }
@@ -150,23 +123,34 @@ public partial class GameStorage {
                 Number = ugcMap.Number,
                 ApartmentNumber = 0,
                 ExpiryTime = ugcMap.ExpiryTime.ToEpochSeconds(),
-
-                Origin = layout?.Origin ?? default,
-                // TODO: Area here is X*Y instead of X/Y individually
-                Dimensions = layout?.Origin ?? new Vector3B((sbyte) group.Limit.Area, (sbyte) group.Limit.Area, (sbyte) group.Limit.Height),
-                LastModified = layout?.LastModified.ToEpochSeconds() ?? 0,
+                LastModified = ugcMap.LastModified.ToEpochSeconds(),
             };
 
-            if (layout != null) {
-                foreach (Cube cube in layout.Cubes) {
-                    UgcItemCube itemCube = cube.HasTemplate
-                        ? new UgcItemCube(cube.ItemId, cube.ItemUid, GetTemplate(cube.ItemUid))
-                        : new UgcItemCube(cube.ItemId, cube.ItemUid);
-                    plot.Cubes.Add(cube.Position, (itemCube, cube.Rotation));
-                }
+            foreach ((UgcItemCube cube, Vector3B position, float rotation) entry in ugcMap.Cubes) {
+                plot.Cubes.Add(entry.position, (entry.cube, entry.rotation));
             }
 
             return plot;
+        }
+
+        private PlotInfo? ToPlotInfo(UgcMap? ugcMap) {
+            if (ugcMap == null || !game.mapMetadata.TryGetUgc(ugcMap.MapId, out UgcMapMetadata? metadata)) {
+                return null;
+            }
+
+            if (!metadata.Plots.TryGetValue(ugcMap.Number, out UgcMapGroup? group)) {
+                return null;
+            }
+
+            return new PlotInfo(group) {
+                Id = ugcMap.Id,
+                OwnerId = ugcMap.OwnerId,
+                MapId = ugcMap.MapId,
+                Number = ugcMap.Number,
+                ApartmentNumber = 0,
+                ExpiryTime = ugcMap.ExpiryTime.ToEpochSeconds(),
+                LastModified = ugcMap.LastModified.ToEpochSeconds(),
+            };
         }
     }
 }

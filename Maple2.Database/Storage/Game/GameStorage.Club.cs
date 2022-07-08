@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
-using Microsoft.EntityFrameworkCore;
 using Club = Maple2.Model.Game.Club;
 using ClubMember = Maple2.Model.Game.ClubMember;
 
@@ -26,10 +25,7 @@ public partial class GameStorage {
 
         public IList<Tuple<long, string>> ListClubs(long characterId) {
             return Context.ClubMember.Where(member => member.CharacterId == characterId)
-                .Join(
-                    Context.Club,
-                    member => member.ClubId,
-                    club => club.Id,
+                .Join(Context.Club, member => member.ClubId, club => club.Id,
                     (member, club) => new Tuple<long, string>(club.Id, club.Name)
                 ).ToList();
         }
@@ -49,9 +45,13 @@ public partial class GameStorage {
         public IList<ClubMember> GetClubMembers(long clubId) {
             return (from member in Context.ClubMember where member.ClubId == clubId
                     join account in Context.Account on member.Character.AccountId equals account.Id
-                    join home in Context.Home.Include(home => home.Plot) on member.Character.AccountId equals home.AccountId
+                    join indoor in Context.UgcMap on
+                        new {OwnerId=member.Character.AccountId, Indoor=true} equals new {indoor.OwnerId, indoor.Indoor}
+                    join outdoor in Context.UgcMap on
+                        new {OwnerId=member.Character.AccountId, Indoor=true} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
+                    from outdoor in plot.DefaultIfEmpty()
                     select new ClubMember(
-                        BuildPlayerInfo(member.Character, home, account.Trophy),
+                        BuildPlayerInfo(member.Character, indoor, outdoor, account.Trophy),
                         member.CreationTime.ToEpochSeconds(),
                         member.Character.LastModified.ToEpochSeconds())).ToList();
         }

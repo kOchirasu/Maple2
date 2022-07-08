@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
@@ -17,8 +18,13 @@ public class LoadUgcMapHandler : PacketHandler<GameSession> {
         }
 
         // TODO: This is treating home map as users home always.
-        session.Send(session.Field.MapId == session.Player.Value.Home.MapId // IsHome
-            ? LoadUgcMapPacket.LoadHome(session.Player.Value.Home)
-            : LoadUgcMapPacket.Load());
+        if (session.Player.Value.Home.MapId == session.Field.MapId) {
+            if (session.Field.Plots.TryGetValue(session.Player.Value.Home.Number, out Plot? plot)) {
+                LoadUgcMapPacket.LoadHome(session.Player.Value.Home, plot.Cubes.Count);
+                return;
+            }
+        }
+
+        session.Send(LoadUgcMapPacket.Load());
     }
 }

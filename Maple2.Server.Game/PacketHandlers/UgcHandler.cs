@@ -39,7 +39,7 @@ public class UgcHandler : PacketHandler<GameSession> {
             }
         }
 
-        Plot[] ownedPlots = session.Field.Plots.Values.Where(plot => plot.State != PlotState.Open).ToArray();
+        PlotInfo[] ownedPlots = session.Field.Plots.Values.Where(plot => plot.State != PlotState.Open).ToArray();
         if (ownedPlots.Length > 0) {
             session.Send(LoadCubesPacket.PlotState(ownedPlots));
             session.Send(LoadCubesPacket.PlotExpiry(ownedPlots));

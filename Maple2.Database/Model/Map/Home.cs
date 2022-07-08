@@ -25,11 +25,6 @@ internal class Home {
     public string? Password { get; set; }
     public IDictionary<HomePermission, HomePermissionSetting> Permissions { get; set; } = new Dictionary<HomePermission, HomePermissionSetting>();
 
-    public UgcMap Indoor { get; set; }
-
-    public long? PlotId { get; set; }
-    public UgcMap? Plot { get; set; }
-
     public static implicit operator Home?(Maple2.Model.Game.Home? other) {
         return other == null ? null : new Home {
             AccountId = other.AccountId,
@@ -44,11 +39,6 @@ internal class Home {
             Camera = other.Camera,
             Password = other.Password,
             Permissions = other.Permissions,
-            Indoor = new UgcMap {
-                MapId = other.MapId,
-                Number = other.Number,
-                Name = other.Name,
-            },
         };
     }
 
@@ -59,9 +49,9 @@ internal class Home {
 
         var home = new Maple2.Model.Game.Home {
             AccountId = other.AccountId,
-            MapId = other.Indoor.MapId,
-            Number = other.Indoor.Number,
-            Name = other.Indoor.Name,
+            // MapId = other.Indoor.MapId,
+            // Number = other.Indoor.Number,
+            // Name = other.Indoor.Name,
             Message = other.Message,
             CurrentArchitectScore = other.CurrentArchitectScore,
             ArchitectScore = other.ArchitectScore,

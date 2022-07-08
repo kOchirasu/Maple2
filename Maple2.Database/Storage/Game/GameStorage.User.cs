@@ -8,10 +8,10 @@ using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Config;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Account = Maple2.Model.Game.Account;
 using Character = Maple2.Model.Game.Character;
 using Home = Maple2.Database.Model.Home;
-using Plot = Maple2.Model.Game.Plot;
 using SkillMacro = Maple2.Model.Game.SkillMacro;
 using SkillBook = Maple2.Model.Game.SkillBook;
 using SkillTab = Maple2.Model.Game.SkillTab;
@@ -103,11 +103,17 @@ public partial class GameStorage {
             Context.Character.Update(character);
             Context.SaveChanges();
 
-            Home? home = Context.Home
-                .Include(home => home.Indoor)
-                .Include(home => home.Plot)
-                .SingleOrDefault(home => home.AccountId == accountId);
+            Home? home = Context.Home.Find(accountId);
             if (home == null) {
+                return null;
+            }
+
+            UgcMap[] ugcMaps = Context.UgcMap
+                .Where(map => map.OwnerId == accountId)
+                .ToArray();
+            PlotInfo? indoor = ToPlotInfo(ugcMaps.First(map => map.Indoor));
+            if (indoor == null) {
+                Logger.LogError("Account does not have a home entry: {AccountId}", accountId);
                 return null;
             }
 
@@ -131,9 +137,8 @@ public partial class GameStorage {
                 Home = home!,
             };
 
-            if (home.Plot != null) {
-                player.Home.Plot = ToPlot(home.Plot, layout: null);
-            }
+            player.Home.Indoor = indoor;
+            player.Home.Outdoor = ToPlotInfo(ugcMaps.FirstOrDefault(map => !map.Indoor));
 
             return player;
         }
@@ -242,16 +247,18 @@ public partial class GameStorage {
         public Account? CreateAccount(Account account) {
             Model.Account model = account!;
             model.Id = 0;
+#if DEBUG
+            model.Currency = new AccountCurrency {Meret = 99999};
+#endif
             Context.Account.Add(model);
             Context.SaveChanges(); // Exception if failed.
 
-            Context.Home.Add(new Home {
-                AccountId = model.Id,
-                Indoor = new UgcMap {
-                    OwnerId = model.Id,
-                    MapId = Constant.DefaultHomeMapId,
-                    Number = Constant.DefaultHomeNumber,
-                },
+            Context.Home.Add(new Home {AccountId = model.Id});
+            Context.UgcMap.Add(new UgcMap {
+                OwnerId = model.Id,
+                MapId = Constant.DefaultHomeMapId,
+                Indoor = true,
+                Number = Constant.DefaultHomeNumber,
             });
             Context.SaveChanges(); // Exception if failed.
 
@@ -261,6 +268,9 @@ public partial class GameStorage {
         public Character? CreateCharacter(Character character) {
             Model.Character model = character!;
             model.Id = 0;
+#if DEBUG
+            model.Currency = new CharacterCurrency {Meso = 999999999};
+#endif
             Context.Character.Add(model);
             return Context.TrySaveChanges() ? model : null;
         }

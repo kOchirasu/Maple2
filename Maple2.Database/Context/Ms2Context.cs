@@ -15,7 +15,7 @@ public class Ms2Context : DbContext {
     internal DbSet<SkillTab> SkillTab { get; set; } = null!;
     internal DbSet<Buddy> Buddy { get; set; } = null!;
     internal DbSet<UgcMap> UgcMap { get; set; } = null!;
-    internal DbSet<UgcMapLayout> UgcMapLayout { get; set; } = null!;
+    internal DbSet<UgcMapCube> UgcMapCube { get; set; } = null!;
 
     public Ms2Context(DbContextOptions options) : base(options) { }
 
@@ -32,6 +32,6 @@ public class Ms2Context : DbContext {
         modelBuilder.Entity<SkillTab>(Maple2.Database.Model.SkillTab.Configure);
         modelBuilder.Entity<Buddy>(Maple2.Database.Model.Buddy.Configure);
         modelBuilder.Entity<UgcMap>(Maple2.Database.Model.UgcMap.Configure);
-        modelBuilder.Entity<UgcMapLayout>(Maple2.Database.Model.UgcMapLayout.Configure);
+        modelBuilder.Entity<UgcMapCube>(Maple2.Database.Model.UgcMapCube.Configure);
     }
 }

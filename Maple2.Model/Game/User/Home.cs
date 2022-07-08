@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Maple2.Model.Common;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
@@ -14,6 +13,19 @@ public class Home : IByteSerializable {
     public long AccountId { get; init; }
     public int MapId { get; init; }
     public int Number { get; init; }
+
+    public byte Area { get; private set; }
+    public byte Height { get; private set; }
+
+    public int CurrentArchitectScore { get; set; }
+    public int ArchitectScore { get; set; }
+
+    // Interior Settings
+    public byte Background { get; set; }
+    public byte Lighting { get; set; }
+    public byte Camera { get; set; }
+    public string? Password { get; set; }
+    public readonly IDictionary<HomePermission, HomePermissionSetting> Permissions;
 
     private string name;
     public string Name {
@@ -35,44 +47,28 @@ public class Home : IByteSerializable {
         }
     }
 
-    public byte Area { get; private set; }
-    public byte Height { get; private set; }
+    public PlotInfo Indoor { get; set; }
+    public PlotInfo? Outdoor { get; set; }
 
-    public int CurrentArchitectScore { get; set; }
-    public int ArchitectScore { get; set; }
-
-    // Interior Settings
-    public byte Background { get; set; }
-    public byte Lighting { get; set; }
-    public byte Camera { get; set; }
-    public string? Password { get; set; }
-    public readonly IDictionary<HomePermission, HomePermissionSetting> Permissions;
-
-    public IDictionary<Vector3B, (UgcItemCube Cube, float Rotation)> Cubes
-        = new Dictionary<Vector3B, (UgcItemCube Cube, float Rotation)>();
-
-
-    public Plot? Plot { get; set; }
-
-    public int PlotMapId => Plot?.MapId ?? 0;
-    public int PlotNumber => Plot?.Number ?? 0;
-    public int ApartmentNumber => Plot?.ApartmentNumber ?? 0;
-    public PlotState State => Plot?.State ?? PlotState.Open;
+    public int PlotMapId => Outdoor?.MapId ?? 0;
+    public int PlotNumber => Outdoor?.Number ?? 0;
+    public int ApartmentNumber => Outdoor?.ApartmentNumber ?? 0;
+    public PlotState State => Outdoor?.State ?? PlotState.Open;
 
     public Home() {
-        Name = "Unknown";
-        Message = "Thanks for visiting. Come back soon!";
+        name = "Unknown";
+        message = "Thanks for visiting. Come back soon!";
         Permissions = new Dictionary<HomePermission, HomePermissionSetting>();
     }
 
-    public byte SetArea(byte area) {
-        Area = Math.Clamp(area, Constant.MinHomeArea, Constant.MaxHomeArea);
-        return area;
+    public byte SetArea(int area) {
+        Area = (byte) Math.Clamp(area, Constant.MinHomeArea, Constant.MaxHomeArea);
+        return Area;
     }
 
-    public byte SetHeight(byte height) {
-        Height = Math.Clamp(height, Constant.MinHomeHeight, Constant.MaxHomeHeight);
-        return height;
+    public byte SetHeight(int height) {
+        Height = (byte) Math.Clamp(height, Constant.MinHomeHeight, Constant.MaxHomeHeight);
+        return Height;
     }
 
     public void WriteTo(IByteWriter writer) {

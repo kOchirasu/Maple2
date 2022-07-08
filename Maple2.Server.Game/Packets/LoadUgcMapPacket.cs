@@ -16,9 +16,9 @@ public static class LoadUgcMapPacket {
         return pWriter;
     }
 
-    public static ByteWriter LoadHome(Home home) {
+    public static ByteWriter LoadHome(Home home, int cubes) {
         var pWriter = Packet.Of(SendOp.LoadUgcMap);
-        pWriter.WriteInt(home.Cubes.Count);
+        pWriter.WriteInt(cubes);
         pWriter.WriteInt();
         pWriter.WriteBool(true);
         pWriter.WriteClass<Home>(home);

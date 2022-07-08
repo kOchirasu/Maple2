@@ -13,6 +13,7 @@ namespace Maple2.Server.Game.Manager;
 
 public class HousingManager {
     private readonly GameSession session;
+    private Home Home => session.Player.Value.Home;
 
     private readonly ILogger logger = Log.Logger.ForContext<HousingManager>();
 
@@ -20,33 +21,71 @@ public class HousingManager {
         this.session = session;
     }
 
-    public void SetPlot(Plot? plot) {
-        session.Player.Value.Home.Plot = plot;
+    public void SetPlot(PlotInfo? plot) {
+        Home.Outdoor = plot;
 
-        session.Field?.Multicast(CubePacket.UpdateHomeProfile(session.Player));
+        session.Field?.Multicast(CubePacket.UpdateProfile(session.Player));
     }
 
     public void SetHomeName(string name) {
-        session.Player.Value.Home.Name = name;
-        Plot? plot = session.Player.Value.Home.Plot;
+        Home.Name = name;
+        PlotInfo? plot = Home.Outdoor;
         if (plot != null) {
             plot.Name = name;
         }
 
-        session.Field?.Multicast(CubePacket.SetHomeName(session.Player.Value.Home), sender: session);
-        session.Field?.Multicast(CubePacket.UpdateHomeProfile(session.Player));
+        if (!SaveHome()) {
+            return;
+        }
+
+        session.Field?.Multicast(CubePacket.SetHomeName(Home), sender: session);
+        session.Field?.Multicast(CubePacket.UpdateProfile(session.Player));
+    }
+
+    public bool SaveHome() {
+        using GameStorage.Request db = session.GameStorage.Context();
+        return db.SaveHome(Home);
+    }
+
+    // Retrieves plot directly from field which includes cube data.
+    public Plot? GetFieldPlot() {
+        if (session.Field == null) {
+            return null;
+        }
+
+        Plot? plot;
+        // TODO: Player should also own this home... (FieldManager.OwnerId)
+        if (session.Field.MapId == Home.MapId) {
+            session.Field.Plots.TryGetValue(Home.Number, out plot);
+            return plot;
+        }
+
+        if (Home.Outdoor == null) {
+            return null;
+        }
+
+        session.Field.Plots.TryGetValue(Home.Outdoor.Number, out plot);
+        return plot;
+    }
+
+    public bool SaveFieldPlot(int number) {
+        if (session.Field?.Plots.TryGetValue(number, out Plot? plot) != true) {
+            return false;
+        }
+
+        return true;
     }
 
     public bool BuyPlot(int plotNumber) {
-        Plot? plot = session.Player.Value.Home.Plot;
-        if (plot != null) {
-            session.Send(plot.Number == plotNumber
+        PlotInfo? plotInfo = Home.Outdoor;
+        if (plotInfo != null) {
+            session.Send(plotInfo.Number == plotNumber
                 ? CubePacket.Error(UgcMapError.s_ugcmap_my_house)
                 : CubePacket.Error(UgcMapError.s_ugcmap_cant_buy_more_than_two_house));
             return false;
         }
 
-        if (session.Field == null || !session.Field.Plots.TryGetValue(plotNumber, out plot)) {
+        if (session.Field == null || !session.Field.Plots.TryGetValue(plotNumber, out Plot? plot)) {
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_not_a_buyable));
             return false;
         }
@@ -63,97 +102,96 @@ public class HousingManager {
         }
 
         using GameStorage.Request db = session.GameStorage.Context();
-        plot = db.BuyPlot(session.AccountId, plot, TimeSpan.FromDays(contract.Days));
-        if (plot == null) {
-            logger.Warning("Failed to buy plot");
+        plotInfo = db.BuyPlot(session.AccountId, plot, TimeSpan.FromDays(contract.Days));
+        if (plotInfo == null) {
+            logger.Warning("Failed to buy plot: {PlotId}, {OwnerId}", plot.Id, plot.OwnerId);
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_system_error));
             return false;
         }
-        if (session.Field.UpdatePlot(plot) != true) {
-            logger.Warning("Failed to update map plot in field");
+        if (session.Field.UpdatePlot(plotInfo) != true) {
+            logger.Warning("Failed to update map plot in field: {PlotId}", plotInfo.Id);
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_system_error));
             return false;
         }
 
-        session.Field.Multicast(CubePacket.BuyPlot(plot, session.Player.Value.Home.Name));
-        SetPlot(plot);
+        session.Field.Multicast(CubePacket.BuyPlot(plotInfo, Home.Name));
+        SetPlot(plotInfo);
         return true;
     }
 
-    public Plot? ForfeitPlot() {
-        Plot? plot = session.Player.Value.Home.Plot;
-        if (plot == null) {
+    public PlotInfo? ForfeitPlot() {
+        PlotInfo? plotInfo = Home.Outdoor;
+        if (plotInfo == null) {
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_dont_have_ownership));
             return null;
         }
 
-        if (DateTime.UtcNow - plot.ExpiryTime.FromEpochSeconds() > TimeSpan.FromDays(3)) {
+        if (DateTime.UtcNow - plotInfo.ExpiryTime.FromEpochSeconds() > TimeSpan.FromDays(3)) {
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_not_extension_date));
             return null;
         }
 
-        if (session.Field == null || !session.Field.Plots.TryGetValue(plot.Number, out plot)) {
+        if (session.Field == null || !session.Field.Plots.TryGetValue(plotInfo.Number, out Plot? plot)) {
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_system_error));
             return null;
         }
 
         using GameStorage.Request db = session.GameStorage.Context();
-        plot = db.ForfeitPlot(session.AccountId, plot);
-        if (plot == null) {
-            logger.Warning("Failed to forfeit plot");
+        plotInfo = db.ForfeitPlot(session.AccountId, plot);
+        if (plotInfo == null) {
+            logger.Warning("Failed to forfeit plot: {PlotId}, {OwnerId}", plot.Id, plot.OwnerId);
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_system_error));
             return null;
         }
-        if (session.Field.UpdatePlot(plot) != true) {
-            logger.Warning("Failed to update map plot in field");
+        if (session.Field.UpdatePlot(plotInfo) != true) {
+            logger.Warning("Failed to update map plot in field: {PlotId}", plotInfo.Id);
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_system_error));
             return null;
         }
 
-        session.Field.Multicast(CubePacket.ForfeitPlot(plot));
+        session.Field.Multicast(CubePacket.ForfeitPlot(plotInfo));
         SetPlot(null);
 
-        return plot;
+        return plotInfo;
     }
 
     public void ExtendPlot() {
-        Plot? plot = session.Player.Value.Home.Plot;
-        if (plot == null) {
+        if (Home.Outdoor == null) {
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_dont_have_ownership));
             return;
         }
 
-        if (plot.State != PlotState.Taken || plot.ExpiryTime <= DateTime.UtcNow.ToEpochSeconds()) {
+        if (Home.Outdoor.State != PlotState.Taken || Home.Outdoor.ExpiryTime <= DateTime.UtcNow.ToEpochSeconds()) {
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_expired_salable_group));
             return;
         }
 
-        if (plot.ExpiryTime.FromEpochSeconds() - DateTime.UtcNow > TimeSpan.FromDays(30)) {
+        if (Home.Outdoor.ExpiryTime.FromEpochSeconds() - DateTime.UtcNow > TimeSpan.FromDays(30)) {
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_not_extension_date));
             return;
         }
 
-        UgcMapGroup.Cost extension = plot.Metadata.ExtensionCost;
+        UgcMapGroup.Cost extension = Home.Outdoor.Metadata.ExtensionCost;
         if (!DeductCost(session, extension)) {
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_need_extansion_pay));
             return;
         }
 
-        TimeSpan extendTime = TimeSpan.FromDays(extension.Days);
-        plot.ExpiryTime += (int) extendTime.TotalSeconds;
         using GameStorage.Request db = session.GameStorage.Context();
-        if (!db.ExtendPlot(plot, extendTime)) {
-            logger.Warning("Failed to extend plot");
+        PlotInfo? plotInfo = db.ExtendPlot(Home.Outdoor, TimeSpan.FromDays(extension.Days));
+        if (plotInfo == null) {
+            logger.Warning("Failed to extend plot: {PlotId}, {OwnerId}", Home.Outdoor.Id, Home.Outdoor.OwnerId);
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_system_error));
             return;
         }
-        if (session.Field?.UpdatePlot(plot) != true) {
-            logger.Warning("Failed to update map plot in field");
+        if (session.Field?.UpdatePlot(plotInfo) != true) {
+            logger.Warning("Failed to update map plot in field: {PlotId}", Home.Outdoor.Id);
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_system_error));
             return;
         }
 
-        session.Send(CubePacket.ExtendPlot(plot));
+        session.Send(CubePacket.ExtendPlot(plotInfo));
+        SetPlot(plotInfo);
     }
 
     private static bool DeductCost(GameSession session, UgcMapGroup.Cost cost) {

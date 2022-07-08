@@ -26,8 +26,9 @@ public sealed class InitializationContext : Ms2Context {
         Database.ExecuteSqlRaw("ALTER TABLE `buddy` AUTO_INCREMENT = 40000000000");
         Database.ExecuteSqlRaw("ALTER TABLE `ugcmap` AUTO_INCREMENT = 50000000000");
 
-        // item is the entity that could grow the most, so put it last
-        Database.ExecuteSqlRaw("ALTER TABLE `item` AUTO_INCREMENT = 1000000000000");
+        // potentially large tables
+        Database.ExecuteSqlRaw("ALTER TABLE `ugcmap-cube` AUTO_INCREMENT = 1000000000000");
+        Database.ExecuteSqlRaw("ALTER TABLE `item` AUTO_INCREMENT = 2000000000000");
 
         return true;
     }
