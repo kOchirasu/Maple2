@@ -27,24 +27,69 @@ public class HousingManager {
         session.Field?.Multicast(CubePacket.UpdateProfile(session.Player));
     }
 
-    public void SetHomeName(string name) {
-        Home.Name = name;
+    public void SetName(string name) {
+        if (name.Length > Constant.HomeNameMaxLength) {
+            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_center));
+            return;
+        }
+
+        Home.Indoor.Name = name;
         PlotInfo? plot = Home.Outdoor;
         if (plot != null) {
             plot.Name = name;
         }
 
-        if (!SaveHome()) {
+        if (!SavePlots()) {
+            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_db));
             return;
         }
 
-        session.Field?.Multicast(CubePacket.SetHomeName(Home), sender: session);
+        session.Field?.Multicast(CubePacket.SetHomeName(Home));
         session.Field?.Multicast(CubePacket.UpdateProfile(session.Player));
+    }
+
+    public void SetHomeMessage(string message) {
+        if (message.Length > Constant.HomeMessageMaxLength) {
+            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_center));
+            return;
+        }
+
+        Home.Message = message;
+        if (!SaveHome()) {
+            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_db));
+            return;
+        }
+
+        session.Field?.Multicast(CubePacket.SetHomeMessage(Home.Message));
+    }
+
+    public void SetPasscode(string passcode) {
+        if (passcode.Length != 0 && (passcode.Length != Constant.HomePasscodeLength || !uint.TryParse(passcode, out _))) {
+            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_center));
+            return;
+        }
+
+        Home.Passcode = passcode;
+        using GameStorage.Request db = session.GameStorage.Context();
+        if (!SaveHome()) {
+            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_db));
+            return;
+        }
+
+        session.Send(CubePacket.SetPasscode());
     }
 
     public bool SaveHome() {
         using GameStorage.Request db = session.GameStorage.Context();
         return db.SaveHome(Home);
+    }
+
+    public bool SavePlots() {
+        using GameStorage.Request db = session.GameStorage.Context();
+        if (Home.Outdoor != null) {
+            return db.SavePlot(Home.Indoor, Home.Outdoor);
+        }
+        return db.SavePlot(Home.Indoor);
     }
 
     // Retrieves plot directly from field which includes cube data.
@@ -55,8 +100,8 @@ public class HousingManager {
 
         Plot? plot;
         // TODO: Player should also own this home... (FieldManager.OwnerId)
-        if (session.Field.MapId == Home.MapId) {
-            session.Field.Plots.TryGetValue(Home.Number, out plot);
+        if (session.Field.MapId == Home.Indoor.MapId) {
+            session.Field.Plots.TryGetValue(Home.Indoor.Number, out plot);
             return plot;
         }
 
@@ -96,7 +141,7 @@ public class HousingManager {
         }
 
         UgcMapGroup.Cost contract = plot.Metadata.ContractCost;
-        if (!DeductCost(session, contract)) {
+        if (!CheckCost(session, contract)) {
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_not_enough_money));
             return false;
         }
@@ -105,16 +150,18 @@ public class HousingManager {
         plotInfo = db.BuyPlot(session.AccountId, plot, TimeSpan.FromDays(contract.Days));
         if (plotInfo == null) {
             logger.Warning("Failed to buy plot: {PlotId}, {OwnerId}", plot.Id, plot.OwnerId);
-            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_system_error));
+            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_db));
             return false;
         }
+
+        CheckCost(session, contract, deduct: true); // Deduct cost
         if (session.Field.UpdatePlot(plotInfo) != true) {
             logger.Warning("Failed to update map plot in field: {PlotId}", plotInfo.Id);
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_system_error));
             return false;
         }
 
-        session.Field.Multicast(CubePacket.BuyPlot(plotInfo, Home.Name));
+        session.Field.Multicast(CubePacket.BuyPlot(plotInfo));
         SetPlot(plotInfo);
         return true;
     }
@@ -140,9 +187,10 @@ public class HousingManager {
         plotInfo = db.ForfeitPlot(session.AccountId, plot);
         if (plotInfo == null) {
             logger.Warning("Failed to forfeit plot: {PlotId}, {OwnerId}", plot.Id, plot.OwnerId);
-            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_system_error));
+            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_db));
             return null;
         }
+
         if (session.Field.UpdatePlot(plotInfo) != true) {
             logger.Warning("Failed to update map plot in field: {PlotId}", plotInfo.Id);
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_system_error));
@@ -172,7 +220,7 @@ public class HousingManager {
         }
 
         UgcMapGroup.Cost extension = Home.Outdoor.Metadata.ExtensionCost;
-        if (!DeductCost(session, extension)) {
+        if (!CheckCost(session, extension)) {
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_need_extansion_pay));
             return;
         }
@@ -181,9 +229,11 @@ public class HousingManager {
         PlotInfo? plotInfo = db.ExtendPlot(Home.Outdoor, TimeSpan.FromDays(extension.Days));
         if (plotInfo == null) {
             logger.Warning("Failed to extend plot: {PlotId}, {OwnerId}", Home.Outdoor.Id, Home.Outdoor.OwnerId);
-            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_system_error));
+            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_db));
             return;
         }
+
+        CheckCost(session, extension, deduct: true); // Deduct cost
         if (session.Field?.UpdatePlot(plotInfo) != true) {
             logger.Warning("Failed to update map plot in field: {PlotId}", Home.Outdoor.Id);
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_system_error));
@@ -194,7 +244,7 @@ public class HousingManager {
         SetPlot(plotInfo);
     }
 
-    private static bool DeductCost(GameSession session, UgcMapGroup.Cost cost) {
+    private static bool CheckCost(GameSession session, UgcMapGroup.Cost cost, bool deduct = false) {
         switch (cost.ItemId) {
             case >= 90000001 and <= 90000003:
                 if (session.Currency.Meso < cost.Amount) {
@@ -202,7 +252,9 @@ public class HousingManager {
                     return false;
                 }
 
-                session.Currency.Meso -= cost.Amount;
+                if (deduct) {
+                    session.Currency.Meso -= cost.Amount;
+                }
                 return true;
             case 90000004 or 90000011 or 90000015 or 90000016:
                 if (session.Currency.Meret < cost.Amount) {
@@ -210,10 +262,21 @@ public class HousingManager {
                     return false;
                 }
 
-                session.Currency.Meret -= cost.Amount;
+                if (deduct) {
+                    session.Currency.Meret -= cost.Amount;
+                }
                 return true;
         }
 
         return false;
+    }
+
+    public void Save(GameStorage.Request db) {
+        db.SaveHome(Home);
+        if (Home.Outdoor != null) {
+            db.SavePlot(Home.Indoor, Home.Outdoor);
+        } else {
+            db.SavePlot(Home.Indoor);
+        }
     }
 }

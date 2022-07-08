@@ -24,7 +24,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
         LiftupObject = 17,
         LiftupAttack = 18,
         SetHomeName = 21,
-        SetPassword = 24,
+        SetPasscode = 24,
         VoteHome = 25,
         SetHomeMessage = 29,
         ClearCubes = 31,
@@ -42,7 +42,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
         KickOut = 49,
         SetBackground = 51,
         SetLighting = 52,
-        SetCamera = 53,
+        SetCamera = 54,
         SaveBlueprint = 64,
         LoadBlueprint = 65,
     }
@@ -80,8 +80,8 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
             case Command.SetHomeName:
                 HandleSetHomeName(session, packet);
                 break;
-            case Command.SetPassword:
-                HandleSetPassword(session, packet);
+            case Command.SetPasscode:
+                HandleSetPasscode(session, packet);
                 break;
             case Command.VoteHome:
                 HandleVoteHome(session);
@@ -195,40 +195,24 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
 
     private void HandleSetHomeName(GameSession session, IByteReader packet) {
         string name = packet.ReadUnicodeString();
-        if (name.Length > 16) {
-            // TODO: Invalid name
-            return;
-        }
-
-        session.Housing.SetHomeName(name);
+        session.Housing.SetName(name);
     }
 
-    private void HandleSetPassword(GameSession session, IByteReader packet) {
-        bool hasPassword = packet.ReadBool();
-        string password = string.Empty;
-        if (hasPassword) {
-            password = packet.ReadUnicodeString();
+    private void HandleSetPasscode(GameSession session, IByteReader packet) {
+        bool hasPasscode = packet.ReadBool();
+        string passcode = string.Empty;
+        if (hasPasscode) {
+            passcode = packet.ReadUnicodeString();
         }
 
-        session.Player.Value.Home.Password = password;
-        if (!session.Housing.SaveHome()) {
-            return;
-        }
+        session.Housing.SetPasscode(passcode);
     }
 
     private void HandleVoteHome(GameSession session) { }
 
     private void HandleSetHomeMessage(GameSession session, IByteReader packet) {
         string message = packet.ReadUnicodeString();
-        if (message.Length > 100) {
-            // TODO: Invalid message
-            return;
-        }
-
-        session.Player.Value.Home.Message = message;
-        if (!session.Housing.SaveHome()) {
-            return;
-        }
+        session.Housing.SetHomeMessage(message);
     }
 
     private void HandleClearCubes(GameSession session) { }
@@ -238,25 +222,16 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
     }
 
     private void HandleIncreaseArea(GameSession session) {
-        Home home = session.Player.Value.Home;
-        byte area = home.Area;
-
-        if (area != home.SetArea(home.Area + 1)) {
-            return;
-        }
-        if (!session.Housing.SaveHome()) {
-            return;
+        int area = session.Player.Value.Home.Area + 1;
+        if (session.Player.Value.Home.SetArea(area) && session.Housing.SaveHome()) {
+            session.Field?.Multicast(CubePacket.IncreaseArea((byte) area));
         }
     }
 
     private void HandleDecreaseArea(GameSession session) {
-        Home home = session.Player.Value.Home;
-        byte area = home.Area;
-        if (area != home.SetArea(home.Area - 1)) {
-            return;
-        }
-        if (!session.Housing.SaveHome()) {
-            return;
+        int area = session.Player.Value.Home.Area - 1;
+        if (session.Player.Value.Home.SetArea(area) && session.Housing.SaveHome()) {
+            session.Field?.Multicast(CubePacket.DecreaseArea((byte) area));
         }
     }
 
@@ -264,37 +239,41 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
 
     private void HandleEnablePermission(GameSession session, IByteReader packet) {
         var permission = packet.Read<HomePermission>();
-        var setting = packet.Read<HomePermissionSetting>();
+        bool enabled = packet.ReadBool();
+
+        if (enabled) {
+            session.Player.Value.Home.Permissions[permission] = HomePermissionSetting.None;
+        } else {
+            session.Player.Value.Home.Permissions.Remove(permission);
+        }
+
+        session.Field?.Multicast(CubePacket.EnablePermission(permission, enabled));
     }
 
     private void HandleSetPermission(GameSession session, IByteReader packet) {
         var permission = packet.Read<HomePermission>();
         var setting = packet.Read<HomePermissionSetting>();
 
-        if (!session.Housing.SaveHome()) {
-            return;
+        if (session.Player.Value.Home.Permissions.ContainsKey(permission)) {
+            session.Player.Value.Home.Permissions[permission] = setting;
+        } else {
+            setting = HomePermissionSetting.None;
         }
+
+        session.Field?.Multicast(CubePacket.SetPermission(permission, setting));
     }
 
     private void HandleIncreaseHeight(GameSession session) {
-        Home home = session.Player.Value.Home;
-        byte height = home.Height;
-        if (height != home.SetHeight(home.Height + 1)) {
-            return;
-        }
-        if (!session.Housing.SaveHome()) {
-            return;
+        int height = session.Player.Value.Home.Height + 1;
+        if (session.Player.Value.Home.SetHeight(height) && session.Housing.SaveHome()) {
+            session.Field?.Multicast(CubePacket.IncreaseHeight((byte) height));
         }
     }
 
     private void HandleDecreaseHeight(GameSession session) {
-        Home home = session.Player.Value.Home;
-        byte height = home.Height;
-        if (height != home.SetHeight(home.Height - 1)) {
-            return;
-        }
-        if (!session.Housing.SaveHome()) {
-            return;
+        int height = session.Player.Value.Home.Height - 1;
+        if (session.Player.Value.Home.SetHeight(height) && session.Housing.SaveHome()) {
+            session.Field?.Multicast(CubePacket.DecreaseHeight((byte) height));
         }
     }
 
@@ -314,38 +293,23 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
     private void HandleKickOut(GameSession session) { }
 
     private void HandleSetBackground(GameSession session, IByteReader packet) {
-        byte index = packet.ReadByte();
-        if (session.Player.Value.Home.Background == index) {
-            return;
-        }
-
-        session.Player.Value.Home.Background = index;
-        if (!session.Housing.SaveHome()) {
-            return;
+        var background = packet.Read<HomeBackground>();
+        if (session.Player.Value.Home.SetBackground(background)) {
+            session.Field?.Multicast(CubePacket.SetBackground(background));
         }
     }
 
     private void HandleSetLighting(GameSession session, IByteReader packet) {
-        byte index = packet.ReadByte();
-        if (session.Player.Value.Home.Lighting == index) {
-            return;
-        }
-
-        session.Player.Value.Home.Lighting = index;
-        if (!session.Housing.SaveHome()) {
-            return;
+        var lighting = packet.Read<HomeLighting>();
+        if (session.Player.Value.Home.SetLighting(lighting)) {
+            session.Field?.Multicast(CubePacket.SetLighting(lighting));
         }
     }
 
     private void HandleSetCamera(GameSession session, IByteReader packet) {
-        byte index = packet.ReadByte();
-        if (session.Player.Value.Home.Camera == index) {
-            return;
-        }
-
-        session.Player.Value.Home.Camera = index;
-        if (!session.Housing.SaveHome()) {
-            return;
+        var camera = packet.Read<HomeCamera>();
+        if (session.Player.Value.Home.SetCamera(camera)) {
+            session.Field?.Multicast(CubePacket.SetCamera(camera));
         }
     }
 

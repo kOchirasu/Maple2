@@ -18,9 +18,9 @@ public class LoadUgcMapHandler : PacketHandler<GameSession> {
         }
 
         // TODO: This is treating home map as users home always.
-        if (session.Player.Value.Home.MapId == session.Field.MapId) {
-            if (session.Field.Plots.TryGetValue(session.Player.Value.Home.Number, out Plot? plot)) {
-                LoadUgcMapPacket.LoadHome(session.Player.Value.Home, plot.Cubes.Count);
+        if (session.Player.Value.Home.Indoor.MapId == session.Field.MapId) {
+            if (session.Field.Plots.TryGetValue(session.Player.Value.Home.Indoor.Number, out Plot? plot)) {
+                session.Send(LoadUgcMapPacket.LoadHome(session.Player.Value.Home, plot.Cubes.Count));
                 return;
             }
         }

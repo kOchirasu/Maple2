@@ -11,8 +11,7 @@ public class Home : IByteSerializable {
     private const byte HOME_PERMISSION_COUNT = 9;
 
     public long AccountId { get; init; }
-    public int MapId { get; init; }
-    public int Number { get; init; }
+    public long LastModified { get; set; }
 
     public byte Area { get; private set; }
     public byte Height { get; private set; }
@@ -21,21 +20,11 @@ public class Home : IByteSerializable {
     public int ArchitectScore { get; set; }
 
     // Interior Settings
-    public byte Background { get; set; }
-    public byte Lighting { get; set; }
-    public byte Camera { get; set; }
-    public string? Password { get; set; }
+    public HomeBackground Background { get; private set; }
+    public HomeLighting Lighting { get; private set; }
+    public HomeCamera Camera { get; private set; }
+    public string? Passcode { get; set; }
     public readonly IDictionary<HomePermission, HomePermissionSetting> Permissions;
-
-    private string name;
-    public string Name {
-        get => name;
-        set {
-            if (!string.IsNullOrWhiteSpace(value)) {
-                name = value;
-            }
-        }
-    }
 
     private string message;
     public string Message {
@@ -50,30 +39,59 @@ public class Home : IByteSerializable {
     public PlotInfo Indoor { get; set; }
     public PlotInfo? Outdoor { get; set; }
 
+    public string Name => Outdoor?.Name ?? Indoor.Name;
     public int PlotMapId => Outdoor?.MapId ?? 0;
     public int PlotNumber => Outdoor?.Number ?? 0;
     public int ApartmentNumber => Outdoor?.ApartmentNumber ?? 0;
     public PlotState State => Outdoor?.State ?? PlotState.Open;
 
     public Home() {
-        name = "Unknown";
         message = "Thanks for visiting. Come back soon!";
         Permissions = new Dictionary<HomePermission, HomePermissionSetting>();
     }
 
-    public byte SetArea(int area) {
+    public bool SetArea(int area) {
+        if (Area == area) return false;
         Area = (byte) Math.Clamp(area, Constant.MinHomeArea, Constant.MaxHomeArea);
-        return Area;
+        return Area == area;
     }
 
-    public byte SetHeight(int height) {
+    public bool SetHeight(int height) {
+        if (Height == height) return false;
         Height = (byte) Math.Clamp(height, Constant.MinHomeHeight, Constant.MaxHomeHeight);
-        return Height;
+        return Height == height;
+    }
+
+    public bool SetBackground(HomeBackground background) {
+        if (Background == background || !System.Enum.IsDefined(background)) {
+            return false;
+        }
+
+        Background = background;
+        return true;
+    }
+
+    public bool SetLighting(HomeLighting lighting) {
+        if (Lighting == lighting || !System.Enum.IsDefined(lighting)) {
+            return false;
+        }
+
+        Lighting = lighting;
+        return true;
+    }
+
+    public bool SetCamera(HomeCamera camera) {
+        if (Camera == camera || !System.Enum.IsDefined(camera)) {
+            return false;
+        }
+
+        Camera = camera;
+        return true;
     }
 
     public void WriteTo(IByteWriter writer) {
         writer.WriteLong(AccountId);
-        writer.WriteUnicodeString(Name);
+        writer.WriteUnicodeString(Indoor.Name);
         writer.WriteUnicodeString(Message);
         writer.WriteByte();
         writer.WriteInt(CurrentArchitectScore);
@@ -83,9 +101,9 @@ public class Home : IByteSerializable {
         writer.WriteByte(); // (1=Removes Top-Right UI)
         writer.WriteByte(Area);
         writer.WriteByte(Height);
-        writer.WriteByte(Background);
-        writer.WriteByte(Lighting);
-        writer.WriteByte(Camera);
+        writer.Write<HomeBackground>(Background);
+        writer.Write<HomeLighting>(Lighting);
+        writer.Write<HomeCamera>(Camera);
 
         writer.WriteByte(HOME_PERMISSION_COUNT);
         for (byte i = 0; i < HOME_PERMISSION_COUNT; i++) {

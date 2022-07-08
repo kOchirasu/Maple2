@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
@@ -18,12 +19,14 @@ internal class Home {
     public int ArchitectScore { get; set; }
 
     // Interior Settings
-    public byte Background { get; set; }
-    public byte Lighting { get; set; }
-    public byte Camera { get; set; }
+    public HomeBackground Background { get; set; }
+    public HomeLighting Lighting { get; set; }
+    public HomeCamera Camera { get; set; }
 
-    public string? Password { get; set; }
+    public string? Passcode { get; set; }
     public IDictionary<HomePermission, HomePermissionSetting> Permissions { get; set; } = new Dictionary<HomePermission, HomePermissionSetting>();
+
+    public DateTime LastModified { get; set; }
 
     public static implicit operator Home?(Maple2.Model.Game.Home? other) {
         return other == null ? null : new Home {
@@ -37,7 +40,7 @@ internal class Home {
             Background = other.Background,
             Lighting = other.Lighting,
             Camera = other.Camera,
-            Password = other.Password,
+            Passcode = other.Passcode,
             Permissions = other.Permissions,
         };
     }
@@ -49,20 +52,18 @@ internal class Home {
 
         var home = new Maple2.Model.Game.Home {
             AccountId = other.AccountId,
-            // MapId = other.Indoor.MapId,
-            // Number = other.Indoor.Number,
-            // Name = other.Indoor.Name,
             Message = other.Message,
             CurrentArchitectScore = other.CurrentArchitectScore,
             ArchitectScore = other.ArchitectScore,
-            Background = other.Background,
-            Lighting = other.Lighting,
-            Camera = other.Camera,
-            Password = other.Password,
+            Passcode = other.Passcode,
+            LastModified = other.LastModified.ToEpochSeconds(),
         };
 
         home.SetArea(other.Area);
         home.SetHeight(other.Height);
+        home.SetBackground(other.Background);
+        home.SetLighting(other.Lighting);
+        home.SetCamera(other.Camera);
         foreach ((HomePermission permission, HomePermissionSetting setting) in other.Permissions) {
             home.Permissions[permission] = setting;
         }
@@ -81,5 +82,8 @@ internal class Home {
             .HasDefaultValue(Constant.MinHomeHeight);
 
         builder.Property(home => home.Permissions).HasJsonConversion();
+
+        builder.Property(map => map.LastModified)
+            .ValueGeneratedOnAddOrUpdate();
     }
 }

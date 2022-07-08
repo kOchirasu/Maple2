@@ -253,6 +253,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
                 db.SavePlayer(Player, true);
                 Config.Save(db);
                 Item.Save(db);
+                Housing.Save(db);
             }
 
             base.Dispose(disposing);

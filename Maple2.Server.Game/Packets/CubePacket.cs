@@ -19,7 +19,6 @@ public static class CubePacket {
         ForfeitPlot = 5,
         ConfirmForfeitPlot = 7,
         ExtendPlot = 9,
-        // 9, 24, 40, 41 = SetPassword?
         PlaceCube = 10, // Also PurchaseCube?
         RemoveCube = 12,
         RotateCube = 14,
@@ -29,7 +28,7 @@ public static class CubePacket {
         UpdateProfile = 20,
         SetHomeName = 21,
         UpdatePlot = 22, // Buy/Extend/Forfeit
-        SetPassword = 24,
+        SetPasscode = 24,
         ConfirmVote = 25,
         KickOut = 26,
         // 27
@@ -42,6 +41,7 @@ public static class CubePacket {
         IncreaseArea = 37,
         DecreaseArea = 38,
         DesignRankReward = 39,
+        // 40, 41
         EnablePermission = 42,
         SetPermission = 43,
         IncreaseHeight = 44,
@@ -80,13 +80,13 @@ public static class CubePacket {
         return pWriter;
     }
 
-    public static ByteWriter BuyPlot(PlotInfo plot, string plotName) {
+    public static ByteWriter BuyPlot(PlotInfo plot) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.BuyPlot);
         pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
         pWriter.WriteInt(plot.Number);
         pWriter.WriteInt(plot.ApartmentNumber);
-        pWriter.WriteUnicodeString(plotName);
+        pWriter.WriteUnicodeString(plot.Name);
         pWriter.WriteLong(plot.ExpiryTime);
         pWriter.WriteLong(plot.OwnerId);
 
@@ -207,12 +207,11 @@ public static class CubePacket {
     public static ByteWriter SetHomeName(Home home) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.SetHomeName);
-        pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
         pWriter.WriteBool(false);
         pWriter.WriteLong(home.AccountId);
         pWriter.WriteInt(home.PlotNumber);
         pWriter.WriteInt(home.ApartmentNumber);
-        pWriter.WriteUnicodeString(home.Name);
+        pWriter.WriteUnicodeString(home.Indoor.Name);
 
         return pWriter;
     }
@@ -221,13 +220,13 @@ public static class CubePacket {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.UpdateProfile);
         pWriter.WriteInt(player.ObjectId);
-        pWriter.WriteInt(player.Home.MapId);
+        pWriter.WriteInt(player.Home.Indoor.MapId);
         pWriter.WriteInt(player.Home.PlotMapId);
         pWriter.WriteInt(player.Home.PlotNumber);
         pWriter.WriteInt(player.Home.ApartmentNumber);
         pWriter.WriteUnicodeString(player.Home.Name);
         pWriter.WriteLong(player.Home.Outdoor?.ExpiryTime ?? 0);
-        pWriter.WriteLong(player.Home.Outdoor?.LastModified ?? 0);
+        pWriter.WriteLong(player.Home.LastModified);
         pWriter.WriteBool(load);
 
         return pWriter;
@@ -243,9 +242,10 @@ public static class CubePacket {
 
         return pWriter;
     }
-    public static ByteWriter SetPassword() {
+    public static ByteWriter SetPasscode() {
         var pWriter = Packet.Of(SendOp.ResponseCube);
-        pWriter.Write<Command>(Command.SetPassword);
+        pWriter.Write<Command>(Command.SetPasscode);
+        pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
 
         return pWriter;
     }
@@ -271,9 +271,11 @@ public static class CubePacket {
         return pWriter;
     }
 
-    public static ByteWriter SetHomeMessage() {
+    public static ByteWriter SetHomeMessage(string message) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.SetHomeMessage);
+        pWriter.WriteBool(false);
+        pWriter.WriteUnicodeString(message);
 
         return pWriter;
     }
@@ -286,16 +288,20 @@ public static class CubePacket {
         return pWriter;
     }
 
-    public static ByteWriter IncreaseArea() {
+    public static ByteWriter IncreaseArea(byte area) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.IncreaseArea);
+        pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
+        pWriter.WriteByte(area);
 
         return pWriter;
     }
 
-    public static ByteWriter DecreaseArea() {
+    public static ByteWriter DecreaseArea(byte area) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.DecreaseArea);
+        pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
+        pWriter.WriteByte(area);
 
         return pWriter;
     }
@@ -307,30 +313,38 @@ public static class CubePacket {
         return pWriter;
     }
 
-    public static ByteWriter EnablePermission() {
+    public static ByteWriter EnablePermission(HomePermission permission, bool enabled) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.EnablePermission);
+        pWriter.Write<HomePermission>(permission);
+        pWriter.WriteBool(enabled);
 
         return pWriter;
     }
 
-    public static ByteWriter SetPermission() {
+    public static ByteWriter SetPermission(HomePermission permission, HomePermissionSetting setting) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.SetPermission);
+        pWriter.Write<HomePermission>(permission);
+        pWriter.Write<HomePermissionSetting>(setting);
 
         return pWriter;
     }
 
-    public static ByteWriter IncreaseHeight() {
+    public static ByteWriter IncreaseHeight(byte height) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.IncreaseHeight);
+        pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
+        pWriter.WriteByte(height);
 
         return pWriter;
     }
 
-    public static ByteWriter DecreaseHeight() {
+    public static ByteWriter DecreaseHeight(byte height) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.DecreaseHeight);
+        pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
+        pWriter.WriteByte(height);
 
         return pWriter;
     }
@@ -342,16 +356,20 @@ public static class CubePacket {
         return pWriter;
     }
 
-    public static ByteWriter SetBackground() {
+    public static ByteWriter SetBackground(HomeBackground background) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.SetBackground);
+        pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
+        pWriter.Write<HomeBackground>(background);
 
         return pWriter;
     }
 
-    public static ByteWriter SetLighting() {
+    public static ByteWriter SetLighting(HomeLighting lighting) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.SetLighting);
+        pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
+        pWriter.Write<HomeLighting>(lighting);
 
         return pWriter;
     }
@@ -363,9 +381,11 @@ public static class CubePacket {
         return pWriter;
     }
 
-    public static ByteWriter SetCamera() {
+    public static ByteWriter SetCamera(HomeCamera camera) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.SetCamera);
+        pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
+        pWriter.Write<HomeCamera>(camera);
 
         return pWriter;
     }

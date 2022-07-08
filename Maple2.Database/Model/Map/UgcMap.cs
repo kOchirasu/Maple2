@@ -38,7 +38,7 @@ internal class UgcMap {
         builder.HasIndex(map => map.OwnerId);
         builder.HasIndex(map => map.MapId);
 
-        builder.Property(layout => layout.LastModified)
+        builder.Property(map => map.LastModified)
             .IsRowVersion();
     }
 }

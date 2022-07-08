@@ -48,7 +48,7 @@ public class HomeHandler : PacketHandler<GameSession> {
             return;
         }
 
-        int homeMapId = session.Player.Value.Home.MapId;
+        int homeMapId = session.Player.Value.Home.Indoor.MapId;
         if (session.Field.MapId == homeMapId) {
             session.Send(NoticePacket.MessageBox(StringCode.s_home_returnable_forbidden_to_sameplace));
             return;

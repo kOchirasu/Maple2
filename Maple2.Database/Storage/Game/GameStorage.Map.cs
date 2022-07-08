@@ -85,7 +85,31 @@ public partial class GameStorage {
         }
 
         public bool SaveHome(Home home) {
-            Context.Home.Update(home!);
+            Model.Home model = home!;
+            Context.Home.Update(model);
+            if (!Context.TrySaveChanges()) {
+                return false;
+            }
+
+            home.LastModified = model.LastModified.ToEpochSeconds();
+            return true;
+        }
+
+        public bool SavePlot(params PlotInfo[] plotInfos) {
+            foreach (PlotInfo plotInfo in plotInfos) {
+                UgcMap? model = Context.UgcMap.Find(plotInfo.Id);
+                if (model == null) {
+                    return false;
+                }
+
+                model.OwnerId = plotInfo.OwnerId;
+                model.MapId = plotInfo.MapId;
+                model.Number = plotInfo.Number;
+                model.ApartmentNumber = plotInfo.ApartmentNumber;
+                model.ExpiryTime = plotInfo.ExpiryTime.FromEpochSeconds();
+                Context.UgcMap.Update(model);
+            }
+
             return Context.TrySaveChanges();
         }
 
@@ -123,7 +147,6 @@ public partial class GameStorage {
                 Number = ugcMap.Number,
                 ApartmentNumber = 0,
                 ExpiryTime = ugcMap.ExpiryTime.ToEpochSeconds(),
-                LastModified = ugcMap.LastModified.ToEpochSeconds(),
             };
 
             foreach ((UgcItemCube cube, Vector3B position, float rotation) entry in ugcMap.Cubes) {
@@ -149,7 +172,6 @@ public partial class GameStorage {
                 Number = ugcMap.Number,
                 ApartmentNumber = 0,
                 ExpiryTime = ugcMap.ExpiryTime.ToEpochSeconds(),
-                LastModified = ugcMap.LastModified.ToEpochSeconds(),
             };
         }
     }

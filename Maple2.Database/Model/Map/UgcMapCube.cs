@@ -28,7 +28,7 @@ internal class UgcMapCube {
 
         builder.HasOne<UgcMap>()
             .WithMany(ugcMap => ugcMap.Cubes)
-            .HasForeignKey(ugcMapCube => ugcMapCube.UgcMapId);
+            .HasForeignKey(cube => cube.UgcMapId);
 
         builder.Property(cube => cube.Template).HasJsonConversion();
     }

@@ -25,9 +25,9 @@ public class PlotInfo {
     public int ApartmentNumber { get; init; }
 
     public long ExpiryTime { get; set; }
-    public long LastModified { get; init; }
 
     public PlotInfo(UgcMapGroup metadata) {
+        name = "Unknown";
         Metadata = metadata;
     }
 

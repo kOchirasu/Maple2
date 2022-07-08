@@ -42,7 +42,7 @@ public static class ProxyObjectPacket {
         pWriter.WriteInt(player.Home.PlotMapId);
         pWriter.WriteInt(player.Home.PlotNumber);
         pWriter.WriteInt(player.Home.ApartmentNumber);
-        pWriter.WriteUnicodeString(player.Home.Name);
+        pWriter.WriteUnicodeString(player.Home.Indoor.Name);
         pWriter.WriteInt(fieldPlayer.Stats.GearScore);
         pWriter.WriteShort((short) fieldPlayer.State);
         pWriter.Write<Trophy>(player.Account.Trophy);
