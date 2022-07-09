@@ -7,8 +7,8 @@ using Maple2.Server.Game.Packets;
 namespace Maple2.Server.Game.Model;
 
 public class FieldBreakable : FieldEntity<BreakableActor> {
-    private readonly FieldManager field;
     public readonly string EntityId;
+
     private int nextTick;
 
     public BreakableState State { get; private set; }
@@ -26,8 +26,6 @@ public class FieldBreakable : FieldEntity<BreakableActor> {
     }
 
     public FieldBreakable(FieldManager field, int objectId, string entityId, BreakableActor breakable) : base(field, objectId, breakable) {
-        this.field = field;
-
         EntityId = entityId;
         visible = breakable.Visible;
         State = breakable.Visible ? BreakableState.Show : BreakableState.Hide;
@@ -39,7 +37,7 @@ public class FieldBreakable : FieldEntity<BreakableActor> {
         }
 
         State = state;
-        field.Multicast(BreakablePacket.Update(this));
+        Field.Multicast(BreakablePacket.Update(this));
 
         switch (State) {
             case BreakableState.Show:

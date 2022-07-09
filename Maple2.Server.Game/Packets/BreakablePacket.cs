@@ -14,7 +14,7 @@ public static class BreakablePacket {
         Update = 1,
     }
 
-    public static ByteWriter BatchUpdate(ICollection<FieldBreakable> breakables) {
+    public static ByteWriter Update(ICollection<FieldBreakable> breakables) {
         var pWriter = Packet.Of(SendOp.Breakable);
         pWriter.Write<Command>(Command.BatchUpdate);
 

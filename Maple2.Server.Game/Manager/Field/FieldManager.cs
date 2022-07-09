@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Maple2.Database.Storage;
+using Maple2.Model.Common;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
@@ -67,6 +68,9 @@ public sealed partial class FieldManager : IDisposable {
         foreach ((Guid guid, BreakableActor breakable) in entities.BreakableActors) {
             AddBreakable(guid.ToString("N"), breakable);
         }
+        foreach ((Guid guid, Liftable liftable) in entities.Liftables) {
+            AddLiftable(guid.ToString("N"), liftable);
+        }
 
         foreach (SpawnPointNPC spawnPointNpc in entities.NpcSpawns) {
             if (spawnPointNpc.RegenCheckTime > 0) {
@@ -126,6 +130,7 @@ public sealed partial class FieldManager : IDisposable {
             foreach (FieldPlayer player in fieldPlayers.Values) player.Sync();
             foreach (FieldNpc npc in fieldNpcs.Values) npc.Sync();
             foreach (FieldBreakable breakable in fieldBreakables.Values) breakable.Sync();
+            foreach (FieldLiftable liftable in fieldLiftables.Values) liftable.Sync();
             foreach (FieldItem item in fieldItems.Values) item.Sync();
             foreach (FieldMobSpawn mobSpawn in fieldMobSpawns.Values) mobSpawn.Sync();
             Thread.Sleep(50);
@@ -162,6 +167,23 @@ public sealed partial class FieldManager : IDisposable {
 
     public bool TryGetBreakable(string entityId, [NotNullWhen(true)] out FieldBreakable? fieldBreakable) {
         return fieldBreakables.TryGetValue(entityId, out fieldBreakable);
+    }
+
+    public bool TryGetLiftable(string entityId, [NotNullWhen(true)] out FieldLiftable? fieldLiftable) {
+        return fieldLiftables.TryGetValue(entityId, out fieldLiftable);
+    }
+
+    public bool LiftupCube(in Vector3B coordinates, [NotNullWhen(true)] out ObjectWeapon? objectWeapon) {
+        if (!entities.ObjectWeapons.TryGetValue(coordinates, out objectWeapon)) {
+            return false;
+        }
+
+        // TODO: Spawn Npcs
+        if (objectWeapon.SpawnNpcId == 0 || Random.Shared.NextSingle() >= objectWeapon.SpawnNpcRate) {
+            return true;
+        }
+
+        return true;
     }
 
     public void Multicast(ByteWriter packet, GameSession? sender = null) {

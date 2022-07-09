@@ -1,5 +1,6 @@
 ﻿using Maple2.Database.Model;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.Script.Npc;
 using Maple2.Server.Game.Model;
 
@@ -17,6 +18,8 @@ public partial class GameSession {
 
     public FieldGuideObject? GuideObject;
     public UgcItemCube HeldCube = UgcItemCube.Default;
+
+    public ObjectWeapon? HeldLiftup;
 
     public NpcScript? NpcScript;
 }

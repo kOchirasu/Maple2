@@ -1,10 +1,13 @@
-﻿using Maple2.Model.Common;
+﻿using System;
+using Maple2.Model.Common;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
+using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Extensions;
 
@@ -200,16 +203,23 @@ public static class CubePacket {
         return pWriter;
     }
 
-    public static ByteWriter LiftupObject() {
+    public static ByteWriter LiftupObject(IActor<Player> player, ObjectWeapon objectWeapon, int itemId) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.LiftupObject);
+        pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
+        pWriter.WriteInt(player.ObjectId);
+        pWriter.Write<Vector3B>(objectWeapon.Position);
+        pWriter.WriteInt(itemId);
+        pWriter.WriteInt(Environment.TickCount + objectWeapon.RespawnTick);
 
         return pWriter;
     }
 
-    public static ByteWriter LiftupAttack() {
+    public static ByteWriter LiftupAttack(IActor<Player> player) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.LiftupAttack);
+        pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
+        pWriter.WriteInt(player.ObjectId);
 
         return pWriter;
     }

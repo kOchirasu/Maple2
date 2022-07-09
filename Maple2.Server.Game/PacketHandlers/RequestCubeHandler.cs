@@ -4,9 +4,11 @@ using Maple2.Model.Common;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
+using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Extensions;
@@ -251,9 +253,31 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
 
     private void HandleLiftupObject(GameSession session, IByteReader packet) {
         var position = packet.Read<Vector3B>();
+
+        if (session.Field == null || session.HeldLiftup != null) {
+            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_not_allowed_item));
+            return;
+        }
+
+        if (!session.Field.LiftupCube(position, out ObjectWeapon? weapon)) {
+            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_no_cube_to_lift));
+            return;
+        }
+
+        session.HeldLiftup = weapon;
+        int itemId = session.HeldLiftup.ItemIds[Environment.TickCount % session.HeldLiftup.ItemIds.Length];
+        session.Field.Multicast(CubePacket.LiftupObject(session.Player, session.HeldLiftup, itemId));
     }
 
-    private void HandleLiftupAttack(GameSession session) { }
+    private void HandleLiftupAttack(GameSession session) {
+        if (session.Field == null || session.HeldLiftup == null) {
+            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_not_allowed_item));
+            return;
+        }
+
+        session.HeldLiftup = null;
+        session.Field.Multicast(CubePacket.LiftupAttack(session.Player));
+    }
 
     private void HandleSetHomeName(GameSession session, IByteReader packet) {
         string name = packet.ReadUnicodeString();

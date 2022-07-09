@@ -1,8 +1,10 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using Maple2.Model.Common;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
@@ -20,6 +22,7 @@ public partial class FieldManager {
 
     // Entities
     private readonly ConcurrentDictionary<string, FieldBreakable> fieldBreakables = new();
+    private readonly ConcurrentDictionary<string, FieldLiftable> fieldLiftables = new();
     private readonly ConcurrentDictionary<int, FieldItem> fieldItems = new();
     private readonly ConcurrentDictionary<int, FieldMobSpawn> fieldMobSpawns = new();
 
@@ -116,6 +119,16 @@ public partial class FieldManager {
         return fieldBreakable;
     }
 
+    public FieldLiftable AddLiftable(string entityId, Liftable liftable) {
+        var fieldLiftable = new FieldLiftable(this, NextLocalId(), entityId, liftable) {
+            Position = liftable.Position,
+            Rotation = liftable.Rotation,
+        };
+
+        fieldLiftables[entityId] = fieldLiftable;
+        return fieldLiftable;
+    }
+
     public FieldMobSpawn? AddMobSpawn(MapMetadataSpawn metadata, RegionSpawn regionSpawn, ICollection<int> npcIds) {
         var spawnNpcs = new WeightedSet<NpcMetadata>();
         foreach (int npcId in npcIds) {
@@ -173,8 +186,8 @@ public partial class FieldManager {
     public void OnAddPlayer(FieldPlayer added) {
         fieldPlayers[added.ObjectId] = added;
         // LOAD:
-        // Liftable
-        added.Session.Send(BreakablePacket.BatchUpdate(fieldBreakables.Values));
+        added.Session.Send(LiftablePacket.Update(fieldLiftables.Values));
+        added.Session.Send(BreakablePacket.Update(fieldBreakables.Values));
         // InteractObject
         foreach (FieldPlayer fieldPlayer in fieldPlayers.Values) {
             added.Session.Send(FieldPacket.AddPlayer(fieldPlayer.Session));
