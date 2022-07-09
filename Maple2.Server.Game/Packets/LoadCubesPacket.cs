@@ -22,10 +22,10 @@ public static class LoadCubesPacket {
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteBool(false);
         pWriter.WriteInt(plot.Cubes.Count);
-        foreach (UgcItemCube cube in plot.Cubes.Values) {
+        foreach (PlotCube cube in plot.Cubes.Values) {
             pWriter.Write<Vector3B>(cube.Position);
             pWriter.WriteLong(cube.Id);
-            pWriter.WriteClass<UgcItemCube>(cube);
+            pWriter.WriteClass<PlotCube>(cube);
             pWriter.WriteInt(1);
             pWriter.WriteInt();
             pWriter.WriteBool(false);

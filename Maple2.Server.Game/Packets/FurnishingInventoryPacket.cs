@@ -22,10 +22,10 @@ public static class FurnishingInventoryPacket {
         return pWriter;
     }
 
-    public static ByteWriter Add(UgcItemCube cube) {
+    public static ByteWriter Add(PlotCube cube) {
         var pWriter = Packet.Of(SendOp.FurnishingInventory);
         pWriter.Write<Command>(Command.Add);
-        pWriter.WriteClass<UgcItemCube>(cube);
+        pWriter.WriteClass<PlotCube>(cube);
 
         return pWriter;
     }

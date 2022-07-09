@@ -42,14 +42,14 @@ public partial class FieldManager {
 
         void SavePlot(Plot plot) {
             lock (Plots) {
-                ICollection<UgcItemCube>? results = db.SaveCubes(plot, plot.Cubes.Values);
+                ICollection<PlotCube>? results = db.SaveCubes(plot, plot.Cubes.Values);
                 if (results == null) {
                     logger.Fatal("Failed to save plot cubes: {PlotId}", plot.Id);
                     throw new InvalidOperationException($"Failed to save plot cubes: {plot.Id}");
                 }
 
                 plot.Cubes.Clear();
-                foreach (UgcItemCube result in results) {
+                foreach (PlotCube result in results) {
                     plot.Cubes.Add(result.Position, result);
                 }
             }

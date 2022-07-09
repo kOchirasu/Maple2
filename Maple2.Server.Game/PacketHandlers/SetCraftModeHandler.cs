@@ -41,7 +41,7 @@ public class SetCraftModeHandler : PacketHandler<GameSession> {
         session.Field.Multicast(SetCraftModePacket.Stop(session.Player.ObjectId));
         session.Field.Multicast(GuideObjectPacket.Remove(session.GuideObject));
         session.GuideObject = null;
-        session.HeldCube = UgcItemCube.Default;
+        session.HeldCube = null;
     }
 
     private void HandleStart(GameSession session, IByteReader packet) {
@@ -52,7 +52,7 @@ public class SetCraftModeHandler : PacketHandler<GameSession> {
             return;
         }
 
-        var cubeItem = packet.ReadClass<UgcItemCube>();
+        var cubeItem = packet.ReadClass<HeldCube>();
         if (cubeItem.ItemId != Constant.ConstructionCubeItemId || cubeItem.Template != null) {
             return;
         }
@@ -61,6 +61,6 @@ public class SetCraftModeHandler : PacketHandler<GameSession> {
         session.HeldCube = cubeItem;
 
         session.Field.Multicast(GuideObjectPacket.Create(session.GuideObject));
-        session.Field.Multicast(SetCraftModePacket.Start(session.Player.ObjectId, cubeItem));
+        session.Field.Multicast(SetCraftModePacket.Home(session.Player.ObjectId, cubeItem));
     }
 }

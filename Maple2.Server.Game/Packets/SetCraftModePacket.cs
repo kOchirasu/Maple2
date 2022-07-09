@@ -9,7 +9,8 @@ namespace Maple2.Server.Game.Packets;
 public static class SetCraftModePacket {
     private enum Command : byte {
         Stop = 0,
-        Start = 1,
+        Home = 1,
+        Liftable = 2,
     }
 
     public static ByteWriter Stop(int playerObjectId) {
@@ -20,12 +21,22 @@ public static class SetCraftModePacket {
         return pWriter;
     }
 
-    public static ByteWriter Start(int playerObjectId, UgcItemCube cube) {
+    public static ByteWriter Home(int playerObjectId, HeldCube cube) {
         var pWriter = Packet.Of(SendOp.SetCraftMode);
         pWriter.WriteInt(playerObjectId);
-        pWriter.Write<Command>(Command.Start);
-        pWriter.WriteClass<UgcItemCube>(cube);
-        pWriter.WriteInt(); // Unknown (amount?)
+        pWriter.Write<Command>(Command.Home);
+        pWriter.WriteClass<HeldCube>(cube);
+        pWriter.WriteInt();
+
+        return pWriter;
+    }
+
+    public static ByteWriter Liftable(int playerObjectId, HeldCube cube) {
+        var pWriter = Packet.Of(SendOp.SetCraftMode);
+        pWriter.WriteInt(playerObjectId);
+        pWriter.Write<Command>(Command.Liftable);
+        pWriter.WriteClass<HeldCube>(cube);
+        pWriter.WriteInt(2);
 
         return pWriter;
     }

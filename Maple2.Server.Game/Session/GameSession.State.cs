@@ -17,9 +17,15 @@ public partial class GameSession {
     public Ride? Ride;
 
     public FieldGuideObject? GuideObject;
-    public UgcItemCube HeldCube = UgcItemCube.Default;
+    public HeldCube? HeldCube;
 
     public ObjectWeapon? HeldLiftup;
 
     public NpcScript? NpcScript;
+
+    public bool CanHold() {
+        return GuideObject == null
+               && Ride == null
+               && HeldCube == null;
+    }
 }

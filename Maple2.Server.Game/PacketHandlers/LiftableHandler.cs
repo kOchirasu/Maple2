@@ -1,6 +1,9 @@
-﻿using Maple2.PacketLib.Tools;
+﻿using Maple2.Model.Game;
+using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
+using Maple2.Server.Game.Model;
+using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.PacketHandlers;
@@ -23,5 +26,19 @@ public class LiftableHandler : PacketHandler<GameSession> {
 
     private void HandlePickup(GameSession session, IByteReader packet) {
         string entityId = packet.ReadString();
+
+        if (session.Field == null || session.HeldCube != null) {
+            return;
+        }
+        if (!session.Field.TryGetLiftable(entityId, out FieldLiftable? liftable)) {
+            return;
+        }
+
+        session.HeldCube = liftable.Pickup();
+        if (session.HeldCube == null) {
+            return;
+        }
+
+        session.Field.Multicast(SetCraftModePacket.Liftable(session.Player.ObjectId, session.HeldCube));
     }
 }

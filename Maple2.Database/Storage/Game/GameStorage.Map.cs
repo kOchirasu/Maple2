@@ -24,15 +24,15 @@ public partial class GameStorage {
                 .ToList()!;
         }
 
-        public IList<UgcItemCube> LoadCubesForOwner(long ownerId) {
+        public IList<PlotCube> LoadCubesForOwner(long ownerId) {
             return Context.UgcMap.Where(map => map.OwnerId == ownerId)
                 .Join(Context.UgcMapCube, ugcMap => ugcMap.Id, cube => cube.UgcMapId, (ugcMap, cube) => cube)
                 .AsEnumerable()
-                .Select<UgcMapCube, UgcItemCube>(cube => cube!)
+                .Select<UgcMapCube, PlotCube>(cube => cube!)
                 .ToList();
         }
 
-        public UgcItemCube? CreateCube(Item item, int mapId, in Vector3B position = default, float rotation = default) {
+        public PlotCube? CreateCube(Item item, int mapId, in Vector3B position = default, float rotation = default) {
             if (item.Amount <= 0) {
                 return null;
             }
@@ -140,12 +140,12 @@ public partial class GameStorage {
             return Context.TrySaveChanges();
         }
 
-        public ICollection<UgcItemCube>? SaveCubes(PlotInfo plotInfo, IEnumerable<UgcItemCube> cubes) {
+        public ICollection<PlotCube>? SaveCubes(PlotInfo plotInfo, IEnumerable<PlotCube> cubes) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
 
             var results = new List<UgcMapCube>();
             var updated = new HashSet<long>();
-            foreach (UgcItemCube cube in cubes) {
+            foreach (PlotCube cube in cubes) {
                 UgcMapCube model = cube!;
                 model.UgcMapId = plotInfo.Id;
                 if (model.Id >= Constant.FurnishingBaseId) {
@@ -168,7 +168,7 @@ public partial class GameStorage {
                 return null;
             }
 
-            return results.Select<UgcMapCube, UgcItemCube>(cube => cube!).ToArray();
+            return results.Select<UgcMapCube, PlotCube>(cube => cube!).ToArray();
         }
 
         public bool InitUgcMap(IEnumerable<UgcMapMetadata> maps) {
@@ -207,7 +207,7 @@ public partial class GameStorage {
                 ExpiryTime = ugcMap.ExpiryTime.ToEpochSeconds(),
             };
 
-            foreach (UgcItemCube? cube in ugcMap.Cubes) {
+            foreach (PlotCube? cube in ugcMap.Cubes) {
                 plot.Cubes.Add(cube!.Position, cube);
             }
 

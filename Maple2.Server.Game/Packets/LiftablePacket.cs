@@ -11,7 +11,7 @@ public static class LiftablePacket {
     private enum Command : byte {
         BatchUpdate = 0,
         Update = 2,
-        Drop = 3,
+        Add = 3,
         Remove = 4,
     }
 
@@ -45,9 +45,9 @@ public static class LiftablePacket {
         return pWriter;
     }
 
-    public static ByteWriter Drop(FieldLiftable liftable) {
+    public static ByteWriter Add(FieldLiftable liftable) {
         var pWriter = Packet.Of(SendOp.Liftable);
-        pWriter.Write<Command>(Command.Drop);
+        pWriter.Write<Command>(Command.Add);
         pWriter.WriteString(liftable.EntityId);
         pWriter.WriteInt(liftable.Count);
         pWriter.WriteUnicodeString(liftable.Value.MaskQuestId);

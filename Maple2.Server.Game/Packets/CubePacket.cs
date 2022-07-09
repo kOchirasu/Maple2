@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Numerics;
 using Maple2.Model.Common;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
@@ -15,7 +16,7 @@ namespace Maple2.Server.Game.Packets;
 
 public static class CubePacket {
     private enum Command : byte {
-        Unknown0 = 0,
+        // 0
         HoldCube = 1,
         BuyPlot = 2,
         ConfirmBuyPlot = 4,
@@ -78,7 +79,7 @@ public static class CubePacket {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.HoldCube);
         pWriter.WriteInt(session.Player.ObjectId);
-        pWriter.WriteClass<UgcItemCube>(session.HeldCube);
+        pWriter.WriteClass<HeldCube>(session.HeldCube ?? HeldCube.Default);
 
         return pWriter;
     }
@@ -144,7 +145,7 @@ public static class CubePacket {
         return pWriter;
     }
 
-    public static ByteWriter PlaceCube(int objectId, PlotInfo plot, in Vector3B position, float rotation, UgcItemCube cube) {
+    public static ByteWriter PlaceCube(int objectId, PlotInfo plot, PlotCube cube) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.PlaceCube);
         pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
@@ -152,10 +153,29 @@ public static class CubePacket {
         pWriter.WriteInt(objectId); // Player
         pWriter.WriteInt(plot.Number);
         pWriter.WriteInt(plot.ApartmentNumber);
-        pWriter.Write<Vector3B>(position);
+        pWriter.Write<Vector3B>(cube.Position);
         pWriter.WriteLong(cube.Id);
-        pWriter.WriteClass<UgcItemCube>(cube);
+        pWriter.WriteClass<HeldCube>(cube);
         pWriter.WriteBool(false); // Unknown
+        pWriter.WriteFloat(cube.Rotation);
+        pWriter.WriteInt(); // Unknown
+        pWriter.WriteBool(false);
+
+        return pWriter;
+    }
+
+    public static ByteWriter PlaceLiftable(int objectId, LiftableCube liftable, in Vector3 position, float rotation) {
+        var pWriter = Packet.Of(SendOp.ResponseCube);
+        pWriter.Write<Command>(Command.PlaceCube);
+        pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
+        pWriter.WriteInt(objectId); // Owner
+        pWriter.WriteInt(objectId); // Player
+        pWriter.WriteInt();
+        pWriter.WriteInt();
+        pWriter.Write<Vector3B>(position);
+        pWriter.WriteLong(liftable.Id);
+        pWriter.WriteClass<HeldCube>(liftable);
+        pWriter.WriteBool(true); // Unknown
         pWriter.WriteFloat(rotation);
         pWriter.WriteInt(); // Unknown
         pWriter.WriteBool(false);
@@ -175,7 +195,7 @@ public static class CubePacket {
         return pWriter;
     }
 
-    public static ByteWriter RotateCube(int objectId, UgcItemCube cube) {
+    public static ByteWriter RotateCube(int objectId, PlotCube cube) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.RotateCube);
         pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
@@ -187,7 +207,7 @@ public static class CubePacket {
         return pWriter;
     }
 
-    public static ByteWriter ReplaceCube(int objectId, in Vector3B position, float rotation, UgcItemCube cube) {
+    public static ByteWriter ReplaceCube(int objectId, in Vector3B position, float rotation, PlotCube cube) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.ReplaceCube);
         pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
@@ -195,7 +215,7 @@ public static class CubePacket {
         pWriter.WriteInt(objectId); // Player
         pWriter.Write<Vector3B>(position);
         pWriter.WriteLong(cube.Id);
-        pWriter.WriteClass<UgcItemCube>(cube);
+        pWriter.WriteClass<PlotCube>(cube);
         pWriter.WriteBool(false); // Unknown
         pWriter.WriteFloat(rotation);
         pWriter.WriteInt(); // Unknown

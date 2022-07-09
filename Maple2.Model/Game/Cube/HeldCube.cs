@@ -1,25 +1,15 @@
-﻿using Maple2.Model.Common;
-using Maple2.PacketLib.Tools;
+﻿using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
-public class UgcItemCube : IByteSerializable, IByteDeserializable {
-    public static readonly UgcItemCube Default = new UgcItemCube(0, 0);
+public class HeldCube : IByteSerializable, IByteDeserializable {
+    public static readonly HeldCube Default = new();
 
-    public long Id { get; private set; }
-    public int ItemId { get; private set; }
-    public UgcItemLook? Template { get; private set; }
-
-    public Vector3B Position { get; set; }
-    public float Rotation { get; set; }
-
-    public UgcItemCube(long id, int itemId, UgcItemLook? template = null) {
-        ItemId = itemId;
-        Id = id;
-        Template = template;
-    }
+    public long Id { get; protected set; }
+    public int ItemId { get; protected set; }
+    public UgcItemLook? Template { get; protected set; }
 
     public void WriteTo(IByteWriter writer) {
         writer.WriteInt(ItemId);

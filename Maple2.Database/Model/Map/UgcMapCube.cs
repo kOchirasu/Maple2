@@ -17,14 +17,14 @@ internal class UgcMapCube {
     public int ItemId { get; set; }
     public UgcItemLook? Template { get; set; }
 
-    public static implicit operator UgcItemCube?(UgcMapCube? other) {
-        return other == null ? null : new UgcItemCube(other.Id, other.ItemId, other.Template) {
+    public static implicit operator PlotCube?(UgcMapCube? other) {
+        return other == null ? null : new PlotCube(other.ItemId, other.Id, other.Template) {
             Position = new Vector3B(other.X, other.Y, other.Z),
             Rotation = other.Rotation,
         };
     }
 
-    public static implicit operator UgcMapCube?(UgcItemCube? other) {
+    public static implicit operator UgcMapCube?(PlotCube? other) {
         return other == null ? null : new UgcMapCube {
             Id = other.Id,
             X = other.Position.X,

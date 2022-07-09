@@ -22,14 +22,14 @@ public class FurnishingManager {
     private readonly GameSession session;
 
     private readonly ItemCollection storage;
-    private readonly ConcurrentDictionary<long, UgcItemCube> inventory;
+    private readonly ConcurrentDictionary<long, PlotCube> inventory;
 
     private readonly ILogger logger = Log.Logger.ForContext<FurnishingManager>();
 
     public FurnishingManager(GameStorage.Request db, GameSession session) {
         this.session = session;
         storage = new ItemCollection(Constant.FurnishingStorageMaxSlot);
-        inventory = new ConcurrentDictionary<long, UgcItemCube>();
+        inventory = new ConcurrentDictionary<long, PlotCube>();
 
         List<Item>? items = db.GetItemGroups(session.AccountId, ItemGroup.Furnishing)
             .GetValueOrDefault(ItemGroup.Furnishing);
@@ -43,7 +43,7 @@ public class FurnishingManager {
             }
         }
 
-        foreach (UgcItemCube cube in db.LoadCubesForOwner(session.AccountId)) {
+        foreach (PlotCube cube in db.LoadCubesForOwner(session.AccountId)) {
             inventory[cube.Id] = cube;
         }
     }
@@ -60,7 +60,7 @@ public class FurnishingManager {
 
             // FurnishingInventory
             session.Send(FurnishingInventoryPacket.StartList());
-            foreach (UgcItemCube cube in inventory.Values) {
+            foreach (PlotCube cube in inventory.Values) {
                 session.Send(FurnishingInventoryPacket.Add(cube));
             }
             session.Send(FurnishingInventoryPacket.EndList());
@@ -74,7 +74,7 @@ public class FurnishingManager {
     /// <param name="uid">Uid of the item to withdraw from</param>
     /// <param name="cube">The cube to be placed</param>
     /// <returns>Information about the withdrawn cube</returns>
-    public bool TryPlaceCube(long uid, [NotNullWhen(true)] out UgcItemCube? cube) {
+    public bool TryPlaceCube(long uid, [NotNullWhen(true)] out PlotCube? cube) {
         const int amount = 1;
         lock (session.Item) {
             if (session.Field == null) {
@@ -95,7 +95,7 @@ public class FurnishingManager {
                 ? FurnishingStoragePacket.Update(item.Uid, item.Amount)
                 : FurnishingStoragePacket.Remove(item.Uid));
 
-            cube = new UgcItemCube(NextCubeId(), item.Id, item.Template);
+            cube = new PlotCube(item.Id, NextCubeId(), item.Template);
             if (!AddInventory(cube)) {
                 logger.Fatal("Failed to add cube: {CubeId} to inventory", cube.Id);
                 throw new InvalidOperationException($"Failed to add cube: {cube.Id} to inventory");
@@ -126,7 +126,7 @@ public class FurnishingManager {
 
     public bool RetrieveCube(long uid) {
         lock (session.Item) {
-            if (!RemoveInventory(uid, out UgcItemCube? cube)) {
+            if (!RemoveInventory(uid, out PlotCube? cube)) {
                 return false;
             }
 
@@ -170,7 +170,7 @@ public class FurnishingManager {
         return stored.Uid;
     }
 
-    private bool AddInventory(UgcItemCube cube) {
+    private bool AddInventory(PlotCube cube) {
         if (!inventory.TryAdd(cube.Id, cube)) {
             return false;
         }
@@ -179,7 +179,7 @@ public class FurnishingManager {
         return true;
     }
 
-    private bool RemoveInventory(long uid, [NotNullWhen(true)] out UgcItemCube? cube) {
+    private bool RemoveInventory(long uid, [NotNullWhen(true)] out PlotCube? cube) {
         if (!inventory.Remove(uid, out cube)) {
             return false;
         }

@@ -4,8 +4,8 @@ namespace Maple2.Model.Metadata;
 
 public record Liftable(
     int ItemId,
-    int StackCount,
-    int Lifetime,
+    int ItemStackCount,
+    int ItemLifetime,
     int RegenCheckTime,
     int FinishTime,
     string MaskQuestId,

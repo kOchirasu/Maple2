@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
-using Maple2.Model.Common;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
@@ -109,7 +107,11 @@ public partial class FieldManager {
         return fieldGuideObject;
     }
 
-    public FieldBreakable AddBreakable(string entityId, BreakableActor breakable) {
+    public FieldBreakable? AddBreakable(string entityId, BreakableActor breakable) {
+        if (fieldBreakables.ContainsKey(entityId)) {
+            return null;
+        }
+
         var fieldBreakable = new FieldBreakable(this, NextLocalId(), entityId, breakable) {
             Position = breakable.Position,
             Rotation = breakable.Rotation,
@@ -119,7 +121,11 @@ public partial class FieldManager {
         return fieldBreakable;
     }
 
-    public FieldLiftable AddLiftable(string entityId, Liftable liftable) {
+    public FieldLiftable? AddLiftable(string entityId, Liftable liftable) {
+        if (fieldLiftables.ContainsKey(entityId)) {
+            return null;
+        }
+
         var fieldLiftable = new FieldLiftable(this, NextLocalId(), entityId, liftable) {
             Position = liftable.Position,
             Rotation = liftable.Rotation,
@@ -178,6 +184,16 @@ public partial class FieldManager {
         item = fieldItem.Value;
         fieldItem.Pickup(looter);
         Multicast(FieldPacket.RemoveItem(objectId));
+        return true;
+    }
+
+    public bool RemoveLiftable(string entityId) {
+        if (!fieldLiftables.TryRemove(entityId, out FieldLiftable? fieldLiftable)) {
+            return false;
+        }
+
+        Multicast(CubePacket.RemoveCube(fieldLiftable.ObjectId, fieldLiftable.Position));
+        Multicast(LiftablePacket.Remove(entityId));
         return true;
     }
     #endregion

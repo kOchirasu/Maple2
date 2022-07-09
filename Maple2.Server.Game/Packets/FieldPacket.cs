@@ -32,7 +32,7 @@ public static class FieldPacket {
 
         #region Unknown Cube Section
         pWriter.WriteByte();
-        pWriter.WriteClass<UgcItemCube>(session.HeldCube);
+        pWriter.WriteClass<HeldCube>(session.HeldCube ?? HeldCube.Default);
         pWriter.WriteInt();
         #endregion
 

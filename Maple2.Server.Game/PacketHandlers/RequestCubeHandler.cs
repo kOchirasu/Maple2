@@ -156,7 +156,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
     }
 
     private void HandleHoldCube(GameSession session, IByteReader packet) {
-        var cubeItem = packet.ReadClass<UgcItemCube>();
+        var cubeItem = packet.ReadClass<PlotCube>();
 
         if (session.GuideObject == null || session.GuideObject.Value.Type != GuideObjectType.Construction) {
             return;
@@ -188,16 +188,40 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
 
     private void HandlePlaceCube(GameSession session, IByteReader packet) {
         var position = packet.Read<Vector3B>();
-        var cubeItem = packet.ReadClass<UgcItemCube>();
+        var cubeItem = packet.ReadClass<HeldCube>();
         float rotation = packet.ReadFloat();
 
-        Plot? plot = session.Housing.GetFieldPlot();
-        if (plot == null) {
+        if (session.Field == null) {
             return;
         }
 
-        if (TryPlaceCube(session, cubeItem, plot, position, rotation, out UgcItemCube? placedCube)) {
-            session.Field?.Multicast(CubePacket.PlaceCube(session.Player.ObjectId, plot, position, rotation, placedCube));
+        switch (session.HeldCube) {
+            case PlotCube _:
+                Plot? plot = session.Housing.GetFieldPlot();
+                if (plot == null) {
+                    return;
+                }
+
+                if (TryPlaceCube(session, cubeItem, plot, position, rotation, out PlotCube? plotCube)) {
+                    session.Field?.Multicast(CubePacket.PlaceCube(session.Player.ObjectId, plot, plotCube));
+                }
+                break;
+            case LiftableCube liftable:
+                FieldLiftable? fieldLiftable = session.Field.AddLiftable(position.ToString(), liftable.Liftable);
+                if (fieldLiftable == null) {
+                    return;
+                }
+
+                session.HeldCube = null;
+                fieldLiftable.Count = 1;
+                fieldLiftable.State = LiftableState.Disabled;
+                fieldLiftable.FinishTick = Environment.TickCount + fieldLiftable.Value.ItemLifetime;
+
+                session.Field.Multicast(LiftablePacket.Add(fieldLiftable));
+                session.Field.Multicast(CubePacket.PlaceLiftable(session.Player.ObjectId, liftable, position, rotation));
+                session.Field.Multicast(SetCraftModePacket.Stop(session.Player.ObjectId));
+                session.Field.Multicast(LiftablePacket.Update(fieldLiftable));
+                break;
         }
     }
 
@@ -222,7 +246,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
         if (plot == null) {
             return;
         }
-        if (!plot.Cubes.TryGetValue(position, out UgcItemCube? cube)) {
+        if (!plot.Cubes.TryGetValue(position, out PlotCube? cube)) {
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_no_cube_to_rotate));
             return;
         }
@@ -238,7 +262,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
 
     private void HandleReplaceCube(GameSession session, IByteReader packet) {
         var position = packet.Read<Vector3B>();
-        var cubeItem = packet.ReadClass<UgcItemCube>();
+        var cubeItem = packet.ReadClass<HeldCube>();
         float rotation = packet.ReadFloat();
 
         Plot? plot = session.Housing.GetFieldPlot();
@@ -246,7 +270,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (TryPlaceCube(session, cubeItem, plot, position, rotation, out UgcItemCube? placedCube)) {
+        if (TryPlaceCube(session, cubeItem, plot, position, rotation, out PlotCube? placedCube)) {
             session.Field?.Multicast(CubePacket.ReplaceCube(session.Player.ObjectId, position, rotation, placedCube));
         }
     }
@@ -409,8 +433,8 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
     }
 
     #region Helpers
-    private static bool TryPlaceCube(GameSession session, UgcItemCube cube, Plot plot, in Vector3B position, float rotation,
-                                     [NotNullWhen(true)] out UgcItemCube? result) {
+    private static bool TryPlaceCube(GameSession session, HeldCube cube, Plot plot, in Vector3B position, float rotation,
+                                     [NotNullWhen(true)] out PlotCube? result) {
         // Cannot overlap cubes
         if (plot.Cubes.ContainsKey(position)) {
             result = null;
@@ -440,7 +464,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
     }
 
     private static bool TryRemoveCube(GameSession session, Plot plot, in Vector3B position) {
-        if (!plot.Cubes.Remove(position, out UgcItemCube? cube)) {
+        if (!plot.Cubes.Remove(position, out PlotCube? cube)) {
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_no_cube_to_remove));
             return false;
         }
