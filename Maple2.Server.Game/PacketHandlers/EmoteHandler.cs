@@ -33,7 +33,7 @@ public class EmoteHandler : PacketHandler<GameSession> {
         long itemUid = packet.ReadLong();
 
         Item? item = session.Item.Inventory.Get(itemUid);
-        if (item == null || !item.IsEmote()) {
+        if (item?.Metadata.Skill == null || !item.IsEmote()) {
             session.Send(EmotePacket.Error(EmoteError.s_dynamic_action_item_invalid));
             return;
         }
