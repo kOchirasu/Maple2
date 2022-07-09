@@ -128,7 +128,6 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         // Prestige
         Item.Inventory.Load();
         Item.Furnishing.Load();
-        // FurnishingInventory
         // Quest
         // Achieve
         // MaidCraftItem
@@ -139,10 +138,9 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         // LegionBattle
         // CharacterAbility
         Config.LoadKeyTable();
-        Send(GameEventPacket.Load(server.GetGameEvents()));
         // GuideRecord
         // DailyWonder*
-        // GameEvent
+        Send(GameEventPacket.Load(server.GetGameEvents()));
         // BannerList
         // RoomDungeon
         // FieldEntrance

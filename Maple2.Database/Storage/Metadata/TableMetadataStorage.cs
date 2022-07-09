@@ -9,17 +9,20 @@ public class TableMetadataStorage {
     private readonly Lazy<GemstoneUpgradeTable> gemstoneUpgradeTable;
     private readonly Lazy<JobTable> jobTable;
     private readonly Lazy<MagicPathTable> magicPathTable;
+    private readonly Lazy<InstrumentTable> instrumentTable;
 
     public ItemBreakTable ItemBreakTable => itemBreakTable.Value;
     public GemstoneUpgradeTable GemstoneUpgradeTable => gemstoneUpgradeTable.Value;
     public JobTable JobTable => jobTable.Value;
     public MagicPathTable MagicPathTable => magicPathTable.Value;
+    public InstrumentTable InstrumentTable => instrumentTable.Value;
 
     public TableMetadataStorage(MetadataContext context) {
         itemBreakTable = Retrieve<ItemBreakTable>(context, "itembreakingredient.xml");
         gemstoneUpgradeTable = Retrieve<GemstoneUpgradeTable>(context, "itemgemstoneupgrade.xml");
         jobTable = Retrieve<JobTable>(context, "job.xml");
         magicPathTable = Retrieve<MagicPathTable>(context, "magicpath.xml");
+        instrumentTable = Retrieve<InstrumentTable>(context, "instrumentcategoryinfo.xml");
     }
 
     private static Lazy<T> Retrieve<T>(MetadataContext context, string key) where T : Table {

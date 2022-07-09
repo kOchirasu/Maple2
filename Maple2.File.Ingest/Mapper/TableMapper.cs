@@ -9,12 +9,10 @@ using MagicPath = Maple2.Model.Metadata.MagicPath;
 namespace Maple2.File.Ingest.Mapper;
 
 public class TableMapper : TypeMapper<TableMetadata> {
-    private readonly M2dReader xmlReader;
     private readonly TableParser parser;
 
     public TableMapper(M2dReader xmlReader) {
-        this.xmlReader = xmlReader;
-        this.parser = new TableParser(xmlReader);
+        parser = new TableParser(xmlReader);
     }
 
     protected override IEnumerable<TableMetadata> Map() {
@@ -22,6 +20,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "itemgemstoneupgrade.xml", Table = ParseItemGemstoneUpgrade()};
         yield return new TableMetadata {Name = "job.xml", Table = ParseJobTable()};
         yield return new TableMetadata {Name = "magicpath.xml", Table = ParseMagicPath()};
+        yield return new TableMetadata {Name = "instrumentcategoryinfo.xml", Table = ParseInstrument()};
     }
 
     private ItemBreakTable ParseItemBreakIngredient() {
@@ -126,5 +125,26 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
 
         return new MagicPathTable(results);
+    }
+
+    private InstrumentTable ParseInstrument() {
+        var categories = new Dictionary<int, (int MidiId, int PercussionId)>();
+        foreach ((int _, InstrumentCategoryInfo info) in parser.ParseInstrumentCategoryInfo()) {
+            categories[info.id] = (info.GMId, info.percussionId);
+        }
+
+        var results = new Dictionary<int, InstrumentMetadata>();
+        foreach ((int id, InstrumentInfo info) in parser.ParseInstrumentInfo()) {
+            (int midiId, int percussionId) = categories[info.category];
+            results[id] = new InstrumentMetadata(
+                Id: info.id,
+                EquipId: info.equipItemId,
+                ScoreCount: info.soloRelayScoreCount,
+                Category: info.category,
+                MidiId: midiId,
+                PercussionId: percussionId);
+        }
+
+        return new InstrumentTable(results);
     }
 }

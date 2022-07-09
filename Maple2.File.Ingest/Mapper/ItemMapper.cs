@@ -29,6 +29,28 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                 tradableCount = data.property.globalTradableCountNA ?? tradableCount;
             }
 
+            ItemMetadataSkill? skill = data.skill.skillID == 0 ? null : new ItemMetadataSkill(
+                Id: data.skill.skillID,
+                Level: data.skill.skillLevel,
+                WeaponId: data.objectWeaponSkill.skillID,
+                WeaponLevel: data.objectWeaponSkill.skillLevel);
+            ItemMetadataFunction? function = string.IsNullOrWhiteSpace(data.function.name) ? null : new ItemMetadataFunction(
+                Type: Enum.Parse<ItemFunction>(data.function.name),
+                Name: data.function.name, // Temp duplicate data makes it easier to read DB
+                Parameters: data.function.parameter);
+            ItemMetadataMusic? music = data.property.type != 12 ? null : new ItemMetadataMusic(
+                PlayCount: data.MusicScore.playCount,
+                MasteryValue: data.MusicScore.masteryValue,
+                MasteryValueMax: data.MusicScore.masteryValueMax,
+                IsCustomNote: data.MusicScore.isCustomNote,
+                NoteLengthMax: data.MusicScore.noteLengthMax,
+                FileName: data.MusicScore.fileName,
+                PlayTime: data.MusicScore.playTime);
+            ItemMetadataHousing? housing = data.property.type != 6 ? null : new ItemMetadataHousing(
+                TrophyId: data.housing.trophyID,
+                TrophyLevel: data.housing.trophyLevel,
+                InteriorLevel: data.housing.interiorLevel);
+
             yield return new ItemMetadata(
                 Id: id,
                 Name: name,
@@ -67,12 +89,10 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     RequireWedding: data.limit.wedding,
                     Jobs: data.limit.jobLimit.Select(job => (JobCode) job).ToArray()
                 ),
-                Skill: new ItemMetadataSkill(
-                    Id: data.skill.skillID,
-                    Level: data.skill.skillLevel,
-                    WeaponId: data.objectWeaponSkill.skillID,
-                    WeaponLevel: data.objectWeaponSkill.skillLevel
-                )
+                Skill: skill,
+                Function: function,
+                Music: music,
+                Housing: housing
             );
         }
     }

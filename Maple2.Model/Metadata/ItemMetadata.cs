@@ -9,7 +9,10 @@ public record ItemMetadata(
     string Mesh,
     ItemMetadataProperty Property,
     ItemMetadataLimit Limit,
-    ItemMetadataSkill Skill) : ISearchResult;
+    ItemMetadataSkill? Skill,
+    ItemMetadataFunction? Function,
+    ItemMetadataMusic? Music,
+    ItemMetadataHousing? Housing) : ISearchResult;
 
 public record ItemMetadataProperty(
     bool IsSkin,
@@ -46,3 +49,22 @@ public record ItemMetadataSkill(
     short Level,
     int WeaponId,
     short WeaponLevel);
+
+public record ItemMetadataFunction(
+    ItemFunction Type,
+    string Name,
+    string Parameters);
+
+public record ItemMetadataMusic(
+    int PlayCount,
+    int MasteryValue,
+    int MasteryValueMax,
+    bool IsCustomNote,
+    int NoteLengthMax,
+    string FileName,
+    int PlayTime);
+
+public record ItemMetadataHousing(
+    int TrophyId,
+    int TrophyLevel,
+    int InteriorLevel);

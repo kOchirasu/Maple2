@@ -13,5 +13,6 @@ public abstract partial record Table([JsonDiscriminator] Table.Discriminator Typ
         ItemBreakTable = 2,
         GemstoneUpgradeTable = 3,
         MagicPathTable = 4,
+        InstrumentTable = 5,
     }
 }
