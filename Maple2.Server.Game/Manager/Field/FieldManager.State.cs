@@ -124,7 +124,7 @@ public partial class FieldManager {
         return fieldLiftable;
     }
 
-    public FieldMobSpawn? AddMobSpawn(MapMetadataSpawn metadata, RegionSpawn regionSpawn, ICollection<int> npcIds) {
+    public FieldMobSpawn? AddMobSpawn(MapMetadataSpawn metadata, Ms2RegionSpawn regionSpawn, ICollection<int> npcIds) {
         var spawnNpcs = new WeightedSet<NpcMetadata>();
         foreach (int npcId in npcIds) {
             if (!NpcMetadata.TryGet(npcId, out NpcMetadata? npc)) {

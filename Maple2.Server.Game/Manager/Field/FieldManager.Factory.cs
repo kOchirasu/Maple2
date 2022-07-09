@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Autofac;
 using Maple2.Database.Storage;
 using Maple2.Model.Metadata;
@@ -29,6 +30,8 @@ public partial class FieldManager {
         }
 
         public FieldManager? Get(int mapId, int instanceId = 0) {
+            var sw = new Stopwatch();
+            sw.Start();
             if (!MapMetadata.TryGet(mapId, out MapMetadata? metadata)) {
                 logger.Error("Loading invalid Map:{MapId}", mapId);
                 return null;
@@ -39,7 +42,7 @@ public partial class FieldManager {
             }
 
             // ReSharper disable once HeapView.CanAvoidClosure, defer instantiation unless it's needed.
-            return fields.GetOrAdd((mapId, instanceId), _ => {
+            FieldManager field = fields.GetOrAdd((mapId, instanceId), _ => {
                 MapEntityMetadata? entities = MapEntities.Get(metadata.XBlock);
                 if (entities == null) {
                     throw new InvalidOperationException($"Failed to load entities for map: {mapId}");
@@ -50,6 +53,9 @@ public partial class FieldManager {
                 field.Init();
                 return field;
             });
+
+            logger.Debug("Field:{MapId} Instance:{InstanceId} initialized in {Time}ms", mapId, instanceId, sw.ElapsedMilliseconds);
+            return field;
         }
 
         public void Dispose() {

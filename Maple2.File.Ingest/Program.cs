@@ -39,17 +39,14 @@ Filter.Load(xmlReader, locale, env);
 // UpdateDatabase(metadataContext, new NpcMapper(xmlReader));
 // UpdateDatabase(metadataContext, new MapMapper(xmlReader));
 // UpdateDatabase(metadataContext, new UgcMapMapper(xmlReader));
-// UpdateDatabase(metadataContext, new MapEntityMapper(metadataContext, exportedReader));
 // UpdateDatabase(metadataContext, new QuestMapper(xmlReader));
 // UpdateDatabase(metadataContext, new RideMapper(xmlReader));
 // UpdateDatabase(metadataContext, new SkillMapper(xmlReader));
-UpdateDatabase(metadataContext, new TableMapper(xmlReader));
+// UpdateDatabase(metadataContext, new TableMapper(xmlReader));
+
+UpdateDatabase(metadataContext, new MapEntityMapper(metadataContext, exportedReader));
 
 // new MusicScoreParser(xmlReader).Parse().ToList();
-// new MusicScoreParser(xmlReader).Parse().ToList();
-// new AniKeyTextParser(xmlReader).Parse().ToList();
-// new UgcMapParser(xmlReader).Parse().ToList();
-// new UgcMapParser(xmlReader).ParseExported().ToList();
 // new ScriptParser(xmlReader).ParseNpc().ToList();
 // new ScriptParser(xmlReader).ParseQuest().ToList();
 // new PetParser(xmlReader).Parse().ToList();
@@ -57,11 +54,7 @@ UpdateDatabase(metadataContext, new TableMapper(xmlReader));
 //
 // new AchieveParser(xmlReader).Parse().ToList();
 // new AdditionalEffectParser(xmlReader).Parse().ToList();
-// new ItemParser(xmlReader).Parse().ToList();
-// new MapParser(xmlReader).Parse().ToList();
-// new NpcParser(xmlReader).Parse().ToList();
 // new QuestParser(xmlReader).Parse().ToList();
-// new SkillParser(xmlReader).Parse().ToList();
 
 void UpdateDatabase<T>(DbContext context, TypeMapper<T> mapper) where T : class {
     string? tableName = context.GetTableName<T>();

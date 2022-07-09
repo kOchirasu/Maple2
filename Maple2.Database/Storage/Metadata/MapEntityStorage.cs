@@ -24,12 +24,15 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
         var portals = new Dictionary<int, Portal>();
         var playerSpawns = new Dictionary<int, SpawnPointPC>();
         var npcSpawns = new List<SpawnPointNPC>();
-        var regionSpawns = new Dictionary<int, RegionSpawn>();
+        var regionSpawns = new Dictionary<int, Ms2RegionSpawn>();
+        var regionSkills = new List<Ms2RegionSkill>();
         var eventNpcSpawns = new Dictionary<int, EventSpawnPointNPC>();
         TaxiStation? taxi = null;
         Telescope? telescope = null;
         var breakableActors = new Dictionary<Guid, BreakableActor>();
         var interactActors = new Dictionary<int, InteractActor>();
+        var triggerModels = new Dictionary<int, TriggerModel>();
+        var triggers = new List<Trigger>();
         lock (Context) {
             foreach (MapEntity entity in Context.MapEntity.Where(entity => entity.XBlock == xblock)) {
                 switch (entity.Block.Class) {
@@ -63,9 +66,14 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                             portals[portal.Id] = portal;
                         }
                         break;
-                    case MapBlock.Discriminator.RegionSpawn:
-                        if (entity.Block is RegionSpawn regionSpawn) {
+                    case MapBlock.Discriminator.Ms2RegionSpawn:
+                        if (entity.Block is Ms2RegionSpawn regionSpawn) {
                             regionSpawns[regionSpawn.Id] = regionSpawn;
+                        }
+                        break;
+                    case MapBlock.Discriminator.Ms2RegionSkill:
+                        if (entity.Block is Ms2RegionSkill regionSkill) {
+                            regionSkills.Add(regionSkill);
                         }
                         break;
                     case MapBlock.Discriminator.SpawnPointPC:
@@ -95,6 +103,23 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                             telescope = mapTelescope;
                         }
                         break;
+                    case MapBlock.Discriminator.TriggerModel:
+                        if (entity.Block is TriggerModel triggerModel) {
+                            triggerModels.Add(triggerModel.Id, triggerModel);
+                        }
+                        break;
+                    case MapBlock.Discriminator.Ms2TriggerActor:
+                    case MapBlock.Discriminator.Ms2TriggerBox:
+                    case MapBlock.Discriminator.Ms2TriggerCamera:
+                    case MapBlock.Discriminator.Ms2TriggerCube:
+                    case MapBlock.Discriminator.Ms2TriggerEffect:
+                    case MapBlock.Discriminator.Ms2TriggerLadder:
+                    case MapBlock.Discriminator.Ms2TriggerMesh:
+                    case MapBlock.Discriminator.Ms2TriggerRope:
+                    case MapBlock.Discriminator.Ms2TriggerSkill:
+                    case MapBlock.Discriminator.Ms2TriggerSound:
+                        triggers.Add((Trigger) entity.Block);
+                        break;
                 }
             }
         }
@@ -108,10 +133,13 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
             NpcSpawns = npcSpawns,
             EventNpcSpawns = eventNpcSpawns,
             RegionSpawns = regionSpawns,
+            RegionSkills = regionSkills,
             Taxi = taxi,
             Telescope = telescope,
             BreakableActors = breakableActors,
             InteractActors = interactActors,
+            TriggerModels = triggerModels,
+            Trigger = new TriggerStorage(triggers),
         };
         Cache.AddReplace(xblock, mapEntity);
 

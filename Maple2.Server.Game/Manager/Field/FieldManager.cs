@@ -94,7 +94,7 @@ public sealed partial class FieldManager : IDisposable {
         }
 
         foreach (MapMetadataSpawn spawn in Metadata.Spawns) {
-            if (!entities.RegionSpawns.TryGetValue(spawn.Id, out RegionSpawn? regionSpawn)) {
+            if (!entities.RegionSpawns.TryGetValue(spawn.Id, out Ms2RegionSpawn? regionSpawn)) {
                 continue;
             }
 
