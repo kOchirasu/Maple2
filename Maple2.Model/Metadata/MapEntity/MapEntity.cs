@@ -25,10 +25,13 @@ public abstract partial record MapBlock([JsonDiscriminator] MapBlock.Discriminat
         SpawnPointNPC = 2354491253,
         EventSpawnPointNPC = 4186340407,
         TaxiStation = 2234881030,
+        Telescope = 1660396588,
         Liftable = 52914141,
         Breakable = 3551547141,
         //MS2InteractObject = 1928632421,
         RegionSpawn = 2625779056,
+
+        ObjectWeapon = 3638470414,
 
         BreakableActor = 2510283231,
         InteractActor = 3797506670,

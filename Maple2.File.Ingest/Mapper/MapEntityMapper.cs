@@ -73,20 +73,47 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
                             }
                     }
                     continue;
-                case IMS2PhysXProp physXProp:
-                    switch (physXProp) {
-                        case IMS2Liftable liftable:
+                case IMS2InteractObject interactObject:
+                    switch (interactObject) {
+                        case IMS2Telescope telescope:
                             yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                                Block = new Liftable((int) liftable.ItemID, liftable.ItemStackCount, liftable.LiftableLifeTime, liftable.LiftableRegenCheckTime, liftable.LiftableFinishTime, liftable.MaskQuestID, liftable.MaskQuestState, liftable.EffectQuestID, liftable.EffectQuestState, liftable.Position, liftable.Rotation)
+                                Block = new Telescope(telescope.interactID, telescope.Enabled, telescope.Position, telescope.Rotation)
                             };
                             continue;
-                        case IMS2TaxiStation taxiStation:
-                            yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                                Block = new TaxiStation(taxiStation.Position, taxiStation.Rotation)
-                            };
+                    }
+                    continue;
+                case IMS2MapProperties mapProperties:
+                    switch (mapProperties) {
+                        case IMS2PhysXProp physXProp:
+                            if (mapProperties.IsObjectWeapon) {
+                                int[] itemIds = physXProp.ObjectWeaponItemCode.Split(',').Select(int.Parse).ToArray();
+                                if (physXProp.ObjectWeaponSpawnNpcCode == 0) {
+                                    yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                                        Block = new ObjectWeapon(itemIds, (int) physXProp.ObjectWeaponRespawnTick, physXProp.ObjectWeaponActiveDistance, physXProp.Position, physXProp.Rotation)
+                                    };
+                                } else {
+                                    yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                                        Block = new ObjectWeapon(itemIds, (int) physXProp.ObjectWeaponRespawnTick, physXProp.ObjectWeaponActiveDistance, physXProp.Position, physXProp.Rotation, (int) physXProp.ObjectWeaponSpawnNpcCode, (int) physXProp.ObjectWeaponSpawnNpcCount, physXProp.ObjectWeaponSpawnNpcRate, (int) physXProp.ObjectWeaponSpawnNpcLifeTick)
+                                    };
+                                }
+                                continue;
+                            }
+
+                            switch (physXProp) {
+                                case IMS2Liftable liftable:
+                                    yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                                        Block = new Liftable((int) liftable.ItemID, liftable.ItemStackCount, liftable.LiftableLifeTime, liftable.LiftableRegenCheckTime, liftable.LiftableFinishTime, liftable.MaskQuestID, liftable.MaskQuestState, liftable.EffectQuestID, liftable.EffectQuestState, liftable.Position, liftable.Rotation)
+                                    };
+                                    continue;
+                                case IMS2TaxiStation taxiStation:
+                                    yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                                        Block = new TaxiStation(taxiStation.Position, taxiStation.Rotation)
+                                    };
+                                    continue;
+                                // Intentionally do not parse IMS2Vibrate, there are 4M entries.
+                                // case IMS2Vibrate vibrate:
+                            }
                             continue;
-                        // Intentionally do not parse IMS2Vibrate, there are 4M entries.
-                        // case IMS2Vibrate vibrate:
                     }
                     continue;
                 case IMS2RegionSpawnBase spawn:

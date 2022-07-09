@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Maple2.Database.Context;
 using Maple2.Model.Common;
@@ -18,13 +19,15 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
         }
 
         var breakables = new Dictionary<Guid, Breakable>();
-        var liftables = new Dictionary<Vector3B, Liftable>();
+        var liftables = new Dictionary<Guid, Liftable>();
+        var objectWeapons = new Dictionary<Vector3B, ObjectWeapon>();
         var portals = new Dictionary<int, Portal>();
         var playerSpawns = new Dictionary<int, SpawnPointPC>();
         var npcSpawns = new List<SpawnPointNPC>();
         var regionSpawns = new Dictionary<int, RegionSpawn>();
         var eventNpcSpawns = new Dictionary<int, EventSpawnPointNPC>();
         TaxiStation? taxi = null;
+        Telescope? telescope = null;
         var breakableActors = new Dictionary<Guid, BreakableActor>();
         var interactActors = new Dictionary<int, InteractActor>();
         lock (Context) {
@@ -47,7 +50,12 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                         break;
                     case MapBlock.Discriminator.Liftable:
                         if (entity.Block is Liftable liftable) {
-                            liftables[liftable.Position] = liftable;
+                            liftables[entity.Guid] = liftable;
+                        }
+                        break;
+                    case MapBlock.Discriminator.ObjectWeapon:
+                        if (entity.Block is ObjectWeapon objectWeapon) {
+                            objectWeapons[objectWeapon.Position] = objectWeapon;
                         }
                         break;
                     case MapBlock.Discriminator.Portal:
@@ -77,7 +85,14 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                         break;
                     case MapBlock.Discriminator.TaxiStation:
                         if (entity.Block is TaxiStation taxiStation) {
+                            Debug.Assert(taxi == null, $"Multiple taxi stations found in xblock:{xblock}");
                             taxi = taxiStation;
+                        }
+                        break;
+                    case MapBlock.Discriminator.Telescope:
+                        if (entity.Block is Telescope mapTelescope) {
+                            Debug.Assert(telescope == null, $"Multiple telescopes found in xblock:{xblock}");
+                            telescope = mapTelescope;
                         }
                         break;
                 }
@@ -87,12 +102,14 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
         mapEntity = new MapEntityMetadata {
             Breakables = breakables,
             Liftables = liftables,
+            ObjectWeapons = objectWeapons,
             Portals = portals,
             PlayerSpawns = playerSpawns,
             NpcSpawns = npcSpawns,
             EventNpcSpawns = eventNpcSpawns,
             RegionSpawns = regionSpawns,
             Taxi = taxi,
+            Telescope = telescope,
             BreakableActors = breakableActors,
             InteractActors = interactActors,
         };
