@@ -48,7 +48,6 @@ public static class ModelExtensions {
     public static bool IsExp(this Item item) => item.Id is 90000008;
     public static bool IsSpirit(this Item item) => item.Id is 90000009;
     public static bool IsStamina(this Item item) => item.Id is 90000010;
-    public static bool IsCustomMusicScore(this Item item) => item.Id / 100000 == 351;
     public static bool IsEmote(this Item item) => item.Metadata.Property.Type == 2 && item.Metadata.Property.SubType == 14;
     public static bool IsExpired(this Item item) => item.ExpiryTime > 0 && DateTimeOffset.UtcNow.ToUnixTimeSeconds() > item.ExpiryTime;
 

@@ -96,17 +96,6 @@ public partial class FieldManager {
         return fieldItem;
     }
 
-    // GuideObject is not added to the field, it will be managed by |GameSession.State|
-    public FieldGuideObject SpawnGuideObject(IActor<Player> owner, IGuideObject guideObject) {
-        var fieldGuideObject = new FieldGuideObject(this, NextLocalId(), guideObject) {
-            CharacterId = owner.Value.Character.Id,
-            Position = owner.Position,
-            // rotation?
-        };
-
-        return fieldGuideObject;
-    }
-
     public FieldBreakable? AddBreakable(string entityId, BreakableActor breakable) {
         if (fieldBreakables.ContainsKey(entityId)) {
             return null;
@@ -161,6 +150,29 @@ public partial class FieldManager {
 
         fieldMobSpawns[fieldMobSpawn.ObjectId] = fieldMobSpawn;
         return fieldMobSpawn;
+    }
+    #endregion
+
+    #region Player Managed
+    // GuideObject is not added to the field, it will be managed by |GameSession.State|
+    public FieldGuideObject SpawnGuideObject(IActor<Player> owner, IGuideObject guideObject) {
+        var fieldGuideObject = new FieldGuideObject(this, NextLocalId(), guideObject) {
+            CharacterId = owner.Value.Character.Id,
+            Position = owner.Position,
+            // rotation?
+        };
+
+        return fieldGuideObject;
+    }
+
+    public FieldInstrument SpawnInstrument(IActor<Player> owner, InstrumentMetadata instrument) {
+        var fieldInstrument = new FieldInstrument(this, NextLocalId(), instrument) {
+            OwnerId = owner.ObjectId,
+            Position = owner.Position + new Vector3(0, 0, 1),
+            Rotation = owner.Rotation,
+        };
+
+        return fieldInstrument;
     }
     #endregion
 

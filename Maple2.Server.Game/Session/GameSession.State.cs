@@ -15,6 +15,7 @@ public partial class GameSession {
     public readonly (long Uid, int Amount)[] DismantleStaging = new (long, int)[DISMANTLE_MAX_STAGED_ITEMS];
 
     public Ride? Ride;
+    public FieldInstrument? Instrument;
 
     public FieldGuideObject? GuideObject;
     public HeldCube? HeldCube;
