@@ -17,7 +17,8 @@ public static class Constant {
     public const int MaxBlockCount = 100;
     public const int GemstoneGrade = 4;
     public const int InventoryExpandRowCount = 6;
-    public const int DefaultHomeMapId = 62000000;
+    public const int DefaultReturnMapId = 2000062; // Lith Harbor
+    public const int DefaultHomeMapId = 62000000;  // Private Residence
     public const int DefaultHomeNumber = 1;
     public const byte MinHomeArea = 4;
     public const byte MaxHomeArea = 25;
@@ -28,6 +29,7 @@ public static class Constant {
     public const int HomeNameMaxLength = 16;
     public const int HomeMessageMaxLength = 100;
     public const int HomePasscodeLength = 6;
+    public const int PerformanceMapId = 2000064; // Queenstown
 
     public const long FurnishingBaseId = 2870000000000000000;
 

@@ -1,28 +1,30 @@
 ﻿using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
-namespace Maple2.Model.Game; 
+namespace Maple2.Model.Game;
 
 public class ItemCustomMusicScore : IByteSerializable, IByteDeserializable {
     public int Length;
     public int Instrument;
     public string Title;
     public string Author;
-    public long CharacterId; // Of Author
-    public bool IsLocked;
+    public long AuthorId; // AccountId
+    public bool IsLocked; // true=>s_writemusic_error_cant_edit
+    public string Mml;
 
     public ItemCustomMusicScore() {
         Title = string.Empty;
         Author = string.Empty;
+        Mml = string.Empty;
     }
-    
+
     public void WriteTo(IByteWriter writer) {
         writer.WriteInt(Length);
         writer.WriteInt(Instrument);
         writer.WriteUnicodeString(Title);
         writer.WriteUnicodeString(Author);
         writer.WriteInt(1);
-        writer.WriteLong(CharacterId);
+        writer.WriteLong(AuthorId);
         writer.WriteBool(IsLocked);
         writer.WriteLong();
         writer.WriteLong();
@@ -34,7 +36,7 @@ public class ItemCustomMusicScore : IByteSerializable, IByteDeserializable {
         Title = reader.ReadUnicodeString();
         Author = reader.ReadUnicodeString();
         reader.ReadInt();
-        CharacterId = reader.ReadLong();
+        AuthorId = reader.ReadLong();
         IsLocked = reader.ReadBool();
         reader.ReadLong();
         reader.ReadLong();

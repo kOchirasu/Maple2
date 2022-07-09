@@ -69,6 +69,10 @@ public class Item : IByteSerializable, IByteDeserializable {
 
         Transfer = new ItemTransfer(GetTransferFlag(), Metadata.Property.TradableCount, Metadata.Property.RepackCount);
 
+        if (Metadata.Music != null) {
+            RemainUses = Metadata.Music.PlayCount;
+        }
+
         // Template? or Blueprint
         if (Metadata.Mesh != string.Empty || Metadata.Property.Type == 22) {
             Template = new UgcItemLook();

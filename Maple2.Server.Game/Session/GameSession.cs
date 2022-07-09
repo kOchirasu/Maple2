@@ -7,6 +7,7 @@ using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
@@ -43,6 +44,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
     public ItemMetadataStorage ItemMetadata { get; init; } = null!;
     public SkillMetadataStorage SkillMetadata { get; init; } = null!;
     public TableMetadataStorage TableMetadata { get; init; } = null!;
+    public MapMetadataStorage MapMetadata { get; init; } = null!;
     public FieldManager.Factory FieldFactory { private get; init; } = null!;
     // ReSharper restore All
     #endregion
@@ -202,6 +204,25 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
         Config.LoadStatAttributes();
 
         return true;
+    }
+
+    public void ReturnField() {
+        Character character = Player.Value.Character;
+        int mapId = character.ReturnMapId;
+        Vector3 position = character.ReturnPosition;
+
+        if (!MapMetadata.TryGet(mapId, out _)) {
+            mapId = Constant.DefaultReturnMapId;
+            position = default;
+        }
+
+        character.ReturnMapId = 0;
+        character.ReturnPosition = default;
+
+        // If returning to a map, pass in the spawn point.
+        Send(PrepareField(mapId, position: position)
+            ? FieldEnterPacket.Request(Player)
+            : FieldEnterPacket.Error(MigrationError.s_move_err_default));
     }
 
     public bool Temp() {

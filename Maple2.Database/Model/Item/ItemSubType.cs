@@ -53,11 +53,11 @@ internal record ItemPet(string Name, long Exp, int Level) : ItemSubType(Discrimi
     }
 }
 
-internal record ItemCustomMusicScore(int Length, int Instrument, string Title, string Author, long CharacterId,
-        bool IsLocked) : ItemSubType(Discriminator.Music) {
+internal record ItemCustomMusicScore(int Length, int Instrument, string Title, string Author, long AuthorId,
+        bool IsLocked, string Mml) : ItemSubType(Discriminator.Music) {
     public static implicit operator ItemCustomMusicScore?(Maple2.Model.Game.ItemCustomMusicScore? other) {
         return other == null ? null : new ItemCustomMusicScore(other.Length, other.Instrument, other.Title,
-            other.Author, other.CharacterId, other.IsLocked);
+            other.Author, other.AuthorId, other.IsLocked, other.Mml);
     }
 
     public static implicit operator Maple2.Model.Game.ItemCustomMusicScore?(ItemCustomMusicScore? other) {
@@ -66,8 +66,9 @@ internal record ItemCustomMusicScore(int Length, int Instrument, string Title, s
             Instrument = other.Instrument,
             Title = other.Title,
             Author = other.Author,
-            CharacterId = other.CharacterId,
+            AuthorId = other.AuthorId,
             IsLocked = other.IsLocked,
+            Mml = other.Mml,
         };
     }
 }

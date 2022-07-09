@@ -14,8 +14,6 @@ namespace Maple2.Server.Game.PacketHandlers;
 public class MoveFieldHandler : PacketHandler<GameSession> {
     public override RecvOp OpCode => RecvOp.RequestMoveField;
 
-    private const int DEFAULT_MAP_ID = 2000062; // Lith Harbor
-
     private enum Command : byte {
         Portal = 0,
         LeaveDungeon = 1,
@@ -72,27 +70,7 @@ public class MoveFieldHandler : PacketHandler<GameSession> {
         packet.ReadUnicodeString();
         packet.ReadUnicodeString();
 
-        if (!session.Field.TryGetPortal(portalId, out Portal? srcPortal)) {
-            return;
-        }
-
-        // MoveByPortal (same map)
-        if (srcPortal.TargetMapId == mapId) {
-            if (session.Field.TryGetPortal(srcPortal.TargetPortalId, out Portal? dstPortal)) {
-                session.Send(PortalPacket.MoveByPortal(session.Player, dstPortal));
-            }
-
-            return;
-        }
-
-        if (srcPortal.TargetMapId == 0) {
-            HandleReturn(session);
-            return;
-        }
-
-        session.Send(session.PrepareField(srcPortal.TargetMapId, portalId: srcPortal.TargetPortalId)
-            ? FieldEnterPacket.Request(session.Player)
-            : FieldEnterPacket.Error(s_move_err_default));
+        session.Field.UsePortal(session, portalId);
     }
 
     private void HandleVisitHome(GameSession session, IByteReader packet) {
@@ -100,23 +78,7 @@ public class MoveFieldHandler : PacketHandler<GameSession> {
     }
 
     private void HandleReturn(GameSession session) {
-        Player player = session.Player;
-        int mapId = player.Character.ReturnMapId;
-        Vector3 position = player.Character.ReturnPosition;
-
-        // Return to "Lith Harbor" for invalid mapId.
-        if (!MapMetadata.TryGet(mapId, out _)) {
-            mapId = DEFAULT_MAP_ID;
-            position = default;
-        }
-
-        player.Character.ReturnMapId = 0;
-        player.Character.ReturnPosition = default;
-
-        // If returning to a map, pass in the spawn point.
-        session.Send(session.PrepareField(mapId, position: position)
-            ? FieldEnterPacket.Request(session.Player)
-            : FieldEnterPacket.Error(s_move_err_default));
+        session.ReturnField();
     }
 
     private void HandleDecorPlanner(GameSession session) {

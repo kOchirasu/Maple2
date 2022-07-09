@@ -56,10 +56,10 @@ public static class InstrumentPacket {
         return pWriter;
     }
 
-    public static ByteWriter StartScore(FieldInstrument instrument, bool isCustom, string value) {
+    public static ByteWriter StartScore(FieldInstrument instrument, Item score) {
         var pWriter = Packet.Of(SendOp.PlayInstrument);
         pWriter.Write<Command>(Command.StartScore);
-        pWriter.WriteBool(isCustom);
+        pWriter.WriteBool(score.Music != null);
         pWriter.WriteInt(instrument.ObjectId);
         pWriter.WriteInt(instrument.OwnerId);
         pWriter.Write<Vector3>(instrument.Position);
@@ -68,10 +68,10 @@ public static class InstrumentPacket {
         pWriter.WriteInt(instrument.Value.PercussionId);
         pWriter.WriteBool(false);
 
-        if (isCustom) {
-            pWriter.WriteString(value); // MusicCode
+        if (score.Music != null) {
+            pWriter.WriteString(score.Music.Mml);
         } else {
-            pWriter.WriteUnicodeString(value); // FileName
+            pWriter.WriteUnicodeString(score.Metadata.Music?.FileName ?? "");
         }
 
         return pWriter;
@@ -111,11 +111,11 @@ public static class InstrumentPacket {
         return pWriter;
     }
 
-    public static ByteWriter ViewScore(long itemUid, string musicCode) {
+    public static ByteWriter ViewScore(long itemUid, string mml) {
         var pWriter = Packet.Of(SendOp.PlayInstrument);
         pWriter.Write<Command>(Command.ViewScore);
         pWriter.WriteLong(itemUid);
-        pWriter.WriteString(musicCode);
+        pWriter.WriteString(mml);
 
         return pWriter;
     }
@@ -128,10 +128,10 @@ public static class InstrumentPacket {
         return pWriter;
     }
 
-    public static ByteWriter Unknown() {
+    public static ByteWriter Unknown(byte value) {
         var pWriter = Packet.Of(SendOp.PlayInstrument);
         pWriter.Write<Command>(Command.Unknown);
-        pWriter.WriteByte();
+        pWriter.WriteByte(value);
 
         return pWriter;
     }

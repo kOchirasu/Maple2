@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Maple2.Database.Storage;
 using Maple2.Model;
@@ -28,7 +30,7 @@ public class InstrumentHandler : PacketHandler<GameSession> {
         ComposeScore = 8,
         ViewScore = 10,
         StartPerform = 11,
-        Unknown = 12,
+        EndPerform = 12,
         Stage = 13,
         Fireworks = 14,
         Emote = 15,
@@ -76,11 +78,11 @@ public class InstrumentHandler : PacketHandler<GameSession> {
             case Command.StartPerform:
                 HandleStartPerform(session);
                 return;
-            case Command.Unknown:
-                HandleUnknown(session);
+            case Command.EndPerform:
+                HandleEndPerform(session);
                 return;
             case Command.Stage:
-                HandleStage(session);
+                HandleEnterExitStage(session);
                 return;
             case Command.Fireworks:
                 HandleFireworks(session);
@@ -138,11 +140,7 @@ public class InstrumentHandler : PacketHandler<GameSession> {
         }
 
         score.RemainUses--;
-        if (score.Music != null) {
-            session.Field.Multicast(InstrumentPacket.StartScore(session.Instrument, true, ""));
-        } else {
-            session.Field.Multicast(InstrumentPacket.StartScore(session.Instrument, false, score.Metadata.Music?.FileName ?? ""));
-        }
+        session.Field.Multicast(InstrumentPacket.StartScore(session.Instrument, score));
         session.Send(InstrumentPacket.RemainUses(score.Uid, score.RemainUses));
     }
 
@@ -163,43 +161,92 @@ public class InstrumentHandler : PacketHandler<GameSession> {
 
     private void HandleComposeScore(GameSession session, IByteReader packet) {
         long scoreUid = packet.ReadLong();
-        int scoreLength = packet.ReadInt();
-        int instrumentType = packet.ReadInt();
-        string scoreName = packet.ReadUnicodeString();
-        string scoreCode = packet.ReadString();
-
-        Item? score = session.Item.Inventory.Get(scoreUid, InventoryType.FishingMusic);
-        if (score is not {RemainUses: > 0} || score.IsExpired()) {
+        if (!TryGetScore(session, scoreUid, out Item? score) || score.Music == null) {
             return;
         }
+
+        if (score.Music.AuthorId != 0) {
+            Logger.Warning("CustomMusicScore {Uid} has already been composed", score.Uid);
+            return;
+        }
+
+        int length = packet.ReadInt();
+        int instrument = packet.ReadInt();
+        string title = packet.ReadUnicodeString();
+        string mml = packet.ReadString();
+
+        score.Music.Length = length;
+        score.Music.Instrument = instrument;
+        score.Music.Title = title;
+        score.Music.Author = session.Player.Value.Character.Name;
+        score.Music.AuthorId = session.CharacterId;
+        score.Music.Mml = mml;
+
+        session.Send(InstrumentPacket.ComposeScore(score));
     }
 
     private void HandleViewScore(GameSession session, IByteReader packet) {
         long scoreUid = packet.ReadLong();
         Item? score = session.Item.Inventory.Get(scoreUid, InventoryType.FishingMusic);
-        if (score is not {RemainUses: > 0} || score.IsExpired()) {
+        if (score?.Music == null || score.Music.AuthorId == 0) {
+            return;
+        }
+
+        session.Send(InstrumentPacket.ViewScore(score.Uid, score.Music.Mml));
+    }
+
+    private void HandleStartPerform(GameSession session) {
+        if (session.Field?.MapId != Constant.PerformanceMapId) {
             return;
         }
     }
 
-    private void HandleStartPerform(GameSession session) {
-
+    private void HandleEndPerform(GameSession session) {
+        if (session.Field?.MapId != Constant.PerformanceMapId) {
+            return;
+        }
     }
 
-    private void HandleUnknown(GameSession session) {
+    private void HandleEnterExitStage(GameSession session) {
+        if (session.Field?.MapId != Constant.PerformanceMapId) {
+            return;
+        }
 
-    }
-
-    private void HandleStage(GameSession session) {
-
+        // TODO: MS2TriggerBox: 6a17cfc1708e492b81896a780e2fecf9
+        const float xLo = -3600 - 825;
+        const float xHi = -3600 + 825;
+        const float yLo = 7275 - 600;
+        const float yHi = 7275 + 600;
+        const float zLo = 2475 - 375;
+        const float zHi = 2475 + 375;
+        Vector3 position = session.Player.Position;
+        if (position.X is > xLo and < xHi && position.Y is > yLo and < yHi && position.Z is > zLo and < zHi) {
+            session.Field.MoveToPortal(session, 802);
+        } else {
+            session.Field.MoveToPortal(session, 803);
+        }
     }
 
     private void HandleFireworks(GameSession session) {
+        if (session.Field?.MapId != Constant.PerformanceMapId) {
+            return;
+        }
 
+        session.Send(InstrumentPacket.Fireworks(session.Player.ObjectId));
     }
 
     private void HandleEmote(GameSession session, IByteReader packet) {
+        if (session.Field?.MapId != Constant.PerformanceMapId) {
+            return;
+        }
+
         int skillId = packet.ReadInt();
+        switch (skillId) {
+            case 90210001: // Applaud
+                break;
+            case 90210002: // Glowstick
+                break;
+        }
     }
 
     private bool TryUseInstrument(GameSession session, long itemUid, [NotNullWhen(true)] out FieldInstrument? fieldInstrument) {

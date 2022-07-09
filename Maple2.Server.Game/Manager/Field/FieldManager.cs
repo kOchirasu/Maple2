@@ -5,10 +5,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Maple2.Database.Storage;
 using Maple2.Model.Common;
+using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Game.Model;
+using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Serilog;
 
@@ -171,6 +173,40 @@ public sealed partial class FieldManager : IDisposable {
 
     public bool TryGetLiftable(string entityId, [NotNullWhen(true)] out FieldLiftable? fieldLiftable) {
         return fieldLiftables.TryGetValue(entityId, out fieldLiftable);
+    }
+
+    public bool MoveToPortal(GameSession session, int portalId) {
+        if (!TryGetPortal(portalId, out Portal? portal)) {
+            return false;
+        }
+
+        session.Send(PortalPacket.MoveByPortal(session.Player, portal));
+        return true;
+    }
+
+    public bool UsePortal(GameSession session, int portalId) {
+        if (!TryGetPortal(portalId, out Portal? srcPortal)) {
+            return false;
+        }
+
+        // MoveByPortal (same map)
+        if (srcPortal.TargetMapId == MapId) {
+            if (TryGetPortal(srcPortal.TargetPortalId, out Portal? dstPortal)) {
+                session.Send(PortalPacket.MoveByPortal(session.Player, dstPortal));
+            }
+
+            return true;
+        }
+
+        if (srcPortal.TargetMapId == 0) {
+            session.ReturnField();
+            return true;
+        }
+
+        session.Send(session.PrepareField(srcPortal.TargetMapId, portalId: srcPortal.TargetPortalId)
+            ? FieldEnterPacket.Request(session.Player)
+            : FieldEnterPacket.Error(MigrationError.s_move_err_default));
+        return true;
     }
 
     public bool LiftupCube(in Vector3B coordinates, [NotNullWhen(true)] out ObjectWeapon? objectWeapon) {
