@@ -163,7 +163,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
         }
 
         session.HeldCube = cubeItem;
-        session.Field?.Multicast(CubePacket.HoldCube(session));
+        session.Field?.Broadcast(CubePacket.HoldCube(session));
     }
 
     private void HandleBuyPlot(GameSession session, IByteReader packet) {
@@ -203,7 +203,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
                 }
 
                 if (TryPlaceCube(session, cubeItem, plot, position, rotation, out PlotCube? plotCube)) {
-                    session.Field?.Multicast(CubePacket.PlaceCube(session.Player.ObjectId, plot, plotCube));
+                    session.Field?.Broadcast(CubePacket.PlaceCube(session.Player.ObjectId, plot, plotCube));
                 }
                 break;
             case LiftableCube liftable:
@@ -217,10 +217,10 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
                 fieldLiftable.State = LiftableState.Disabled;
                 fieldLiftable.FinishTick = Environment.TickCount + fieldLiftable.Value.ItemLifetime;
 
-                session.Field.Multicast(LiftablePacket.Add(fieldLiftable));
-                session.Field.Multicast(CubePacket.PlaceLiftable(session.Player.ObjectId, liftable, position, rotation));
-                session.Field.Multicast(SetCraftModePacket.Stop(session.Player.ObjectId));
-                session.Field.Multicast(LiftablePacket.Update(fieldLiftable));
+                session.Field.Broadcast(LiftablePacket.Add(fieldLiftable));
+                session.Field.Broadcast(CubePacket.PlaceLiftable(session.Player.ObjectId, liftable, position, rotation));
+                session.Field.Broadcast(SetCraftModePacket.Stop(session.Player.ObjectId));
+                session.Field.Broadcast(LiftablePacket.Update(fieldLiftable));
                 break;
         }
     }
@@ -234,7 +234,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
         }
 
         if (TryRemoveCube(session, plot, position)) {
-            session.Field?.Multicast(CubePacket.RemoveCube(session.Player.ObjectId, position));
+            session.Field?.Broadcast(CubePacket.RemoveCube(session.Player.ObjectId, position));
         }
     }
 
@@ -257,7 +257,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
             cube.Rotation = (cube.Rotation + 90f) % 360f; // Rotate counter-clockwise
         }
 
-        session.Field?.Multicast(CubePacket.RotateCube(session.Player.ObjectId, cube));
+        session.Field?.Broadcast(CubePacket.RotateCube(session.Player.ObjectId, cube));
     }
 
     private void HandleReplaceCube(GameSession session, IByteReader packet) {
@@ -271,7 +271,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
         }
 
         if (TryPlaceCube(session, cubeItem, plot, position, rotation, out PlotCube? placedCube)) {
-            session.Field?.Multicast(CubePacket.ReplaceCube(session.Player.ObjectId, position, rotation, placedCube));
+            session.Field?.Broadcast(CubePacket.ReplaceCube(session.Player.ObjectId, position, rotation, placedCube));
         }
     }
 
@@ -290,7 +290,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
 
         session.HeldLiftup = weapon;
         int itemId = session.HeldLiftup.ItemIds[Environment.TickCount % session.HeldLiftup.ItemIds.Length];
-        session.Field.Multicast(CubePacket.LiftupObject(session.Player, session.HeldLiftup, itemId));
+        session.Field.Broadcast(CubePacket.LiftupObject(session.Player, session.HeldLiftup, itemId));
     }
 
     private void HandleLiftupAttack(GameSession session) {
@@ -300,7 +300,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
         }
 
         session.HeldLiftup = null;
-        session.Field.Multicast(CubePacket.LiftupAttack(session.Player));
+        session.Field.Broadcast(CubePacket.LiftupAttack(session.Player));
     }
 
     private void HandleSetHomeName(GameSession session, IByteReader packet) {
@@ -334,14 +334,14 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
     private void HandleIncreaseArea(GameSession session) {
         int area = session.Player.Value.Home.Area + 1;
         if (session.Player.Value.Home.SetArea(area) && session.Housing.SaveHome()) {
-            session.Field?.Multicast(CubePacket.IncreaseArea((byte) area));
+            session.Field?.Broadcast(CubePacket.IncreaseArea((byte) area));
         }
     }
 
     private void HandleDecreaseArea(GameSession session) {
         int area = session.Player.Value.Home.Area - 1;
         if (session.Player.Value.Home.SetArea(area) && session.Housing.SaveHome()) {
-            session.Field?.Multicast(CubePacket.DecreaseArea((byte) area));
+            session.Field?.Broadcast(CubePacket.DecreaseArea((byte) area));
         }
     }
 
@@ -357,7 +357,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
             session.Player.Value.Home.Permissions.Remove(permission);
         }
 
-        session.Field?.Multicast(CubePacket.EnablePermission(permission, enabled));
+        session.Field?.Broadcast(CubePacket.EnablePermission(permission, enabled));
     }
 
     private void HandleSetPermission(GameSession session, IByteReader packet) {
@@ -370,20 +370,20 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
             setting = HomePermissionSetting.None;
         }
 
-        session.Field?.Multicast(CubePacket.SetPermission(permission, setting));
+        session.Field?.Broadcast(CubePacket.SetPermission(permission, setting));
     }
 
     private void HandleIncreaseHeight(GameSession session) {
         int height = session.Player.Value.Home.Height + 1;
         if (session.Player.Value.Home.SetHeight(height) && session.Housing.SaveHome()) {
-            session.Field?.Multicast(CubePacket.IncreaseHeight((byte) height));
+            session.Field?.Broadcast(CubePacket.IncreaseHeight((byte) height));
         }
     }
 
     private void HandleDecreaseHeight(GameSession session) {
         int height = session.Player.Value.Home.Height - 1;
         if (session.Player.Value.Home.SetHeight(height) && session.Housing.SaveHome()) {
-            session.Field?.Multicast(CubePacket.DecreaseHeight((byte) height));
+            session.Field?.Broadcast(CubePacket.DecreaseHeight((byte) height));
         }
     }
 
@@ -405,21 +405,21 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
     private void HandleSetBackground(GameSession session, IByteReader packet) {
         var background = packet.Read<HomeBackground>();
         if (session.Player.Value.Home.SetBackground(background)) {
-            session.Field?.Multicast(CubePacket.SetBackground(background));
+            session.Field?.Broadcast(CubePacket.SetBackground(background));
         }
     }
 
     private void HandleSetLighting(GameSession session, IByteReader packet) {
         var lighting = packet.Read<HomeLighting>();
         if (session.Player.Value.Home.SetLighting(lighting)) {
-            session.Field?.Multicast(CubePacket.SetLighting(lighting));
+            session.Field?.Broadcast(CubePacket.SetLighting(lighting));
         }
     }
 
     private void HandleSetCamera(GameSession session, IByteReader packet) {
         var camera = packet.Read<HomeCamera>();
         if (session.Player.Value.Home.SetCamera(camera)) {
-            session.Field?.Multicast(CubePacket.SetCamera(camera));
+            session.Field?.Broadcast(CubePacket.SetCamera(camera));
         }
     }
 

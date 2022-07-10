@@ -5,13 +5,11 @@ namespace Maple2.Server.Game.Trigger;
 public partial class TriggerContext {
     public void EnableSpawnPointPc(int spawnPointId, bool isEnable) { }
 
-    public void GiveExp(byte arg1, byte arg2) { }
-
     public void GiveRewardContent(int rewardId) { }
 
     public void KickMusicAudience(int targetBoxId, int targetPortalId) { }
 
-    public void MoveRandomUser(int arg1, byte arg2, int arg3, byte arg4) { }
+    public void MoveRandomUser(int mapId, int portalId, int triggerId, int count) { }
 
     public void MoveToPortal(int userTagId, int portalId, int boxId) { }
 
@@ -19,44 +17,44 @@ public partial class TriggerContext {
 
     public void MoveUserPath(string path) { }
 
-    public void MoveUserToBox(int boxId, bool portalId) { }
+    public void MoveUserToBox(int boxId, int portalId) { }
 
-    public void MoveUserToPos(Vector3 pos, Vector3 rot) { }
+    public void MoveUserToPos(Vector3 position, Vector3 rotation) { }
 
     public void PatrolConditionUser(string patrolName, byte patrolIndex, int additionalEffectId) { }
 
-    public void SetAchievement(int target, string type, string code) { }
+    public void SetAchievement(string type, string code, int triggerId) { }
 
-    public void SetPcEmotionLoop(string arg1, float arg2, bool arg3) { }
+    public void SetPcEmotionLoop(string sequenceName, float duration, bool arg3) { }
 
-    public void SetPcEmotionSequence(string arg1) { }
+    public void SetPcEmotionSequence(string[] sequenceNames) { }
 
     public void SetPcRotation(Vector3 rotation) { }
 
-    public void SetQuestAccept(int questId, int arg1) { }
+    public void SetQuestAccept(int questId) { }
 
     public void SetQuestComplete(int questId) { }
 
-    public void TalkNpc(int spawnPointId) { }
+    public void TalkNpc(int spawnId) { }
 
     public void AddUserValue(string key, int value) { }
 
-    public void SetUserValue(int triggerId, string key, int value) { }
+    public void SetUserValue(string key, int value, int triggerId) { }
 
-    public void FaceEmotion(int spawnPointId, string emotionName) { }
+    public void FaceEmotion(int spawnId, string emotionName) { }
 
-    public void SetState(byte arg1, string arg2, bool arg3) { }
+    public void SetState(byte arg1, string[] arg2, bool arg3) { }
 
     #region Conditions
-    public bool CheckAnyUserAdditionalEffect(int triggerBoxId, int additionalEffectId, byte level) {
+    public bool CheckAnyUserAdditionalEffect(int boxId, int additionalEffectId, short level) {
         return false;
     }
 
-    public bool CheckSameUserTag(int triggerBoxId) {
+    public bool CheckSameUserTag(int boxId) {
         return false;
     }
 
-    public bool QuestUserDetected(int[] arg1, int[] arg2, byte[] arg3, byte arg4) {
+    public bool QuestUserDetected(int[] boxIds, int[] questIds, byte[] questStates, byte jobCode) {
         return false;
     }
 

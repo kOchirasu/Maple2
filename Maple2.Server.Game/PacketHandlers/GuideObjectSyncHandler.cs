@@ -46,7 +46,7 @@ public class GuideObjectSyncHandler : PacketHandler<GameSession> {
 
         using (var buffer = new PoolByteWriter()) {
             buffer.GuideObject(session.GuideObject.ObjectId, stateSyncs);
-            session.Field.Multicast(buffer, sender: session);
+            session.Field.Broadcast(buffer, sender: session);
         }
 
         session.GuideObject.Position = stateSyncs[^1].Position;

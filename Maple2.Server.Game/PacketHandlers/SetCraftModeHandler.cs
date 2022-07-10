@@ -38,8 +38,8 @@ public class SetCraftModeHandler : PacketHandler<GameSession> {
             return;
         }
 
-        session.Field.Multicast(SetCraftModePacket.Stop(session.Player.ObjectId));
-        session.Field.Multicast(GuideObjectPacket.Remove(session.GuideObject));
+        session.Field.Broadcast(SetCraftModePacket.Stop(session.Player.ObjectId));
+        session.Field.Broadcast(GuideObjectPacket.Remove(session.GuideObject));
         session.GuideObject = null;
         session.HeldCube = null;
     }
@@ -60,7 +60,7 @@ public class SetCraftModeHandler : PacketHandler<GameSession> {
         session.GuideObject = session.Field.SpawnGuideObject(session.Player, new ConstructionGuideObject());
         session.HeldCube = cubeItem;
 
-        session.Field.Multicast(GuideObjectPacket.Create(session.GuideObject));
-        session.Field.Multicast(SetCraftModePacket.Home(session.Player.ObjectId, cubeItem));
+        session.Field.Broadcast(GuideObjectPacket.Create(session.GuideObject));
+        session.Field.Broadcast(SetCraftModePacket.Home(session.Player.ObjectId, cubeItem));
     }
 }

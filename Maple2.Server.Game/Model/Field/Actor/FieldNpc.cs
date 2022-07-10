@@ -37,7 +37,7 @@ public class FieldNpc : Actor<Npc> {
         SequenceId = -1;
         SequenceCounter = 1;
 
-        Scheduler.ScheduleRepeated(() => Field.Multicast(NpcControlPacket.Control(this)), 1000);
+        Scheduler.ScheduleRepeated(() => Field.Broadcast(NpcControlPacket.Control(this)), 1000);
         Scheduler.Start();
     }
 

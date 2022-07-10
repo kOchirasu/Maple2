@@ -37,7 +37,7 @@ public class FieldBreakable : FieldEntity<BreakableActor> {
         }
 
         State = state;
-        Field.Multicast(BreakablePacket.Update(this));
+        Field.Broadcast(BreakablePacket.Update(this));
 
         switch (State) {
             case BreakableState.Show:

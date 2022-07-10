@@ -33,11 +33,11 @@ public class FieldLiftable : FieldEntity<Liftable> {
         }
 
         if (Count > 0) {
-            Field.Multicast(LiftablePacket.Update(this));
+            Field.Broadcast(LiftablePacket.Update(this));
         } else {
             State = LiftableState.Respawning;
-            Field.Multicast(LiftablePacket.Remove(EntityId));
-            Field.Multicast(CubePacket.RemoveCube(ObjectId, Position));
+            Field.Broadcast(LiftablePacket.Remove(EntityId));
+            Field.Broadcast(CubePacket.RemoveCube(ObjectId, Position));
         }
 
         return new LiftableCube(Value);
@@ -63,9 +63,9 @@ public class FieldLiftable : FieldEntity<Liftable> {
 
         if (Count == 1) {
             State = LiftableState.Default;
-            Field.Multicast(LiftablePacket.Add(this));
+            Field.Broadcast(LiftablePacket.Add(this));
             //Field.Multicast(CubePacket.PlaceLiftable());
         }
-        Field.Multicast(LiftablePacket.Update(this));
+        Field.Broadcast(LiftablePacket.Update(this));
     }
 }

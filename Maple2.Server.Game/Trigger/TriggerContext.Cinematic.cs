@@ -16,11 +16,11 @@ public partial class TriggerContext {
 
     public void SetOnetimeEffect(int id, bool enable, string path) { }
 
-    public void SetCinematicUI(byte type, string name, bool arg3) { }
+    public void SetCinematicUI(byte type, string script, bool arg3) { }
 
-    public void SetSceneSkip(TriggerState state, string nextState) { }
+    public void SetSceneSkip(TriggerState? state, string nextState) { }
 
-    public void SetSkip(TriggerState state) { }
+    public void SetSkip(TriggerState? state) { }
 
-    public void ShowCaption(CaptionType type, string title, string desc, Align align, float offsetRateX, float offsetRateY, int duration, float scale) { }
+    public void ShowCaption(CaptionType type, string title, string script, Align align, float offsetRateX, float offsetRateY, int duration, float scale) { }
 }

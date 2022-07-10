@@ -34,11 +34,11 @@ public partial class TriggerContext {
 
     public void FieldGameConstant(string key, string value, string feature, Locale locale) { }
 
-    public void FieldGameMessage(byte custom, string type, byte arg1, string arg2, int arg3) { }
+    public void FieldGameMessage(byte custom, string type, byte arg1, string script, int duration) { }
     #endregion
 
     #region Conditions
-    public bool BonusGameRewardDetected(byte arg1) {
+    public bool BonusGameRewardDetected(byte boxId) {
         return false;
     }
     #endregion

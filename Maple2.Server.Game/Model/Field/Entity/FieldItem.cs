@@ -12,11 +12,11 @@ public class FieldItem : FieldEntity<Item>, IOwned {
 
     public void Pickup(FieldPlayer looter) {
         if (Value.IsMeso()) {
-            Field.Multicast(ItemPickupPacket.PickupMeso(ObjectId, looter, Value.Amount));
+            Field.Broadcast(ItemPickupPacket.PickupMeso(ObjectId, looter, Value.Amount));
         } else if (Value.IsStamina()) {
-            Field.Multicast(ItemPickupPacket.PickupStamina(ObjectId, looter, Value.Amount));
+            Field.Broadcast(ItemPickupPacket.PickupStamina(ObjectId, looter, Value.Amount));
         } else {
-            Field.Multicast(ItemPickupPacket.PickupItem(ObjectId, looter));
+            Field.Broadcast(ItemPickupPacket.PickupItem(ObjectId, looter));
         }
     }
 

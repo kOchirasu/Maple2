@@ -15,7 +15,7 @@ public partial class TriggerContext {
 
     public void DungeonMissionComplete(int missionId, string feature) { }
 
-    public void DungeonMoveLapTimeToNow(bool id) { }
+    public void DungeonMoveLapTimeToNow(byte id) { }
 
     public void DungeonResetTime(int seconds) { }
 
@@ -25,7 +25,7 @@ public partial class TriggerContext {
 
     public void DungeonStopTimer() { }
 
-    public void RandomAdditionalEffect(string target, int triggerBoxId, int spawnPointId, byte targetCount, int tick, int waitTick, string targetEffect, int additionalEffectId) { }
+    public void RandomAdditionalEffect(string target, int boxId, int spawnId, byte targetCount, int tick, int waitTick, string targetEffect, int additionalEffectId) { }
 
     public void SetDungeonVariable(int varId, bool value) { }
 

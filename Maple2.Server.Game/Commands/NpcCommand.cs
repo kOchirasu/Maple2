@@ -38,8 +38,8 @@ public class NpcCommand : Command {
             Vector3 position = session.Player.Position;
             Vector3 rotation = session.Player.Rotation;
             FieldNpc fieldNpc = session.Field.SpawnNpc(metadata, position, rotation);
-            session.Field.Multicast(FieldPacket.AddNpc(fieldNpc));
-            session.Field.Multicast(ProxyObjectPacket.AddNpc(fieldNpc));
+            session.Field.Broadcast(FieldPacket.AddNpc(fieldNpc));
+            session.Field.Broadcast(ProxyObjectPacket.AddNpc(fieldNpc));
             fieldNpc.Sync();
 
             ctx.ExitCode = 0;

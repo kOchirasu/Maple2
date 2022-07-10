@@ -24,7 +24,7 @@ public class HousingManager {
     public void SetPlot(PlotInfo? plot) {
         Home.Outdoor = plot;
 
-        session.Field?.Multicast(CubePacket.UpdateProfile(session.Player));
+        session.Field?.Broadcast(CubePacket.UpdateProfile(session.Player));
     }
 
     public void SetName(string name) {
@@ -44,8 +44,8 @@ public class HousingManager {
             return;
         }
 
-        session.Field?.Multicast(CubePacket.SetHomeName(Home));
-        session.Field?.Multicast(CubePacket.UpdateProfile(session.Player));
+        session.Field?.Broadcast(CubePacket.SetHomeName(Home));
+        session.Field?.Broadcast(CubePacket.UpdateProfile(session.Player));
     }
 
     public void SetHomeMessage(string message) {
@@ -60,7 +60,7 @@ public class HousingManager {
             return;
         }
 
-        session.Field?.Multicast(CubePacket.SetHomeMessage(Home.Message));
+        session.Field?.Broadcast(CubePacket.SetHomeMessage(Home.Message));
     }
 
     public void SetPasscode(string passcode) {
@@ -161,7 +161,7 @@ public class HousingManager {
             return false;
         }
 
-        session.Field.Multicast(CubePacket.BuyPlot(plotInfo));
+        session.Field.Broadcast(CubePacket.BuyPlot(plotInfo));
         SetPlot(plotInfo);
         return true;
     }
@@ -197,7 +197,7 @@ public class HousingManager {
             return null;
         }
 
-        session.Field.Multicast(CubePacket.ForfeitPlot(plotInfo));
+        session.Field.Broadcast(CubePacket.ForfeitPlot(plotInfo));
         SetPlot(null);
 
         return plotInfo;

@@ -23,6 +23,6 @@ public class VibrateHandler : PacketHandler<GameSession> {
         packet.ReadInt(); // ServerTick
         var position = packet.Read<Vector3>();
 
-        session.Field?.Multicast(VibratePacket.Attack(entityId, attack, position));
+        session.Field?.Broadcast(VibratePacket.Attack(entityId, attack, position));
     }
 }

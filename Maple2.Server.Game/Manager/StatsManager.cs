@@ -24,6 +24,6 @@ public class StatsManager {
         // TODO: after resetting, we also need to re-add stats from buffs/equips.
 
         session.Send(StatsPacket.Init(session.Player));
-        session.Field?.Multicast(StatsPacket.Update(session.Player), session);
+        session.Field?.Broadcast(StatsPacket.Update(session.Player), session);
     }
 }

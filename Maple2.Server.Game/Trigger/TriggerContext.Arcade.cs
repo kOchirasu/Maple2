@@ -2,7 +2,7 @@
 
 public partial class TriggerContext {
     #region BoomBoomOcean
-    public void ArcadeBoomBoomOceanSetSkillScore(int id, int score) { }
+    public void ArcadeBoomBoomOceanSetSkillScore(int skillId, int score) { }
 
     public void ArcadeBoomBoomOceanStartGame(byte lifeCount) { }
 
@@ -14,9 +14,9 @@ public partial class TriggerContext {
     #endregion
 
     #region SpringFarm
-    public void ArcadeSpringFarmSetInteractScore(int id, int score) { }
+    public void ArcadeSpringFarmSetInteractScore(int interactId, int score) { }
 
-    public void ArcadeSpringFarmSpawnMonster(int[] spawnId, int score) { }
+    public void ArcadeSpringFarmSpawnMonster(int[] spawnIds, int score) { }
 
     public void ArcadeSpringFarmStartGame(byte lifeCount) { }
 

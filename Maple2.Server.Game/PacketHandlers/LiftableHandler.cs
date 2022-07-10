@@ -39,6 +39,6 @@ public class LiftableHandler : PacketHandler<GameSession> {
             return;
         }
 
-        session.Field.Multicast(SetCraftModePacket.Liftable(session.Player.ObjectId, session.HeldCube));
+        session.Field.Broadcast(SetCraftModePacket.Liftable(session.Player.ObjectId, session.HeldCube));
     }
 }

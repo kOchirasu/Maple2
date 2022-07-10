@@ -44,7 +44,7 @@ public class UserSyncHandler : PacketHandler<GameSession> {
 
         using (var buffer = new PoolByteWriter()) {
             buffer.Player(session.Player.ObjectId, stateSyncs);
-            session.Field?.Multicast(buffer, sender: session);
+            session.Field?.Broadcast(buffer, sender: session);
         }
 
         session.OnStateSync(stateSyncs[^1]);

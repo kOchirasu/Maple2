@@ -104,7 +104,7 @@ public class InstrumentHandler : PacketHandler<GameSession> {
         }
 
         session.Instrument.Improvising = true;
-        session.Field.Multicast(InstrumentPacket.StartImprovise(session.Instrument));
+        session.Field.Broadcast(InstrumentPacket.StartImprovise(session.Instrument));
     }
 
     private void HandleImprovise(GameSession session, IByteReader packet) {
@@ -113,7 +113,7 @@ public class InstrumentHandler : PacketHandler<GameSession> {
         }
 
         var note = packet.Read<MidiMessage>();
-        session.Field.Multicast(InstrumentPacket.Improvise(session.Instrument, note));
+        session.Field.Broadcast(InstrumentPacket.Improvise(session.Instrument, note));
     }
 
     private void HandleStopImprovise(GameSession session) {
@@ -121,7 +121,7 @@ public class InstrumentHandler : PacketHandler<GameSession> {
             return;
         }
 
-        session.Field.Multicast(InstrumentPacket.StopImprovise(session.Instrument));
+        session.Field.Broadcast(InstrumentPacket.StopImprovise(session.Instrument));
         session.Instrument = null;
     }
 
@@ -140,7 +140,7 @@ public class InstrumentHandler : PacketHandler<GameSession> {
         }
 
         score.RemainUses--;
-        session.Field.Multicast(InstrumentPacket.StartScore(session.Instrument, score));
+        session.Field.Broadcast(InstrumentPacket.StartScore(session.Instrument, score));
         session.Send(InstrumentPacket.RemainUses(score.Uid, score.RemainUses));
     }
 
@@ -151,7 +151,7 @@ public class InstrumentHandler : PacketHandler<GameSession> {
 
         // TODO: Exp gain (Prestige, Mastery, Exp)
 
-        session.Field.Multicast(InstrumentPacket.StopScore(session.Instrument));
+        session.Field.Broadcast(InstrumentPacket.StopScore(session.Instrument));
         session.Instrument = null;
     }
 

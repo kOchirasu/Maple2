@@ -59,8 +59,8 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
             FieldNpc fieldNpc = Field.SpawnNpc(npc, spawnPosition, Rotation);
             spawnedMobs.Add(fieldNpc.ObjectId);
 
-            Field.Multicast(FieldPacket.AddNpc(fieldNpc));
-            Field.Multicast(ProxyObjectPacket.AddNpc(fieldNpc));
+            Field.Broadcast(FieldPacket.AddNpc(fieldNpc));
+            Field.Broadcast(ProxyObjectPacket.AddNpc(fieldNpc));
         }
 
         if (Value.PetSpawnRate <= 0 || spawnedPets.Count < Value.PetPopulation) {

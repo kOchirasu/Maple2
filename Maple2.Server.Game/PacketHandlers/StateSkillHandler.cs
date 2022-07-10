@@ -28,6 +28,6 @@ public class StateSkillHandler : PacketHandler<GameSession> {
             return; // Invalid item
         }
 
-        session.Field.Multicast(SkillPacket.StateSkill(session.Player, skillId, skillCastUid));
+        session.Field.Broadcast(SkillPacket.StateSkill(session.Player, skillId, skillCastUid));
     }
 }

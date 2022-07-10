@@ -15,7 +15,7 @@ public class FieldPlayer : Actor<Player> {
     public FieldPlayer(GameSession session, Player player) : base(session.Field!, player.ObjectId, player) {
         Session = session;
 
-        Scheduler.ScheduleRepeated(() => Field.Multicast(ProxyObjectPacket.UpdatePlayer(this, 66)), 2000);
+        Scheduler.ScheduleRepeated(() => Field.Broadcast(ProxyObjectPacket.UpdatePlayer(this, 66)), 2000);
         Scheduler.Start();
     }
 

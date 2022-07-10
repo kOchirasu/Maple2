@@ -88,7 +88,7 @@ public class RideHandler : PacketHandler<GameSession> {
         int objectId = FieldManager.NextGlobalId();
         var action = new RideOnActionUseItem(rideId, objectId, item);
         session.Ride = new Ride(session.Player.ObjectId, metadata, action);
-        session.Field.Multicast(RidePacket.Start(session.Ride));
+        session.Field.Broadcast(RidePacket.Start(session.Ride));
     }
 
     private void HandleStop(GameSession session, IByteReader packet) {
@@ -106,7 +106,7 @@ public class RideHandler : PacketHandler<GameSession> {
         var action = new RideOffAction(forced);
 
         session.Ride = null;
-        session.Field.Multicast(RidePacket.Stop(ownerId, action));
+        session.Field.Broadcast(RidePacket.Stop(ownerId, action));
     }
 
     private void HandleChange(GameSession session, IByteReader packet) {
@@ -128,7 +128,7 @@ public class RideHandler : PacketHandler<GameSession> {
         }
 
         session.Ride = null;
-        session.Field.Multicast(RidePacket.Change(session.Player.ObjectId, rideId, itemUid));
+        session.Field.Broadcast(RidePacket.Change(session.Player.ObjectId, rideId, itemUid));
     }
 
     private void HandleJoin(GameSession session, IByteReader packet) {
@@ -151,7 +151,7 @@ public class RideHandler : PacketHandler<GameSession> {
         other.Session.Ride.Passengers[index] = session.Player.ObjectId;
         session.Ride = other.Session.Ride;
 
-        session.Field.Multicast(RidePacket.Join(session.Ride.OwnerId, session.Player.ObjectId, index));
+        session.Field.Broadcast(RidePacket.Join(session.Ride.OwnerId, session.Player.ObjectId, index));
     }
 
     private void HandleLeave(GameSession session) {
@@ -175,6 +175,6 @@ public class RideHandler : PacketHandler<GameSession> {
         session.Ride.Passengers[index] = 0;
         session.Ride = null;
 
-        session.Field.Multicast(RidePacket.Leave(ownerId, session.Player.ObjectId));
+        session.Field.Broadcast(RidePacket.Leave(ownerId, session.Player.ObjectId));
     }
 }

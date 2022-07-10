@@ -41,7 +41,7 @@ public class PlayerCommand : Command {
                 }
 
                 session.Player.Value.Character.Level = level;
-                session.Field?.Multicast(LevelUpPacket.LevelUp(session.Player));
+                session.Field?.Broadcast(LevelUpPacket.LevelUp(session.Player));
                 session.Stats.Refresh();
                 ctx.ExitCode = 0;
             } catch (SystemException ex) {
@@ -102,7 +102,7 @@ public class PlayerCommand : Command {
                 session.Player.Value.Character.Job = job;
                 session.Config.Skill.SkillInfo.SetJob(job);
                 session.Stats.Refresh();
-                session.Field?.Multicast(JobPacket.Awakening(session.Player, session.Config.Skill.SkillInfo));
+                session.Field?.Broadcast(JobPacket.Awakening(session.Player, session.Config.Skill.SkillInfo));
                 ctx.ExitCode = 0;
             } catch (SystemException ex) {
                 ctx.Console.Error.WriteLine(ex.Message);

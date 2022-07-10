@@ -1,10 +1,25 @@
-﻿using Maple2.Trigger;
+﻿using Maple2.Model.Metadata;
+using Maple2.PacketLib.Tools;
+using Maple2.Server.Game.Manager.Field;
+using Maple2.Server.Game.Model;
+using Maple2.Trigger;
 using Serilog;
 
 namespace Maple2.Server.Game.Trigger;
 
 public partial class TriggerContext : ITriggerContext {
+    private readonly FieldTrigger owner;
     private readonly ILogger logger = Log.Logger.ForContext<TriggerContext>();
+
+    private FieldManager Field => owner.Field;
+
+    public int NextTick;
+
+    public TriggerContext(FieldTrigger owner) {
+        this.owner = owner;
+    }
+
+    private void Broadcast(ByteWriter packet) => Field.Broadcast(packet);
 
     // Accessors
     public int GetShadowExpeditionPoints() {
@@ -72,16 +87,16 @@ public partial class TriggerContext : ITriggerContext {
         logger.Debug("{Value} [{Feature}]", value, feature);
     }
 
-    public void WriteLog(string log, int arg2, string arg3, byte arg4, string arg5) {
-        logger.Information("{Log}: {Arg2}, {Arg3}, {Arg4}, {Arg5}", log, arg2, arg3, arg4, arg5);
+    public void WriteLog(string logName, string @event, int triggerId, int arg4, string arg5) {
+        logger.Information("{Log}: {Event}, {TriggerId}, {Arg4}, {Arg5}", logName, @event, triggerId, arg4, arg5);
     }
 
     #region Conditions
-    public bool DayOfWeek(byte[] dayOfWeeks, string desc) {
+    public bool DayOfWeek(byte[] dayOfWeeks, string description) {
         return false;
     }
 
-    public bool RandomCondition(float arg1, string desc) {
+    public bool RandomCondition(float arg1, string description) {
         return true;
     }
 

@@ -117,7 +117,7 @@ public class EquipManager {
             item.Group = isSkin ? ItemGroup.Outfit : ItemGroup.Gear;
             item.Slot = (short) slot;
             equips[slot] = item;
-            session.Field?.Multicast(EquipPacket.EquipItem(session.Player, item, 0));
+            session.Field?.Broadcast(EquipPacket.EquipItem(session.Player, item, 0));
 
             return true;
         }
@@ -175,7 +175,7 @@ public class EquipManager {
 
             item.Group = ItemGroup.Default;
             item.Slot = -1;
-            session.Field?.Multicast(EquipPacket.EquipBadge(session.Player, item));
+            session.Field?.Broadcast(EquipPacket.EquipBadge(session.Player, item));
 
             return true;
         }
@@ -196,7 +196,7 @@ public class EquipManager {
             bool success = session.Item.Inventory.Add(unequipItem);
 
             if (success) {
-                session.Field?.Multicast(EquipPacket.UnequipBadge(session.Player, unequipItem.Badge.Type));
+                session.Field?.Broadcast(EquipPacket.UnequipBadge(session.Player, unequipItem.Badge.Type));
             }
 
             return success;
@@ -221,7 +221,7 @@ public class EquipManager {
         }
 
         if (success) {
-            session.Field?.Multicast(EquipPacket.UnequipItem(session.Player, unequipItem));
+            session.Field?.Broadcast(EquipPacket.UnequipItem(session.Player, unequipItem));
         }
         return success;
     }

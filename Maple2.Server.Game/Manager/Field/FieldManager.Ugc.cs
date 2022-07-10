@@ -25,7 +25,7 @@ public partial class FieldManager {
             plot.ExpiryTime = plotInfo.ExpiryTime;
         }
 
-        Multicast(CubePacket.UpdatePlot(plot));
+        Broadcast(CubePacket.UpdatePlot(plot));
         return true;
     }
 

@@ -19,6 +19,7 @@ public partial class FieldManager {
     private readonly ConcurrentDictionary<int, FieldNpc> fieldNpcs = new();
 
     // Entities
+    private readonly ConcurrentDictionary<string, FieldTrigger> fieldTriggers = new();
     private readonly ConcurrentDictionary<string, FieldBreakable> fieldBreakables = new();
     private readonly ConcurrentDictionary<string, FieldLiftable> fieldLiftables = new();
     private readonly ConcurrentDictionary<int, FieldItem> fieldItems = new();
@@ -94,6 +95,16 @@ public partial class FieldManager {
         fieldItems[fieldItem.ObjectId] = fieldItem;
 
         return fieldItem;
+    }
+
+    public FieldTrigger AddTrigger(TriggerModel trigger) {
+        var fieldTrigger = new FieldTrigger(this, NextLocalId(), trigger) {
+            Position = trigger.Position,
+            Rotation = trigger.Rotation,
+        };
+        fieldTriggers[trigger.Name] = fieldTrigger;
+
+        return fieldTrigger;
     }
 
     public FieldBreakable? AddBreakable(string entityId, BreakableActor breakable) {
@@ -180,7 +191,7 @@ public partial class FieldManager {
     public bool RemovePlayer(int objectId, [NotNullWhen(true)] out FieldPlayer? fieldPlayer) {
         if (fieldPlayers.TryRemove(objectId, out fieldPlayer)) {
             CommitPlot(fieldPlayer.Session);
-            Multicast(FieldPacket.RemovePlayer(objectId));
+            Broadcast(FieldPacket.RemovePlayer(objectId));
             return true;
         }
 
@@ -195,7 +206,7 @@ public partial class FieldManager {
 
         item = fieldItem.Value;
         fieldItem.Pickup(looter);
-        Multicast(FieldPacket.RemoveItem(objectId));
+        Broadcast(FieldPacket.RemoveItem(objectId));
         return true;
     }
 
@@ -204,8 +215,8 @@ public partial class FieldManager {
             return false;
         }
 
-        Multicast(CubePacket.RemoveCube(fieldLiftable.ObjectId, fieldLiftable.Position));
-        Multicast(LiftablePacket.Remove(entityId));
+        Broadcast(CubePacket.RemoveCube(fieldLiftable.ObjectId, fieldLiftable.Position));
+        Broadcast(LiftablePacket.Remove(entityId));
         return true;
     }
     #endregion
@@ -220,8 +231,8 @@ public partial class FieldManager {
         foreach (FieldPlayer fieldPlayer in fieldPlayers.Values) {
             added.Session.Send(FieldPacket.AddPlayer(fieldPlayer.Session));
         }
-        Multicast(FieldPacket.AddPlayer(added.Session), added.Session);
-        Multicast(ProxyObjectPacket.AddPlayer(added), added.Session);
+        Broadcast(FieldPacket.AddPlayer(added.Session), added.Session);
+        Broadcast(ProxyObjectPacket.AddPlayer(added), added.Session);
         foreach (FieldItem fieldItem in fieldItems.Values) {
             added.Session.Send(FieldPacket.DropItem(fieldItem));
         }
@@ -242,7 +253,7 @@ public partial class FieldManager {
 
         // RegionSkill (on tick?)
         added.Session.Send(StatsPacket.Init(added));
-        Multicast(StatsPacket.Update(added), added.Session);
+        Broadcast(StatsPacket.Update(added), added.Session);
     }
     #endregion Events
 }

@@ -12,6 +12,8 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Server.Game.Trigger;
+using Maple2.Trigger;
 using Serilog;
 
 namespace Maple2.Server.Game.Manager.Field;
@@ -66,7 +68,9 @@ public sealed partial class FieldManager : IDisposable {
         foreach (Portal portal in entities.Portals.Values) {
             SpawnPortal(portal);
         }
-
+        foreach (TriggerModel trigger in entities.TriggerModels.Values) {
+            AddTrigger(trigger);
+        }
         foreach ((Guid guid, BreakableActor breakable) in entities.BreakableActors) {
             AddBreakable(guid.ToString("N"), breakable);
         }
@@ -129,6 +133,8 @@ public sealed partial class FieldManager : IDisposable {
 
     private void Sync() {
         while (!cancel.IsCancellationRequested) {
+            foreach (FieldTrigger trigger in fieldTriggers.Values) trigger.Sync();
+
             foreach (FieldPlayer player in fieldPlayers.Values) player.Sync();
             foreach (FieldNpc npc in fieldNpcs.Values) npc.Sync();
             foreach (FieldBreakable breakable in fieldBreakables.Values) breakable.Sync();
@@ -165,6 +171,10 @@ public sealed partial class FieldManager : IDisposable {
 
     public bool TryGetItem(int objectId, [NotNullWhen(true)] out FieldItem? fieldItem) {
         return fieldItems.TryGetValue(objectId, out fieldItem);
+    }
+
+    public bool TryGetTrigger(string name, [NotNullWhen(true)] out FieldTrigger? fieldTrigger) {
+        return fieldTriggers.TryGetValue(name, out fieldTrigger);
     }
 
     public bool TryGetBreakable(string entityId, [NotNullWhen(true)] out FieldBreakable? fieldBreakable) {
@@ -222,7 +232,7 @@ public sealed partial class FieldManager : IDisposable {
         return true;
     }
 
-    public void Multicast(ByteWriter packet, GameSession? sender = null) {
+    public void Broadcast(ByteWriter packet, GameSession? sender = null) {
         foreach (FieldPlayer fieldPlayer in fieldPlayers.Values) {
             if (fieldPlayer.Session == sender) continue;
             fieldPlayer.Session.Send(packet);

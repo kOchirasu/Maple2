@@ -6,7 +6,7 @@ namespace Maple2.Server.Game.Trigger;
 public partial class TriggerContext {
     public void WeddingBroken() { }
 
-    public void WeddingMoveUser(WeddingEntryType type, int arg1, byte[] arg2, int arg3) { }
+    public void WeddingMoveUser(WeddingEntryType type, int mapId, int[] portalIds, int boxId) { }
 
     public void WeddingMutualAgree(WeddingAgreeType type) { }
 

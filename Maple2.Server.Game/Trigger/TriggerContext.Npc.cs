@@ -4,7 +4,7 @@ using Maple2.Trigger.Enum;
 namespace Maple2.Server.Game.Trigger;
 
 public partial class TriggerContext {
-    public void AddBalloonTalk(int spawnPointId, string msg, int duration, int delayTick, bool npcId) { }
+    public void AddBalloonTalk(int spawnId, string msg, int duration, int delayTick) { }
 
     public void ChangeMonster(int removeSpawnId, int addSpawnId) { }
 
@@ -12,36 +12,36 @@ public partial class TriggerContext {
 
     public void DestroyMonster(int[] spawnIds, bool arg2) { }
 
-    public void InitNpcRotation(int[] arg1) { }
+    public void InitNpcRotation(int[] spawnIds) { }
 
-    public void LimitSpawnNpcCount(byte limitCount) { }
+    public void LimitSpawnNpcCount(int limitCount) { }
 
-    public void MoveNpc(int spawnPointId, string patrolName) { }
+    public void MoveNpc(int spawnId, string patrolName) { }
 
-    public void MoveNpcToPos(int spawnPointId, Vector3 pos, Vector3 rot) { }
+    public void MoveNpcToPos(int spawnId, Vector3 position, Vector3 rotation) { }
 
-    public void NpcRemoveAdditionalEffect(int spawnPointId, int additionalEffectId) { }
+    public void NpcRemoveAdditionalEffect(int spawnId, int additionalEffectId) { }
 
     public void NpcToPatrolInBox(int boxId, int npcId, string spawnId, string patrolName) { }
 
-    public void RemoveBalloonTalk(int spawnPointId) { }
+    public void RemoveBalloonTalk(int spawnId) { }
 
     public void SetAiExtraData(string key, int value, bool isModify, int boxId) { }
 
-    public void SetConversation(byte type, int id, string script, int delay, byte arg5, Align align) { }
+    public void SetConversation(byte type, int spawnId, string script, int delay, byte arg5, Align align) { }
 
     public void SetNpcDuelHpBar(bool isOpen, int spawnPointId, int durationTick, byte npcHpStep) { }
 
     public void SetNpcEmotionLoop(int spawnId, string sequenceName, float duration) { }
 
-    public void SetNpcEmotionSequence(int spawnId, string sequenceName, int arg3) { }
+    public void SetNpcEmotionSequence(int spawnId, string sequenceName, int durationTick) { }
 
-    public void SetNpcRotation(int spawnId, int degrees) { }
+    public void SetNpcRotation(int spawnId, float rotation) { }
 
-    public void SpawnNpcRange(int[] rangeId, bool isAutoTargeting, byte randomPickCount, int score) { }
+    public void SpawnNpcRange(int[] spawnIds, bool isAutoTargeting, byte randomPickCount, int score) { }
 
     #region Conditions
-    public bool CheckNpcAdditionalEffect(int spawnPointId, int additionalEffectId, byte level) {
+    public bool CheckNpcAdditionalEffect(int spawnId, int additionalEffectId, short level) {
         return false;
     }
 
