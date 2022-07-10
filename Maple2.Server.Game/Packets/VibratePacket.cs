@@ -40,4 +40,18 @@ public static class VibratePacket {
 
         return pWriter;
     }
+
+    public static ByteWriter Hide(string entityId) {
+        var pWriter = Packet.Of(SendOp.HideVibrate);
+        pWriter.WriteString(entityId);
+
+        return pWriter;
+    }
+
+    public static ByteWriter Show(string entityId) {
+        var pWriter = Packet.Of(SendOp.ShowVibrate);
+        pWriter.WriteString(entityId);
+
+        return pWriter;
+    }
 }

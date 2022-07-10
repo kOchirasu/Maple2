@@ -15,8 +15,8 @@ public class FieldTrigger : FieldEntity<TriggerModel> {
     private TriggerState? nextState;
 
     public FieldTrigger(FieldManager field, int objectId, TriggerModel value) : base(field, objectId, value) {
-        if (!TriggerLoader.TryGetTrigger(Field.Metadata.XBlock, Value.Name, out Func<ITriggerContext, TriggerState>? func)) {
-            throw new ArgumentException($"Invalid trigger for {Field.Metadata.XBlock}, {Value.Name}");
+        if (!TriggerLoader.TryGetTrigger(Field.Metadata.XBlock, Value.Name.ToLower(), out Func<ITriggerContext, TriggerState>? func)) {
+            throw new ArgumentException($"Invalid trigger for {Field.Metadata.XBlock}, {Value.Name.ToLower()}");
         }
 
         context = new TriggerContext(this);

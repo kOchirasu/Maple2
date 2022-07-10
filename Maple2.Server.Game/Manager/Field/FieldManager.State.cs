@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -97,14 +98,19 @@ public partial class FieldManager {
         return fieldItem;
     }
 
-    public FieldTrigger AddTrigger(TriggerModel trigger) {
-        var fieldTrigger = new FieldTrigger(this, NextLocalId(), trigger) {
-            Position = trigger.Position,
-            Rotation = trigger.Rotation,
-        };
-        fieldTriggers[trigger.Name] = fieldTrigger;
+    public FieldTrigger? AddTrigger(TriggerModel trigger) {
+        try {
+            var fieldTrigger = new FieldTrigger(this, NextLocalId(), trigger) {
+                Position = trigger.Position,
+                Rotation = trigger.Rotation,
+            };
+            fieldTriggers[trigger.Name] = fieldTrigger;
 
-        return fieldTrigger;
+            return fieldTrigger;
+        } catch (ArgumentException ex) {
+            logger.Warning("Invalid Trigger: {Exception}", ex.Message);
+            return null;
+        }
     }
 
     public FieldBreakable? AddBreakable(string entityId, BreakableActor breakable) {
