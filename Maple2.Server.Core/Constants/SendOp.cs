@@ -237,7 +237,7 @@ public enum SendOp : ushort {
     PremiumClub = 0x00ED,
     SteamCashShop = 0x00EF,
     InGameRank = 0x00F0,
-    ResetCamera = 0x00F1,
+    DungeonMatch = 0x00F1,
     DungeonWaiting = 0x00F2,
     OneTimeEffect = 0x00F3,
     CameraInterpolation = 0x00F4,
