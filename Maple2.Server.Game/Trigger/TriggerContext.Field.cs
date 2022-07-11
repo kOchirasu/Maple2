@@ -106,7 +106,15 @@ public partial class TriggerContext {
     }
 
     #region Entities
-    public void SetActor(int triggerId, bool visible, string initialSequence, bool arg4, bool arg5) { }
+    public void SetActor(int triggerId, bool visible, string initialSequence, bool arg4, bool arg5) {
+        if (!Objects.Actors.TryGetValue(triggerId, out TriggerObjectActor? actor)) {
+            return;
+        }
+
+        actor.Visible = visible;
+        actor.SequenceName = initialSequence;
+        Broadcast(TriggerPacket.Update(actor));
+    }
 
     public void SetAgent(int[] triggerIds, bool visible) { }
 
@@ -175,6 +183,7 @@ public partial class TriggerContext {
             }
 
             mesh.Visible = visible;
+            mesh.Fade = arg3;
             Broadcast(TriggerPacket.Update(mesh));
         }
     }

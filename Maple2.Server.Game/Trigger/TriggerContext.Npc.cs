@@ -4,8 +4,6 @@ using Maple2.Trigger.Enum;
 namespace Maple2.Server.Game.Trigger;
 
 public partial class TriggerContext {
-    public void AddBalloonTalk(int spawnId, string msg, int duration, int delayTick) { }
-
     public void ChangeMonster(int removeSpawnId, int addSpawnId) { }
 
     public void CreateMonster(int[] spawnIds, bool spawnAnimation, int arg3) { }
@@ -23,8 +21,6 @@ public partial class TriggerContext {
     public void NpcRemoveAdditionalEffect(int spawnId, int additionalEffectId) { }
 
     public void NpcToPatrolInBox(int boxId, int npcId, string spawnId, string patrolName) { }
-
-    public void RemoveBalloonTalk(int spawnId) { }
 
     public void SetAiExtraData(string key, int value, bool isModify, int boxId) { }
 

@@ -1,4 +1,6 @@
-﻿using Maple2.PacketLib.Tools;
+﻿using System;
+using System.Linq;
+using Maple2.PacketLib.Tools;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Model;
 using Maple2.Tools.Scheduler;
@@ -14,15 +16,17 @@ public partial class TriggerContext : ITriggerContext {
     private FieldManager Field => owner.Field;
     private TriggerCollection Objects => owner.Field.TriggerObjects;
 
-    public readonly EventQueue Events;
+    private float currentRandom = float.MaxValue;
 
-    public int NextTick;
+    public readonly EventQueue Events;
+    public long StartTick;
 
     public TriggerContext(FieldTrigger owner) {
         this.owner = owner;
 
         Events = new EventQueue();
         Events.Start();
+        StartTick = Environment.TickCount64;
     }
 
     private void Broadcast(ByteWriter packet) => Field.Broadcast(packet);
@@ -99,19 +103,37 @@ public partial class TriggerContext : ITriggerContext {
 
     #region Conditions
     public bool DayOfWeek(byte[] dayOfWeeks, string description) {
-        return false;
+        byte day = (byte) (DateTime.UtcNow.DayOfWeek + 1);
+        return dayOfWeeks.Any(dayOfWeek => day == dayOfWeek);
     }
 
-    public bool RandomCondition(float arg1, string description) {
+    public bool RandomCondition(float rate, string description) {
+        if (currentRandom >= 100f) {
+            currentRandom = Random.Shared.NextSingle() * 100;
+        }
+
+        currentRandom -= rate;
+        if (rate > 0) {
+            return false;
+        }
+
+        // Reset |currentRandom|
+        currentRandom = float.MaxValue;
         return true;
     }
 
     public bool WaitAndResetTick(int waitTick) {
+        long tickNow = Environment.TickCount64;
+        if (tickNow <= StartTick + waitTick) {
+            return false;
+        }
+
+        StartTick = tickNow;
         return true;
     }
 
     public bool WaitTick(int waitTick) {
-        return true;
+        return Environment.TickCount64 > StartTick + waitTick;
     }
     #endregion
 }

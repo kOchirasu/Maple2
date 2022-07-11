@@ -162,7 +162,9 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
                     Block = new Ms2TriggerActor(actor.InitialSequence, actor.TriggerObjectID, actor.IsVisible),
                 };
             case IMS2TriggerAgent agent:
-                return null;
+                return new MapEntity(xblock, new Guid(trigger.EntityId), trigger.EntityName) {
+                    Block = new Ms2TriggerAgent(agent.TriggerObjectID, agent.IsVisible),
+                };
             case IMS2TriggerBlock block:
                 return null;
             case IMS2TriggerBox box:

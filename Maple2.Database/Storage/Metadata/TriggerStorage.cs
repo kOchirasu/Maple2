@@ -9,6 +9,7 @@ namespace Maple2.Database.Storage;
 internal class TriggerStorage : ITriggerStorage {
     private readonly ImmutableDictionary<int, Trigger> triggers;
     public ImmutableArray<Ms2TriggerActor> Actors { get; }
+    public ImmutableArray<Ms2TriggerAgent> Agents { get; }
     public ImmutableArray<Ms2TriggerBox> Boxes { get; }
     public ImmutableArray<Ms2TriggerCamera> Cameras { get; }
     public ImmutableArray<Ms2TriggerCube> Cubes { get; }
@@ -22,6 +23,7 @@ internal class TriggerStorage : ITriggerStorage {
     public TriggerStorage(List<Trigger> triggers) {
         var builder = ImmutableDictionary.CreateBuilder<int, Trigger>();
         var actorBuilder = ImmutableArray.CreateBuilder<Ms2TriggerActor>();
+        var agentBuilder = ImmutableArray.CreateBuilder<Ms2TriggerAgent>();
         var boxBuilder = ImmutableArray.CreateBuilder<Ms2TriggerBox>();
         var cameraBuilder = ImmutableArray.CreateBuilder<Ms2TriggerCamera>();
         var cubeBuilder = ImmutableArray.CreateBuilder<Ms2TriggerCube>();
@@ -36,6 +38,9 @@ internal class TriggerStorage : ITriggerStorage {
             switch (trigger) {
                 case Ms2TriggerActor actor:
                     actorBuilder.Add(actor);
+                    break;
+                case Ms2TriggerAgent agent:
+                    agentBuilder.Add(agent);
                     break;
                 case Ms2TriggerBox box:
                     boxBuilder.Add(box);
@@ -73,6 +78,7 @@ internal class TriggerStorage : ITriggerStorage {
 
         this.triggers = builder.ToImmutable();
         Actors = actorBuilder.ToImmutable();
+        Agents = agentBuilder.ToImmutable();
         Boxes = boxBuilder.ToImmutable();
         Cameras = cameraBuilder.ToImmutable();
         Cubes = cubeBuilder.ToImmutable();

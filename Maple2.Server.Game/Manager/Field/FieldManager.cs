@@ -234,6 +234,12 @@ public sealed partial class FieldManager : IDisposable {
         }
     }
 
+    public void ForEachPlayer(Action<FieldPlayer> action) {
+        foreach (FieldPlayer player in fieldPlayers.Values) {
+            action(player);
+        }
+    }
+
     public void Dispose() {
         cancel.Cancel();
         thread.Join();

@@ -46,7 +46,7 @@ public class TriggerObjectMesh : TriggerObject<Ms2TriggerMesh> {
 }
 
 public class TriggerObjectActor : TriggerObject<Ms2TriggerActor> {
-    public string SequenceName { get; init; } = string.Empty;
+    public string SequenceName { get; set; } = string.Empty;
 
     public TriggerObjectActor(Ms2TriggerActor metadata) : base(metadata) { }
 
@@ -83,8 +83,8 @@ public class TriggerObjectLadder : TriggerObject<Ms2TriggerLadder> {
 }
 
 public class TriggerObjectEffect : TriggerObject<Ms2TriggerEffect> {
-    public bool UnknownBool { get; init; }
-    public int UnknownInt { get; init; }
+    public bool UnknownBool { get; set; }
+    public int UnknownInt { get; set; }
 
     public TriggerObjectEffect(Ms2TriggerEffect metadata) : base(metadata) { }
 

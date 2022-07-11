@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Maple2.Server.Game.Packets;
 
 namespace Maple2.Server.Game.Trigger;
 
@@ -19,17 +20,25 @@ public partial class TriggerContext {
 
     public void MoveUserToBox(int boxId, int portalId) { }
 
-    public void MoveUserToPos(Vector3 position, Vector3 rotation) { }
+    public void MoveUserToPos(Vector3 position, Vector3 rotation) {
+        Field.ForEachPlayer(player => Broadcast(PortalPacket.MoveByPortal(player, position, rotation)));
+    }
 
     public void PatrolConditionUser(string patrolName, byte patrolIndex, int additionalEffectId) { }
 
     public void SetAchievement(string type, string code, int triggerId) { }
 
-    public void SetPcEmotionLoop(string sequenceName, float duration, bool arg3) { }
+    public void SetPcEmotionLoop(string sequenceName, float duration, bool arg3) {
+        Broadcast(TriggerPacket.UiEmotionLoop(sequenceName, (int) duration, arg3));
+    }
 
-    public void SetPcEmotionSequence(string[] sequenceNames) { }
+    public void SetPcEmotionSequence(string[] sequenceNames) {
+        Broadcast(TriggerPacket.UiEmotionSequence(sequenceNames));
+    }
 
-    public void SetPcRotation(Vector3 rotation) { }
+    public void SetPcRotation(Vector3 rotation) {
+        Broadcast(TriggerPacket.UiPlayerRotation(rotation));
+    }
 
     public void SetQuestAccept(int questId) { }
 

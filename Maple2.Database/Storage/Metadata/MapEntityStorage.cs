@@ -109,6 +109,7 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                         }
                         break;
                     case MapBlock.Discriminator.Ms2TriggerActor:
+                    case MapBlock.Discriminator.Ms2TriggerAgent:
                     case MapBlock.Discriminator.Ms2TriggerBox:
                     case MapBlock.Discriminator.Ms2TriggerCamera:
                     case MapBlock.Discriminator.Ms2TriggerCube:

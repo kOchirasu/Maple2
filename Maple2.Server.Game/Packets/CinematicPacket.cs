@@ -111,13 +111,13 @@ public static class CinematicPacket {
         return pWriter;
     }
 
-    public static ByteWriter Caption(CaptionType type, string title, string script, string align, float offsetRateX, float offsetRateY, int duration, float scale) {
+    public static ByteWriter Caption(CaptionType type, string title, string script, Align align, float offsetRateX, float offsetRateY, int duration, float scale) {
         var pWriter = Packet.Of(SendOp.Cinematic);
         pWriter.Write<Command>(Command.Caption);
         pWriter.WriteUnicodeString($"{type}Caption");
         pWriter.WriteUnicodeString(title);
         pWriter.WriteUnicodeString(script);
-        pWriter.WriteUnicodeString(align);
+        pWriter.WriteUnicodeString(align.ToString().Replace(", ", ""));
         pWriter.WriteInt(duration);
         pWriter.WriteFloat(offsetRateX);
         pWriter.WriteFloat(offsetRateY);
@@ -139,6 +139,17 @@ public static class CinematicPacket {
         var pWriter = Packet.Of(SendOp.Cinematic);
         pWriter.Write<Command>(Command.Intro);
         pWriter.WriteUnicodeString(script);
+
+        return pWriter;
+    }
+
+    public static ByteWriter OneTimeEffect(int id, bool enable, string effectPath) {
+        var pWriter = Packet.Of(SendOp.OneTimeEffect);
+        pWriter.WriteInt(id);
+        pWriter.WriteBool(enable);
+        if (enable) {
+            pWriter.WriteUnicodeString(effectPath);
+        }
 
         return pWriter;
     }

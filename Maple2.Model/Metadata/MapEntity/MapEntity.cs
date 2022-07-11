@@ -40,7 +40,7 @@ public abstract partial record MapBlock([JsonDiscriminator] MapBlock.Discriminat
 
         // BASE: Ms2TriggerObject = 244177309,
         Ms2TriggerActor = 1192557034,
-        // Ms2TriggerAgent = 3789099171,
+        Ms2TriggerAgent = 3789099171,
         // Ms2TriggerBlock = 4034923737,
         Ms2TriggerBox = 1606545175,
         Ms2TriggerCamera = 1697877699,

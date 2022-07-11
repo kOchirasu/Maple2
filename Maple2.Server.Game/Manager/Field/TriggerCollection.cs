@@ -17,6 +17,7 @@ public sealed class TriggerCollection : IReadOnlyCollection<ITriggerObject> {
     public readonly IReadOnlyDictionary<int, TriggerObjectSound> Sounds;
 
     // These seem to get managed separately...
+    // private readonly IReadOnlyDictionary<int, TriggerObjectAgent> Agents;
     // private readonly IReadOnlyDictionary<int, TriggerObjectBox> Boxes;
     // private readonly IReadOnlyDictionary<int, TriggerObjectSkill> Skills;
 

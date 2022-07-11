@@ -10,6 +10,11 @@ public record Ms2TriggerActor(
     bool Visible)
 : Trigger(Discriminator.Ms2TriggerActor, TriggerId, Visible);
 
+public record Ms2TriggerAgent(
+    int TriggerId,
+    bool Visible)
+: Trigger(Discriminator.Ms2TriggerAgent, TriggerId, Visible);
+
 public record Ms2TriggerBox(
     Vector3 Position,
     Vector3 Dimensions,

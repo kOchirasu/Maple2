@@ -11,27 +11,32 @@ public class FieldTrigger : FieldEntity<TriggerModel> {
 
     private readonly TriggerContext context;
 
+    private long nextTick;
     private TriggerState state;
     private TriggerState? nextState;
 
     public FieldTrigger(FieldManager field, int objectId, TriggerModel value) : base(field, objectId, value) {
-        if (!TriggerLoader.TryGetTrigger(Field.Metadata.XBlock, Value.Name.ToLower(), out Func<ITriggerContext, TriggerState>? func)) {
+        if (!TriggerLoader.TryGetTrigger(Field.Metadata.XBlock, Value.Name.ToLower(), out Func<ITriggerContext, TriggerState>? initialState)) {
             throw new ArgumentException($"Invalid trigger for {Field.Metadata.XBlock}, {Value.Name.ToLower()}");
         }
 
         context = new TriggerContext(this);
-        state = func(context);
+        state = initialState(context);
+        nextTick = Environment.TickCount64;
     }
 
     public override void Sync() {
         context.Events.InvokeAll();
 
-        if (Environment.TickCount < context.NextTick) return;
-        context.NextTick = Environment.TickCount + Constant.OnEnterTriggerDefaultTick;
+        if (Environment.TickCount64 < nextTick) {
+            return;
+        }
 
+        nextTick += Constant.OnEnterTriggerDefaultTick;
         if (nextState != null) {
-            state?.OnExit();
+            state.OnExit();
             state = nextState;
+            context.StartTick = Environment.TickCount64;
             state.OnEnter();
             nextState = null;
         }
