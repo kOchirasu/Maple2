@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
@@ -20,7 +21,6 @@ public partial class FieldManager {
     private readonly ConcurrentDictionary<int, FieldNpc> fieldNpcs = new();
 
     // Entities
-    private readonly ConcurrentDictionary<string, FieldTrigger> fieldTriggers = new();
     private readonly ConcurrentDictionary<string, FieldBreakable> fieldBreakables = new();
     private readonly ConcurrentDictionary<string, FieldLiftable> fieldLiftables = new();
     private readonly ConcurrentDictionary<int, FieldItem> fieldItems = new();
@@ -28,6 +28,9 @@ public partial class FieldManager {
 
     // Objects
     private readonly ConcurrentDictionary<int, FieldObject<Portal>> fieldPortals = new();
+
+    private string? background;
+    private readonly ConcurrentDictionary<FieldProperty, IFieldProperty> fieldProperties = new();
 
     #region Spawn
     public FieldPlayer SpawnPlayer(GameSession session, Player player, int portalId = -1,
@@ -98,21 +101,6 @@ public partial class FieldManager {
         return fieldItem;
     }
 
-    public FieldTrigger? AddTrigger(TriggerModel trigger) {
-        try {
-            var fieldTrigger = new FieldTrigger(this, NextLocalId(), trigger) {
-                Position = trigger.Position,
-                Rotation = trigger.Rotation,
-            };
-            fieldTriggers[trigger.Name] = fieldTrigger;
-
-            return fieldTrigger;
-        } catch (ArgumentException ex) {
-            logger.Warning("Invalid Trigger: {Exception}", ex.Message);
-            return null;
-        }
-    }
-
     public FieldBreakable? AddBreakable(string entityId, BreakableActor breakable) {
         if (fieldBreakables.ContainsKey(entityId)) {
             return null;
@@ -169,6 +157,21 @@ public partial class FieldManager {
         return fieldMobSpawn;
     }
     #endregion
+
+    public void AddFieldProperty(IFieldProperty fieldProperty) {
+        fieldProperties[fieldProperty.Type] = fieldProperty;
+        Broadcast(FieldPropertyPacket.Add(fieldProperty));
+    }
+
+    public void RemoveFieldProperty(FieldProperty fieldProperty) {
+        fieldProperties.Remove(fieldProperty, out _);
+        Broadcast(FieldPropertyPacket.Remove(fieldProperty));
+    }
+
+    public void SetBackground(string ddsPath) {
+        background = ddsPath;
+        Broadcast(FieldPropertyPacket.Background(background));
+    }
 
     #region Player Managed
     // GuideObject is not added to the field, it will be managed by |GameSession.State|
@@ -257,9 +260,15 @@ public partial class FieldManager {
             added.Session.Send(ProxyObjectPacket.AddNpc(fieldNpc));
         }
 
-        // RegionSkill (on tick?)
+        added.Session.Send(TriggerPacket.Load(TriggerObjects));
+
         added.Session.Send(StatsPacket.Init(added));
         Broadcast(StatsPacket.Update(added), added.Session);
+
+        if (background != null) {
+            added.Session.Send(FieldPropertyPacket.Background(background));
+        }
+        added.Session.Send(FieldPropertyPacket.Load(fieldProperties.Values));
     }
     #endregion Events
 }

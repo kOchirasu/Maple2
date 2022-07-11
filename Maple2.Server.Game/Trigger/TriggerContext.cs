@@ -1,7 +1,7 @@
-﻿using Maple2.Model.Metadata;
-using Maple2.PacketLib.Tools;
+﻿using Maple2.PacketLib.Tools;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Model;
+using Maple2.Tools.Scheduler;
 using Maple2.Trigger;
 using Serilog;
 
@@ -12,11 +12,17 @@ public partial class TriggerContext : ITriggerContext {
     private readonly ILogger logger = Log.Logger.ForContext<TriggerContext>();
 
     private FieldManager Field => owner.Field;
+    private TriggerCollection Objects => owner.Field.TriggerObjects;
+
+    public readonly EventQueue Events;
 
     public int NextTick;
 
     public TriggerContext(FieldTrigger owner) {
         this.owner = owner;
+
+        Events = new EventQueue();
+        Events.Start();
     }
 
     private void Broadcast(ByteWriter packet) => Field.Broadcast(packet);

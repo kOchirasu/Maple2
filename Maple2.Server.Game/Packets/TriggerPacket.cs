@@ -32,21 +32,21 @@ public static class TriggerPacket {
         Unknown24 = 24,
     }
 
-    public static ByteWriter Load(ICollection<TriggerObject> triggers) {
+    public static ByteWriter Load(IReadOnlyCollection<ITriggerObject> triggers) {
         var pWriter = Packet.Of(SendOp.Trigger);
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteInt(triggers.Count);
-        foreach (TriggerObject trigger in triggers) {
-            pWriter.WriteClass<TriggerObject>(trigger);
+        foreach (ITriggerObject trigger in triggers) {
+            pWriter.WriteClass<ITriggerObject>(trigger);
         }
 
         return pWriter;
     }
 
-    public static ByteWriter Update(TriggerObject trigger) {
+    public static ByteWriter Update(ITriggerObject trigger) {
         var pWriter = Packet.Of(SendOp.Trigger);
         pWriter.Write<Command>(Command.Update);
-        pWriter.WriteClass<TriggerObject>(trigger);
+        pWriter.WriteClass<ITriggerObject>(trigger);
 
         return pWriter;
     }

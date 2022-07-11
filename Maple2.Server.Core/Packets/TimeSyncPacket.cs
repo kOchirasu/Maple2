@@ -54,15 +54,4 @@ public static class TimeSyncPacket {
 
         return pWriter;
     }
-
-    public static ByteWriter TimeScale(bool enable, float startScale, float endScale, float duration, byte interpolator) {
-        var pWriter = Packet.Of(SendOp.TimeScale);
-        pWriter.WriteBool(enable);
-        pWriter.WriteFloat(startScale);
-        pWriter.WriteFloat(endScale);
-        pWriter.WriteFloat(duration);
-        pWriter.WriteByte(interpolator);
-
-        return pWriter;
-    }
 }

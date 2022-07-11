@@ -24,6 +24,8 @@ public class FieldTrigger : FieldEntity<TriggerModel> {
     }
 
     public override void Sync() {
+        context.Events.InvokeAll();
+
         if (Environment.TickCount < context.NextTick) return;
         context.NextTick = Environment.TickCount + Constant.OnEnterTriggerDefaultTick;
 

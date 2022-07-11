@@ -1,14 +1,22 @@
-﻿using Maple2.PacketLib.Tools;
+﻿using Maple2.Model.Metadata;
+using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
 namespace Maple2.Model.Game;
 
-public abstract class TriggerObject : IByteSerializable {
-    public int Id { get; init; }
-    public bool Visible { get; init; }
+public interface ITriggerObject : IByteSerializable {
+    public int Id { get; }
+    public bool Visible { get; }
+}
 
-    public TriggerObject(int id) {
-        Id = id;
+public abstract class TriggerObject<T> : ITriggerObject where T : Trigger {
+    public readonly T Metadata;
+
+    public int Id => Metadata.TriggerId;
+    public bool Visible { get; set; }
+
+    public TriggerObject(T metadata) {
+        Metadata = metadata;
     }
 
     public virtual void WriteTo(IByteWriter writer) {
@@ -17,29 +25,30 @@ public abstract class TriggerObject : IByteSerializable {
     }
 }
 
-public class TriggerObjectSound : TriggerObject {
-    public TriggerObjectSound(int id) : base(id) { }
+public class TriggerObjectSound : TriggerObject<Ms2TriggerSound> {
+    public TriggerObjectSound(Ms2TriggerSound metadata) : base(metadata) { }
 }
 
-public class TriggerObjectMesh : TriggerObject {
+public class TriggerObjectMesh : TriggerObject<Ms2TriggerMesh> {
     public bool MinimapVisible { get; init; }
-    public int Unknown { get; init; }
+    public int Fade { get; set; }
+    public float Scale { get; set; } = 1f;
 
-    public TriggerObjectMesh(int id) : base(id) { }
+    public TriggerObjectMesh(Ms2TriggerMesh metadata) : base(metadata) { }
 
     public override void WriteTo(IByteWriter writer) {
         base.WriteTo(writer);
         writer.WriteBool(MinimapVisible);
-        writer.WriteInt(Unknown); // Fade 10 = 1s?
+        writer.WriteInt(Fade); // Fade 10 = 1s?
         writer.WriteUnicodeString();
-        writer.WriteFloat(1); // scale?
+        writer.WriteFloat(Scale);
     }
 }
 
-public class TriggerObjectActor : TriggerObject {
+public class TriggerObjectActor : TriggerObject<Ms2TriggerActor> {
     public string SequenceName { get; init; } = string.Empty;
 
-    public TriggerObjectActor(int id) : base(id) { }
+    public TriggerObjectActor(Ms2TriggerActor metadata) : base(metadata) { }
 
     public override void WriteTo(IByteWriter writer) {
         base.WriteTo(writer);
@@ -47,11 +56,11 @@ public class TriggerObjectActor : TriggerObject {
     }
 }
 
-public class TriggerObjectRope : TriggerObject {
-    public bool Animate { get; init; }
-    public int Delay { get; init; }
+public class TriggerObjectRope : TriggerObject<Ms2TriggerRope> {
+    public bool Animate { get; set; }
+    public int Delay { get; set; }
 
-    public TriggerObjectRope(int id) : base(id) { }
+    public TriggerObjectRope(Ms2TriggerRope metadata) : base(metadata) { }
 
     public override void WriteTo(IByteWriter writer) {
         base.WriteTo(writer);
@@ -60,11 +69,24 @@ public class TriggerObjectRope : TriggerObject {
     }
 }
 
-public class TriggerObjectEffect : TriggerObject {
+public class TriggerObjectLadder : TriggerObject<Ms2TriggerLadder> {
+    public bool Animate { get; set; }
+    public int Delay { get; set; }
+
+    public TriggerObjectLadder(Ms2TriggerLadder metadata) : base(metadata) { }
+
+    public override void WriteTo(IByteWriter writer) {
+        base.WriteTo(writer);
+        writer.WriteBool(Animate);
+        writer.WriteInt(Delay);
+    }
+}
+
+public class TriggerObjectEffect : TriggerObject<Ms2TriggerEffect> {
     public bool UnknownBool { get; init; }
     public int UnknownInt { get; init; }
 
-    public TriggerObjectEffect(int id) : base(id) { }
+    public TriggerObjectEffect(Ms2TriggerEffect metadata) : base(metadata) { }
 
     public override void WriteTo(IByteWriter writer) {
         base.WriteTo(writer);
@@ -73,10 +95,10 @@ public class TriggerObjectEffect : TriggerObject {
     }
 }
 
-public class TriggerObjectCube : TriggerObject {
-    public TriggerObjectCube(int id) : base(id) { }
+public class TriggerObjectCube : TriggerObject<Ms2TriggerCube> {
+    public TriggerObjectCube(Ms2TriggerCube metadata) : base(metadata) { }
 }
 
-public class TriggerObjectCamera : TriggerObject {
-    public TriggerObjectCamera(int id) : base(id) { }
+public class TriggerObjectCamera : TriggerObject<Ms2TriggerCamera> {
+    public TriggerObjectCamera(Ms2TriggerCamera metadata) : base(metadata) { }
 }

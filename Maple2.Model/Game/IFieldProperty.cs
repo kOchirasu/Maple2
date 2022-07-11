@@ -80,7 +80,7 @@ public class FieldPropertySightRange : IFieldProperty {
     public float Fade3 { get; init; }
     public bool Unknown { get; init; }
     public byte Opacity { get; init; }
-    public bool Opaque { get; init; }
+    public bool Opaque { get; init; } = true;
 
     public void WriteTo(IByteWriter writer) {
         writer.Write<FieldProperty>(Type);
