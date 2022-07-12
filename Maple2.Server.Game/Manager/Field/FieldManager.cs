@@ -173,7 +173,11 @@ public sealed partial class FieldManager : IDisposable {
     }
 
     public bool TryGetBreakable(string entityId, [NotNullWhen(true)] out FieldBreakable? fieldBreakable) {
-        return fieldBreakables.TryGetValue(entityId, out fieldBreakable);
+        return fieldBreakables.TryGet(entityId, out fieldBreakable);
+    }
+
+    public bool TryGetBreakable(int triggerId, [NotNullWhen(true)] out FieldBreakable? fieldBreakable) {
+        return fieldBreakables.TryGet(triggerId, out fieldBreakable);
     }
 
     public bool TryGetLiftable(string entityId, [NotNullWhen(true)] out FieldLiftable? fieldLiftable) {

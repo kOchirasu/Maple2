@@ -5,18 +5,22 @@ using Maple2.Trigger.Enum;
 namespace Maple2.Server.Game.Trigger;
 
 public partial class TriggerContext {
-    public void AddCinematicTalk(int npcId, string illustId, string msg, int duration, Align align, int delayTick) { }
+    public void AddCinematicTalk(int npcId, string illustId, string msg, int duration, Align align, int delayTick) {
+        Broadcast(CinematicPacket.Talk(npcId, illustId, msg, delayTick, align));
+    }
+
+    public void RemoveCinematicTalk() {
+        Broadcast(CinematicPacket.RemoveTalk());
+    }
 
     public void CloseCinematic() {
         // guessing
-        Broadcast(CinematicPacket.Hide());
+        Broadcast(CinematicPacket.HideUi());
     }
 
     public void PlaySceneMovie(string fileName, int movieId, string skipType) {
         Broadcast(TriggerPacket.UiStartMovie(fileName, movieId));
     }
-
-    public void RemoveCinematicTalk() { }
 
     public void SetCinematicIntro(string text) {
         Broadcast(CinematicPacket.Intro(text));
@@ -35,15 +39,19 @@ public partial class TriggerContext {
                 Broadcast(CinematicPacket.ToggleUi(true));
                 return;
             case 2:
-                Broadcast(CinematicPacket.Hide());
+                Broadcast(CinematicPacket.HideUi());
                 return;
             case 3:
+                Broadcast(CinematicPacket.LetterboxTransition(script));
+                return;
             case 4:
-                Broadcast(CinematicPacket.View(type, script));
+                Broadcast(CinematicPacket.FadeTransition(script));
                 return;
-            case 5: // 02010069_bf
+            case 5:
+                Broadcast(CinematicPacket.HorizontalTransition(script));
                 return;
-            case 6: // 02010069_bf, 02010070_bf
+            case 6:
+                Broadcast(CinematicPacket.VerticalTransition(script));
                 return;
             case 7: // many
                 return;
@@ -58,11 +66,11 @@ public partial class TriggerContext {
     public void SetSkip(TriggerState? state) { }
 
     public void AddBalloonTalk(int spawnId, string msg, int duration, int delayTick) {
-        //CinematicPacket.BalloonTalk();
+        //CinematicPacket.BalloonTalk(false, 0, msg, duration, delayTick);
     }
 
     public void RemoveBalloonTalk(int spawnId) {
-        //CinematicPacket.RemoveBalloonTalk();
+        //CinematicPacket.RemoveBalloonTalk(0);
     }
 
     public void ShowCaption(

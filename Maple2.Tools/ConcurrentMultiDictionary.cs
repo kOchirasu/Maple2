@@ -22,6 +22,14 @@ public class ConcurrentMultiDictionary<TK1, TK2, TV> where TK1 : notnull where T
     public ICollection<TK2> Keys2 => mapping.Keys;
     public ICollection<TV> Values => data.Values;
 
+    public bool ContainsKey(TK1 key1) {
+        return data.ContainsKey(key1);
+    }
+
+    public bool ContainsKey(TK2 key2) {
+        return mapping.ContainsKey(key2);
+    }
+
     public bool TryAdd(TK1 key1, TK2 key2, TV value) {
         if (data.ContainsKey(key1) || mapping.ContainsKey(key2)) {
             return false;

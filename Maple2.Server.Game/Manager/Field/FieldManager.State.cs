@@ -21,7 +21,7 @@ public partial class FieldManager {
     private readonly ConcurrentDictionary<int, FieldNpc> fieldNpcs = new();
 
     // Entities
-    private readonly ConcurrentDictionary<string, FieldBreakable> fieldBreakables = new();
+    private readonly ConcurrentMultiDictionary<string, int, FieldBreakable> fieldBreakables = new();
     private readonly ConcurrentDictionary<string, FieldLiftable> fieldLiftables = new();
     private readonly ConcurrentDictionary<int, FieldItem> fieldItems = new();
     private readonly ConcurrentDictionary<int, FieldMobSpawn> fieldMobSpawns = new();
@@ -111,7 +111,7 @@ public partial class FieldManager {
             Rotation = breakable.Rotation,
         };
 
-        fieldBreakables[entityId] = fieldBreakable;
+        fieldBreakables.TryAdd(entityId, breakable.Id, fieldBreakable);
         return fieldBreakable;
     }
 

@@ -12,8 +12,8 @@ public static class CinematicPacket {
         View = 3,
         SetSkip = 4,
         StartSkip = 5,
-        Conversation = 6,
-        HideScript = 7,
+        Talk = 6,
+        RemoveTalk = 7,
         BalloonTalk = 8,
         RemoveBalloonTalk = 9,
         Caption = 10,
@@ -30,17 +30,54 @@ public static class CinematicPacket {
     }
 
     // hideScript, hideDirect
-    public static ByteWriter Hide() {
+    public static ByteWriter HideUi() {
         var pWriter = Packet.Of(SendOp.Cinematic);
         pWriter.Write<Command>(Command.Hide);
 
         return pWriter;
     }
 
-    public static ByteWriter View(int type, string script) {
+    private enum Transition {
+        Letterbox = 3,
+        Fade = 4,
+        Horizontal = 5,
+        Vertical = 6,
+    }
+
+    public static ByteWriter LetterboxTransition(string script) {
         var pWriter = Packet.Of(SendOp.Cinematic);
         pWriter.Write<Command>(Command.View);
-        pWriter.WriteInt(type);
+        pWriter.Write<Transition>(Transition.Letterbox);
+        pWriter.WriteUnicodeString(script);
+        pWriter.WriteUnicodeString();
+
+        return pWriter;
+    }
+
+    public static ByteWriter FadeTransition(string script) {
+        var pWriter = Packet.Of(SendOp.Cinematic);
+        pWriter.Write<Command>(Command.View);
+        pWriter.Write<Transition>(Transition.Fade);
+        pWriter.WriteUnicodeString(script);
+        pWriter.WriteUnicodeString();
+
+        return pWriter;
+    }
+
+    public static ByteWriter HorizontalTransition(string script) {
+        var pWriter = Packet.Of(SendOp.Cinematic);
+        pWriter.Write<Command>(Command.View);
+        pWriter.Write<Transition>(Transition.Horizontal);
+        pWriter.WriteUnicodeString(script);
+        pWriter.WriteUnicodeString();
+
+        return pWriter;
+    }
+
+    public static ByteWriter VerticalTransition(string script) {
+        var pWriter = Packet.Of(SendOp.Cinematic);
+        pWriter.Write<Command>(Command.View);
+        pWriter.Write<Transition>(Transition.Vertical);
         pWriter.WriteUnicodeString(script);
         pWriter.WriteUnicodeString();
 
@@ -72,9 +109,9 @@ public static class CinematicPacket {
         return pWriter;
     }
 
-    public static ByteWriter Conversation(int npcId, string illustration, string script, int delay, Align align) {
+    public static ByteWriter Talk(int npcId, string illustration, string script, int delay, Align align) {
         var pWriter = Packet.Of(SendOp.Cinematic);
-        pWriter.Write<Command>(Command.Conversation);
+        pWriter.Write<Command>(Command.Talk);
         pWriter.WriteInt(npcId);
         pWriter.WriteString(illustration);
         pWriter.WriteUnicodeString(script);
@@ -84,9 +121,9 @@ public static class CinematicPacket {
         return pWriter;
     }
 
-    public static ByteWriter HideScript() {
+    public static ByteWriter RemoveTalk() {
         var pWriter = Packet.Of(SendOp.Cinematic);
-        pWriter.Write<Command>(Command.HideScript);
+        pWriter.Write<Command>(Command.RemoveTalk);
 
         return pWriter;
     }
@@ -126,6 +163,7 @@ public static class CinematicPacket {
         return pWriter;
     }
 
+    // Black screen
     public static ByteWriter Opening(string script, bool unknown = false) {
         var pWriter = Packet.Of(SendOp.Cinematic);
         pWriter.Write<Command>(Command.Opening);
@@ -135,6 +173,7 @@ public static class CinematicPacket {
         return pWriter;
     }
 
+    // Black translucent overlay on screen
     public static ByteWriter Intro(string script) {
         var pWriter = Packet.Of(SendOp.Cinematic);
         pWriter.Write<Command>(Command.Intro);

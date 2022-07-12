@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
@@ -119,7 +120,19 @@ public partial class TriggerContext {
 
     public void SetAgent(int[] triggerIds, bool visible) { }
 
-    public void SetBreakable(int[] triggerIds, bool visible) { }
+    public void SetBreakable(int[] triggerIds, bool enabled) {
+        var updated = new List<FieldBreakable>(triggerIds.Length);
+        foreach (int triggerId in triggerIds) {
+            if (!Field.TryGetBreakable(triggerId, out FieldBreakable? breakable)) {
+                continue;
+            }
+
+            breakable.UpdateState(BreakableState.Show);
+            updated.Add(breakable);
+        }
+
+        Field.Broadcast(BreakablePacket.Update(updated));
+    }
 
     public void SetCube(int[] triggerIds, bool visible, int randomCount) {
         int count = triggerIds.Length;
@@ -251,7 +264,19 @@ public partial class TriggerContext {
         Broadcast(TriggerPacket.Update(sound));
     }
 
-    public void SetVisibleBreakableObject(int[] triggerIds, bool visible) { }
+    public void SetVisibleBreakableObject(int[] triggerIds, bool visible) {
+        var updated = new List<FieldBreakable>(triggerIds.Length);
+        foreach (int triggerId in triggerIds) {
+            if (!Field.TryGetBreakable(triggerId, out FieldBreakable? breakable)) {
+                continue;
+            }
+
+            breakable.Visible = visible;
+            updated.Add(breakable);
+        }
+
+        Field.Broadcast(BreakablePacket.Update(updated));
+    }
 
     public void AddBuff(int[] boxIds, int skillId, short level, bool arg4, bool arg5, string feature) { }
 
