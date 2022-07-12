@@ -38,7 +38,7 @@ public partial class TriggerContext {
     #endregion
 
     #region Conditions
-    public bool BonusGameRewardDetected(byte boxId) {
+    public bool BonusGameRewardDetected(int boxId) {
         return false;
     }
     #endregion

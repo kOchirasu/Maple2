@@ -17,7 +17,7 @@ namespace Maple2.Server.Game.Manager.Field;
 
 public partial class FieldManager {
     // Actors
-    private readonly ConcurrentDictionary<int, FieldPlayer> fieldPlayers = new();
+    internal readonly ConcurrentDictionary<int, FieldPlayer> Players = new();
     private readonly ConcurrentDictionary<int, FieldNpc> fieldNpcs = new();
 
     // Entities
@@ -198,7 +198,7 @@ public partial class FieldManager {
 
     #region Remove
     public bool RemovePlayer(int objectId, [NotNullWhen(true)] out FieldPlayer? fieldPlayer) {
-        if (fieldPlayers.TryRemove(objectId, out fieldPlayer)) {
+        if (Players.TryRemove(objectId, out fieldPlayer)) {
             CommitPlot(fieldPlayer.Session);
             Broadcast(FieldPacket.RemovePlayer(objectId));
             return true;
@@ -232,12 +232,12 @@ public partial class FieldManager {
 
     #region Events
     public void OnAddPlayer(FieldPlayer added) {
-        fieldPlayers[added.ObjectId] = added;
+        Players[added.ObjectId] = added;
         // LOAD:
         added.Session.Send(LiftablePacket.Update(fieldLiftables.Values));
         added.Session.Send(BreakablePacket.Update(fieldBreakables.Values));
         // InteractObject
-        foreach (FieldPlayer fieldPlayer in fieldPlayers.Values) {
+        foreach (FieldPlayer fieldPlayer in Players.Values) {
             added.Session.Send(FieldPacket.AddPlayer(fieldPlayer.Session));
         }
         Broadcast(FieldPacket.AddPlayer(added.Session), added.Session);
@@ -253,7 +253,7 @@ public partial class FieldManager {
             added.Session.Send(PortalPacket.Add(fieldPortal));
         }
         // ProxyGameObj
-        foreach (FieldPlayer fieldPlayer in fieldPlayers.Values) {
+        foreach (FieldPlayer fieldPlayer in Players.Values) {
             added.Session.Send(ProxyObjectPacket.AddPlayer(fieldPlayer));
         }
         foreach (FieldNpc fieldNpc in fieldNpcs.Values) {

@@ -7,6 +7,7 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Model;
+using Maple2.Tools;
 using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.Packets;
@@ -339,15 +340,15 @@ public static class TriggerPacket {
         PvpPlayer = 5,
     }
 
-    public static ByteWriter TimerDialog(int duration, bool autoRemove = true, int arg5 = 0, string arg6 = "") {
+    public static ByteWriter TimerDialog(TickTimer timer) {
         var pWriter = Packet.Of(SendOp.Trigger);
         pWriter.Write<Command>(Command.Dialog);
         pWriter.Write<DialogCommand>(DialogCommand.Timer);
-        pWriter.WriteInt(Environment.TickCount);
-        pWriter.WriteInt(duration);
-        pWriter.WriteBool(autoRemove);
-        pWriter.WriteInt(arg5);
-        pWriter.WriteUnicodeString(arg6);
+        pWriter.WriteInt(timer.StartTick);
+        pWriter.WriteInt(timer.Duration);
+        pWriter.WriteBool(timer.AutoRemove);
+        pWriter.WriteInt(timer.VerticalOffset);
+        pWriter.WriteUnicodeString(timer.Type);
 
         return pWriter;
     }

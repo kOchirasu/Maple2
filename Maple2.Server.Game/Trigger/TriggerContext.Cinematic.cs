@@ -22,8 +22,8 @@ public partial class TriggerContext {
         Broadcast(CinematicPacket.Intro(text));
     }
 
-    public void SetOnetimeEffect(int id, bool enable, string path) {
-        Broadcast(CinematicPacket.OneTimeEffect(id, enable, path));
+    public void SetOnetimeEffect(int id, bool enabled, string path) {
+        Broadcast(CinematicPacket.OneTimeEffect(id, enabled, path));
     }
 
     public void SetCinematicUI(byte type, string script, bool arg3) {

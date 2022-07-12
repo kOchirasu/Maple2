@@ -26,7 +26,7 @@ public partial class TriggerContext {
 
     public void SetConversation(byte type, int spawnId, string script, int delay, byte arg5, Align align) { }
 
-    public void SetNpcDuelHpBar(bool isOpen, int spawnPointId, int durationTick, byte npcHpStep) { }
+    public void SetNpcDuelHpBar(bool isOpen, int spawnPointId, int durationTick, int npcHpStep) { }
 
     public void SetNpcEmotionLoop(int spawnId, string sequenceName, float duration) { }
 
@@ -34,7 +34,7 @@ public partial class TriggerContext {
 
     public void SetNpcRotation(int spawnId, float rotation) { }
 
-    public void SpawnNpcRange(int[] spawnIds, bool isAutoTargeting, byte randomPickCount, int score) { }
+    public void SpawnNpcRange(int[] spawnIds, bool isAutoTargeting, int randomPickCount, int score) { }
 
     #region Conditions
     public bool CheckNpcAdditionalEffect(int spawnId, int additionalEffectId, short level) {

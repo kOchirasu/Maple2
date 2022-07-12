@@ -134,7 +134,7 @@ public sealed partial class FieldManager : IDisposable {
         while (!cancel.IsCancellationRequested) {
             foreach (FieldTrigger trigger in fieldTriggers.Values) trigger.Sync();
 
-            foreach (FieldPlayer player in fieldPlayers.Values) player.Sync();
+            foreach (FieldPlayer player in Players.Values) player.Sync();
             foreach (FieldNpc npc in fieldNpcs.Values) npc.Sync();
             foreach (FieldBreakable breakable in fieldBreakables.Values) breakable.Sync();
             foreach (FieldLiftable liftable in fieldLiftables.Values) liftable.Sync();
@@ -145,7 +145,7 @@ public sealed partial class FieldManager : IDisposable {
     }
 
     public bool TryGetPlayerById(long characterId, [NotNullWhen(true)] out FieldPlayer? player) {
-        foreach (FieldPlayer fieldPlayer in fieldPlayers.Values) {
+        foreach (FieldPlayer fieldPlayer in Players.Values) {
             if (fieldPlayer.Value.Character.Id == characterId) {
                 player = fieldPlayer;
                 return true;
@@ -157,7 +157,7 @@ public sealed partial class FieldManager : IDisposable {
     }
 
     public bool TryGetPlayer(int objectId, [NotNullWhen(true)] out FieldPlayer? player) {
-        return fieldPlayers.TryGetValue(objectId, out player);
+        return Players.TryGetValue(objectId, out player);
     }
 
     public bool TryGetNpc(int objectId, [NotNullWhen(true)] out FieldNpc? npc) {
@@ -228,15 +228,9 @@ public sealed partial class FieldManager : IDisposable {
     }
 
     public void Broadcast(ByteWriter packet, GameSession? sender = null) {
-        foreach (FieldPlayer fieldPlayer in fieldPlayers.Values) {
+        foreach (FieldPlayer fieldPlayer in Players.Values) {
             if (fieldPlayer.Session == sender) continue;
             fieldPlayer.Session.Send(packet);
-        }
-    }
-
-    public void ForEachPlayer(Action<FieldPlayer> action) {
-        foreach (FieldPlayer player in fieldPlayers.Values) {
-            action(player);
         }
     }
 

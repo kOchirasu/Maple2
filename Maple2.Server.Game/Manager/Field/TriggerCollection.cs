@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -16,20 +15,21 @@ public sealed class TriggerCollection : IReadOnlyCollection<ITriggerObject> {
     public readonly IReadOnlyDictionary<int, TriggerObjectRope> Ropes;
     public readonly IReadOnlyDictionary<int, TriggerObjectSound> Sounds;
 
+    public readonly IReadOnlyDictionary<int, TriggerBox> Boxes;
+
     // These seem to get managed separately...
     // private readonly IReadOnlyDictionary<int, TriggerObjectAgent> Agents;
-    // private readonly IReadOnlyDictionary<int, TriggerObjectBox> Boxes;
     // private readonly IReadOnlyDictionary<int, TriggerObjectSkill> Skills;
 
     public TriggerCollection(MapEntityMetadata entities) {
-        ConcurrentDictionary<int, TriggerObjectActor> actors = new();
-        ConcurrentDictionary<int, TriggerObjectCamera> cameras = new();
-        ConcurrentDictionary<int, TriggerObjectCube> cubes = new();
-        ConcurrentDictionary<int, TriggerObjectEffect> effects = new();
-        ConcurrentDictionary<int, TriggerObjectLadder> ladders = new();
-        ConcurrentDictionary<int, TriggerObjectMesh> meshes = new();
-        ConcurrentDictionary<int, TriggerObjectRope> ropes = new();
-        ConcurrentDictionary<int, TriggerObjectSound> sounds = new();
+        Dictionary<int, TriggerObjectActor> actors = new();
+        Dictionary<int, TriggerObjectCamera> cameras = new();
+        Dictionary<int, TriggerObjectCube> cubes = new();
+        Dictionary<int, TriggerObjectEffect> effects = new();
+        Dictionary<int, TriggerObjectLadder> ladders = new();
+        Dictionary<int, TriggerObjectMesh> meshes = new();
+        Dictionary<int, TriggerObjectRope> ropes = new();
+        Dictionary<int, TriggerObjectSound> sounds = new();
 
         foreach (Ms2TriggerActor actor in entities.Trigger.Actors) {
             actors[actor.TriggerId] = new TriggerObjectActor(actor);
@@ -64,6 +64,13 @@ public sealed class TriggerCollection : IReadOnlyCollection<ITriggerObject> {
         Meshes = meshes;
         Ropes = ropes;
         Sounds = sounds;
+
+        Dictionary<int, TriggerBox> boxes = new();
+        foreach (Ms2TriggerBox box in entities.Trigger.Boxes) {
+            boxes[box.TriggerId] = new TriggerBox(box);
+        }
+
+        Boxes = boxes;
     }
 
     public int Count => Actors.Count + Cameras.Count + Cubes.Count + Effects.Count + Ladders.Count + Meshes.Count + Ropes.Count + Sounds.Count;

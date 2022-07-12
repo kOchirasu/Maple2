@@ -13,7 +13,7 @@ public class Prism<T> where T : IPolygon {
         MaxHeight = baseHeight + height;
     }
 
-    public bool Contains(Vector3 point) {
+    public bool Contains(in Vector3 point) {
         return MinHeight <= point.Z && point.Z <= MaxHeight && Polygon.Contains(point.X, point.Y);
     }
 }

@@ -1,6 +1,8 @@
-﻿using Maple2.Model.Metadata;
+﻿using System.Numerics;
+using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
+using Maple2.Tools.Collision;
 
 namespace Maple2.Model.Game;
 
@@ -101,4 +103,22 @@ public class TriggerObjectCube : TriggerObject<Ms2TriggerCube> {
 
 public class TriggerObjectCamera : TriggerObject<Ms2TriggerCamera> {
     public TriggerObjectCamera(Ms2TriggerCamera metadata) : base(metadata) { }
+}
+
+public class TriggerBox {
+    public readonly Ms2TriggerBox Metadata;
+
+    public int Id => Metadata.TriggerId;
+
+    private readonly Prism<BoundingBox> box;
+
+    public TriggerBox(Ms2TriggerBox metadata) {
+        Metadata = metadata;
+
+        var min = new Vector2(metadata.Position.X - metadata.Dimensions.X / 2, metadata.Position.Y - metadata.Dimensions.Y / 2);
+        var max = new Vector2(metadata.Position.X + metadata.Dimensions.X / 2, metadata.Position.Y + metadata.Dimensions.Y / 2);
+        box = new Prism<BoundingBox>(new BoundingBox(min, max), metadata.Position.Z - metadata.Dimensions.Z / 2, metadata.Dimensions.Z);
+    }
+
+    public bool Contains(in Vector3 point) => box.Contains(point);
 }

@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
+using Maple2.Tools;
 
 namespace Maple2.Server.Game.Manager.Field;
 
@@ -10,6 +12,7 @@ public partial class FieldManager {
     public readonly TriggerCollection TriggerObjects;
 
     private readonly ConcurrentDictionary<string, FieldTrigger> fieldTriggers = new();
+    public readonly Dictionary<string, TickTimer> Timers = new();
 
     public FieldTrigger? AddTrigger(TriggerModel trigger) {
         try {

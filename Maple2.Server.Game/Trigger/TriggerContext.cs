@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Model;
@@ -65,7 +66,15 @@ public partial class TriggerContext : ITriggerContext {
     }
 
     public int GetUserCount(int boxId, int userTagId) {
-        return 1;
+        if (!Objects.Boxes.TryGetValue(boxId, out TriggerBox? box)) {
+            return 0;
+        }
+
+        if (userTagId > 0) {
+            return Field.Players.Values.Count(player => player.TagId == userTagId && box.Contains(player.Position));
+        }
+
+        return Field.Players.Values.Count(player => box.Contains(player.Position));
     }
 
     public int GetNpcExtraData(int spawnPointId, string extraDataKey) {

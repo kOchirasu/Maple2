@@ -23,7 +23,7 @@ public partial class TriggerContext {
 
     public void SetUserValueFromUserCount(int boxId, string key, int userTagId) { }
 
-    public void UserValueToNumberMesh(string key, int startMeshId, byte digitCount) { }
+    public void UserValueToNumberMesh(string key, int startMeshId, int digitCount) { }
 
     #region Conditions
     public bool GuildVsGameWinnerTeam(int teamId) {

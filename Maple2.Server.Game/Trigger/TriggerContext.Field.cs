@@ -2,6 +2,7 @@
 using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Tools.Extensions;
 
@@ -12,8 +13,8 @@ public partial class TriggerContext {
         Field.SetBackground(dds);
     }
 
-    public void EnableLocalCamera(bool enable) {
-        Field.AddFieldProperty(new FieldPropertyLocalCamera{Enabled = enable});
+    public void EnableLocalCamera(bool enabled) {
+        Field.AddFieldProperty(new FieldPropertyLocalCamera{Enabled = enabled});
     }
 
     public void LockMyPc(bool isLock) {
@@ -39,8 +40,8 @@ public partial class TriggerContext {
         Field.AddFieldProperty(new FieldPropertyGravity(gravity));
     }
 
-    public void SetPhotoStudio(bool enable) {
-        Field.AddFieldProperty(new FieldPropertyPhotoStudio{Enabled = enable});
+    public void SetPhotoStudio(bool enabled) {
+        Field.AddFieldProperty(new FieldPropertyPhotoStudio{Enabled = enabled});
     }
 
     public void UserTagSymbol(string symbol1, string symbol2) {
@@ -59,9 +60,9 @@ public partial class TriggerContext {
         Field.AddFieldProperty(new FieldPropertyWeather{WeatherType = (WeatherType) weatherType});
     }
 
-    public void SightRange(bool enable, byte range, int rangeZ, byte border) {
+    public void SightRange(bool enabled, byte range, float rangeZ, byte border) {
         // range seems to be some ID? (3)
-        if (enable) {
+        if (enabled) {
             Field.AddFieldProperty(new FieldPropertySightRange {
                 Range = rangeZ,
                 Opacity = border,
@@ -71,33 +72,33 @@ public partial class TriggerContext {
         }
     }
 
-    public void SetPvpZone(int boxId, byte arg2, int duration, int additionalEffectId, byte arg5, int[]? boxIds) {
+    public void SetPvpZone(int boxId, byte arg2, int duration, int additionalEffectId, byte arg5, params int[] boxIds) {
         logger.Debug("Unimplemented SetPvpZone({boxId}, {arg2}, {duration}, {additionalEffectId}, {arg5}, {boxIds})",
-            boxId, arg2, duration, additionalEffectId, arg5, boxIds);
+            boxId, arg2, duration, additionalEffectId, arg5, string.Join(", ", boxIds));
     }
 
-    public void SetTimeScale(bool enable, float startScale, float endScale, float duration, byte interpolator) {
+    public void SetTimeScale(bool enabled, float startScale, float endScale, float duration, byte interpolator) {
         // TODO: Does this need to be persisted on the field?
-        Broadcast(FieldPropertyPacket.TimeScale(enable, startScale, endScale, duration, interpolator));
+        Broadcast(FieldPropertyPacket.TimeScale(enabled, startScale, endScale, duration, interpolator));
     }
 
-    public void SetLocalCamera(int cameraId, bool enable) {
-        Broadcast(CameraPacket.Local(cameraId, enable));
+    public void SetLocalCamera(int cameraId, bool enabled) {
+        Broadcast(CameraPacket.Local(cameraId, enabled));
     }
 
     public void CameraReset(float interpolationTime) {
         Broadcast(CameraPacket.Interpolate(interpolationTime));
     }
 
-    public void CameraSelect(int triggerId, bool enable) {
+    public void CameraSelect(int triggerId, bool enabled) {
         if (!Objects.Cameras.TryGetValue(triggerId, out TriggerObjectCamera? camera)) {
             return;
         }
-        if (camera.Visible == enable) {
+        if (camera.Visible == enabled) {
             return;
         }
 
-        camera.Visible = enable;
+        camera.Visible = enabled;
         Broadcast(TriggerPacket.Update(camera));
     }
 
@@ -120,7 +121,7 @@ public partial class TriggerContext {
 
     public void SetBreakable(int[] triggerIds, bool visible) { }
 
-    public void SetCube(int[] triggerIds, bool visible, byte randomCount) {
+    public void SetCube(int[] triggerIds, bool visible, int randomCount) {
         int count = triggerIds.Length;
         if (randomCount > 0 && randomCount < triggerIds.Length) {
             count = randomCount;
@@ -169,11 +170,10 @@ public partial class TriggerContext {
 
     public void SetMesh(int[] triggerIds, bool visible, int arg3, int delay, float scale) {
         UpdateMesh(triggerIds, visible, arg3, delay, scale);
-
     }
 
     // examples: arg3=200, arg4=3
-    public void SetMeshAnimation(int[] triggerIds, bool visible, byte arg3, byte arg4) {
+    public void SetMeshAnimation(int[] triggerIds, bool visible, int arg3, byte arg4) {
         foreach (int triggerId in triggerIds) {
             if (!Objects.Meshes.TryGetValue(triggerId, out TriggerObjectMesh? mesh)) {
                 continue;
@@ -263,9 +263,19 @@ public partial class TriggerContext {
 
     public void StartCombineSpawn(int[] groupId, bool isStart) { }
 
-    public void SetTimer(string timerId, int seconds, bool clearAtZero, bool display, int arg5, string arg6) { }
+    public void SetTimer(string timerId, int seconds, bool autoRemove, bool display, int vOffset, string type) {
+        Field.Timers[timerId] = new TickTimer(seconds * 1000);
+        if (display) {
+            Broadcast(TriggerPacket.TimerDialog(Field.Timers[timerId]));
+        }
+    }
 
-    public void ResetTimer(string timerId) { }
+    public void ResetTimer(string timerId) {
+        if (Field.Timers.TryGetValue(timerId, out TickTimer? timer)) {
+            timer.Reset();
+            Broadcast(TriggerPacket.TimerDialog(timer));
+        }
+    }
 
     public void RoomExpire() { }
 
@@ -277,7 +287,7 @@ public partial class TriggerContext {
         return false;
     }
 
-    public bool ObjectInteracted(int[] interactIds, byte arg2) {
+    public bool ObjectInteracted(int[] interactIds, byte state) {
         return false;
     }
 
@@ -286,8 +296,11 @@ public partial class TriggerContext {
     }
 
     public bool TimeExpired(string timerId) {
-        // Consider timer expired if non-existent
-        return false;
+        if (Field.Timers.TryGetValue(timerId, out TickTimer? timer)) {
+            return timer.Expired();
+        }
+
+        return true;
     }
     #endregion
 }

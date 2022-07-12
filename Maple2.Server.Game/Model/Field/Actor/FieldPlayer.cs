@@ -12,6 +12,8 @@ public class FieldPlayer : Actor<Player> {
     public override Stats Stats => Session.Stats.Values;
     public bool InBattle;
 
+    public int TagId = 1;
+
     public FieldPlayer(GameSession session, Player player) : base(session.Field!, player.ObjectId, player) {
         Session = session;
 

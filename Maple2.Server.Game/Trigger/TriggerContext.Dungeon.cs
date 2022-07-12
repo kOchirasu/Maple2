@@ -3,7 +3,7 @@
 public partial class TriggerContext {
     public void DungeonClear(string uiType) { }
 
-    public void DungeonClearRound(byte round) { }
+    public void DungeonClearRound(int round) { }
 
     public void DungeonCloseTimer() { }
 
@@ -15,17 +15,17 @@ public partial class TriggerContext {
 
     public void DungeonMissionComplete(int missionId, string feature) { }
 
-    public void DungeonMoveLapTimeToNow(byte id) { }
+    public void DungeonMoveLapTimeToNow(int id) { }
 
     public void DungeonResetTime(int seconds) { }
 
     public void DungeonSetEndTime() { }
 
-    public void DungeonSetLapTime(byte id, int lapTime) { }
+    public void DungeonSetLapTime(int id, int lapTime) { }
 
     public void DungeonStopTimer() { }
 
-    public void RandomAdditionalEffect(string target, int boxId, int spawnId, byte targetCount, int tick, int waitTick, string targetEffect, int additionalEffectId) { }
+    public void RandomAdditionalEffect(string target, int boxId, int spawnId, int targetCount, int tick, int waitTick, string targetEffect, int additionalEffectId) { }
 
     public void SetDungeonVariable(int varId, bool value) { }
 
@@ -36,11 +36,11 @@ public partial class TriggerContext {
     #region DarkStream
     public void DarkStreamSpawnMonster(int[] spawnIds, int score) { }
 
-    public void DarkStreamStartGame(byte round) { }
+    public void DarkStreamStartGame(int round) { }
 
-    public void DarkStreamStartRound(byte round, int uiDuration, int damagePenalty) { }
+    public void DarkStreamStartRound(int round, int uiDuration, int damagePenalty) { }
 
-    public void DarkStreamClearRound(byte round) { }
+    public void DarkStreamClearRound(int round) { }
     #endregion
 
     #region ShadowExpedition
