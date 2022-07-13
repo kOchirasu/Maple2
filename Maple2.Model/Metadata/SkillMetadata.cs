@@ -9,7 +9,7 @@ public record SkillMetadata(
     string? Name,
     SkillMetadataProperty Property,
     SkillMetadataState State,
-    Dictionary<short, SkillMetadataLevel> Levels) : ISearchResult;
+    IReadOnlyDictionary<short, SkillMetadataLevel> Levels) : ISearchResult;
 
 public record SkillMetadataProperty(
     SkillType Type,
@@ -32,7 +32,7 @@ public record SkillMetadataState();
 public record SkillMetadataLevel(
     SkillMetadataConsume Consume,
     SkillMetadataRecovery Recovery,
-    List<SkillMetadataSkill> Skills,
+    List<SkillEffectMetadata> Skills,
     List<SkillMetadataMotion> Motions);
 
 public record SkillMetadataConsume(
@@ -44,22 +44,6 @@ public record SkillMetadataConsume(
 public record SkillMetadataRecovery(
     long SpValue,
     float SpRate);
-
-public record SkillMetadataSkill(
-    bool Splash,
-    bool RandomCast,
-    SkillMetadataSkill.Skill[] Skills,
-    SkillEntity Target,
-    SkillEntity Owner,
-    uint Delay,
-    int RemoveDelay,
-    int Interval,
-    int FireCount,
-    bool ImmediateActive,
-    bool NonTargetActive) {
-
-    public record Skill(int Id, short Level);
-}
 
 public record SkillMetadataMotion(
     List<SkillMetadataAttack> Attacks);

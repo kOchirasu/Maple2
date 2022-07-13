@@ -1,5 +1,7 @@
 ﻿using Maple2.File.Parser.Xml.Common;
+using Maple2.File.Parser.Xml.Skill;
 using Maple2.Model.Enum;
+using Maple2.Model.Metadata;
 
 namespace Maple2.File.Ingest;
 
@@ -80,5 +82,53 @@ public static class MapperExtensions {
         if (rates.bap != default) result[StatAttribute.BonusAtk] = rates.bap;
         if (rates.bap_pet != default) result[StatAttribute.PetBonusAtk] = rates.bap_pet;
         return result;
+    }
+
+    public static SkillEffectMetadata Convert(this TriggerSkill trigger) {
+        SkillEffectMetadataCondition? condition = null;
+        SkillEffectMetadataSplash? splash = null;
+        if (trigger.splash) {
+            splash = new SkillEffectMetadataSplash(
+                Interval: trigger.interval,
+                Delay: (int) trigger.delay,
+                RemoveDelay: trigger.removeDelay,
+                UseDirection: trigger.useDirection,
+                ImmediateActive: trigger.immediateActive,
+                NonTargetActive: trigger.nonTargetActive,
+                OnlySensingActive: trigger.onlySensingActive,
+                DependOnCasterState: trigger.dependOnCasterState,
+                Independent: trigger.independent,
+                Chain: trigger.chain ? new SkillEffectMetadataChain(trigger.chainDistance) : null);
+        } else {
+            var owner = SkillEntity.Self;
+            if (trigger.skillOwner > 0 && Enum.IsDefined<SkillEntity>((SkillEntity) trigger.skillOwner)) {
+                owner = (SkillEntity) trigger.skillOwner;
+            }
+            condition = new SkillEffectMetadataCondition(
+                Owner: owner,
+                Target: (SkillEntity) trigger.skillTarget,
+                OverlapCount: trigger.overlapCount,
+                RandomCast: trigger.randomCast,
+                ActiveByIntervalTick: trigger.activeByIntervalTick,
+                DependOnDamageCount: trigger.dependOnDamageCount);
+        }
+
+        SkillEffectMetadata.Skill[] skills;
+        if (trigger.linkSkillID.Length > 0) {
+            skills = trigger.skillID
+                .Zip(trigger.level,(skillId, level) => new {skillId, level})
+                .Zip(trigger.linkSkillID, (skill, linkSkillId) => new SkillEffectMetadata.Skill(skill.skillId, (short) skill.level, linkSkillId))
+                .ToArray();
+        } else {
+            skills = trigger.skillID
+                .Zip(trigger.level,(skillId, level) => new SkillEffectMetadata.Skill(skillId, level))
+                .ToArray();
+        }
+
+        return new SkillEffectMetadata(
+            FireCount: trigger.fireCount,
+            Skills: skills,
+            Condition: condition,
+            Splash: splash);
     }
 }

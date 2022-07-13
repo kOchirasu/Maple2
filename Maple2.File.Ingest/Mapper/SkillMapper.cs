@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Maple2.File.IO;
 using Maple2.File.Parser;
+using Maple2.File.Parser.Xml.Common;
 using Maple2.File.Parser.Xml.Skill;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
@@ -31,7 +32,7 @@ public class SkillMapper : TypeMapper<SkillMetadata> {
                     Recovery: new SkillMetadataRecovery(
                         SpValue: level.recoveryProperty.spValue,
                         SpRate: level.recoveryProperty.spRate),
-                    Skills: level.conditionSkill.Select(Convert).ToList(),
+                    Skills: level.conditionSkill.Select(skill => skill.Convert()).ToList(),
                     Motions: level.motion.Select(motion => new SkillMetadataMotion(
                         Attacks: motion.attack.Select(attack => new SkillMetadataAttack(
                             Point: attack.point,
@@ -78,23 +79,6 @@ public class SkillMapper : TypeMapper<SkillMetadata> {
                 Levels: levels
             );
         }
-    }
-
-    private static SkillMetadataSkill Convert(TriggerSkill trigger) {
-        return new SkillMetadataSkill(
-            Splash: trigger.splash,
-            RandomCast: trigger.randomCast,
-            Skills: trigger.skillID.Zip(trigger.level, (skillId, level) =>
-                new SkillMetadataSkill.Skill(skillId, (short) level)).ToArray(),
-            Target: (SkillEntity) trigger.skillTarget,
-            Owner: (SkillEntity) trigger.skillOwner,
-            Delay: trigger.delay,
-            RemoveDelay: trigger.removeDelay,
-            Interval: trigger.interval,
-            FireCount: trigger.fireCount,
-            ImmediateActive: trigger.immediateActive,
-            NonTargetActive: trigger.nonTargetActive
-        );
     }
 
     private static SkillMetadataRegion Convert(RegionSkill region) {

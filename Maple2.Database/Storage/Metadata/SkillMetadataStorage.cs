@@ -10,8 +10,13 @@ namespace Maple2.Database.Storage;
 
 public class SkillMetadataStorage : MetadataStorage<int, SkillMetadata>, ISearchable<SkillMetadata> {
     private const int CACHE_SIZE = 10000; // ~10k total items
+    private const int EFFECT_CACHE_SIZE = 15000;  // ~14.5k total additional effect levels
 
-    public SkillMetadataStorage(MetadataContext context) : base(context, CACHE_SIZE) { }
+    protected readonly LRUCache<(int Id, short Level), AdditionalEffectMetadata> EffectCache;
+
+    public SkillMetadataStorage(MetadataContext context) : base(context, CACHE_SIZE) {
+        EffectCache = new LRUCache<(int, short), AdditionalEffectMetadata>(EFFECT_CACHE_SIZE, (int)(EFFECT_CACHE_SIZE * 0.05));
+    }
 
     public bool TryGet(int id, [NotNullWhen(true)] out SkillMetadata? skill) {
         if (Cache.TryGet(id, out skill)) {
@@ -27,6 +32,23 @@ public class SkillMetadataStorage : MetadataStorage<int, SkillMetadata>, ISearch
         }
 
         Cache.AddReplace(id, skill);
+        return true;
+    }
+
+    public bool TryGetEffect(int id, short level, [NotNullWhen(true)] out AdditionalEffectMetadata? effect) {
+        if (EffectCache.TryGet((id, level), out effect)) {
+            return true;
+        }
+
+        lock (Context) {
+            effect = Context.AdditionalEffectMetadata.Find(new {id, level});
+        }
+
+        if (effect == null) {
+            return false;
+        }
+
+        EffectCache.AddReplace((id, level), effect);
         return true;
     }
 

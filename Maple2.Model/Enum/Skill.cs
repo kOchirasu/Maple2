@@ -1,4 +1,6 @@
-﻿namespace Maple2.Model.Enum;
+﻿using System;
+
+namespace Maple2.Model.Enum;
 
 public enum SkillType : byte {
     Active = 0,

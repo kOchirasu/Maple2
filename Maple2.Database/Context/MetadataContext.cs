@@ -8,6 +8,7 @@ namespace Maple2.Database.Context;
 
 public sealed class MetadataContext : DbContext {
     public DbSet<TableChecksum> TableChecksum { get; set; } = null!;
+    public DbSet<AdditionalEffectMetadata> AdditionalEffectMetadata { get; set; } = null!;
     public DbSet<AnimationMetadata> AnimationMetadata { get; set; } = null!;
     public DbSet<ItemMetadata> ItemMetadata { get; set; } = null!;
     public DbSet<NpcMetadata> NpcMetadata { get; set; } = null!;
@@ -24,6 +25,7 @@ public sealed class MetadataContext : DbContext {
     protected override void OnModelCreating(ModelBuilder modelBuilder) {
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<TableChecksum>(Maple2.Database.Model.Metadata.TableChecksum.Configure);
+        modelBuilder.Entity<AdditionalEffectMetadata>(ConfigureAdditionalEffectMetadata);
         modelBuilder.Entity<AnimationMetadata>(ConfigureAnimationMetadata);
         modelBuilder.Entity<ItemMetadata>(ConfigureItemMetadata);
         modelBuilder.Entity<NpcMetadata>(ConfigureNpcMetadata);
@@ -34,6 +36,17 @@ public sealed class MetadataContext : DbContext {
         modelBuilder.Entity<SkillMetadata>(ConfigureSkillMetadata);
         modelBuilder.Entity<TableMetadata>(ConfigureTableMetadata);
         modelBuilder.Entity<UgcMapMetadata>(ConfigureUgcMapMetadata);
+    }
+
+    private static void ConfigureAdditionalEffectMetadata(EntityTypeBuilder<AdditionalEffectMetadata> builder) {
+        builder.ToTable("additional-effect");
+        builder.HasKey(effect => new {effect.Id, effect.Level});
+        builder.Property(effect => effect.Property).HasJsonConversion();
+        builder.Property(effect => effect.Consume).HasJsonConversion();
+        builder.Property(effect => effect.Recovery).HasJsonConversion();
+        builder.Property(effect => effect.Dot).HasJsonConversion();
+        builder.Property(effect => effect.Shield).HasJsonConversion();
+        builder.Property(effect => effect.Skills).HasJsonConversion();
     }
 
     private static void ConfigureAnimationMetadata(EntityTypeBuilder<AnimationMetadata> builder) {
