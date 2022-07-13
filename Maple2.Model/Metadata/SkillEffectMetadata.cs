@@ -8,12 +8,12 @@ public record SkillEffectMetadata(
     SkillEffectMetadataCondition? Condition,
     SkillEffectMetadataSplash? Splash
 ) {
-    public record Skill(int Id, int Level, int LinkId = 0);
+    public record Skill(int Id, short Level, int LinkId = 0);
 }
 
 public record SkillEffectMetadataCondition(
-    SkillEntity Owner,
-    SkillEntity Target,
+    SkillEntity Owner,        // 1,2,3,5
+    SkillEntity Target,       // 1,2,3,4
     int OverlapCount,         // Skill only
     bool DependOnDamageCount, // Skill only
     bool RandomCast,          // AdditionalEffect only

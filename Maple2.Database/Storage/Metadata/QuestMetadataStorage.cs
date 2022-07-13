@@ -18,14 +18,20 @@ public class QuestMetadataStorage : MetadataStorage<int, QuestMetadata>, ISearch
         }
 
         lock (Context) {
+            // Double-checked locking
+            if (Cache.TryGet(id, out quest)) {
+                return true;
+            }
+
             quest = Context.QuestMetadata.Find(id);
+
+            if (quest == null) {
+                return false;
+            }
+
+            Cache.AddReplace(id, quest);
         }
 
-        if (quest == null) {
-            return false;
-        }
-
-        Cache.AddReplace(id, quest);
         return true;
     }
 

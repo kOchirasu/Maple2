@@ -8,8 +8,8 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Maple2.Database.Storage;
 
-public class SkillMetadataStorage : MetadataStorage<int, SkillMetadata>, ISearchable<SkillMetadata> {
-    private const int CACHE_SIZE = 10000; // ~10k total items
+public class SkillMetadataStorage : MetadataStorage<(int, short), SkillMetadata>, ISearchable<StoredSkillMetadata> {
+    private const int CACHE_SIZE = 23000; // ~22k total skill levels
     private const int EFFECT_CACHE_SIZE = 15000;  // ~14.5k total additional effect levels
 
     protected readonly LRUCache<(int Id, short Level), AdditionalEffectMetadata> EffectCache;
@@ -18,21 +18,34 @@ public class SkillMetadataStorage : MetadataStorage<int, SkillMetadata>, ISearch
         EffectCache = new LRUCache<(int, short), AdditionalEffectMetadata>(EFFECT_CACHE_SIZE, (int)(EFFECT_CACHE_SIZE * 0.05));
     }
 
-    public bool TryGet(int id, [NotNullWhen(true)] out SkillMetadata? skill) {
-        if (Cache.TryGet(id, out skill)) {
+    public bool TryGet(int id, short level, [NotNullWhen(true)] out SkillMetadata? skill) {
+        if (Cache.TryGet((id, level), out skill)) {
             return true;
         }
 
         lock (Context) {
-            skill = Context.SkillMetadata.Find(id);
+            // Double-checked locking
+            if (Cache.TryGet((id, level), out skill)) {
+                return true;
+            }
+
+            StoredSkillMetadata? storedSkill = Context.SkillMetadata.Find(id);
+
+            if (storedSkill == null) {
+                return false;
+            }
+
+            foreach ((short dataLevel, SkillMetadataLevel data) in storedSkill.Levels) {
+                var metadata = new SkillMetadata(id, level, storedSkill.Name, storedSkill.Property, storedSkill.State, data);
+                Cache.AddReplace((id, dataLevel), metadata);
+
+                if (dataLevel == level) {
+                    skill = metadata;
+                }
+            }
         }
 
-        if (skill == null) {
-            return false;
-        }
-
-        Cache.AddReplace(id, skill);
-        return true;
+        return skill != null;
     }
 
     public bool TryGetEffect(int id, short level, [NotNullWhen(true)] out AdditionalEffectMetadata? effect) {
@@ -41,18 +54,24 @@ public class SkillMetadataStorage : MetadataStorage<int, SkillMetadata>, ISearch
         }
 
         lock (Context) {
+            // Double-checked locking
+            if (EffectCache.TryGet((id, level), out effect)) {
+                return true;
+            }
+
             effect = Context.AdditionalEffectMetadata.Find(new {id, level});
+
+            if (effect == null) {
+                return false;
+            }
+
+            EffectCache.AddReplace((id, level), effect);
         }
 
-        if (effect == null) {
-            return false;
-        }
-
-        EffectCache.AddReplace((id, level), effect);
         return true;
     }
 
-    public List<SkillMetadata> Search(string name) {
+    public List<StoredSkillMetadata> Search(string name) {
         lock (Context) {
             return Context.SkillMetadata
                 .Where(skill => EF.Functions.Like(skill.Name!, $"%{name}%"))

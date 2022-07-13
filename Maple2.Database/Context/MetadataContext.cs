@@ -16,7 +16,7 @@ public sealed class MetadataContext : DbContext {
     public DbSet<MapEntity> MapEntity { get; set; } = null!;
     public DbSet<QuestMetadata> QuestMetadata { get; set; } = null!;
     public DbSet<RideMetadata> RideMetadata { get; set; } = null!;
-    public DbSet<SkillMetadata> SkillMetadata { get; set; } = null!;
+    public DbSet<StoredSkillMetadata> SkillMetadata { get; set; } = null!;
     public DbSet<TableMetadata> TableMetadata { get; set; } = null!;
     public DbSet<UgcMapMetadata> UgcMapMetadata { get; set; } = null!;
 
@@ -33,7 +33,7 @@ public sealed class MetadataContext : DbContext {
         modelBuilder.Entity<MapEntity>(ConfigureMapEntity);
         modelBuilder.Entity<QuestMetadata>(ConfigureQuestMetadata);
         modelBuilder.Entity<RideMetadata>(ConfigureRideMetadata);
-        modelBuilder.Entity<SkillMetadata>(ConfigureSkillMetadata);
+        modelBuilder.Entity<StoredSkillMetadata>(ConfigureSkillMetadata);
         modelBuilder.Entity<TableMetadata>(ConfigureTableMetadata);
         modelBuilder.Entity<UgcMapMetadata>(ConfigureUgcMapMetadata);
     }
@@ -109,7 +109,7 @@ public sealed class MetadataContext : DbContext {
         builder.Property(ride => ride.Stats).HasJsonConversion();
     }
 
-    private static void ConfigureSkillMetadata(EntityTypeBuilder<SkillMetadata> builder) {
+    private static void ConfigureSkillMetadata(EntityTypeBuilder<StoredSkillMetadata> builder) {
         builder.ToTable("skill");
         builder.HasKey(skill => skill.Id);
         builder.Property(skill => skill.Property).HasJsonConversion();

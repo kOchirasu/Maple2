@@ -38,14 +38,20 @@ public class NpcMetadataStorage : MetadataStorage<int, NpcMetadata>, ISearchable
         }
 
         lock (Context) {
+            // Double-checked locking
+            if (Cache.TryGet(id, out npc)) {
+                return true;
+            }
+
             npc = Context.NpcMetadata.Find(id);
+
+            if (npc == null) {
+                return false;
+            }
+
+            Cache.AddReplace(id, npc);
         }
 
-        if (npc == null) {
-            return false;
-        }
-
-        Cache.AddReplace(id, npc);
         return true;
     }
 

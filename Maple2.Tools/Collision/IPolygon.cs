@@ -6,6 +6,8 @@ namespace Maple2.Tools.Collision;
 
 // Polygon is assumed to be convex.
 public interface IPolygon {
+    public static readonly IPolygon Null = new NullPolygon();
+
     protected IReadOnlyList<Vector2> Points { get; }
 
     public bool Contains(float x, float y) => Contains(new Vector2(x, y));

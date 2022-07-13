@@ -2,7 +2,7 @@
 
 namespace Maple2.Tools.Collision;
 
-public class Prism<T> where T : IPolygon {
+public class Prism {
     public readonly IPolygon Polygon;
     public readonly float MinHeight;
     public readonly float MaxHeight;

@@ -18,22 +18,27 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
             return mapEntity;
         }
 
-        var breakables = new Dictionary<Guid, Breakable>();
-        var liftables = new Dictionary<Guid, Liftable>();
-        var objectWeapons = new Dictionary<Vector3B, ObjectWeapon>();
-        var portals = new Dictionary<int, Portal>();
-        var playerSpawns = new Dictionary<int, SpawnPointPC>();
-        var npcSpawns = new List<SpawnPointNPC>();
-        var regionSpawns = new Dictionary<int, Ms2RegionSpawn>();
-        var regionSkills = new List<Ms2RegionSkill>();
-        var eventNpcSpawns = new Dictionary<int, EventSpawnPointNPC>();
-        TaxiStation? taxi = null;
-        Telescope? telescope = null;
-        var breakableActors = new Dictionary<Guid, BreakableActor>();
-        var interactActors = new Dictionary<int, InteractActor>();
-        var triggerModels = new Dictionary<int, TriggerModel>();
-        var triggers = new List<Trigger>();
         lock (Context) {
+            // Double-checked locking
+            if (Cache.TryGet(xblock, out mapEntity)) {
+                return mapEntity;
+            }
+
+            var breakables = new Dictionary<Guid, Breakable>();
+            var liftables = new Dictionary<Guid, Liftable>();
+            var objectWeapons = new Dictionary<Vector3B, ObjectWeapon>();
+            var portals = new Dictionary<int, Portal>();
+            var playerSpawns = new Dictionary<int, SpawnPointPC>();
+            var npcSpawns = new List<SpawnPointNPC>();
+            var regionSpawns = new Dictionary<int, Ms2RegionSpawn>();
+            var regionSkills = new List<Ms2RegionSkill>();
+            var eventNpcSpawns = new Dictionary<int, EventSpawnPointNPC>();
+            TaxiStation? taxi = null;
+            Telescope? telescope = null;
+            var breakableActors = new Dictionary<Guid, BreakableActor>();
+            var interactActors = new Dictionary<int, InteractActor>();
+            var triggerModels = new Dictionary<int, TriggerModel>();
+            var triggers = new List<Trigger>();
             foreach (MapEntity entity in Context.MapEntity.Where(entity => entity.XBlock == xblock)) {
                 switch (entity.Block.Class) {
                     case MapBlock.Discriminator.Breakable:
@@ -123,26 +128,26 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                         break;
                 }
             }
-        }
 
-        mapEntity = new MapEntityMetadata {
-            Breakables = breakables,
-            Liftables = liftables,
-            ObjectWeapons = objectWeapons,
-            Portals = portals,
-            PlayerSpawns = playerSpawns,
-            NpcSpawns = npcSpawns,
-            EventNpcSpawns = eventNpcSpawns,
-            RegionSpawns = regionSpawns,
-            RegionSkills = regionSkills,
-            Taxi = taxi,
-            Telescope = telescope,
-            BreakableActors = breakableActors,
-            InteractActors = interactActors,
-            TriggerModels = triggerModels,
-            Trigger = new TriggerStorage(triggers),
-        };
-        Cache.AddReplace(xblock, mapEntity);
+            mapEntity = new MapEntityMetadata {
+                Breakables = breakables,
+                Liftables = liftables,
+                ObjectWeapons = objectWeapons,
+                Portals = portals,
+                PlayerSpawns = playerSpawns,
+                NpcSpawns = npcSpawns,
+                EventNpcSpawns = eventNpcSpawns,
+                RegionSpawns = regionSpawns,
+                RegionSkills = regionSkills,
+                Taxi = taxi,
+                Telescope = telescope,
+                BreakableActors = breakableActors,
+                InteractActors = interactActors,
+                TriggerModels = triggerModels,
+                Trigger = new TriggerStorage(triggers),
+            };
+            Cache.AddReplace(xblock, mapEntity);
+        }
 
         return mapEntity;
     }

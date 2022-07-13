@@ -15,14 +15,20 @@ public class RideMetadataStorage : MetadataStorage<int, RideMetadata> {
         }
 
         lock (Context) {
+            // Double-checked locking
+            if (Cache.TryGet(id, out ride)) {
+                return true;
+            }
+
             ride = Context.RideMetadata.Find(id);
+
+            if (ride == null) {
+                return false;
+            }
+
+            Cache.AddReplace(id, ride);
         }
 
-        if (ride == null) {
-            return false;
-        }
-
-        Cache.AddReplace(id, ride);
         return true;
     }
 }

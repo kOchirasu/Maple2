@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -25,6 +24,7 @@ public partial class FieldManager {
     private readonly ConcurrentDictionary<string, FieldLiftable> fieldLiftables = new();
     private readonly ConcurrentDictionary<int, FieldItem> fieldItems = new();
     private readonly ConcurrentDictionary<int, FieldMobSpawn> fieldMobSpawns = new();
+    private readonly ConcurrentDictionary<int, FieldSkillSource> fieldSkillSources = new();
 
     // Objects
     private readonly ConcurrentDictionary<int, FieldObject<Portal>> fieldPortals = new();
@@ -156,6 +156,30 @@ public partial class FieldManager {
         fieldMobSpawns[fieldMobSpawn.ObjectId] = fieldMobSpawn;
         return fieldMobSpawn;
     }
+
+    public FieldSkillSource? AddSkillSource(SkillMetadata metadata, int interval, in Vector3 position, in Vector3 rotation = default) {
+        var fieldSkillSource = new FieldSkillSource(this, NextLocalId(), metadata) {
+            Interval = interval,
+            Position = position,
+            Rotation = rotation,
+        };
+
+        fieldSkillSources[fieldSkillSource.ObjectId] = fieldSkillSource;
+        return fieldSkillSource;
+    }
+
+    public void ApplyRegionSkill(SkillEffectMetadata effect, in Vector3 position, in Vector3 rotation) {
+        if (effect.Splash == null) {
+            logger.Information("Cannot apply condition-effect to field");
+            return;
+        }
+
+        foreach (SkillEffectMetadata.Skill skill in effect.Skills) {
+            if (!SkillMetadata.TryGetEffect(skill.Id, skill.Level, out AdditionalEffectMetadata? metadata)) {
+                return;
+            }
+        }
+    }
     #endregion
 
     public void AddFieldProperty(IFieldProperty fieldProperty) {
@@ -258,6 +282,9 @@ public partial class FieldManager {
         }
         foreach (FieldNpc fieldNpc in fieldNpcs.Values) {
             added.Session.Send(ProxyObjectPacket.AddNpc(fieldNpc));
+        }
+        foreach (FieldSkillSource skillSource in fieldSkillSources.Values) {
+            added.Session.Send(RegionSkillPacket.Add(skillSource));
         }
 
         added.Session.Send(TriggerPacket.Load(TriggerObjects));

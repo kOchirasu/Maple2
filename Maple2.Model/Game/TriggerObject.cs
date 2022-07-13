@@ -110,14 +110,14 @@ public class TriggerBox {
 
     public int Id => Metadata.TriggerId;
 
-    private readonly Prism<BoundingBox> box;
+    private readonly Prism box;
 
     public TriggerBox(Ms2TriggerBox metadata) {
         Metadata = metadata;
 
         var min = new Vector2(metadata.Position.X - metadata.Dimensions.X / 2, metadata.Position.Y - metadata.Dimensions.Y / 2);
         var max = new Vector2(metadata.Position.X + metadata.Dimensions.X / 2, metadata.Position.Y + metadata.Dimensions.Y / 2);
-        box = new Prism<BoundingBox>(new BoundingBox(min, max), metadata.Position.Z - metadata.Dimensions.Z / 2, metadata.Dimensions.Z);
+        box = new Prism(new BoundingBox(min, max), metadata.Position.Z - metadata.Dimensions.Z / 2, metadata.Dimensions.Z);
     }
 
     public bool Contains(in Vector3 point) => box.Contains(point);

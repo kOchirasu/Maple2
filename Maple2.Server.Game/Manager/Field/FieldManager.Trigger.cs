@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
-using Maple2.Tools;
 
 namespace Maple2.Server.Game.Manager.Field;
 

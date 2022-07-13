@@ -26,6 +26,7 @@ public sealed partial class FieldManager : IDisposable {
     // ReSharper disable MemberCanBePrivate.Global
     public GameStorage GameStorage { get; init; } = null!;
     public NpcMetadataStorage NpcMetadata { private get; init; } = null!;
+    public SkillMetadataStorage SkillMetadata { private get; init; } = null!;
     public Lua.Lua Lua { private get; init; } = null!;
     // ReSharper restore All
     #endregion
@@ -115,6 +116,14 @@ public sealed partial class FieldManager : IDisposable {
             }
         }
 
+        foreach (Ms2RegionSkill regionSkill in entities.RegionSkills) {
+            if (!SkillMetadata.TryGet(regionSkill.SkillId, regionSkill.Level, out SkillMetadata? skill)) {
+                continue;
+            }
+
+            AddSkillSource(skill, regionSkill.Interval, regionSkill.Position, regionSkill.Rotation);
+        }
+
         thread.Start();
     }
 
@@ -140,6 +149,7 @@ public sealed partial class FieldManager : IDisposable {
             foreach (FieldLiftable liftable in fieldLiftables.Values) liftable.Sync();
             foreach (FieldItem item in fieldItems.Values) item.Sync();
             foreach (FieldMobSpawn mobSpawn in fieldMobSpawns.Values) mobSpawn.Sync();
+            foreach (FieldSkillSource skill in fieldSkillSources.Values) skill.Sync();
             Thread.Sleep(50);
         }
     }

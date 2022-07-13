@@ -4,12 +4,21 @@ using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
 
-public record SkillMetadata(
+// Note: This class only exists to store metadata in db.
+public record StoredSkillMetadata(
     int Id,
     string? Name,
     SkillMetadataProperty Property,
     SkillMetadataState State,
     IReadOnlyDictionary<short, SkillMetadataLevel> Levels) : ISearchResult;
+
+public record SkillMetadata(
+    int Id,
+    short Level,
+    string? Name,
+    SkillMetadataProperty Property,
+    SkillMetadataState State,
+    SkillMetadataLevel Data);
 
 public record SkillMetadataProperty(
     SkillType Type,
@@ -32,8 +41,8 @@ public record SkillMetadataState();
 public record SkillMetadataLevel(
     SkillMetadataConsume Consume,
     SkillMetadataRecovery Recovery,
-    List<SkillEffectMetadata> Skills,
-    List<SkillMetadataMotion> Motions);
+    SkillEffectMetadata[] Skills,
+    SkillMetadataMotion[] Motions);
 
 public record SkillMetadataConsume(
     long Meso,
@@ -46,7 +55,7 @@ public record SkillMetadataRecovery(
     float SpRate);
 
 public record SkillMetadataMotion(
-    List<SkillMetadataAttack> Attacks);
+    SkillMetadataAttack[] Attacks);
 
 public record SkillMetadataAttack(
     string Point,
@@ -56,7 +65,8 @@ public record SkillMetadataAttack(
     long CubeMagicPathId,
     SkillMetadataPet? Pet,
     SkillMetadataRegion Range,
-    SkillMetadataDamage Damage);
+    SkillMetadataDamage Damage,
+    SkillEffectMetadata[] Skills);
 
 public record SkillMetadataPet(
     int TamingGroup,

@@ -24,14 +24,20 @@ public class MapMetadataStorage : MetadataStorage<int, MapMetadata>, ISearchable
         }
 
         lock (Context) {
+            // Double-checked locking
+            if (Cache.TryGet(id, out map)) {
+                return true;
+            }
+
             map = Context.MapMetadata.Find(id);
+
+            if (map == null) {
+                return false;
+            }
+
+            Cache.AddReplace(id, map);
         }
 
-        if (map == null) {
-            return false;
-        }
-
-        Cache.AddReplace(id, map);
         return true;
     }
 

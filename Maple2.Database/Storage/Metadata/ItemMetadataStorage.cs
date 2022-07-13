@@ -18,14 +18,20 @@ public class ItemMetadataStorage : MetadataStorage<int, ItemMetadata>, ISearchab
         }
 
         lock (Context) {
+            // Double-checked locking
+            if (Cache.TryGet(id, out item)) {
+                return true;
+            }
+
             item = Context.ItemMetadata.Find(id);
+
+            if (item == null) {
+                return false;
+            }
+
+            Cache.AddReplace(id, item);
         }
 
-        if (item == null) {
-            return false;
-        }
-
-        Cache.AddReplace(id, item);
         return true;
     }
 

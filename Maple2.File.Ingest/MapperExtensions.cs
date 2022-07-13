@@ -90,7 +90,7 @@ public static class MapperExtensions {
         if (trigger.splash) {
             splash = new SkillEffectMetadataSplash(
                 Interval: trigger.interval,
-                Delay: (int) trigger.delay,
+                Delay: trigger.delay > int.MaxValue ? int.MaxValue : (int) trigger.delay,
                 RemoveDelay: trigger.removeDelay,
                 UseDirection: trigger.useDirection,
                 ImmediateActive: trigger.immediateActive,
@@ -100,7 +100,7 @@ public static class MapperExtensions {
                 Independent: trigger.independent,
                 Chain: trigger.chain ? new SkillEffectMetadataChain(trigger.chainDistance) : null);
         } else {
-            var owner = SkillEntity.Self;
+            var owner = SkillEntity.Owner;
             if (trigger.skillOwner > 0 && Enum.IsDefined<SkillEntity>((SkillEntity) trigger.skillOwner)) {
                 owner = (SkillEntity) trigger.skillOwner;
             }
@@ -121,7 +121,7 @@ public static class MapperExtensions {
                 .ToArray();
         } else {
             skills = trigger.skillID
-                .Zip(trigger.level,(skillId, level) => new SkillEffectMetadata.Skill(skillId, level))
+                .Zip(trigger.level,(skillId, level) => new SkillEffectMetadata.Skill(skillId, (short) level))
                 .ToArray();
         }
 

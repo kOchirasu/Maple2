@@ -61,7 +61,7 @@ public class SkillInfo : IByteSerializable {
                 Debug.Assert(rank is SkillRank.Basic or SkillRank.Awakening);
 
                 foreach (JobTable.Skill skillData in jobSkills) {
-                    if (!skillMetadata.TryGet(skillData.Main, out SkillMetadata? metadata)) {
+                    if (!skillMetadata.TryGet(skillData.Main, 1, out SkillMetadata? metadata)) {
                         throw new InvalidOperationException($"Nonexistent skillId:{skillData.Main}");
                     }
 

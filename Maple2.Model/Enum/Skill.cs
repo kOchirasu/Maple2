@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 
 namespace Maple2.Model.Enum;
 
@@ -56,12 +57,12 @@ public enum SkillRegion {
 
 public enum SkillEntity {
     None = 0,
-    Self = 1,
-    Other = 2,
-    Unknown3 = 3,
-    Unknown4 = 4,
-    Unknown5 = 5,
-    Unknown6 = 6,
-    Unknown7 = 7,
-    Pet = 8, // Snares and Dryad Candy
+    Owner = 1,
+    Target = 2,
+    Caster = 3,
+    PetOwner = 4,
+    Attacker = 5,
+    RegionBuff = 6,
+    RegionDebuff = 7,
+    RegionPet = 8,
 }

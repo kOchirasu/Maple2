@@ -26,7 +26,7 @@ public class FindCommand : Command {
         AddCommand(new FindSubCommand<MapMetadata>("map", session, mapStorage));
         AddCommand(new FindSubCommand<NpcMetadata>("npc", session, npcStorage));
         AddCommand(new FindSubCommand<QuestMetadata>("quest", session, questStorage));
-        AddCommand(new FindSubCommand<SkillMetadata>("skill", session, skillStorage));
+        AddCommand(new FindSubCommand<StoredSkillMetadata>("skill", session, skillStorage));
     }
 
     private class FindSubCommand<T> : Command where T : ISearchResult {

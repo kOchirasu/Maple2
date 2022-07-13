@@ -8,14 +8,14 @@ using Maple2.Model.Metadata;
 
 namespace Maple2.File.Ingest.Mapper;
 
-public class SkillMapper : TypeMapper<SkillMetadata> {
+public class SkillMapper : TypeMapper<StoredSkillMetadata> {
     private readonly SkillParser parser;
 
     public SkillMapper(M2dReader xmlReader) {
         parser = new SkillParser(xmlReader);
     }
 
-    protected override IEnumerable<SkillMetadata> Map() {
+    protected override IEnumerable<StoredSkillMetadata> Map() {
         foreach ((int id, string name, SkillData data) in parser.Parse()) {
             if (data.basic == null) continue; // Old_JobChange_01
             Debug.Assert(data.basic.kinds.groupIDs.Length <= 1);
@@ -32,7 +32,7 @@ public class SkillMapper : TypeMapper<SkillMetadata> {
                     Recovery: new SkillMetadataRecovery(
                         SpValue: level.recoveryProperty.spValue,
                         SpRate: level.recoveryProperty.spRate),
-                    Skills: level.conditionSkill.Select(skill => skill.Convert()).ToList(),
+                    Skills: level.conditionSkill.Select(skill => skill.Convert()).ToArray(),
                     Motions: level.motion.Select(motion => new SkillMetadataMotion(
                         Attacks: motion.attack.Select(attack => new SkillMetadataAttack(
                             Point: attack.point,
@@ -55,12 +55,13 @@ public class SkillMapper : TypeMapper<SkillMetadata> {
                                 IsConstDamage: attack.damageProperty.isConstDamageValue != 0,
                                 Value: attack.damageProperty.value,
                                 DamageByTargetMaxHp: attack.damageProperty.damageByTargetMaxHP
-                            )
-                        )).ToList()
-                    )).ToList()
+                            ),
+                            Skills: attack.conditionSkill.Select(skill => skill.Convert()).ToArray()
+                        )).ToArray()
+                    )).ToArray()
                 ));
 
-            yield return new SkillMetadata(
+            yield return new StoredSkillMetadata(
                 Id: id,
                 Name: name,
                 Property: new SkillMetadataProperty(
