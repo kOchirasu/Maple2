@@ -1,10 +1,9 @@
-﻿using System;
-using System.Numerics;
-using Maple2.Model.Common;
+﻿using Maple2.Model.Common;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
+using Maple2.Server.Game.Model.Skill;
 
 namespace Maple2.Server.Game.Packets;
 
@@ -14,17 +13,17 @@ public static class VibratePacket {
         Invoke = 2,
     }
 
-    public static ByteWriter Attack(string entityId, SkillAttack attack, Vector3 position) {
+    public static ByteWriter Attack(string entityId, SkillRecord skill) {
         var pWriter = Packet.Of(SendOp.Vibrate);
         pWriter.Write<Command>(Command.Attack);
         pWriter.WriteString(entityId);
-        pWriter.WriteLong(attack.Id);
-        pWriter.WriteInt(attack.SkillId);
-        pWriter.WriteShort(attack.SkillLevel);
-        pWriter.WriteByte(attack.MotionPoint);
-        pWriter.WriteByte(attack.AttackPoint);
-        pWriter.Write<Vector3S>(position);
-        pWriter.WriteInt(Environment.TickCount);
+        pWriter.WriteLong(skill.Uid);
+        pWriter.WriteInt(skill.SkillId);
+        pWriter.WriteShort(skill.Level);
+        pWriter.WriteByte(skill.MotionPoint);
+        pWriter.WriteByte(skill.AttackPoint);
+        pWriter.Write<Vector3S>(skill.Position);
+        pWriter.WriteInt(skill.ServerTick);
         pWriter.WriteString();
         pWriter.WriteByte();
 

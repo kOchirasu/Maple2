@@ -1,4 +1,5 @@
-﻿using Maple2.Model.Metadata;
+﻿using System.Collections.Generic;
+using Maple2.Model.Metadata;
 
 namespace Maple2.Server.Game.Model.Skill;
 
@@ -8,7 +9,7 @@ public class SkillAttack {
 
     private readonly SkillMetadataAttack attack;
     public SkillMetadataDamage Damage => attack.Damage;
-    public SkillEffectMetadata[] Effects => attack.Skills;
+    public IReadOnlyCollection<SkillEffectMetadata> Effects => attack.Skills;
 
     public SkillAttack(IActor caster, IActor owner, SkillMetadataAttack attack) {
         Caster = caster;
