@@ -59,7 +59,7 @@ public class SkillMetadataStorage : MetadataStorage<(int, short), SkillMetadata>
                 return true;
             }
 
-            effect = Context.AdditionalEffectMetadata.Find(new {id, level});
+            effect = Context.AdditionalEffectMetadata.Find(id, level);
 
             if (effect == null) {
                 return false;

@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Maple2.Model.Enum;
+using Maple2.Model.Metadata;
 using Maple2.Server.Core.Formulas;
 
 namespace Maple2.Server.Game.Model;
@@ -14,6 +16,13 @@ public class Stats {
     public Stats(JobCode jobCode, short level) {
         values = new Dictionary<StatAttribute, Stat>();
         Reset(jobCode, level);
+    }
+
+    public Stats(NpcMetadataStat npcStats) {
+        values = new Dictionary<StatAttribute, Stat>();
+        foreach ((StatAttribute attribute, long value) in npcStats.Stats) {
+            this[attribute].AddBase(value);
+        }
     }
 
     public void Reset(JobCode jobCode, short level) {
@@ -91,12 +100,16 @@ public sealed class Stat {
         Current += amount;
     }
 
+    public void Add(long amount) {
+        Current = Math.Clamp(Current + amount, 0, Total);
+    }
+
     public long this[int i] {
         get {
             return i switch {
                 0 => Total,
                 1 => Base,
-                _ => Current
+                _ => Current,
             };
         }
     }

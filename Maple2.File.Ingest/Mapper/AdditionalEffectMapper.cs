@@ -35,39 +35,67 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                     Consume: new AdditionalEffectMetadataConsume(
                         HpRate: data.ConsumeProperty.hpRate,
                         SpRate: data.ConsumeProperty.spRate),
-                    Recovery: new AdditionalEffectMetadataRecovery(
-                        RecoveryRate: data.RecoveryProperty.RecoveryRate,
-                        HpValue: data.RecoveryProperty.hpValue,
-                        HpRate: data.RecoveryProperty.hpRate,
-                        HpConsumeRate: data.RecoveryProperty.hpConsumeRate,
-                        SpValue: data.RecoveryProperty.spValue,
-                        SpRate: data.RecoveryProperty.spRate,
-                        SpConsumeRate: data.RecoveryProperty.spConsumeRate,
-                        EpValue: data.RecoveryProperty.epValue,
-                        EpRate: data.RecoveryProperty.epRate,
-                        NotCrit: data.RecoveryProperty.disableCriticalRecovery),
+                    Recovery: Convert(data.RecoveryProperty),
                     Dot: new AdditionalEffectMetadataDot(
-                        Damage: data.DotDamageProperty.type > 0 ? new AdditionalEffectMetadataDot.DotDamage(
-                            Type: data.DotDamageProperty.type,
-                            Element: (Element) data.DotDamageProperty.element,
-                            UseGrade: data.DotDamageProperty.useGrade,
-                            Rate: data.DotDamageProperty.rate,
-                            HpValue: data.DotDamageProperty.value,
-                            SpValue: data.DotDamageProperty.spValue,
-                            EpValue: data.DotDamageProperty.epValue,
-                            DamageByTargetMaxHp: data.DotDamageProperty.damageByTargetMaxHP,
-                            RecoverHpByDamage: data.DotDamageProperty.casterRecoveryHpByDamage,
-                            IsConstDamage: data.DotDamageProperty.isConstDotDamageValue,
-                            NotKill: data.DotDamageProperty.notKill) : null,
-                        Buff: data.DotBuffProperty?.buffID > 0 ? new AdditionalEffectMetadataDot.DotBuff(
-                            Target: (SkillEntity) data.DotBuffProperty.target,
-                            Id: data.DotBuffProperty.buffID,
-                            Level: data.DotBuffProperty.buffLevel) : null),
-                    Shield: new AdditionalEffectMetadataShield(
-                        HpValue: data.ShieldProperty.hpValue,
-                        HpByTargetMaxHp: data.ShieldProperty.hpByTargetMaxHP),
+                        Damage: Convert(data.DotDamageProperty),
+                        Buff: Convert(data.DotBuffProperty)),
+                    Shield: Convert(data.ShieldProperty),
                     Skills: data.conditionSkill.Concat(data.splashSkill).Select(skill => skill.Convert()).ToArray());
             }
         }
+    }
+
+    private static AdditionalEffectMetadataRecovery? Convert(RecoveryProperty recovery) {
+        if (recovery.RecoveryRate <= 0 && recovery.hpValue <= 0 && recovery.hpRate <= 0 && recovery.spValue <= 0 && recovery.spRate <= 0
+            && recovery.spConsumeRate <= 0 && recovery.epValue <= 0 && recovery.epRate <= 0) {
+            return null;
+        }
+
+        return new AdditionalEffectMetadataRecovery(
+            RecoveryRate: recovery.RecoveryRate,
+            HpValue: recovery.hpValue,
+            HpRate: recovery.hpRate,
+            HpConsumeRate: recovery.hpConsumeRate,
+            SpValue: recovery.spValue,
+            SpRate: recovery.spRate,
+            SpConsumeRate: recovery.spConsumeRate,
+            EpValue: recovery.epValue,
+            EpRate: recovery.epRate,
+            NotCrit: recovery.disableCriticalRecovery);
+    }
+
+    private static AdditionalEffectMetadataDot.DotDamage? Convert(DotDamageProperty dotDamage) {
+        if (dotDamage.type <= 0) {
+            return null;
+        }
+
+        return new AdditionalEffectMetadataDot.DotDamage(
+            Type: dotDamage.type,
+            Element: (Element) dotDamage.element,
+            UseGrade: dotDamage.useGrade,
+            Rate: dotDamage.rate,
+            HpValue: dotDamage.value,
+            SpValue: dotDamage.spValue,
+            EpValue: dotDamage.epValue,
+            DamageByTargetMaxHp: dotDamage.damageByTargetMaxHP,
+            RecoverHpByDamage: dotDamage.casterRecoveryHpByDamage,
+            IsConstDamage: dotDamage.isConstDotDamageValue,
+            NotKill: dotDamage.notKill);
+    }
+
+    private static AdditionalEffectMetadataDot.DotBuff? Convert(DotBuffProperty? dotBuff) {
+        if (dotBuff is not {buffID: > 0}) {
+            return null;
+        }
+
+        return new AdditionalEffectMetadataDot.DotBuff(Target: (SkillEntity) dotBuff.target, Id: dotBuff.buffID, Level: dotBuff.buffLevel);
+    }
+
+    private static AdditionalEffectMetadataShield? Convert(ShieldProperty shield) {
+        if (shield.hpValue <= 0 && shield.hpByTargetMaxHP <= 0) {
+            return null;
+        }
+
+        return new AdditionalEffectMetadataShield(HpValue: shield.hpValue, HpByTargetMaxHp: shield.hpByTargetMaxHP);
     }
 }

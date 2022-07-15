@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using Maple2.Model.Enum;
+﻿using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
 
@@ -8,9 +7,9 @@ public record AdditionalEffectMetadata(
     short Level,
     AdditionalEffectMetadataProperty Property,
     AdditionalEffectMetadataConsume Consume,
-    AdditionalEffectMetadataRecovery Recovery,
+    AdditionalEffectMetadataRecovery? Recovery,
     AdditionalEffectMetadataDot Dot,
-    AdditionalEffectMetadataShield Shield,
+    AdditionalEffectMetadataShield? Shield,
     SkillEffectMetadata[] Skills);
 
 public record AdditionalEffectMetadataProperty(

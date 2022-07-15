@@ -9,7 +9,7 @@ namespace Maple2.Server.Game.Packets;
 
 public static class StatsPacket {
     private enum Command : byte {
-        Update = 0
+        Update = 0,
     }
 
     public static ByteWriter Init(Actor<Player> entity) {

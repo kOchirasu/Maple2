@@ -2,10 +2,11 @@
 using System.Numerics;
 using Maple2.Model.Common;
 using Maple2.Model.Enum;
-using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
+using Maple2.Server.Game.Model.Skill;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.Packets;
 
@@ -83,15 +84,11 @@ public static class SkillDamagePacket {
         return pWriter;
     }
 
-    public static ByteWriter Heal(HealDamageRecord record) {
+    public static ByteWriter Heal(HealDamageRecord record, bool animate = true) {
         var pWriter = Packet.Of(SendOp.SkillDamage);
         pWriter.Write<Command>(Command.Heal);
-        pWriter.WriteInt(record.OwnerId);
-        pWriter.WriteInt(record.TargetId);
-        pWriter.WriteInt(record.Count);
-        pWriter.WriteLong(record.HpAmount);
-        pWriter.WriteInt(record.SpAmount);
-        pWriter.WriteByte(record.EpAmount);
+        pWriter.WriteClass<HealDamageRecord>(record);
+        pWriter.WriteBool(animate);
 
         return pWriter;
     }
