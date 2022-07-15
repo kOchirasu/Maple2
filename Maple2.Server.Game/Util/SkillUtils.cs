@@ -18,8 +18,8 @@ public static class SkillUtils {
         IPolygon polygon = range.Type switch {
             SkillRegion.Box => new Rectangle(origin, range.Width, range.Distance, angle),
             SkillRegion.Cylinder => new Circle(origin, range.Distance),
-            SkillRegion.Frustum => new Frustum(origin, range.Width, range.EndWidth, range.Distance, angle),
-            SkillRegion.HoleCylinder => new Circle(origin, range.Distance), // TODO: Add Hole
+            SkillRegion.Frustum => new Trapezoid(origin, range.Width, range.EndWidth, range.Distance, angle),
+            SkillRegion.HoleCylinder => new HoleCircle(origin, range.Width, range.EndWidth),
             _ => throw new ArgumentOutOfRangeException($"Invalid range type: {range.Type}"),
         };
 

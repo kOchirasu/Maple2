@@ -2,6 +2,7 @@
 using Maple2.Model.Metadata;
 using Maple2.Script.Npc;
 using Maple2.Server.Game.Model;
+using Maple2.Server.Game.Model.Skill;
 
 namespace Maple2.Server.Game.Session;
 
@@ -20,6 +21,7 @@ public partial class GameSession {
     public HeldCube? HeldCube;
 
     public ObjectWeapon? HeldLiftup;
+    public SkillRecord? Skill;
 
     public NpcScript? NpcScript;
 

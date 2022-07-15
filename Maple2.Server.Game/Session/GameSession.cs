@@ -242,7 +242,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
 
     public void OnStateSync(StateSync stateSync) {
         Player.Position = stateSync.Position;
-        Player.Rotation = new Vector3(0, 0, stateSync.Rotation);
+        Player.Rotation = new Vector3(0, 0, stateSync.Rotation / 10f);
         Player.State = stateSync.State;
         Player.SubState = stateSync.SubState;
     }

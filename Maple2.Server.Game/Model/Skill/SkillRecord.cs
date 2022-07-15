@@ -16,6 +16,19 @@ public class SkillRecord {
     public Vector3 Position;
     public Vector3 Direction;
     public Vector3 Rotation;
+    public float Rotate2Z;
+    public bool Unknown;
+
+    public bool IsHold;
+    public int HoldInt;
+    public string HoldString = string.Empty;
+
+    public override string ToString() {
+        return $"Uid:{Uid}, SkillId:{SkillId}, Level:{Level}, MotionPoint:{MotionPoint}, AttackPoint:{AttackPoint}\n"
+               + $"- Position:{Position}\n"
+               + $"- Rotation:{Rotation}\n"
+               + $"- Direction:{Direction}";
+    }
 }
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 14)]

@@ -19,6 +19,7 @@ public class PlayerCommand : Command {
     public PlayerCommand(GameSession session) : base(NAME, DESCRIPTION) {
         AddCommand(new LevelCommand(session));
         AddCommand(new JobCommand(session));
+        AddCommand(new InfoCommand(session));
     }
 
     private class LevelCommand : Command {
@@ -108,6 +109,22 @@ public class PlayerCommand : Command {
                 ctx.Console.Error.WriteLine(ex.Message);
                 ctx.ExitCode = 1;
             }
+        }
+    }
+
+    private class InfoCommand : Command {
+        private readonly GameSession session;
+
+        public InfoCommand(GameSession session) : base("info", "Prints player info.") {
+            this.session = session;
+
+            this.SetHandler<InvocationContext>(Handle);
+        }
+
+        private void Handle(InvocationContext ctx) {
+            ctx.Console.Out.WriteLine($"Player: {session.Player.ObjectId} ({session.Player.Value.Character.Name})");
+            ctx.Console.Out.WriteLine($"  Position: {session.Player.Position}");
+            ctx.Console.Out.WriteLine($"  Rotation: {session.Player.Rotation}");
         }
     }
 }

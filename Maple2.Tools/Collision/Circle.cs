@@ -1,35 +1,24 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Text;
 
 namespace Maple2.Tools.Collision;
 
 public class Circle : IPolygon {
-    private const int RESOLUTION = 12;
-
-    IReadOnlyList<Vector2> IPolygon.Points => points;
-    private readonly List<Vector2> points;
+    IReadOnlyList<Vector2> IPolygon.Points => Array.Empty<Vector2>();
+    private readonly Vector2 origin;
+    private readonly float radiusSquared;
 
     public Circle(in Vector2 origin, float radius) {
-        const float step = MathF.Tau / RESOLUTION;
+        this.origin = origin;
+        radiusSquared = radius * radius;
+    }
 
-        points = new List<Vector2>(RESOLUTION);
-        float angle = 0;
-        for (int i = 0; i < RESOLUTION; i++, angle += step) {
-            points.Add(new Vector2(
-                origin.X + radius * MathF.Cos(angle),
-                origin.Y + radius * MathF.Sin(angle)
-            ));
-        }
+    public virtual bool Contains(Vector2 point) {
+        return Vector2.DistanceSquared(origin, point) <= radiusSquared;
     }
 
     public override string ToString() {
-        var builder = new StringBuilder();
-        foreach (Vector2 point in points) {
-            builder.Append($"({point.X}, {point.Y}), ");
-        }
-
-        return builder.ToString();
+        return $"Origin:{origin}, Radius:{MathF.Sqrt(radiusSquared)}";
     }
 }
