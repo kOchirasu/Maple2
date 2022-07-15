@@ -1,7 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.Server.Core.Constants;
+using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
@@ -13,7 +16,8 @@ public class FieldPlayer : Actor<Player> {
     public readonly GameSession Session;
 
     public override Stats Stats => Session.Stats.Values;
-    public bool InBattle;
+    private int battleTick;
+    private bool inBattle;
 
     public int TagId = 1;
 
@@ -21,10 +25,29 @@ public class FieldPlayer : Actor<Player> {
         Session = session;
 
         Scheduler.ScheduleRepeated(() => Field.Broadcast(ProxyObjectPacket.UpdatePlayer(this, 66)), 2000);
+        Scheduler.ScheduleRepeated(() => {
+            if (InBattle && Environment.TickCount - battleTick > 2000) {
+                InBattle = false;
+            }
+        }, 500);
         Scheduler.Start();
     }
 
     public static implicit operator Player(FieldPlayer fieldPlayer) => fieldPlayer.Value;
+
+    public bool InBattle {
+        get => inBattle;
+        set {
+            if (value != inBattle) {
+                inBattle = value;
+                Session.Field?.Broadcast(SkillPacket.InBattle(this));
+            }
+
+            if (inBattle) {
+                battleTick = Environment.TickCount;
+            }
+        }
+    }
 
     public override void Sync() {
         base.Sync();

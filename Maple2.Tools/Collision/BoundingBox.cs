@@ -6,19 +6,19 @@ namespace Maple2.Tools.Collision;
 
 public class BoundingBox : IPolygon {
     IReadOnlyList<Vector2> IPolygon.Points => Array.Empty<Vector2>();
-    private readonly float minX;
-    private readonly float maxX;
-    private readonly float minY;
-    private readonly float maxY;
+    private readonly Vector2 min;
+    private readonly Vector2 max;
 
-    public BoundingBox(in Vector2 min, in Vector2 max) {
-        minX = MathF.Min(min.X, max.X);
-        maxX = MathF.Max(min.X, max.X);
-        minY = MathF.Min(min.Y, max.Y);
-        maxY = MathF.Max(min.Y, max.Y);
+    public BoundingBox(in Vector2 vector1, in Vector2 vector2) {
+        min = Vector2.Min(vector1, vector2);
+        max = Vector2.Max(vector2, vector2);
     }
 
     public bool Contains(Vector2 point) {
-        return minX <= point.X && point.X <= maxX && minY <= point.Y && point.Y <= maxY;
+        return min.X <= point.X && point.X <= max.X && min.Y <= point.Y && point.Y <= max.Y;
+    }
+
+    public override string ToString() {
+        return $"Min:{min}, Max:{max}";
     }
 }

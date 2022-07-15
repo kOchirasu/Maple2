@@ -5,11 +5,11 @@ using System.Text;
 
 namespace Maple2.Tools.Collision;
 
-public class Frustum : IPolygon {
+public class Trapezoid : IPolygon {
     IReadOnlyList<Vector2> IPolygon.Points => points;
     private readonly List<Vector2> points;
 
-    public Frustum(in Vector2 origin, float width, float endWidth, float distance, float angle) {
+    public Trapezoid(in Vector2 origin, float width, float endWidth, float distance, float angle) {
         float radians = angle * (MathF.PI / 180);
         float halfWidth = width / 2;
         float halfEndWidth = endWidth / 2;

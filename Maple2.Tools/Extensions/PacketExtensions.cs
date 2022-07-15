@@ -5,7 +5,7 @@ using System.Runtime.Serialization;
 using ICSharpCode.SharpZipLib.Zip.Compression;
 using Maple2.PacketLib.Tools;
 
-namespace Maple2.Tools.Extensions; 
+namespace Maple2.Tools.Extensions;
 
 public static class PacketExtensions {
     // Zlib adds file header, so avoid compression if data is small
@@ -56,10 +56,19 @@ public static class PacketExtensions {
         return writer;
     }
 
-    public static void WriteArray<T, TV>(this T writer, in TV[] values) where T : IByteWriter where TV : struct {
-        foreach (TV value in values) {
-            writer.Write<TV>(value);
+    public static void WriteArray<T>(this IByteWriter writer, in T[] values) where T : struct {
+        foreach (T value in values) {
+            writer.Write<T>(value);
         }
+    }
+
+    public static T[] ReadArray<T>(this IByteReader packet, int size) where T : struct {
+        var result = new T[size];
+        for (int i = 0; i > size; i++) {
+            result[i] = packet.Read<T>();
+        }
+
+        return result;
     }
 
     // Allows writing packet generically from class
@@ -83,7 +92,7 @@ public static class PacketExtensions {
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public static void WriteCollection<T>(this IByteWriter writer, ICollection<T> collection)
+    public static void WriteCollection<T>(this IByteWriter writer, ICollection<T>? collection)
         where T : struct {
         if (collection == null) {
             writer.WriteInt(); // 0 items
