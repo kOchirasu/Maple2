@@ -26,7 +26,7 @@ public sealed partial class FieldManager : IDisposable {
     // ReSharper disable MemberCanBePrivate.Global
     public GameStorage GameStorage { get; init; } = null!;
     public NpcMetadataStorage NpcMetadata { private get; init; } = null!;
-    public SkillMetadataStorage SkillMetadata { private get; init; } = null!;
+    public SkillMetadataStorage SkillMetadata { get; init; } = null!;
     public Lua.Lua Lua { private get; init; } = null!;
     // ReSharper restore All
     #endregion

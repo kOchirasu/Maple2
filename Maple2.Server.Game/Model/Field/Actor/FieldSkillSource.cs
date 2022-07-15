@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Linq;
+using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Model.Skill;
+using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Util;
 using Maple2.Tools.Collision;
+using Serilog;
 
 namespace Maple2.Server.Game.Model;
 
@@ -35,9 +39,41 @@ public class FieldSkillSource : ActorBase<SkillMetadata> {
             foreach (SkillMetadataAttack attack in motion.Attacks) {
                 Prism prism = attack.Range.GetPrism(Position, Rotation.Z);
                 FieldPlayer[] players = prism.Filter(Field.Players.Values, attack.TargetCount).ToArray();
-                foreach (FieldPlayer player in players) {
-                    var skillAttack = new SkillAttack(this, this, attack);
-                    player.ApplyAttack(skillAttack);
+
+                if (attack.Damage.Count > 0) {
+                    Log.Debug("SkillSource Damage unimplemented");
+                    var record = new DamageRecord();
+                    foreach (FieldPlayer player in players) {
+                        var targetRecord = new DamageRecordTarget {
+                            ObjectId = player.ObjectId,
+                            Direction = default,
+                            Position = default,
+                        };
+                        for (int i = 0; i < attack.Damage.Count; i++) {
+                            targetRecord.AddDamage(DamageType.Normal, i);
+                        }
+                        record.Targets.Add(targetRecord);
+                    }
+
+                    Field.Broadcast(SkillDamagePacket.Damage(record));
+                }
+
+                foreach (SkillEffectMetadata effect in attack.Skills) {
+                    if (effect.Condition != null) {
+                        // ConditionSkill
+                        switch (effect.Condition.Target) {
+                            case SkillEntity.Target:
+                                foreach (FieldPlayer player in players) {
+                                    player.ApplyEffect(this, effect);
+                                }
+                                break;
+                            default:
+                                Log.Error("Invalid Target: {Target}", effect.Condition.Target);
+                                break;
+                        }
+                    } else if (effect.Splash != null) {
+                        Log.Debug("SkillSource Splash Skill unimplemented");
+                    }
                 }
             }
         }

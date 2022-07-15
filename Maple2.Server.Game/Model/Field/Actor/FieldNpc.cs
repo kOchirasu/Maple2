@@ -33,7 +33,7 @@ public class FieldNpc : Actor<Npc> {
     public FieldNpc(FieldManager field, int objectId, Npc npc) : base (field, objectId, npc) {
         StateData = new NpcState();
         Buffs = new Dictionary<int, Buff>();
-        Stats = new Stats(JobCode.Newbie, npc.Metadata.Basic.Level);
+        Stats = new Stats(npc.Metadata.Stat);
         SequenceId = -1;
         SequenceCounter = 1;
 

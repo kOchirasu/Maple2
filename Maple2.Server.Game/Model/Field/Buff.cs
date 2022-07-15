@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System;
+using System.Numerics;
+using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
@@ -9,31 +11,69 @@ public class Buff : IFieldObject, IByteSerializable {
     public Vector3 Position { get; set; }
     public Vector3 Rotation { get; set; }
 
-    public readonly int Id;
-    public readonly IActor Owner;
+    public readonly IActor Caster;
     public readonly IActor Target;
 
-    public Buff(int objectId, int id, IActor owner, IActor target) {
+    public readonly AdditionalEffectMetadata Metadata;
+    public int Id => Metadata.Id;
+    public short Level => Metadata.Level;
+
+    public int StartTick { get; private set; }
+    public int EndTick { get; private set; }
+    public int NextTick { get; private set; }
+    public int Stacks { get; private set; }
+
+    public bool Enabled => Environment.TickCount <= EndTick;
+
+    public Buff(int objectId, AdditionalEffectMetadata metadata, IActor caster, IActor target) {
         ObjectId = objectId;
-        Id = id;
-        Owner = owner;
+        Metadata = metadata;
+        Caster = caster;
         Target = target;
+
+        // Initialize
+        Stacks = 1;
+        StartTick = Environment.TickCount;
+        EndTick = StartTick + Metadata.Property.DurationTick;
+        NextTick = StartTick + Metadata.Property.DelayTick;
+    }
+
+    public void Stack() {
+        Stacks = Math.Min(Stacks + 1, Metadata.Property.MaxCount);
+    }
+
+    public bool ShouldProc() {
+        if (!Enabled || Environment.TickCount < NextTick) {
+            return false;
+        }
+
+        // Buffs with IntervalTick=0 will just proc a single time
+        if (Metadata.Property.IntervalTick == 0) {
+            NextTick = EndTick + 1;
+            return true;
+        }
+
+        NextTick += Metadata.Property.IntervalTick;
+        return true;
     }
 
     public void WriteTo(IByteWriter writer) {
-        writer.WriteInt(Target.ObjectId);
-        writer.WriteInt(ObjectId);
-        writer.WriteInt(Owner.ObjectId);
-        WriteAdditionalEffect(writer, this);
-        writer.WriteLong(); // Unknown, AdditionalEffect2
+        WriteAdditionalEffect(writer);
+        WriteAdditionalEffect2(writer);
     }
 
-    private void WriteAdditionalEffect(IByteWriter pWriter, Buff buff) {
-        pWriter.WriteInt(0);
-        pWriter.WriteInt(0);
-        pWriter.WriteInt(buff.Id);
-        pWriter.WriteShort(1);
-        pWriter.WriteInt(1);
-        pWriter.WriteBool(false);
+    // AdditionalEffect
+    public void WriteAdditionalEffect(IByteWriter writer) {
+        writer.WriteInt(StartTick);
+        writer.WriteInt(EndTick);
+        writer.WriteInt(Metadata.Id);
+        writer.WriteShort(Metadata.Level);
+        writer.WriteInt(Stacks);
+        writer.WriteBool(Enabled);
+    }
+
+    // Unknown, AdditionalEffect2
+    public void WriteAdditionalEffect2(IByteWriter writer) {
+        writer.WriteLong();
     }
 }

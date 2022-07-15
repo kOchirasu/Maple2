@@ -1,18 +1,33 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
+using System.Threading;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Model.Skill;
+using Maple2.Server.Game.Packets;
 using Maple2.Tools.Scheduler;
 using Serilog;
 
 namespace Maple2.Server.Game.Model;
 
 public abstract class ActorBase<T> : IActor<T> {
+    private int idCounter;
+
+    /// <summary>
+    /// Generates an ObjectId unique to this specific actor instance.
+    /// </summary>
+    /// <returns>Returns a local ObjectId</returns>
+    protected int NextLocalId() => Interlocked.Increment(ref idCounter);
+
     public FieldManager Field { get; }
     public T Value { get; }
+
+    public virtual IReadOnlyDictionary<int, Buff> Buffs => IActor.NoBuffs;
+    public virtual Stats Stats { get; } = new(0, 0);
 
     public int ObjectId { get; }
     public Vector3 Position { get; set; }
@@ -29,7 +44,7 @@ public abstract class ActorBase<T> : IActor<T> {
 
     public virtual void ApplyAttack(SkillAttack attack) { }
 
-    public virtual void ApplyEffect(IFieldEntity owner, SkillEffectMetadata effect) { }
+    public virtual void ApplyEffect(IActor owner, SkillEffectMetadata effect) { }
 
     public virtual void Sync() { }
 }
@@ -39,10 +54,10 @@ public abstract class ActorBase<T> : IActor<T> {
 /// </summary>
 /// <typeparam name="T">The type contained by this object</typeparam>
 public abstract class Actor<T> : ActorBase<T>, IDisposable {
-    public abstract IReadOnlyDictionary<int, Buff> Buffs { get; }
-    public abstract Stats Stats { get; }
-
     protected readonly EventQueue Scheduler;
+
+    protected readonly ConcurrentDictionary<int, Buff> buffs = new();
+    public override IReadOnlyDictionary<int, Buff> Buffs => buffs;
 
     protected Actor(FieldManager field, int objectId, T value) : base(field, objectId, value) {
         Scheduler = new EventQueue();
@@ -79,8 +94,24 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
         }
     }
 
-    public override void ApplyEffect(IFieldEntity owner, SkillEffectMetadata effect) {
+    public override void ApplyEffect(IActor owner, SkillEffectMetadata effect) {
+        Debug.Assert(effect.Condition != null);
 
+        foreach (SkillEffectMetadata.Skill skill in effect.Skills) {
+            if (buffs.TryGetValue(skill.Id, out Buff? existing)) {
+                existing.Stack();
+                Field.Broadcast(BuffPacket.Update(existing));
+                continue;
+            }
+
+            if (!Field.SkillMetadata.TryGetEffect(skill.Id, skill.Level, out AdditionalEffectMetadata? additionalEffect)) {
+                return;
+            }
+
+            var buff = new Buff(NextLocalId(), additionalEffect, owner, this);
+            buffs[skill.Id] = buff;
+            Field.Broadcast(BuffPacket.Add(buff));
+        }
     }
 
     public override void Sync() {
