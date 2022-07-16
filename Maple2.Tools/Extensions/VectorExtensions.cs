@@ -6,6 +6,7 @@ namespace Maple2.Tools.Extensions;
 
 public static class VectorExtensions {
     public const int BLOCK_SIZE = 150;
+    private const float RAD_TO_DEG = MathF.PI / 180f;
 
     public static Vector3 Align(this in Vector3 position, float interval = BLOCK_SIZE) {
         return new Vector3(
@@ -23,8 +24,16 @@ public static class VectorExtensions {
         );
     }
 
+    public static Vector3 Offset(this in Vector3 position, float distance, float rotation) {
+        return position + new Vector3(0, distance, 0).Rotate(new Vector3(0, 0, rotation));
+    }
+
     public static Vector3 Offset(this in Vector3 position, float distance, in Vector3 rotation) {
         return position + new Vector3(0, distance, 0).Rotate(rotation);
+    }
+
+    public static Vector3 Offset(this in Vector3 position, in Vector3 offset, float rotation) {
+        return position + offset.Rotate(new Vector3(0, 0, rotation));
     }
 
     public static Vector3 Offset(this in Vector3 position, in Vector3 offset, in Vector3 rotation) {
@@ -35,9 +44,9 @@ public static class VectorExtensions {
     public static Vector3 Rotate(this in Vector3 magnitude, in Vector3 eulerAngle) {
         // Extra MathF.PI on X/Z are because Y-axis is mirrored.
         var rotation = Quaternion.CreateFromYawPitchRoll(
-            MathF.PI - eulerAngle.X * MathF.PI / 180,
-            eulerAngle.Y * MathF.PI / 180,
-            MathF.PI - eulerAngle.Z * MathF.PI / 180
+            MathF.PI - eulerAngle.X * RAD_TO_DEG,
+            eulerAngle.Y * RAD_TO_DEG,
+            MathF.PI - eulerAngle.Z * RAD_TO_DEG
         );
 
         return Vector3.Transform(magnitude, rotation);
@@ -45,7 +54,7 @@ public static class VectorExtensions {
 
     // Computes the rotation angle from src(x, y) to dst(x, y).
     public static float Angle2D(this in Vector3 src, in Vector3 dst) {
-        return (float) Math.Atan2(dst.Y - src.Y, dst.X - src.X) * (180 / MathF.PI) + 90f;
+        return (float) Math.Atan2(dst.Y - src.Y, dst.X - src.X) * RAD_TO_DEG + 90f;
     }
 
     // Clamps the length of a vector between min and max.

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Maple2.Model.Enum;
+using Maple2.Model.Metadata;
 
 namespace Maple2.Server.Game.Model;
 
@@ -11,6 +12,8 @@ public interface IActor : IFieldEntity {
 
     public ActorState State { get; }
     public ActorSubState SubState { get; }
+
+    public virtual void ApplyEffect(IActor owner, SkillEffectMetadata effect) { }
 }
 
 public interface IActor<T> : IActor {

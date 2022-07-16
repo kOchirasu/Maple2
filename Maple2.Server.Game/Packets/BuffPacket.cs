@@ -40,7 +40,7 @@ public static class BuffPacket {
         pWriter.WriteInt(buff.Target.ObjectId);
         pWriter.WriteInt(buff.ObjectId);
         pWriter.WriteInt(buff.Caster.ObjectId);
-        pWriter.WriteByte(1); // TODO: complete this...
+        pWriter.WriteInt(1); // TODO: complete this...
         buff.WriteAdditionalEffect(pWriter);
         // buff.WriteAdditionalEffect2(pWriter);
 

@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
-using Maple2.Server.Core.Constants;
-using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Tools.Collision;
+using Maple2.Tools.Extensions;
 using Serilog;
 
 namespace Maple2.Server.Game.Model;
@@ -47,6 +49,34 @@ public class FieldPlayer : Actor<Player> {
                 battleTick = Environment.TickCount;
             }
         }
+    }
+
+    public void CastMagic(SkillRecord record, IReadOnlyList<MagicPath> magicPaths) {
+        var points = new Vector3[magicPaths.Count];
+        for (int i = 0; i < magicPaths.Count; i++) {
+            MagicPath magicPath = magicPaths[i];
+            Vector3 rotation = default;
+            if (magicPath.Rotate) {
+                rotation = Rotation;
+            }
+
+            Vector3 position = Position.Offset(magicPath.FireOffset, rotation);
+            points[i] = magicPath.IgnoreAdjust ? position : position.Align();
+        }
+
+        foreach (SkillEffectMetadata attack in record.Attack.Skills) {
+            Debug.Assert(attack.Splash != null);
+            Field.AddSkill(attack, points, Position, Rotation);
+        }
+        //
+        // var cubes = new IPolygon[points.Length];
+        // for (int i = 0; i < points.Length; i++) {
+        //     cubes[i] = new BoundingBox(
+        //         new Vector2(points[i].X, points[i].Y),
+        //         new Vector2(points[i].X  + 150f, points[i].Y + 150f));
+        // }
+        //
+        // var prism = new CompositePrism(cubes, Position.Align().Z, 150f);
     }
 
     public override void Sync() {

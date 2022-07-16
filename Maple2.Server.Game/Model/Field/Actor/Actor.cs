@@ -72,9 +72,9 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
             if (effect.Condition != null) {
                 // ConditionSkill
                 switch (effect.Condition.Target) {
-                    case SkillEntity.Owner:
+                    case SkillEntity.Enemy:
                         break;
-                    case SkillEntity.Target:
+                    case SkillEntity.Player:
                         break;
                     case SkillEntity.Caster:
                         break;

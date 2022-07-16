@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Numerics;
 using Maple2.Model.Enum;
-using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Model.Skill;
@@ -12,16 +12,30 @@ using Serilog;
 
 namespace Maple2.Server.Game.Model;
 
-public class FieldSkillSource : ActorBase<SkillMetadata> {
+public class FieldSkill : ActorBase<SkillMetadata> {
     public int Interval { get; init; } = 1000;
+    public int FireCount { get; private set; } = -1;
+    public bool UseRotation { get; init; }
+    public bool Enabled => FireCount != 0;
 
+    public readonly Vector3[] Points;
     private int nextTick;
 
-    public FieldSkillSource(FieldManager field, int objectId, SkillMetadata value) : base(field, objectId, value) {
+    public FieldSkill(FieldManager field, int objectId, SkillMetadata value, params Vector3[] points) : base(field, objectId, value) {
+        Points = points;
         nextTick = Environment.TickCount;
     }
 
+    public void SetFireCount(int fireCount) {
+        FireCount = fireCount;
+    }
+
     public override void Sync() {
+        if (!Enabled) {
+            Field.RemoveSkill(ObjectId);
+            return;
+        }
+
         if (Environment.TickCount < nextTick) {
             return;
         }
@@ -37,15 +51,36 @@ public class FieldSkillSource : ActorBase<SkillMetadata> {
 
         foreach (SkillMetadataMotion motion in Value.Data.Motions) {
             foreach (SkillMetadataAttack attack in motion.Attacks) {
-                Prism prism = attack.Range.GetPrism(Position, Rotation.Z);
-                FieldPlayer[] players = prism.Filter(Field.Players.Values, attack.TargetCount).ToArray();
+                Prism[] prisms = Points.Select(point => attack.Range.GetPrism(point, UseRotation ? Rotation.Z : 0)).ToArray();
+                IActor[] targets;
+                switch (attack.Range.ApplyTarget) {
+                    case SkillEntity.Player:
+                    case SkillEntity.Attacker:
+                    case SkillEntity.RegionBuff:
+                    case SkillEntity.RegionDebuff:
+                        targets = prisms.Filter(Field.Players.Values, attack.TargetCount).ToArray();
+                        break;
+                    default:
+                        Log.Debug("Unhandled SkillEntity:{Entity}", attack.Range.ApplyTarget);
+                        continue;
+                }
+
+                if (targets.Length > 0) {
+                    Log.Debug("[{Tick}] {ObjectId}:{AttackPoint} Targeting: {Count} players", nextTick, ObjectId, attack.Point, targets.Length);
+                    foreach (IActor target in targets) {
+                        Log.Debug("- {Id} @ {Position}", target.ObjectId, target.Position);
+                    }
+                }
 
                 if (attack.Damage.Count > 0) {
                     Log.Debug("SkillSource Damage unimplemented");
-                    var record = new DamageRecord();
-                    foreach (FieldPlayer player in players) {
+                    var record = new DamageRecord {
+                        SkillId = Value.Id,
+                        Level = Value.Level,
+                    };
+                    foreach (IActor target in targets) {
                         var targetRecord = new DamageRecordTarget {
-                            ObjectId = player.ObjectId,
+                            ObjectId = target.ObjectId,
                             Direction = default,
                             Position = default,
                         };
@@ -62,9 +97,9 @@ public class FieldSkillSource : ActorBase<SkillMetadata> {
                     if (effect.Condition != null) {
                         // ConditionSkill
                         switch (effect.Condition.Target) {
-                            case SkillEntity.Target:
-                                foreach (FieldPlayer player in players) {
-                                    player.ApplyEffect(this, effect);
+                            case SkillEntity.Player:
+                                foreach (IActor target in targets) {
+                                    target.ApplyEffect(this, effect);
                                 }
                                 break;
                             default:
@@ -78,6 +113,7 @@ public class FieldSkillSource : ActorBase<SkillMetadata> {
             }
         }
 
+        FireCount--;
         nextTick = Environment.TickCount + Interval;
     }
 }

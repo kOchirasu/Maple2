@@ -100,7 +100,7 @@ public static class MapperExtensions {
                 Independent: trigger.independent,
                 Chain: trigger.chain ? new SkillEffectMetadataChain(trigger.chainDistance) : null);
         } else {
-            var owner = SkillEntity.Owner;
+            var owner = SkillEntity.Enemy;
             if (trigger.skillOwner > 0 && Enum.IsDefined<SkillEntity>((SkillEntity) trigger.skillOwner)) {
                 owner = (SkillEntity) trigger.skillOwner;
             }
