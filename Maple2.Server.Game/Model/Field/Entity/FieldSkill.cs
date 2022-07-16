@@ -12,7 +12,8 @@ using Serilog;
 
 namespace Maple2.Server.Game.Model;
 
-public class FieldSkill : ActorBase<SkillMetadata> {
+public class FieldSkill : FieldEntity<SkillMetadata>, IOwned {
+    public IActor Owner { get; init; }
     public int Interval { get; init; } = 1000;
     public int FireCount { get; private set; } = -1;
     public bool UseRotation { get; init; }
@@ -21,7 +22,8 @@ public class FieldSkill : ActorBase<SkillMetadata> {
     public readonly Vector3[] Points;
     private int nextTick;
 
-    public FieldSkill(FieldManager field, int objectId, SkillMetadata value, params Vector3[] points) : base(field, objectId, value) {
+    public FieldSkill(FieldManager field, int objectId, IActor owner, SkillMetadata value, params Vector3[] points) : base(field, objectId, value) {
+        Owner = owner;
         Points = points;
         nextTick = Environment.TickCount;
     }
@@ -99,7 +101,7 @@ public class FieldSkill : ActorBase<SkillMetadata> {
                         switch (effect.Condition.Target) {
                             case SkillEntity.Player:
                                 foreach (IActor target in targets) {
-                                    target.ApplyEffect(this, effect);
+                                    target.ApplyEffect(Owner, effect);
                                 }
                                 break;
                             default:

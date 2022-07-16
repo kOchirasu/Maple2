@@ -99,8 +99,9 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
 
         foreach (SkillEffectMetadata.Skill skill in effect.Skills) {
             if (buffs.TryGetValue(skill.Id, out Buff? existing)) {
-                existing.Stack();
-                Field.Broadcast(BuffPacket.Update(existing));
+                if (existing.Stack()) {
+                    Field.Broadcast(BuffPacket.Update(existing));
+                }
                 continue;
             }
 

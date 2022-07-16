@@ -1,4 +1,7 @@
-﻿using Maple2.Server.Game.Manager.Field;
+﻿using System.Collections.Generic;
+using System.Numerics;
+using Maple2.Model.Enum;
+using Maple2.Server.Game.Manager.Field;
 
 namespace Maple2.Server.Game.Model;
 
@@ -20,5 +23,5 @@ public interface IFieldEntity<T> : IFieldEntity {
 /// Provides an Owner constraint to an entity.
 /// </summary>
 public interface IOwned {
-    IFieldEntity? Owner { get; init; }
+    IActor Owner { get; init; }
 }

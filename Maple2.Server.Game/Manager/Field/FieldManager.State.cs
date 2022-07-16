@@ -93,7 +93,7 @@ public partial class FieldManager {
         return fieldPortal;
     }
 
-    public FieldItem SpawnItem(IFieldEntity owner, Item item) {
+    public FieldItem SpawnItem(IActor owner, Item item) {
         var fieldItem = new FieldItem(this, NextLocalId(), item) {
             Owner = owner,
             Position = owner.Position,
@@ -161,7 +161,7 @@ public partial class FieldManager {
     }
 
     public void AddSkill(SkillMetadata metadata, int interval, in Vector3 position, in Vector3 rotation = default) {
-        var fieldSkill = new FieldSkill(this, NextLocalId(), metadata, position) {
+        var fieldSkill = new FieldSkill(this, NextLocalId(), fieldActor, metadata, position) {
             Interval = interval,
             Position = position,
             Rotation = rotation,
@@ -171,7 +171,7 @@ public partial class FieldManager {
         Broadcast(RegionSkillPacket.Add(fieldSkill));
     }
 
-    public void AddSkill(SkillEffectMetadata effect, Vector3[] points, in Vector3 position, in Vector3 rotation = default) {
+    public void AddSkill(IActor owner, SkillEffectMetadata effect, Vector3[] points, in Vector3 position, in Vector3 rotation = default) {
         Debug.Assert(effect.Splash != null, "Cannot add non-splash skill to field");
 
         foreach (SkillEffectMetadata.Skill skill in effect.Skills) {
@@ -179,7 +179,7 @@ public partial class FieldManager {
                 continue;
             }
 
-            var fieldSkill = new FieldSkill(this, NextLocalId(), metadata, points) {
+            var fieldSkill = new FieldSkill(this, NextLocalId(), owner, metadata, points) {
                 Interval = effect.Splash.Interval,
                 Position = position,
                 Rotation = rotation,
