@@ -25,7 +25,7 @@ public static class RegionSkillPacket {
 
         pWriter.WriteInt(skillSource.Value.Id);
         pWriter.WriteShort(skillSource.Value.Level);
-        pWriter.WriteFloat(skillSource.UseRotation ? skillSource.Rotation.Z : 0); // RotationH
+        pWriter.WriteFloat(skillSource.UseDirection ? skillSource.Rotation.Z : 0); // RotationH
         pWriter.WriteFloat(); // RotationV / 100
 
         return pWriter;

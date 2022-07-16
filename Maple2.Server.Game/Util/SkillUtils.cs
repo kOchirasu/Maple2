@@ -9,7 +9,7 @@ using Maple2.Tools.Collision;
 namespace Maple2.Server.Game.Util;
 
 public static class SkillUtils {
-    public static Prism GetPrism(this SkillMetadataRegion range, in Vector3 position, float angle) {
+    public static Prism GetPrism(this SkillMetadataRange range, in Vector3 position, float angle) {
         if (range.Type == SkillRegion.None) {
             return new Prism(IPolygon.Null, 0, 0);
         }

@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using Maple2.File.IO;
 using Maple2.File.Parser;
-using Maple2.File.Parser.Xml.Common;
 using Maple2.File.Parser.Xml.Skill;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
@@ -82,13 +81,14 @@ public class SkillMapper : TypeMapper<StoredSkillMetadata> {
         }
     }
 
-    private static SkillMetadataRegion Convert(RegionSkill region) {
-        return new SkillMetadataRegion(
+    private static SkillMetadataRange Convert(RegionSkill region) {
+        return new SkillMetadataRange(
             Type: region.rangeType switch {
                 "box" => SkillRegion.Box,
                 "cylinder" => SkillRegion.Cylinder,
                 "frustum" => SkillRegion.Frustum,
                 "hole_cylinder" => SkillRegion.HoleCylinder,
+                "1200" => SkillRegion.None, // skill/60/60012051.xml
                 _ => SkillRegion.None,
             },
             Distance: region.distance,

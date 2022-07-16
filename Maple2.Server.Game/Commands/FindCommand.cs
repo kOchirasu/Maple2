@@ -39,16 +39,17 @@ public class FindCommand : Command {
             this.session = session;
             this.storage = storage;
 
-            var query = new Argument<string>("query", "Search query.");
+            var query = new Argument<string[]>("query", "Search query.");
             var page = new Option<int>(new[] {"--page", "-p"}, "Page of query results.");
 
             AddArgument(query);
             AddOption(page);
-            this.SetHandler<InvocationContext, string, int>(Handle, query, page);
+            this.SetHandler<InvocationContext, string[], int>(Handle, query, page);
         }
 
-        private void Handle(InvocationContext ctx, string query, int page) {
+        private void Handle(InvocationContext ctx, string[] args, int page) {
             try {
+                string query = string.Join(' ', args);
                 List<T> results = storage.Search(query);
                 int pages = (int)Math.Ceiling(results.Count / (float) PAGE_SIZE);
                 page = Math.Clamp(page, 1, pages);

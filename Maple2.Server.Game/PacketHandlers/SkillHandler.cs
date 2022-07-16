@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
-using Google.Protobuf.WellKnownTypes;
 using Maple2.Database.Storage;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
@@ -27,7 +26,7 @@ public class SkillHandler : PacketHandler<GameSession> {
     private enum SubCommand : byte {
         Point = 0,
         Target = 1,
-        MagicPath = 2,
+        Splash = 2,
     }
 
     #region Autofac Autowired
@@ -52,8 +51,8 @@ public class SkillHandler : PacketHandler<GameSession> {
                     case SubCommand.Target:
                         HandleTarget(session, packet);
                         return;
-                    case SubCommand.MagicPath:
-                        HandleMagicPath(session, packet);
+                    case SubCommand.Splash:
+                        HandleSplash(session, packet);
                         return;
                 }
                 return;
@@ -146,9 +145,9 @@ public class SkillHandler : PacketHandler<GameSession> {
         }
 
         int attackCounter = packet.ReadInt();
-        int unknown1 = packet.ReadInt(); // Unknown(0)
-        if (unknown1 != 0) {
-            Logger.Error("Unhandled skill-Target value1({Value}): {Record}", unknown1, session.Skill);
+        int casterId = packet.ReadInt(); // Unknown(0)
+        if (casterId != 0 && casterId != session.Player.ObjectId) {
+            Logger.Error("Unhandled skill-Target value1({Value}): {Record}", casterId, session.Skill);
         }
 
         packet.Read<Vector3>();
@@ -161,15 +160,27 @@ public class SkillHandler : PacketHandler<GameSession> {
         }
 
         byte count = packet.ReadByte();
+        if (count > session.Skill.Attack.TargetCount) {
+            Logger.Error("Attack too many targets {Count} for {Record}", count, session.Skill);
+            return;
+        }
+
         int unknown2 = packet.ReadInt(); // Unknown(0)
         if (unknown2 != 0) {
             Logger.Error("Unhandled skill-Target value2({Value}): {Record}", unknown2, session.Skill);
         }
 
+        int[] targetIds = new int[count];
+        for (byte i = 0; i < count; i++) {
+            targetIds[i] = packet.ReadInt();
+            packet.ReadByte();
+        }
+
+        session.Player.TargetAttack(session.Skill, targetIds);
         session.Player.InBattle = true;
     }
 
-    private void HandleMagicPath(GameSession session, IByteReader packet) {
+    private void HandleSplash(GameSession session, IByteReader packet) {
         long skillUid = packet.ReadLong();
         if (session.Skill?.Uid != skillUid) {
             Logger.Warning("SkillUid mismatch {Existing} != {MagicPathCast}", session.Skill?.Uid, skillUid);
@@ -205,7 +216,7 @@ public class SkillHandler : PacketHandler<GameSession> {
             return;
         }
 
-        session.Player.CastMagic(session.Skill, magicPaths);
+        session.Player.SplashAttack(session.Skill, magicPaths);
         session.Player.InBattle = true;
     }
 

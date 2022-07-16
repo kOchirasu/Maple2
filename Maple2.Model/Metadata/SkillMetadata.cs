@@ -64,7 +64,7 @@ public record SkillMetadataAttack(
     long MagicPathId,
     long CubeMagicPathId,
     SkillMetadataPet? Pet,
-    SkillMetadataRegion Range,
+    SkillMetadataRange Range,
     SkillMetadataDamage Damage,
     SkillEffectMetadata[] Skills);
 
@@ -74,7 +74,7 @@ public record SkillMetadataPet(
     int TamingPoint,
     bool ForcedTaming);
 
-public record SkillMetadataRegion(
+public record SkillMetadataRange(
     SkillRegion Type,
     float Distance,
     float Height,

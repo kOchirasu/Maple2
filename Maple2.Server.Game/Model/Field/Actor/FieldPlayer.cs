@@ -9,7 +9,6 @@ using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Extensions;
-using Serilog;
 
 namespace Maple2.Server.Game.Model;
 
@@ -50,7 +49,43 @@ public class FieldPlayer : Actor<Player> {
         }
     }
 
-    public void CastMagic(SkillRecord record, IReadOnlyList<MagicPath> magicPaths) {
+    public void TargetAttack(SkillRecord record, int[] targetIds) {
+        SkillMetadataAttack attack = record.Attack;
+        var targets = new List<IActor>();
+        foreach (int targetId in targetIds) {
+            switch (attack.Range.ApplyTarget) {
+                case SkillEntity.Enemy:
+                    if (Field.TryGetNpc(targetId, out FieldNpc? npc)) {
+                        targets.Add(npc);
+                    }
+                    continue;
+                case SkillEntity.Player:
+                    if (Field.TryGetPlayer(targetId, out FieldPlayer? player)) {
+                        targets.Add(player);
+                    }
+                    continue;
+                default:
+                    logger.Debug("Unhandled SkillEntity:{Entity}", attack.Range.ApplyTarget);
+                    continue;
+            }
+        }
+
+        if (attack.Damage.Count > 0) {
+            logger.Debug("Actor Damage unimplemented");
+        }
+
+        foreach (SkillEffectMetadata effect in attack.Skills) {
+            if (effect.Condition != null) {
+                foreach (IActor actor in targets) {
+                    actor.ApplyEffect(this, effect);
+                }
+            } else if (effect.Splash != null) {
+                Field.ApplyEffect(record, effect);
+            }
+        }
+    }
+
+    public void SplashAttack(SkillRecord record, IReadOnlyList<MagicPath> magicPaths) {
         var points = new Vector3[magicPaths.Count];
         for (int i = 0; i < magicPaths.Count; i++) {
             MagicPath magicPath = magicPaths[i];
@@ -63,19 +98,10 @@ public class FieldPlayer : Actor<Player> {
             points[i] = magicPath.IgnoreAdjust ? position : position.Align();
         }
 
-        foreach (SkillEffectMetadata attack in record.Attack.Skills) {
-            Debug.Assert(attack.Splash != null);
-            Field.AddSkill(this, attack, points, Position, Rotation);
+        foreach (SkillEffectMetadata effect in record.Attack.Skills) {
+            Debug.Assert(effect.Splash != null);
+            Field.AddSkill(this, effect, points, Position, Rotation);
         }
-        //
-        // var cubes = new IPolygon[points.Length];
-        // for (int i = 0; i < points.Length; i++) {
-        //     cubes[i] = new BoundingBox(
-        //         new Vector2(points[i].X, points[i].Y),
-        //         new Vector2(points[i].X  + 150f, points[i].Y + 150f));
-        // }
-        //
-        // var prism = new CompositePrism(cubes, Position.Align().Z, 150f);
     }
 
     public override void Sync() {
@@ -115,15 +141,15 @@ public class FieldPlayer : Actor<Player> {
             }
 
             if (buff.Metadata.Dot.Damage != null) {
-                Log.Information("Actor DotDamage unimplemented");
+                logger.Information("Actor DotDamage unimplemented");
             }
 
             if (buff.Metadata.Dot.Buff != null) {
-                Log.Information("Actor DotBuff unimplemented");
+                logger.Information("Actor DotBuff unimplemented");
             }
 
             foreach (SkillEffectMetadata skill in buff.Metadata.Skills) {
-                Log.Information("Actor Skill Effect unimplemented");
+                logger.Information("Actor Skill Effect unimplemented");
             }
         }
     }

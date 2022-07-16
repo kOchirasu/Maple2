@@ -161,8 +161,7 @@ public partial class FieldManager {
     }
 
     public void AddSkill(SkillMetadata metadata, int interval, in Vector3 position, in Vector3 rotation = default) {
-        var fieldSkill = new FieldSkill(this, NextLocalId(), fieldActor, metadata, position) {
-            Interval = interval,
+        var fieldSkill = new FieldSkill(this, NextLocalId(), fieldActor, metadata, interval, position) {
             Position = position,
             Rotation = rotation,
         };
@@ -179,12 +178,11 @@ public partial class FieldManager {
                 continue;
             }
 
-            var fieldSkill = new FieldSkill(this, NextLocalId(), owner, metadata, points) {
-                Interval = effect.Splash.Interval,
+            int fireCount = effect.FireCount > 0 ? effect.FireCount : -1;
+            var fieldSkill = new FieldSkill(this, NextLocalId(), owner, metadata, fireCount, effect.Splash, points) {
                 Position = position,
                 Rotation = rotation,
             };
-            fieldSkill.SetFireCount(effect.FireCount > 0 ? effect.FireCount : -1);
 
             fieldSkills[fieldSkill.ObjectId] = fieldSkill;
             Broadcast(RegionSkillPacket.Add(fieldSkill));
