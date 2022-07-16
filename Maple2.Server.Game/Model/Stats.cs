@@ -54,6 +54,10 @@ public class Stats {
         this[StatAttribute.MagicalRes].AddBase(BaseStat.MagicalRes(jobCode, level));
         this[StatAttribute.MountSpeed] = new Stat(100);
 
+        this[StatAttribute.PhysicalAtk].AddBase(
+            AttackStat.PhysicalAtk(jobCode, this[StatAttribute.Strength].Base,this[StatAttribute.Dexterity].Base,this[StatAttribute.Luck].Base));
+        this[StatAttribute.MagicalAtk].AddBase(AttackStat.MagicalAtk(jobCode, this[StatAttribute.Intelligence].Base));
+
 #if DEBUG
         this[StatAttribute.AttackSpeed].AddTotal(40);
         this[StatAttribute.MovementSpeed].AddTotal(40);

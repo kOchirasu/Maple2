@@ -8,7 +8,6 @@ using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using Maple2.Tools.Collision;
 using Maple2.Tools.Extensions;
 using Serilog;
 
@@ -66,7 +65,7 @@ public class FieldPlayer : Actor<Player> {
 
         foreach (SkillEffectMetadata attack in record.Attack.Skills) {
             Debug.Assert(attack.Splash != null);
-            Field.AddSkill(attack, points, Position, Rotation);
+            Field.AddSkill(this, attack, points, Position, Rotation);
         }
         //
         // var cubes = new IPolygon[points.Length];
@@ -109,7 +108,9 @@ public class FieldPlayer : Actor<Player> {
                     updated.Add(StatAttribute.Stamina);
                 }
 
-                Field.Broadcast(StatsPacket.Update(this, updated.ToArray()));
+                if (updated.Count > 0) {
+                    Field.Broadcast(StatsPacket.Update(this, updated.ToArray()));
+                }
                 Field.Broadcast(SkillDamagePacket.Heal(record));
             }
 

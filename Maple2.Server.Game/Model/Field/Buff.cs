@@ -38,8 +38,14 @@ public class Buff : IFieldObject, IByteSerializable {
         NextTick = StartTick + Metadata.Property.DelayTick;
     }
 
-    public void Stack() {
-        Stacks = Math.Min(Stacks + 1, Metadata.Property.MaxCount);
+    public bool Stack() {
+        if (Stacks >= Metadata.Property.MaxCount) {
+            return false;
+        }
+
+        Stacks++;
+        return true;
+
     }
 
     public bool ShouldProc() {

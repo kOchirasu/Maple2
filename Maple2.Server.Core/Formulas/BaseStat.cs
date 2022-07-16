@@ -4,7 +4,7 @@ using Maple2.Model.Enum;
 namespace Maple2.Server.Core.Formulas;
 
 public static class BaseStat {
-    private const int HP_SPLIT_LEVEL = 50;
+    private const short SPLIT_LEVEL = 50;
     private const double RES_DIVISOR = 99.0;
 
     public static long Strength(JobCode job, short level) {
@@ -23,20 +23,34 @@ public static class BaseStat {
             JobCode.SoulBinder => 1,
             _ => 1,
         };
-        for (int i = 1; i < level; i++) {
+
+        short max = Math.Min(level, SPLIT_LEVEL);
+        for (short i = 1; i < max; i++) {
             result += job switch {
                 JobCode.Newbie => 7,
                 JobCode.Knight => 7,
                 JobCode.Berserker => 7,
-                JobCode.Wizard => level % 3 == 0 ? 1 : 0,
-                JobCode.Priest => level % 3 == 0 ? 1 : 0,
+                JobCode.Wizard => i % 3 == 0 ? 1 : 0,
+                JobCode.Priest => i % 3 == 0 ? 1 : 0,
                 JobCode.Ranger => 1,
-                JobCode.HeavyGunner => level % 2 == 1 ? 1 : 0,
+                JobCode.HeavyGunner => i % 2 == 1 ? 1 : 0,
                 JobCode.Thief => 1,
-                JobCode.Assassin => level % 2 == 1 ? 1 : 0,
+                JobCode.Assassin => i % 2 == 1 ? 1 : 0,
                 JobCode.RuneBlader => 7,
                 JobCode.Striker => 1,
-                JobCode.SoulBinder => level % 3 == 0 ? 1 : 0,
+                JobCode.SoulBinder => i % 3 == 0 ? 1 : 0,
+                _ => 0,
+            };
+        }
+        for (short i = SPLIT_LEVEL; i < level; i++) {
+            result += job switch {
+                JobCode.Newbie => 1,
+                JobCode.Knight => 1,
+                JobCode.Berserker => 1,
+                JobCode.Ranger => i % 3 == 0 ? 1 : 0,
+                JobCode.Thief => i % 3 == 0 ? 1 : 0,
+                JobCode.RuneBlader => 1,
+                JobCode.Striker => i % 3 == 0 ? 1 : 0,
                 _ => 0,
             };
         }
@@ -60,20 +74,34 @@ public static class BaseStat {
             JobCode.SoulBinder => 1,
             _ => 1,
         };
-        for (int i = 1; i < level; i++) {
+
+        short max = Math.Min(level, SPLIT_LEVEL);
+        for (short i = 1; i < max; i++) {
             result += job switch {
-                JobCode.Newbie => level % 3 != 2 ? 1 : 0,
+                JobCode.Newbie => i % 3 != 2 ? 1 : 0,
                 JobCode.Knight => 1,
                 JobCode.Berserker => 1,
-                JobCode.Wizard => level % 3 == 1 ? 1 : 0,
-                JobCode.Priest => level % 3 == 1 ? 1 : 0,
+                JobCode.Wizard => i % 3 == 1 ? 1 : 0,
+                JobCode.Priest => i % 3 == 1 ? 1 : 0,
                 JobCode.Ranger => 7,
                 JobCode.HeavyGunner => 7,
-                JobCode.Thief => level % 2 == 1 ? 1 : 0,
+                JobCode.Thief => i % 2 == 1 ? 1 : 0,
                 JobCode.Assassin => 1,
                 JobCode.RuneBlader => 1,
                 JobCode.Striker => 7,
-                JobCode.SoulBinder => level % 3 == 1 ? 1 : 0,
+                JobCode.SoulBinder => i % 3 == 1 ? 1 : 0,
+                _ => 0,
+            };
+        }
+        for (short i = SPLIT_LEVEL; i < level; i++) {
+            result += job switch {
+                JobCode.Knight => i % 3 == 0 ? 1 : 0,
+                JobCode.Berserker => i % 3 == 0 ? 1 : 0,
+                JobCode.Ranger => 1,
+                JobCode.HeavyGunner => 1,
+                JobCode.Assassin => i % 3 == 0 ? 1 : 0,
+                JobCode.RuneBlader => i % 3 == 0 ? 1 : 0,
+                JobCode.Striker => 1,
                 _ => 0,
             };
         }
@@ -97,20 +125,30 @@ public static class BaseStat {
             JobCode.SoulBinder => 14,
             _ => 1,
         };
-        for (int i = 1; i < level; i++) {
+
+        short max = Math.Min(level, SPLIT_LEVEL);
+        for (short i = 1; i < max; i++) {
             result += job switch {
-                JobCode.Newbie => level % 3 != 1 ? 1 : 0,
-                JobCode.Knight => level % 2 == 0 ? 1 : 0,
-                JobCode.Berserker => level % 2 == 1 ? 1 : 0,
+                JobCode.Newbie => i % 3 != 1 ? 1 : 0,
+                JobCode.Knight => i % 2 == 0 ? 1 : 0,
+                JobCode.Berserker => i % 2 == 1 ? 1 : 0,
                 JobCode.Wizard => 8,
                 JobCode.Priest => 8,
-                JobCode.Ranger => level % 2 == 0 ? 1 : 0,
-                JobCode.HeavyGunner => level % 2 == 0 ? 1 : 0,
-                JobCode.Thief => level % 2 == 0 ? 1 : 0,
-                JobCode.Assassin => level % 2 == 0 ? 1 : 0,
-                JobCode.RuneBlader => level % 2 == 0 ? 1 : 0,
-                JobCode.Striker => level % 2 == 1 ? 1 : 0,
+                JobCode.Ranger => i % 2 == 0 ? 1 : 0,
+                JobCode.HeavyGunner => i % 2 == 0 ? 1 : 0,
+                JobCode.Thief => i % 2 == 0 ? 1 : 0,
+                JobCode.Assassin => i % 2 == 0 ? 1 : 0,
+                JobCode.RuneBlader => i % 2 == 0 ? 1 : 0,
+                JobCode.Striker => i % 2 == 1 ? 1 : 0,
                 JobCode.SoulBinder => 8,
+                _ => 0,
+            };
+        }
+        for (short i = SPLIT_LEVEL; i < level; i++) {
+            result += job switch {
+                JobCode.Wizard => 1,
+                JobCode.Priest => 1,
+                JobCode.SoulBinder => 1,
                 _ => 0,
             };
         }
@@ -134,20 +172,30 @@ public static class BaseStat {
             JobCode.SoulBinder => 1,
             _ => 1,
         };
-        for (int i = 1; i < level; i++) {
+
+        short max = Math.Min(level, SPLIT_LEVEL);
+        for (short i = 1; i < max; i++) {
             result += job switch {
-                JobCode.Newbie => level % 3 != 0 ? 1 : 0,
-                JobCode.Knight => level % 2 == 1 ? 1 : 0,
-                JobCode.Berserker => level % 2 == 0 ? 1 : 0,
-                JobCode.Wizard => level % 3 == 2 ? 1 : 0,
-                JobCode.Priest => level % 3 == 2 ? 1 : 0,
-                JobCode.Ranger => level % 2 == 1 ? 1 : 0,
+                JobCode.Newbie => i % 3 != 0 ? 1 : 0,
+                JobCode.Knight => i % 2 == 1 ? 1 : 0,
+                JobCode.Berserker => i % 2 == 0 ? 1 : 0,
+                JobCode.Wizard => i % 3 == 2 ? 1 : 0,
+                JobCode.Priest => i % 3 == 2 ? 1 : 0,
+                JobCode.Ranger => i % 2 == 1 ? 1 : 0,
                 JobCode.HeavyGunner => 1,
                 JobCode.Thief => 7,
                 JobCode.Assassin => 7,
-                JobCode.RuneBlader => level % 2 == 1 ? 1 : 0,
-                JobCode.Striker => level % 2 == 0 ? 1 : 0,
-                JobCode.SoulBinder => level % 3 == 2 ? 1 : 0,
+                JobCode.RuneBlader => i % 2 == 1 ? 1 : 0,
+                JobCode.Striker => i % 2 == 0 ? 1 : 0,
+                JobCode.SoulBinder => i % 3 == 2 ? 1 : 0,
+                _ => 0,
+            };
+        }
+        for (short i = SPLIT_LEVEL; i < level; i++) {
+            result += job switch {
+                JobCode.HeavyGunner => i % 3 == 0 ? 1 : 0,
+                JobCode.Thief => 1,
+                JobCode.Assassin => 1,
                 _ => 0,
             };
         }
@@ -157,8 +205,8 @@ public static class BaseStat {
 
     public static long Health(JobCode job, short level) {
         double result = 50;
-        int max = Math.Min((int) level, HP_SPLIT_LEVEL);
-        for (int i = 0; i < max; i++) {
+        short max = Math.Min(level, SPLIT_LEVEL);
+        for (short i = 0; i < max; i++) {
             result += job switch {
                 JobCode.Newbie => 66,
                 JobCode.Knight => 72,
@@ -176,9 +224,9 @@ public static class BaseStat {
             } * (Math.Atan(0.22 * i - 1.4) / Math.PI + 0.5);
         }
 
-        for (int i = HP_SPLIT_LEVEL; i < level; i++) {
+        for (short i = SPLIT_LEVEL; i < level; i++) {
             // ReSharper disable once PossibleLossOfFraction
-            result += 11.5 + (i - HP_SPLIT_LEVEL) / 10 * 0.5;
+            result += 11.5 + (i - SPLIT_LEVEL) / 10 * 0.5;
         }
 
         return (long) Math.Ceiling(result);
