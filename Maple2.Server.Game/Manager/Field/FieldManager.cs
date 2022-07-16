@@ -39,6 +39,7 @@ public sealed partial class FieldManager : IDisposable {
 
     private readonly CancellationTokenSource cancel;
     private readonly Thread thread;
+    private bool initialized = false;
 
     private readonly ILogger logger = Log.Logger.ForContext<FieldManager>();
 
@@ -121,9 +122,10 @@ public sealed partial class FieldManager : IDisposable {
                 continue;
             }
 
-            AddSkillSource(skill, regionSkill.Interval, regionSkill.Position, regionSkill.Rotation);
+            AddSkill(skill, regionSkill.Interval, regionSkill.Position, regionSkill.Rotation);
         }
 
+        initialized = true;
         thread.Start();
     }
 
@@ -149,7 +151,7 @@ public sealed partial class FieldManager : IDisposable {
             foreach (FieldLiftable liftable in fieldLiftables.Values) liftable.Sync();
             foreach (FieldItem item in fieldItems.Values) item.Sync();
             foreach (FieldMobSpawn mobSpawn in fieldMobSpawns.Values) mobSpawn.Sync();
-            foreach (FieldSkillSource skill in fieldSkillSources.Values) skill.Sync();
+            foreach (FieldSkill skill in fieldSkills.Values) skill.Sync();
             Thread.Sleep(50);
         }
     }
@@ -242,6 +244,10 @@ public sealed partial class FieldManager : IDisposable {
     }
 
     public void Broadcast(ByteWriter packet, GameSession? sender = null) {
+        if (!initialized) {
+            return;
+        }
+
         foreach (FieldPlayer fieldPlayer in Players.Values) {
             if (fieldPlayer.Session == sender) continue;
             fieldPlayer.Session.Send(packet);

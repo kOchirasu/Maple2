@@ -1,5 +1,7 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Numerics;
@@ -7,6 +9,7 @@ using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
+using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools;
@@ -24,7 +27,7 @@ public partial class FieldManager {
     private readonly ConcurrentDictionary<string, FieldLiftable> fieldLiftables = new();
     private readonly ConcurrentDictionary<int, FieldItem> fieldItems = new();
     private readonly ConcurrentDictionary<int, FieldMobSpawn> fieldMobSpawns = new();
-    private readonly ConcurrentDictionary<int, FieldSkillSource> fieldSkillSources = new();
+    private readonly ConcurrentDictionary<int, FieldSkill> fieldSkills = new();
 
     // Objects
     private readonly ConcurrentDictionary<int, FieldObject<Portal>> fieldPortals = new();
@@ -157,20 +160,46 @@ public partial class FieldManager {
         return fieldMobSpawn;
     }
 
-    public FieldSkillSource? AddSkillSource(SkillMetadata metadata, int interval, in Vector3 position, in Vector3 rotation = default) {
-        var fieldSkillSource = new FieldSkillSource(this, NextLocalId(), metadata) {
+    public void AddSkill(SkillMetadata metadata, int interval, in Vector3 position, in Vector3 rotation = default) {
+        var fieldSkill = new FieldSkill(this, NextLocalId(), metadata, position) {
             Interval = interval,
             Position = position,
             Rotation = rotation,
         };
 
-        fieldSkillSources[fieldSkillSource.ObjectId] = fieldSkillSource;
-        return fieldSkillSource;
+        fieldSkills[fieldSkill.ObjectId] = fieldSkill;
+        Broadcast(RegionSkillPacket.Add(fieldSkill));
     }
 
-    public void ApplyRegionSkill(SkillEffectMetadata effect, in Vector3 position, in Vector3 rotation) {
+    public void AddSkill(SkillEffectMetadata effect, Vector3[] points, in Vector3 position, in Vector3 rotation = default) {
+        Debug.Assert(effect.Splash != null, "Cannot add non-splash skill to field");
+
+        foreach (SkillEffectMetadata.Skill skill in effect.Skills) {
+            if (!SkillMetadata.TryGet(skill.Id, skill.Level, out SkillMetadata? metadata)) {
+                continue;
+            }
+
+            var fieldSkill = new FieldSkill(this, NextLocalId(), metadata, points) {
+                Interval = effect.Splash.Interval,
+                Position = position,
+                Rotation = rotation,
+            };
+            fieldSkill.SetFireCount(effect.FireCount > 0 ? effect.FireCount : -1);
+
+            fieldSkills[fieldSkill.ObjectId] = fieldSkill;
+            Broadcast(RegionSkillPacket.Add(fieldSkill));
+        }
+    }
+
+    public void RemoveSkill(int objectId) {
+        if (fieldSkills.Remove(objectId, out _)) {
+            Broadcast(RegionSkillPacket.Remove(objectId));
+        }
+    }
+
+    public void ApplyEffect(SkillRecord record, SkillEffectMetadata effect) {
         if (effect.Splash == null) {
-            logger.Information("Cannot apply condition-effect to field");
+            logger.Error("Cannot apply condition-effect to field");
             return;
         }
 
@@ -283,7 +312,7 @@ public partial class FieldManager {
         foreach (FieldNpc fieldNpc in fieldNpcs.Values) {
             added.Session.Send(ProxyObjectPacket.AddNpc(fieldNpc));
         }
-        foreach (FieldSkillSource skillSource in fieldSkillSources.Values) {
+        foreach (FieldSkill skillSource in fieldSkills.Values) {
             added.Session.Send(RegionSkillPacket.Add(skillSource));
         }
 
