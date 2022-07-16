@@ -23,6 +23,8 @@ public abstract class ActorBase<T> : IActor<T> {
     /// <returns>Returns a local ObjectId</returns>
     protected int NextLocalId() => Interlocked.Increment(ref idCounter);
 
+    protected ILogger logger = Log.ForContext<IActor<T>>();
+
     public FieldManager Field { get; }
     public T Value { get; }
 
@@ -65,7 +67,7 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
 
     public override void ApplyAttack(SkillAttack attack) {
         if (attack.Damage.Count > 0) {
-            Log.Debug("Actor Damage unimplemented");
+            logger.Debug("Actor Damage unimplemented");
         }
 
         foreach (SkillEffectMetadata effect in attack.Effects) {
@@ -89,7 +91,7 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
                         break;
                 }
             } else if (effect.Splash != null) {
-                Log.Debug("Actor Splash Skill unimplemented");
+                logger.Debug("Actor Splash Skill unimplemented");
             }
         }
     }

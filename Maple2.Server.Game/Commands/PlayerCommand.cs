@@ -74,7 +74,7 @@ public class PlayerCommand : Command {
                     JobCode.Berserker => awakening ? Job.BerserkerII : Job.Berserker,
                     JobCode.Wizard => awakening ? Job.WizardII : Job.Wizard,
                     JobCode.Priest => awakening ? Job.PriestII : Job.Priest,
-                    JobCode.Ranger => awakening ? Job.RangerII : Job.Ranger,
+                    JobCode.Archer => awakening ? Job.ArcherII : Job.Archer,
                     JobCode.HeavyGunner => awakening ? Job.HeavyGunnerII : Job.HeavyGunner,
                     JobCode.Thief => awakening ? Job.ThiefII : Job.Thief,
                     JobCode.Assassin => awakening ? Job.AssassinII : Job.Assassin,
