@@ -16,7 +16,7 @@ public static class BuffPacket {
     public static ByteWriter Add(Buff buff) {
         var pWriter = Packet.Of(SendOp.Buff);
         pWriter.Write<Command>(Command.Add);
-        pWriter.WriteInt(buff.Target.ObjectId);
+        pWriter.WriteInt(buff.Owner.ObjectId);
         pWriter.WriteInt(buff.ObjectId);
         pWriter.WriteInt(buff.Caster.ObjectId);
         pWriter.WriteClass<Buff>(buff);
@@ -27,7 +27,7 @@ public static class BuffPacket {
     public static ByteWriter Remove(Buff buff) {
         var pWriter = Packet.Of(SendOp.Buff);
         pWriter.Write<Command>(Command.Remove);
-        pWriter.WriteInt(buff.Target.ObjectId);
+        pWriter.WriteInt(buff.Owner.ObjectId);
         pWriter.WriteInt(buff.ObjectId);
         pWriter.WriteInt(buff.Caster.ObjectId);
 
@@ -37,7 +37,7 @@ public static class BuffPacket {
     public static ByteWriter Update(Buff buff) {
         var pWriter = Packet.Of(SendOp.Buff);
         pWriter.Write<Command>(Command.Update);
-        pWriter.WriteInt(buff.Target.ObjectId);
+        pWriter.WriteInt(buff.Owner.ObjectId);
         pWriter.WriteInt(buff.ObjectId);
         pWriter.WriteInt(buff.Caster.ObjectId);
         pWriter.WriteInt(1); // TODO: complete this...

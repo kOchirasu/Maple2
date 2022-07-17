@@ -19,7 +19,7 @@ public class HealDamageRecord : IByteSerializable {
         OwnerId = ownerId;
 
         HpAmount = (int) (recovery.HpValue + recovery.HpRate * target.Stats[StatAttribute.Health].Total
-                                           + recovery.RecoveryRate * caster.Stats[StatAttribute.MagicalAtk].Total);
+                                           + recovery.RecoveryRate * caster.Stats[StatAttribute.MagicalAtk].Current);
         SpAmount = (int) (recovery.SpValue + recovery.SpRate * target.Stats[StatAttribute.Spirit].Total);
         EpAmount = (int) (recovery.EpValue + recovery.EpRate * target.Stats[StatAttribute.Stamina].Total);
     }

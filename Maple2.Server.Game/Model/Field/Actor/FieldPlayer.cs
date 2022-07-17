@@ -20,7 +20,6 @@ public class FieldPlayer : Actor<Player> {
 
     public FieldPlayer(GameSession session, Player player) : base(session.Field!, player.ObjectId, player) {
         Session = session;
-        BroadcastBuffs = true;
 
         Scheduler.ScheduleRepeated(() => Field.Broadcast(ProxyObjectPacket.UpdatePlayer(this, 66)), 2000);
         Scheduler.ScheduleRepeated(() => {
@@ -63,7 +62,7 @@ public class FieldPlayer : Actor<Player> {
                     }
                     continue;
                 default:
-                    logger.Debug("Unhandled Target-SkillEntity:{Entity}", attack.Range.ApplyTarget);
+                    Logger.Debug("Unhandled Target-SkillEntity:{Entity}", attack.Range.ApplyTarget);
                     continue;
             }
         }

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Server.Game.Manager.Field;
@@ -15,12 +15,12 @@ internal sealed class FieldActor : IActor {
     public ActorSubState SubState => ActorSubState.None;
     public Vector3 Position { get; set; }
     public Vector3 Rotation { get; set; }
-    public IReadOnlyDictionary<int, Buff> Buffs { get; }
+    public ConcurrentDictionary<int, Buff> Buffs { get; }
     public Stats Stats { get; }
 
     public FieldActor(FieldManager field) {
         Field = field;
         Stats = new Stats(0, 0);
-        Buffs = new Dictionary<int, Buff>();
+        Buffs = new ConcurrentDictionary<int, Buff>();
     }
 }

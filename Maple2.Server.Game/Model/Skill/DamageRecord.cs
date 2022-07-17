@@ -18,7 +18,7 @@ public class DamageRecord {
     public Vector3 Rotation;
     public Vector3 Direction;
 
-    public List<DamageRecordTarget> Targets;
+    public readonly List<DamageRecordTarget> Targets;
 
     public DamageRecord() {
         Targets = new List<DamageRecordTarget>();
