@@ -13,8 +13,8 @@ using Serilog;
 
 namespace Maple2.Server.Game.Model;
 
-public class FieldSkill : FieldEntity<SkillMetadata>, IOwned {
-    public IActor Owner { get; init; }
+public class FieldSkill : FieldEntity<SkillMetadata> {
+    public IActor Caster { get; init; }
     public int Interval { get; }
     public int FireCount { get; private set; }
     public bool Enabled => FireCount != 0 || Environment.TickCount <= endTick;
@@ -23,20 +23,20 @@ public class FieldSkill : FieldEntity<SkillMetadata>, IOwned {
     public readonly Vector3[] Points;
     public readonly bool UseDirection;
     private readonly int endTick;
-    private int nextTick;
+    public int NextTick { get; private set; }
 
-    public FieldSkill(FieldManager field, int objectId, IActor owner,
+    public FieldSkill(FieldManager field, int objectId, IActor caster,
                       SkillMetadata value, int interval, params Vector3[] points) : base(field, objectId, value) {
-        Owner = owner;
+        Caster = caster;
         Points = points;
         Interval = interval;
         FireCount = -1;
-        nextTick = Environment.TickCount + interval;
+        NextTick = Environment.TickCount + interval;
     }
 
-    public FieldSkill(FieldManager field, int objectId, IActor owner,
+    public FieldSkill(FieldManager field, int objectId, IActor caster,
                       SkillMetadata value, int fireCount, SkillEffectMetadataSplash splash, params Vector3[] points) : base(field, objectId, value) {
-        Owner = owner;
+        Caster = caster;
         Points = points;
         Interval = splash.Interval;
         FireCount = fireCount;
@@ -44,10 +44,10 @@ public class FieldSkill : FieldEntity<SkillMetadata>, IOwned {
 
         int baseTick = Environment.TickCount;
         if (splash.ImmediateActive) {
-            nextTick = baseTick;
+            NextTick = baseTick;
             endTick = baseTick + splash.RemoveDelay + (FireCount - 1) * splash.Interval;
         } else {
-            nextTick = baseTick + splash.Delay + splash.Interval;
+            NextTick = baseTick + splash.Delay + splash.Interval;
             endTick = baseTick + splash.Delay + splash.RemoveDelay + FireCount * splash.Interval;
         }
         if (splash.OnlySensingActive) {
@@ -61,7 +61,7 @@ public class FieldSkill : FieldEntity<SkillMetadata>, IOwned {
             return;
         }
 
-        if (Environment.TickCount < nextTick) {
+        if (Environment.TickCount < NextTick) {
             return;
         }
 
@@ -77,7 +77,7 @@ public class FieldSkill : FieldEntity<SkillMetadata>, IOwned {
                 }
             }
 
-            nextTick = Environment.TickCount + Interval;
+            NextTick = Environment.TickCount + Interval;
             return;
         }
 
@@ -92,35 +92,54 @@ activated:
         // }
 
         foreach (SkillMetadataMotion motion in Value.Data.Motions) {
+            byte attackPoint = 0;
             foreach (SkillMetadataAttack attack in motion.Attacks) {
                 Prism[] prisms = Points.Select(point => attack.Range.GetPrism(point, UseDirection ? Rotation.Z : 0)).ToArray();
                 IActor[] targets = GetTargets(prisms, attack.Range.ApplyTarget, attack.TargetCount).ToArray();
                 if (targets.Length > 0) {
-                    Log.Debug("[{Tick}] {ObjectId}:{AttackPoint} Targeting: {Count} players", nextTick, ObjectId, attack.Point, targets.Length);
+                    Log.Debug("[{Tick}] {ObjectId}:{AttackPoint} Targeting: {Count}/{Limit} {Type}",
+                        NextTick, ObjectId, attack.Point, targets.Length, attack.TargetCount, attack.Range.ApplyTarget);
                     foreach (IActor target in targets) {
                         Log.Debug("- {Id} @ {Position}", target.ObjectId, target.Position);
                     }
                 }
+                // else {
+                //     Log.Debug("[{Tick}] {ObjectId}:{AttackPoint} has {Count}/{Limit} {Type}",
+                //         nextTick, ObjectId, attack.Point, 0, attack.TargetCount, attack.Range.ApplyTarget);
+                //     Log.Debug("{Range}", attack.Range);
+                //     foreach (Prism prism in prisms) {
+                //         Log.Debug("- {Prism}", prism);
+                //     }
+                // }
 
                 if (attack.Damage.Count > 0) {
-                    Log.Debug("SkillSource Damage unimplemented");
-                    var record = new DamageRecord {
+                    var damage = new DamageRecord {
+                        CasterId = Caster.ObjectId,
+                        OwnerId = ObjectId,
                         SkillId = Value.Id,
                         Level = Value.Level,
+                        MotionPoint = attackPoint,
                     };
+
                     foreach (IActor target in targets) {
                         var targetRecord = new DamageRecordTarget {
                             ObjectId = target.ObjectId,
-                            Direction = default,
-                            Position = default,
                         };
+                        long damageAmount = 0;
                         for (int i = 0; i < attack.Damage.Count; i++) {
-                            targetRecord.AddDamage(DamageType.Normal, i);
+                            targetRecord.AddDamage(DamageType.Normal, -10);
+                            damageAmount -= 10;
                         }
-                        record.Targets.Add(targetRecord);
+
+                        if (damageAmount != 0) {
+                            target.Stats[StatAttribute.Health].Add(damageAmount);
+                            Field.Broadcast(StatsPacket.Update(target, StatAttribute.Health));
+                        }
+
+                        damage.Targets.Add(targetRecord);
                     }
 
-                    Field.Broadcast(SkillDamagePacket.Damage(record));
+                    Field.Broadcast(SkillDamagePacket.Region(damage));
                 }
 
                 foreach (SkillEffectMetadata effect in attack.Skills) {
@@ -129,7 +148,7 @@ activated:
                         switch (effect.Condition.Target) {
                             case SkillEntity.Player:
                                 foreach (IActor target in targets) {
-                                    target.ApplyEffect(Owner, effect);
+                                    target.ApplyEffect(Caster, effect);
                                 }
                                 break;
                             default:
@@ -137,14 +156,17 @@ activated:
                                 break;
                         }
                     } else if (effect.Splash != null) {
-                        Log.Debug("SkillSource Splash Skill unimplemented");
+                        Log.Debug("SkillSource Splash Skill untested");
+                        Field.AddSkill(Caster, this, attack);
                     }
                 }
+
+                attackPoint++;
             }
         }
 
         FireCount--;
-        nextTick = Environment.TickCount + Interval;
+        NextTick = Environment.TickCount + Interval;
     }
 
     private IEnumerable<IActor> GetTargets(Prism[] prisms, SkillEntity entity, int limit) {
@@ -154,6 +176,8 @@ activated:
             case SkillEntity.RegionBuff:
             case SkillEntity.RegionDebuff:
                 return prisms.Filter(Field.Players.Values, limit);
+            case SkillEntity.Enemy:
+                return prisms.Filter(Field.Npcs.Values, limit);
             default:
                 Log.Debug("Unhandled SkillEntity:{Entity}", entity);
                 return Array.Empty<IActor>();

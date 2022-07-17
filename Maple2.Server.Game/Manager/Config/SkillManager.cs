@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
@@ -62,7 +63,14 @@ public class SkillManager {
             return result;
         }
 
-        existingTab.Skills.Clear();
+        // Clear all skills for the rank we are saving as they will be set again.
+        int[] skillIds = existingTab.Skills.Keys.ToArray();
+        foreach (int skillId in skillIds) {
+            if (SkillInfo.GetSkill(skillId, ranks) != null) {
+                existingTab.Skills.Remove(skillId);
+            }
+        }
+
         foreach ((int skillId, int points) in tab.Skills) {
             SkillInfo.Skill? skill = SkillInfo.GetSkill(skillId, ranks);
             if (skill != null) {

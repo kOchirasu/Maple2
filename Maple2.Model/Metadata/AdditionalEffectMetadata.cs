@@ -68,33 +68,3 @@ public record AdditionalEffectMetadataDot(
 public record AdditionalEffectMetadataShield(
     long HpValue,
     float HpByTargetMaxHp);
-
-public record AdditionalEffectMetadataSkill(
-    int FireCount,
-    AdditionalEffectMetadataSkill.Skill[] Skills,
-    AdditionalEffectMetadataSkill.SCondition? Condition,
-    AdditionalEffectMetadataSkill.SSplash? Splash
-) {
-    public record Skill(int Id, int Level, int LinkId);
-
-    public record SCondition(
-        SkillEntity Owner,
-        SkillEntity Target,
-        int OverlapCount,
-        bool RandomCast,
-        bool ActiveByIntervalTick,
-        bool DependOnDamageCount);
-
-    public record SSplash(
-        int Interval,
-        int Delay,
-        int RemoveDelay,
-        bool UseDirection,
-        bool ImmediateActive,
-        bool NonTargetActive,
-        bool OnlySensingActive,
-        bool DependOnCasterState,
-        bool Independent,
-        SChain? Chain);
-    public record SChain(float Distance);
-}

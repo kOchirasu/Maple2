@@ -43,15 +43,27 @@ public static class StatsPacket {
         return pWriter;
     }
 
-    public static ByteWriter Update<T>(Actor<T> entity, params StatAttribute[] attributes) {
+    public static ByteWriter Update(IActor entity, params StatAttribute[] attributes) {
         var pWriter = Packet.Of(SendOp.Stat);
         pWriter.WriteInt(entity.ObjectId);
         pWriter.Write<Command>(Command.Update);
         pWriter.WriteByte((byte) attributes.Length);
         foreach (StatAttribute attribute in attributes) {
-            pWriter.WriteByte((byte) attribute);
+            pWriter.Write<StatAttribute>(attribute);
             pWriter.WriteAttribute(attribute, entity.Stats[attribute]);
         }
+
+        return pWriter;
+    }
+
+    // Note: this is a copy of above to reduce array allocations.
+    public static ByteWriter Update(IActor entity, StatAttribute attribute) {
+        var pWriter = Packet.Of(SendOp.Stat);
+        pWriter.WriteInt(entity.ObjectId);
+        pWriter.Write<Command>(Command.Update);
+        pWriter.WriteByte(1);
+        pWriter.Write<StatAttribute>(attribute);
+        pWriter.WriteAttribute(attribute, entity.Stats[attribute]);
 
         return pWriter;
     }

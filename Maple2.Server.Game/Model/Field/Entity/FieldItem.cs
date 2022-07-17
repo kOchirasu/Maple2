@@ -5,8 +5,8 @@ using Maple2.Server.Game.Packets;
 
 namespace Maple2.Server.Game.Model;
 
-public class FieldItem : FieldEntity<Item>, IOwned {
-    public IActor Owner { get; init; }
+public class FieldItem : FieldEntity<Item> {
+    public IActor? Owner { get; init; }
 
     public FieldItem(FieldManager field, int objectId, Item value) : base(field, objectId, value) { }
 

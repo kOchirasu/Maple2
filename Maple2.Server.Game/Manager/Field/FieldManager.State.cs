@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -9,7 +8,6 @@ using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
-using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools;
@@ -20,7 +18,7 @@ namespace Maple2.Server.Game.Manager.Field;
 public partial class FieldManager {
     // Actors
     internal readonly ConcurrentDictionary<int, FieldPlayer> Players = new();
-    private readonly ConcurrentDictionary<int, FieldNpc> fieldNpcs = new();
+    internal readonly ConcurrentDictionary<int, FieldNpc> Npcs = new();
 
     // Entities
     private readonly ConcurrentMultiDictionary<string, int, FieldBreakable> fieldBreakables = new();
@@ -73,12 +71,13 @@ public partial class FieldManager {
         return fieldPlayer;
     }
 
-    public FieldNpc SpawnNpc(NpcMetadata npc, Vector3 position, Vector3 rotation) {
+    public FieldNpc SpawnNpc(NpcMetadata npc, Vector3 position, Vector3 rotation, FieldMobSpawn? owner = null) {
         var fieldNpc = new FieldNpc(this, NextLocalId(), new Npc(npc)) {
+            Owner = owner,
             Position = position,
             Rotation = rotation,
         };
-        fieldNpcs[fieldNpc.ObjectId] = fieldNpc;
+        Npcs[fieldNpc.ObjectId] = fieldNpc;
 
         return fieldNpc;
     }
@@ -170,7 +169,7 @@ public partial class FieldManager {
         Broadcast(RegionSkillPacket.Add(fieldSkill));
     }
 
-    public void AddSkill(IActor owner, SkillEffectMetadata effect, Vector3[] points, in Vector3 position, in Vector3 rotation = default) {
+    public void AddSkill(IActor caster, SkillEffectMetadata effect, Vector3[] points, in Vector3 position, in Vector3 rotation = default) {
         Debug.Assert(effect.Splash != null, "Cannot add non-splash skill to field");
 
         foreach (SkillEffectMetadata.Skill skill in effect.Skills) {
@@ -179,7 +178,7 @@ public partial class FieldManager {
             }
 
             int fireCount = effect.FireCount > 0 ? effect.FireCount : -1;
-            var fieldSkill = new FieldSkill(this, NextLocalId(), owner, metadata, fireCount, effect.Splash, points) {
+            var fieldSkill = new FieldSkill(this, NextLocalId(), caster, metadata, fireCount, effect.Splash, points) {
                 Position = position,
                 Rotation = rotation,
             };
@@ -189,22 +188,38 @@ public partial class FieldManager {
         }
     }
 
-    public void RemoveSkill(int objectId) {
-        if (fieldSkills.Remove(objectId, out _)) {
-            Broadcast(RegionSkillPacket.Remove(objectId));
+    public void AddSkill(IActor caster, IFieldEntity owner, SkillMetadataAttack attack) {
+        if (attack.CubeMagicPathId == 0) {
+            logger.Error("Invalid skill-MagicPath({CubeMagicPath})", attack.CubeMagicPathId);
+            return;
         }
-    }
-
-    public void ApplyEffect(SkillRecord record, SkillEffectMetadata effect) {
-        if (effect.Splash == null) {
-            logger.Error("Cannot apply condition-effect to field");
+        if (!TableMetadata.MagicPathTable.Entries.TryGetValue(attack.CubeMagicPathId, out IReadOnlyList<MagicPath>? magicPaths)) {
+            logger.Error("No MagicPath found for {CubeMagicPath})", attack.CubeMagicPathId);
             return;
         }
 
-        foreach (SkillEffectMetadata.Skill skill in effect.Skills) {
-            if (!SkillMetadata.TryGetEffect(skill.Id, skill.Level, out AdditionalEffectMetadata? metadata)) {
-                return;
+        var points = new Vector3[magicPaths.Count];
+        for (int i = 0; i < magicPaths.Count; i++) {
+            MagicPath magicPath = magicPaths[i];
+            Vector3 rotation = default;
+            if (magicPath.Rotate) {
+                rotation = owner.Rotation;
             }
+
+            Vector3 position = owner.Position.Offset(magicPath.FireOffset, rotation);
+            points[i] = magicPath.IgnoreAdjust ? position : position.Align();
+        }
+
+        foreach (SkillEffectMetadata effect in attack.Skills) {
+            Debug.Assert(effect.Splash != null);
+
+            AddSkill(caster, effect, points, owner.Position, owner.Rotation);
+        }
+    }
+
+    public void RemoveSkill(int objectId) {
+        if (fieldSkills.Remove(objectId, out _)) {
+            Broadcast(RegionSkillPacket.Remove(objectId));
         }
     }
     #endregion
@@ -252,6 +267,7 @@ public partial class FieldManager {
         if (Players.TryRemove(objectId, out fieldPlayer)) {
             CommitPlot(fieldPlayer.Session);
             Broadcast(FieldPacket.RemovePlayer(objectId));
+            Broadcast(ProxyObjectPacket.RemovePlayer(objectId));
             return true;
         }
 
@@ -279,6 +295,16 @@ public partial class FieldManager {
         Broadcast(LiftablePacket.Remove(entityId));
         return true;
     }
+
+    public bool RemoveNpc(int objectId) {
+        if (!Npcs.TryRemove(objectId, out _)) {
+            return false;
+        }
+
+        Broadcast(FieldPacket.RemoveNpc(objectId));
+        Broadcast(ProxyObjectPacket.RemoveNpc(objectId));
+        return true;
+    }
     #endregion
 
     #region Events
@@ -296,7 +322,7 @@ public partial class FieldManager {
         foreach (FieldItem fieldItem in fieldItems.Values) {
             added.Session.Send(FieldPacket.DropItem(fieldItem));
         }
-        foreach (FieldNpc fieldNpc in fieldNpcs.Values) {
+        foreach (FieldNpc fieldNpc in Npcs.Values) {
             added.Session.Send(FieldPacket.AddNpc(fieldNpc));
         }
         // FieldAddPet
@@ -307,7 +333,7 @@ public partial class FieldManager {
         foreach (FieldPlayer fieldPlayer in Players.Values) {
             added.Session.Send(ProxyObjectPacket.AddPlayer(fieldPlayer));
         }
-        foreach (FieldNpc fieldNpc in fieldNpcs.Values) {
+        foreach (FieldNpc fieldNpc in Npcs.Values) {
             added.Session.Send(ProxyObjectPacket.AddNpc(fieldNpc));
         }
         foreach (FieldSkill skillSource in fieldSkills.Values) {

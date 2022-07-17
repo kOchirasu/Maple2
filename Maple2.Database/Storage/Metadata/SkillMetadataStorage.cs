@@ -36,7 +36,7 @@ public class SkillMetadataStorage : MetadataStorage<(int, short), SkillMetadata>
             }
 
             foreach ((short dataLevel, SkillMetadataLevel data) in storedSkill.Levels) {
-                var metadata = new SkillMetadata(id, level, storedSkill.Name, storedSkill.Property, storedSkill.State, data);
+                var metadata = new SkillMetadata(id, dataLevel, storedSkill.Name, storedSkill.Property, storedSkill.State, data);
                 Cache.AddReplace((id, dataLevel), metadata);
 
                 if (dataLevel == level) {

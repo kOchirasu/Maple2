@@ -93,16 +93,14 @@ public class SkillHandler : PacketHandler<GameSession> {
         packet.ReadInt(); // ClientTick
         record.Unknown = packet.ReadBool(); // UnkBool
         packet.ReadLong(); // UnkLong
-        try {
-            record.IsHold = packet.ReadBool();
-            if (record.IsHold) {
-                record.HoldInt = packet.ReadInt();
-                record.HoldString = packet.ReadUnicodeString();
-            }
-        } catch { /* Ignored */ }
+        record.IsHold = packet.ReadBool();
+        if (record.IsHold) {
+            record.HoldInt = packet.ReadInt();
+            record.HoldString = packet.ReadUnicodeString();
+        }
 
         session.Player.InBattle = true;
-        session.Skill = record;
+        session.ActiveSkills.Add(record);
         session.Field?.Broadcast(SkillPacket.Use(record));
 
         foreach (SkillEffectMetadata effect in metadata.Data.Skills) {
@@ -112,62 +110,82 @@ public class SkillHandler : PacketHandler<GameSession> {
 
     private void HandlePoint(GameSession session, IByteReader packet) {
         long skillUid = packet.ReadLong();
-        if (session.Skill?.Uid != skillUid) {
-            Logger.Warning("SkillUid mismatch {Existing} != {PointCast}", session.Skill?.Uid, skillUid);
+        SkillRecord? record = session.ActiveSkills.Get(skillUid);
+        if (record == null) {
+            Logger.Warning("Invalid Attack-Point Skill {SkillUid}", skillUid);
             return;
         }
 
         byte attackPoint = packet.ReadByte();
-        if (!session.Skill.TrySetAttackPoint(attackPoint)) {
-            Logger.Error("Invalid AttackPoint({AttackPoint}) for {Record}", attackPoint, session.Skill);
+        if (!record.TrySetAttackPoint(attackPoint)) {
+            Logger.Error("Invalid AttackPoint({AttackPoint}) for {Record}", attackPoint, record);
             return;
         }
 
-        session.Skill.Position = packet.Read<Vector3>();
-        session.Skill.Direction = packet.Read<Vector3>();
+        record.Position = packet.Read<Vector3>();
+        record.Direction = packet.Read<Vector3>();
 
         byte count = packet.ReadByte();
-        int unknown = packet.ReadInt(); // Unknown(0)
-        if (unknown != 0) {
-            Logger.Error("Unhandled skill-Point value: {Record}", session.Skill);
-        }
-        TargetRecord[] targets = packet.ReadArray<TargetRecord>(count);
+        // Note: counts up for skills that are held down (reused skillUid)
+        int iterations = packet.ReadInt();
 
-        session.Player.InBattle = true;
-        session.Field?.Broadcast(SkillDamagePacket.Target(session.Skill, targets), session);
+        for (byte i = 0; i < count; i++) {
+            var targets = new List<TargetRecord>();
+            targets.Add(new TargetRecord {
+                AttackCounter = packet.ReadInt(),
+                CasterId = packet.ReadInt(),
+                TargetId = packet.ReadInt(),
+                Index = packet.ReadByte(),
+            });
+
+            // While more targets in packet.
+            while (packet.ReadBool()) {
+                targets.Add(new TargetRecord {
+                    AttackCounter = packet.ReadInt(),
+                    CasterId = packet.ReadInt(),
+                    TargetId = packet.ReadInt(),
+                    Index = packet.ReadByte(),
+                    Unknown = packet.ReadByte(),
+                });
+            }
+
+            session.Player.InBattle = true;
+            session.Field?.Broadcast(SkillDamagePacket.Target(record, targets), session);
+        }
     }
 
     private void HandleTarget(GameSession session, IByteReader packet) {
         long skillUid = packet.ReadLong();
-        if (session.Skill?.Uid != skillUid) {
-            Logger.Warning("SkillUid mismatch {Existing} != {TargetCast}", session.Skill?.Uid, skillUid);
+        SkillRecord? record = session.ActiveSkills.Get(skillUid);
+        if (record == null) {
+            Logger.Warning("Invalid Attack-Target Skill {SkillUid}", skillUid);
             return;
         }
 
         int attackCounter = packet.ReadInt();
         int casterId = packet.ReadInt(); // Unknown(0)
         if (casterId != 0 && casterId != session.Player.ObjectId) {
-            Logger.Error("Unhandled skill-Target value1({Value}): {Record}", casterId, session.Skill);
+            Logger.Error("Unhandled skill-Target value1({Value}): {Record}", casterId, record);
         }
 
         packet.Read<Vector3>();
         packet.Read<Vector3>();
-        session.Skill.Direction = packet.Read<Vector3>();
+        record.Direction = packet.Read<Vector3>();
         byte attackPoint = packet.ReadByte();
-        if (!session.Skill.TrySetAttackPoint(attackPoint)) {
-            Logger.Error("Invalid AttackPoint({AttackPoint}) for {Record}", attackPoint, session.Skill);
+        if (!record.TrySetAttackPoint(attackPoint)) {
+            Logger.Error("Invalid AttackPoint({AttackPoint}) for {Record}", attackPoint, record);
             return;
         }
 
         byte count = packet.ReadByte();
-        if (count > session.Skill.Attack.TargetCount) {
-            Logger.Error("Attack too many targets {Count} for {Record}", count, session.Skill);
+        if (count > record.Attack.TargetCount) {
+            Logger.Error("Attack too many targets {Count} for {Record}", count, record);
             return;
         }
 
         int unknown2 = packet.ReadInt(); // Unknown(0)
         if (unknown2 != 0) {
-            Logger.Error("Unhandled skill-Target value2({Value}): {Record}", unknown2, session.Skill);
+            Logger.Error("Unhandled skill-Target value2({Value}): {Record}", unknown2, record);
         }
 
         int[] targetIds = new int[count];
@@ -176,80 +194,72 @@ public class SkillHandler : PacketHandler<GameSession> {
             packet.ReadByte();
         }
 
-        session.Player.TargetAttack(session.Skill, targetIds);
+        session.Player.TargetAttack(record, targetIds);
         session.Player.InBattle = true;
     }
 
     private void HandleSplash(GameSession session, IByteReader packet) {
         long skillUid = packet.ReadLong();
-        if (session.Skill?.Uid != skillUid) {
-            Logger.Warning("SkillUid mismatch {Existing} != {MagicPathCast}", session.Skill?.Uid, skillUid);
+        SkillRecord? record = session.ActiveSkills.Get(skillUid);
+        if (record == null) {
+            Logger.Warning("Invalid Attack-Splash Skill {SkillUid}", skillUid);
             return;
         }
 
         byte attackPoint = packet.ReadByte();
-        if (!session.Skill.TrySetAttackPoint(attackPoint)) {
-            Logger.Error("Invalid AttackPoint({AttackPoint}) for {Record}", attackPoint, session.Skill);
+        if (!record.TrySetAttackPoint(attackPoint)) {
+            Logger.Error("Invalid AttackPoint({AttackPoint}) for {Record}", attackPoint, record);
             return;
         }
 
         int unknown1 = packet.ReadInt(); // Unknown(0)
         if (unknown1 != 0) {
-            Logger.Error("Unhandled skill-MagicPath value1({Value}): {Record}", unknown1, session.Skill);
+            Logger.Error("Unhandled skill-MagicPath value1({Value}): {Record}", unknown1, record);
         }
 
         int unknown2 = packet.ReadInt(); // Unknown(0)
         if (unknown2 != 0) {
-            Logger.Error("Unhandled skill-MagicPath value2({Value}): {Record}", unknown2, session.Skill);
+            Logger.Error("Unhandled skill-MagicPath value2({Value}): {Record}", unknown2, record);
         }
 
-        session.Skill.Position = packet.Read<Vector3>();
-        session.Skill.Rotation = packet.Read<Vector3>();
+        record.Position = packet.Read<Vector3>();
+        record.Rotation = packet.Read<Vector3>();
 
-        SkillMetadataAttack attack = session.Skill.Attack;
-        if (attack.CubeMagicPathId == 0) {
-            Logger.Error("Invalid skill-MagicPath({CubeMagicPath}) for {Record}", attack.CubeMagicPathId, session.Skill);
-            return;
-        }
-        if (!TableMetadata.MagicPathTable.Entries.TryGetValue(attack.CubeMagicPathId, out IReadOnlyList<MagicPath>? magicPaths)) {
-            Logger.Error("No MagicPath found for {CubeMagicPath})", attack.CubeMagicPathId);
-            return;
-        }
-
-        session.Player.SplashAttack(session.Skill, magicPaths);
+        session.Field?.AddSkill(session.Player, session.Player, record.Attack);
         session.Player.InBattle = true;
     }
 
     private void HandleSync(GameSession session, IByteReader packet) {
         long skillUid = packet.ReadLong();
-        if (session.Skill?.Uid != skillUid) {
-            Logger.Warning("SkillUid mismatch {Existing} != {SyncCast}", session.Skill?.Uid, skillUid);
+        SkillRecord? record = session.ActiveSkills.Get(skillUid);
+        if (record == null) {
+            Logger.Warning("Invalid Sync Skill {SkillUid}", skillUid);
             return;
         }
 
-        session.Field?.Broadcast(SkillPacket.Sync(session.Skill), session);
+        session.Field?.Broadcast(SkillPacket.Sync(record), session);
     }
 
     private void HandleTickSync(GameSession session, IByteReader packet) {
         long skillUid = packet.ReadLong();
-        if (session.Skill?.Uid != skillUid) {
-            Logger.Warning("SkillUid mismatch {Existing} != {TickSyncCast}", session.Skill?.Uid, skillUid);
+        SkillRecord? record = session.ActiveSkills.Get(skillUid);
+        if (record == null) {
+            Logger.Warning("Invalid TickSync Skill {SkillUid}", skillUid);
             return;
         }
 
-        session.Skill.ServerTick = packet.ReadInt();
+        record.ServerTick = packet.ReadInt();
     }
 
     private void HandleCancel(GameSession session, IByteReader packet) {
         long skillUid = packet.ReadLong();
-        SkillRecord? record = session.Skill;
-        if (record?.Uid != skillUid) {
-            Logger.Warning("SkillUid mismatch {Existing} != {CancelCast}", session.Skill?.Uid, skillUid);
+        SkillRecord? record = session.ActiveSkills.Get(skillUid);
+        if (record == null) {
+            Logger.Warning("Invalid Cancel Skill {SkillUid}", skillUid);
             return;
         }
 
         session.Player.InBattle = true;
-        session.Skill = null;
         session.Field?.Broadcast(SkillPacket.Cancel(record), session);
     }
 }

@@ -11,6 +11,8 @@ namespace Maple2.Server.Game.Model;
 public class FieldNpc : Actor<Npc> {
     public Vector3 Velocity { get; set; }
 
+    public FieldMobSpawn? Owner { get; init; }
+
     public NpcState StateData;
 
     public override ActorState State {
@@ -36,6 +38,7 @@ public class FieldNpc : Actor<Npc> {
         Stats = new Stats(npc.Metadata.Stat);
         SequenceId = -1;
         SequenceCounter = 1;
+        BroadcastBuffs = npc.IsBoss;
 
         Scheduler.ScheduleRepeated(() => Field.Broadcast(NpcControlPacket.Control(this)), 1000);
         Scheduler.Start();
@@ -43,5 +46,14 @@ public class FieldNpc : Actor<Npc> {
 
     public override void Sync() {
         base.Sync();
+    }
+
+    protected override void OnDeath() {
+        buffs.Clear();
+
+        Owner?.Despawn(ObjectId);
+        Scheduler.Schedule(() => {
+            Field.RemoveNpc(ObjectId);
+        }, (int) (Value.Metadata.Dead.Time * 1000));
     }
 }

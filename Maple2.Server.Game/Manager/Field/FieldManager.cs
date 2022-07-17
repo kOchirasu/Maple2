@@ -27,6 +27,7 @@ public sealed partial class FieldManager : IDisposable {
     public GameStorage GameStorage { get; init; } = null!;
     public NpcMetadataStorage NpcMetadata { private get; init; } = null!;
     public SkillMetadataStorage SkillMetadata { get; init; } = null!;
+    public TableMetadataStorage TableMetadata { get; init; } = null!;
     public Lua.Lua Lua { private get; init; } = null!;
     // ReSharper restore All
     #endregion
@@ -148,7 +149,7 @@ public sealed partial class FieldManager : IDisposable {
             foreach (FieldTrigger trigger in fieldTriggers.Values) trigger.Sync();
 
             foreach (FieldPlayer player in Players.Values) player.Sync();
-            foreach (FieldNpc npc in fieldNpcs.Values) npc.Sync();
+            foreach (FieldNpc npc in Npcs.Values) npc.Sync();
             foreach (FieldBreakable breakable in fieldBreakables.Values) breakable.Sync();
             foreach (FieldLiftable liftable in fieldLiftables.Values) liftable.Sync();
             foreach (FieldItem item in fieldItems.Values) item.Sync();
@@ -175,7 +176,7 @@ public sealed partial class FieldManager : IDisposable {
     }
 
     public bool TryGetNpc(int objectId, [NotNullWhen(true)] out FieldNpc? npc) {
-        return fieldNpcs.TryGetValue(objectId, out npc);
+        return Npcs.TryGetValue(objectId, out npc);
     }
 
     public bool TryGetPortal(int portalId, [NotNullWhen(true)] out Portal? portal) {

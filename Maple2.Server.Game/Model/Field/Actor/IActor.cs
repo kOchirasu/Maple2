@@ -10,10 +10,11 @@ public interface IActor : IFieldEntity {
 
     public Stats Stats { get; }
 
+    public bool IsDead { get; }
     public ActorState State { get; }
     public ActorSubState SubState { get; }
 
-    public virtual void ApplyEffect(IActor owner, SkillEffectMetadata effect) { }
+    public virtual void ApplyEffect(IActor caster, SkillEffectMetadata effect) { }
 }
 
 public interface IActor<T> : IActor {

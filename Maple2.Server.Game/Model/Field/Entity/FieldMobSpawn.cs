@@ -20,13 +20,12 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
     private readonly WeightedSet<NpcMetadata> npcs;
     private readonly List<int> spawnedMobs;
     private readonly List<int> spawnedPets;
-    private int forceSpawnTick;
+    private int spawnTick;
 
     public FieldMobSpawn(FieldManager field, int objectId, MapMetadataSpawn metadata, WeightedSet<NpcMetadata> npcs) : base(field, objectId, metadata) {
         this.npcs = npcs;
-        this.spawnedMobs = new List<int>(metadata.Population);
-        this.spawnedPets = new List<int>(metadata.PetPopulation);
-
+        spawnedMobs = new List<int>(metadata.Population);
+        spawnedPets = new List<int>(metadata.PetPopulation);
         if (Value.Cooldown <= 0) {
             Log.Logger.Information("No respawn for mapId:{MapId} spawnId:{SpawnId}", Field.MapId, Value.Id);
         }
@@ -40,23 +39,37 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
             return;
         }
 
-        if (Value.Cooldown > 0 && forceSpawnTick == int.MaxValue) {
-            forceSpawnTick = Environment.TickCount + Value.Cooldown * FORCE_SPAWN_MULTIPLIER;
+        // No respawn without a non-zero cooldown.
+        if (Value.Cooldown <= 0) {
+            return;
+        }
+
+#if DEBUG
+        // 2x faster respawns.
+        const int spawnRate = 500;
+#else
+        const int spawnRate = 1000;
+#endif
+
+        if (spawnedMobs.Count == 0) {
+            spawnTick = Math.Min(spawnTick, Environment.TickCount + Value.Cooldown * spawnRate);
+        } else if (spawnTick == int.MaxValue) {
+            spawnTick = Environment.TickCount + Value.Cooldown * spawnRate * FORCE_SPAWN_MULTIPLIER;
         }
     }
 
     public override void Sync() {
-        if (spawnedMobs.Count > 0 && Environment.TickCount < forceSpawnTick) {
+        if (Environment.TickCount < spawnTick) {
             return;
         }
 
-        forceSpawnTick = int.MaxValue;
+        spawnTick = int.MaxValue;
         for (int i = spawnedMobs.Count; i < Value.Population; i++) {
             NpcMetadata npc = npcs.Get();
             int spawnX = Random.Shared.Next((int) Position.X - PET_SPAWN_RADIUS, (int) Position.X + PET_SPAWN_RADIUS);
             int spawnY = Random.Shared.Next((int) Position.Y - PET_SPAWN_RADIUS, (int) Position.Y + PET_SPAWN_RADIUS);
             var spawnPosition = new Vector3(spawnX, spawnY, Position.Z);
-            FieldNpc fieldNpc = Field.SpawnNpc(npc, spawnPosition, Rotation);
+            FieldNpc fieldNpc = Field.SpawnNpc(npc, spawnPosition, Rotation, this);
             spawnedMobs.Add(fieldNpc.ObjectId);
 
             Field.Broadcast(FieldPacket.AddNpc(fieldNpc));
