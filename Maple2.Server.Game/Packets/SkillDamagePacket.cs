@@ -75,11 +75,11 @@ public static class SkillDamagePacket {
     public static ByteWriter DotDamage(DotDamageRecord record) {
         var pWriter = Packet.Of(SendOp.SkillDamage);
         pWriter.Write<Command>(Command.DotDamage);
-        pWriter.WriteInt(record.OwnerId);
-        pWriter.WriteInt(record.TargetId);
-        pWriter.WriteInt(record.Count);
+        pWriter.WriteInt(record.Caster.ObjectId);
+        pWriter.WriteInt(record.Target.ObjectId);
+        pWriter.WriteInt(record.ProcCount);
         pWriter.Write<DamageType>(record.Type);
-        pWriter.WriteLong(record.Amount);
+        pWriter.WriteInt(record.HpAmount);
 
         return pWriter;
     }

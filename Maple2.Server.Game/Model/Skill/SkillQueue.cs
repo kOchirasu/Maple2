@@ -2,13 +2,13 @@
 
 // Used to keep track and lookup pending skills
 // This is a circular array and will overwrite old pending skills
-public class SkillBuffer {
+public class SkillQueue {
     private const int MAX_PENDING = 3;
 
     private readonly SkillRecord?[] casts;
     private int index;
 
-    public SkillBuffer() {
+    public SkillQueue() {
         casts = new SkillRecord[MAX_PENDING];
         index = 0;
     }

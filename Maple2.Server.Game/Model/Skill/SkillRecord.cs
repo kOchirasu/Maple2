@@ -1,6 +1,4 @@
 ﻿using System.Numerics;
-using System.Runtime.InteropServices;
-using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 
 namespace Maple2.Server.Game.Model.Skill;
