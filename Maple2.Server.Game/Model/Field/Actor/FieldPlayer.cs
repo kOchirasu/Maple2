@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.Model;
 
@@ -23,6 +20,7 @@ public class FieldPlayer : Actor<Player> {
 
     public FieldPlayer(GameSession session, Player player) : base(session.Field!, player.ObjectId, player) {
         Session = session;
+        BroadcastBuffs = true;
 
         Scheduler.ScheduleRepeated(() => Field.Broadcast(ProxyObjectPacket.UpdatePlayer(this, 66)), 2000);
         Scheduler.ScheduleRepeated(() => {
@@ -65,13 +63,46 @@ public class FieldPlayer : Actor<Player> {
                     }
                     continue;
                 default:
-                    logger.Debug("Unhandled SkillEntity:{Entity}", attack.Range.ApplyTarget);
+                    logger.Debug("Unhandled Target-SkillEntity:{Entity}", attack.Range.ApplyTarget);
                     continue;
             }
         }
 
+        if (targets.Count == 0) {
+            return;
+        }
+
         if (attack.Damage.Count > 0) {
-            logger.Debug("Actor Damage unimplemented");
+            var damage = new DamageRecord {
+                AttackCounter = 1,
+                CasterId = ObjectId,
+                OwnerId = ObjectId,
+                SkillId = record.SkillId,
+                Level = record.Level,
+                AttackPoint = record.AttackPoint,
+                MotionPoint = record.MotionPoint,
+                Position = record.Position,
+                // Rotation = record.Rotation,
+                Direction = record.Direction,
+            };
+
+            foreach (IActor target in targets) {
+                var targetRecord = new DamageRecordTarget {ObjectId = target.ObjectId};
+                long damageAmount = 0;
+                for (int i = 0; i < attack.Damage.Count; i++) {
+                    targetRecord.AddDamage(DamageType.Normal, -20);
+                    damageAmount -= 20;
+                }
+
+                if (damageAmount != 0) {
+                    target.Stats[StatAttribute.Health].Add(damageAmount);
+                    Field.Broadcast(StatsPacket.Update(target, StatAttribute.Health));
+                }
+
+                damage.Targets.Add(targetRecord);
+            }
+
+            Field.Broadcast(SkillDamagePacket.Damage(damage));
         }
 
         foreach (SkillEffectMetadata effect in attack.Skills) {
@@ -80,77 +111,16 @@ public class FieldPlayer : Actor<Player> {
                     actor.ApplyEffect(this, effect);
                 }
             } else if (effect.Splash != null) {
-                Field.ApplyEffect(record, effect);
+                // Handled by SplashAttack?
             }
-        }
-    }
-
-    public void SplashAttack(SkillRecord record, IReadOnlyList<MagicPath> magicPaths) {
-        var points = new Vector3[magicPaths.Count];
-        for (int i = 0; i < magicPaths.Count; i++) {
-            MagicPath magicPath = magicPaths[i];
-            Vector3 rotation = default;
-            if (magicPath.Rotate) {
-                rotation = Rotation;
-            }
-
-            Vector3 position = Position.Offset(magicPath.FireOffset, rotation);
-            points[i] = magicPath.IgnoreAdjust ? position : position.Align();
-        }
-
-        foreach (SkillEffectMetadata effect in record.Attack.Skills) {
-            Debug.Assert(effect.Splash != null);
-            Field.AddSkill(this, effect, points, Position, Rotation);
         }
     }
 
     public override void Sync() {
         base.Sync();
+    }
 
-        foreach ((int id, Buff buff) in buffs) {
-            if (!buff.Enabled) {
-                if (buffs.Remove(id, out _)) {
-                    Field.Broadcast(BuffPacket.Remove(buff));
-                }
-            }
-
-            if (!buff.ShouldProc()) {
-                continue;
-            }
-
-            if (buff.Metadata.Recovery != null) {
-                var record = new HealDamageRecord(buff.Caster, buff.Target, buff.ObjectId, buff.Metadata.Recovery);
-                var updated = new List<StatAttribute>(3);
-                if (record.HpAmount != 0) {
-                    Stats[StatAttribute.Health].Add(record.HpAmount);
-                    updated.Add(StatAttribute.Health);
-                }
-                if (record.SpAmount != 0) {
-                    Stats[StatAttribute.Spirit].Add(record.SpAmount);
-                    updated.Add(StatAttribute.Spirit);
-                }
-                if (record.EpAmount != 0) {
-                    Stats[StatAttribute.Stamina].Add(record.EpAmount);
-                    updated.Add(StatAttribute.Stamina);
-                }
-
-                if (updated.Count > 0) {
-                    Field.Broadcast(StatsPacket.Update(this, updated.ToArray()));
-                }
-                Field.Broadcast(SkillDamagePacket.Heal(record));
-            }
-
-            if (buff.Metadata.Dot.Damage != null) {
-                logger.Information("Actor DotDamage unimplemented");
-            }
-
-            if (buff.Metadata.Dot.Buff != null) {
-                logger.Information("Actor DotBuff unimplemented");
-            }
-
-            foreach (SkillEffectMetadata skill in buff.Metadata.Skills) {
-                logger.Information("Actor Skill Effect unimplemented");
-            }
-        }
+    protected override void OnDeath() {
+        throw new NotImplementedException();
     }
 }

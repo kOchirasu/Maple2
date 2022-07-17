@@ -48,7 +48,7 @@ public static class NpcControlPacket {
         buffer.Write<Vector3S>(default); // XYZ Speed
         buffer.WriteShort((short) (sequenceSpeed * 100));
 
-        if (pet.Value.Metadata.Basic.Friendly == 0 && pet.Value.Metadata.Basic.Class >= 3) {
+        if (pet.Value.IsBoss) {
             buffer.WriteInt(); // TargetId
         }
 
@@ -66,7 +66,7 @@ public static class NpcControlPacket {
         buffer.Write<Vector3S>(npc.Velocity.Rotate(npc.Rotation));
         buffer.WriteShort((short) (sequenceSpeed * 100));
 
-        if (npc.Value.Metadata.Basic.Friendly == 0 && npc.Value.Metadata.Basic.Class >= 3) {
+        if (npc.Value.IsBoss) {
             buffer.WriteInt(npc.TargetId); // ObjectId of Player being targeted?
         }
 

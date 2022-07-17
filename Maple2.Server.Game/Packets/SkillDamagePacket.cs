@@ -39,7 +39,7 @@ public static class SkillDamagePacket {
         pWriter.WriteByte((byte) targets.Count);
         foreach (TargetRecord target in targets) {
             pWriter.WriteLong();
-            pWriter.Write<TargetRecord>(target);
+            pWriter.WriteClass<TargetRecord>(target);
         }
 
         return pWriter;
@@ -99,12 +99,13 @@ public static class SkillDamagePacket {
         pWriter.WriteLong(record.Uid);
         pWriter.WriteInt(record.CasterId);
         pWriter.WriteInt(record.OwnerId);
+        pWriter.WriteByte(record.AttackPoint);
 
         pWriter.WriteByte((byte) record.Targets.Count);
         foreach (DamageRecordTarget target in record.Targets) {
             pWriter.WriteInt(target.ObjectId);
             pWriter.WriteByte((byte) target.Damage.Count);
-            pWriter.Write<Vector3>(record.Position); // Of Block
+            pWriter.Write<Vector3S>(record.Position); // Of Block
             pWriter.Write<Vector3>(record.Direction);
             foreach ((DamageType type, long amount) in target.Damage) {
                 pWriter.Write<DamageType>(type);
@@ -126,7 +127,7 @@ public static class SkillDamagePacket {
         foreach (DamageRecordTarget target in record.Targets) {
             pWriter.WriteInt(target.ObjectId);
             pWriter.WriteByte((byte) target.Damage.Count);
-            pWriter.Write<Vector3>(record.Position); // Of Block
+            pWriter.Write<Vector3S>(record.Position); // Of Block
             pWriter.Write<Vector3>(record.Direction);
             foreach ((DamageType type, long amount) in target.Damage) {
                 pWriter.Write<DamageType>(type);

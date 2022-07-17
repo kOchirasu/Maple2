@@ -21,7 +21,7 @@ public partial class GameSession {
     public HeldCube? HeldCube;
 
     public ObjectWeapon? HeldLiftup;
-    public SkillRecord? Skill;
+    public SkillBuffer ActiveSkills = new();
 
     public NpcScript? NpcScript;
 

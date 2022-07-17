@@ -10,6 +10,7 @@ internal sealed class FieldActor : IActor {
     public FieldManager Field { get; }
 
     public int ObjectId => 0;
+    public bool IsDead => false;
     public ActorState State => ActorState.None;
     public ActorSubState SubState => ActorSubState.None;
     public Vector3 Position { get; set; }

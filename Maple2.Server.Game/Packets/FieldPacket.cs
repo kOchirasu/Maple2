@@ -133,12 +133,12 @@ public static class FieldPacket {
         pWriter.Write<Vector3>(npc.Rotation);
         // If NPC is not valid, the packet seems to stop here
 
-        if (npc.Value.Metadata.Basic.Friendly == 0 && npc.Value.Metadata.Basic.Class >= 3) {
+        if (npc.Value.IsBoss) {
             pWriter.WriteString(npc.Value.Metadata.Model);
         }
 
         pWriter.WriteNpcStats(npc.Stats);
-        pWriter.WriteBool(npc.Stats[StatAttribute.Health].Current <= 0); // IsNpcDead
+        pWriter.WriteBool(npc.IsDead);
 
         pWriter.WriteShort((short) npc.Buffs.Count);
         foreach (Buff buff in npc.Buffs.Values) {
@@ -147,16 +147,15 @@ public static class FieldPacket {
 
         pWriter.WriteLong(); // uid for PetNpc
         pWriter.WriteByte();
-        pWriter.WriteInt(1); // level
+        pWriter.WriteInt(npc.Value.Metadata.Basic.Level);
         pWriter.WriteInt();
 
-        if (npc.Value.Metadata.Basic.Friendly == 0 && npc.Value.Metadata.Basic.Class >= 3) {
-            int count = 0;
+        if (npc.Value.IsBoss) {
             pWriter.WriteUnicodeString(); // EffectStr
-            pWriter.WriteInt(count);
-            for (int i = 0; i < count; i++) {
-                pWriter.WriteInt(); // SkillId
-                pWriter.WriteShort(); // SkillLevel
+            pWriter.WriteInt(npc.Buffs.Count);
+            foreach (Buff buff in npc.Buffs.Values) {
+                pWriter.WriteInt(buff.Id);
+                pWriter.WriteShort(buff.Level);
             }
 
             pWriter.WriteInt();

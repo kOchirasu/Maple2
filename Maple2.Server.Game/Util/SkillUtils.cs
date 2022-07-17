@@ -5,6 +5,7 @@ using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
 using Maple2.Tools.Collision;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.Util;
 
@@ -26,29 +27,29 @@ public static class SkillUtils {
         return new Prism(polygon, position.Z, range.Height + range.RangeAdd.Z);
     }
 
-    public static IEnumerable<FieldPlayer> Filter(this Prism prism, IEnumerable<FieldPlayer> players, int limit = 10) {
-        foreach (FieldPlayer player in players) {
+    public static IEnumerable<T> Filter<T>(this Prism prism, IEnumerable<T> entities, int limit = 10) where T : IActor {
+        foreach (T entity in entities) {
             if (limit <= 0) {
                 yield break;
             }
 
-            if (prism.Contains(player.Position)) {
+            if (!entity.IsDead && prism.Contains(entity.Position)) {
                 limit--;
-                yield return player;
+                yield return entity;
             }
         }
     }
 
-    public static IEnumerable<FieldPlayer> Filter(this Prism[] prisms, IEnumerable<FieldPlayer> players, int limit = 10) {
-        foreach (FieldPlayer player in players) {
+    public static IEnumerable<T> Filter<T>(this Prism[] prisms, IEnumerable<T> entities, int limit = 10) where T : IActor {
+        foreach (T entity in entities) {
             if (limit <= 0) {
                 yield break;
             }
 
             foreach (Prism prism in prisms) {
-                if (prism.Contains(player.Position)) {
+                if (!entity.IsDead && prism.Contains(entity.Position)) {
                     limit--;
-                    yield return player;
+                    yield return entity;
                 }
             }
         }

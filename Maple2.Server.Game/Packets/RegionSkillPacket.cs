@@ -16,8 +16,8 @@ public static class RegionSkillPacket {
         var pWriter = Packet.Of(SendOp.RegionSkill);
         pWriter.Write<Command>(Command.Add);
         pWriter.WriteInt(skillSource.ObjectId);
-        pWriter.WriteInt(skillSource.ObjectId);
-        pWriter.WriteInt();
+        pWriter.WriteInt(skillSource.Caster.ObjectId);
+        pWriter.WriteInt(skillSource.NextTick);
         pWriter.WriteByte((byte) skillSource.Points.Length);
         foreach (Vector3 point in skillSource.Points) {
             pWriter.Write<Vector3>(point);

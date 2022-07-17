@@ -7,6 +7,8 @@ public class Npc {
 
     public int Id => Metadata.Id;
 
+    public bool IsBoss => Metadata.Basic.Friendly == 0 && Metadata.Basic.Class >= 3;
+
     public Npc(NpcMetadata metadata) {
         Metadata = metadata;
     }

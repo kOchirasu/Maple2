@@ -32,20 +32,14 @@ public class Buff : IFieldObject, IByteSerializable {
         Target = target;
 
         // Initialize
-        Stacks = 1;
-        StartTick = Environment.TickCount;
-        EndTick = StartTick + Metadata.Property.DurationTick;
-        NextTick = StartTick + Metadata.Property.DelayTick;
+        Stack();
+        NextTick = StartTick + Metadata.Property.DelayTick + Metadata.Property.IntervalTick;
     }
 
-    public bool Stack() {
-        if (Stacks >= Metadata.Property.MaxCount) {
-            return false;
-        }
-
-        Stacks++;
-        return true;
-
+    public void Stack() {
+        Stacks = Math.Min(Stacks + 1, Metadata.Property.MaxCount);
+        StartTick = Environment.TickCount;
+        EndTick = StartTick + Metadata.Property.DurationTick;
     }
 
     public bool ShouldProc() {

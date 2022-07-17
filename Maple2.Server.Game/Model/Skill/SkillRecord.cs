@@ -61,6 +61,3 @@ public class SkillRecord {
                + $"- Direction:{Direction}";
     }
 }
-
-[StructLayout(LayoutKind.Sequential, Pack = 1, Size = 14)]
-public readonly record struct TargetRecord(int Counter, int CasterId, int TargetId, ActorState State, ActorSubState SubState);

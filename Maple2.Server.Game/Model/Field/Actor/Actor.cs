@@ -9,6 +9,7 @@ using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
+using Maple2.Tools.Extensions;
 using Maple2.Tools.Scheduler;
 using Serilog;
 
@@ -23,7 +24,7 @@ public abstract class ActorBase<T> : IActor<T> {
     /// <returns>Returns a local ObjectId</returns>
     protected int NextLocalId() => Interlocked.Increment(ref idCounter);
 
-    protected ILogger logger = Log.ForContext<IActor<T>>();
+    protected readonly ILogger logger = Log.ForContext<T>();
 
     public FieldManager Field { get; }
     public T Value { get; }
@@ -35,6 +36,7 @@ public abstract class ActorBase<T> : IActor<T> {
     public Vector3 Position { get; set; }
     public Vector3 Rotation { get; set; }
 
+    public virtual bool IsDead { get; protected set; }
     public virtual ActorState State { get; set; }
     public virtual ActorSubState SubState { get; set; }
 
@@ -43,8 +45,6 @@ public abstract class ActorBase<T> : IActor<T> {
         ObjectId = objectId;
         Value = value;
     }
-
-    public virtual void ApplyAttack(SkillAttack attack) { }
 
     public virtual void ApplyEffect(IActor owner, SkillEffectMetadata effect) { }
 
@@ -58,6 +58,7 @@ public abstract class ActorBase<T> : IActor<T> {
 public abstract class Actor<T> : ActorBase<T>, IDisposable {
     protected readonly EventQueue Scheduler;
 
+    protected bool BroadcastBuffs { get; init; }
     protected readonly ConcurrentDictionary<int, Buff> buffs = new();
     public override IReadOnlyDictionary<int, Buff> Buffs => buffs;
 
@@ -65,43 +66,13 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
         Scheduler = new EventQueue();
     }
 
-    public override void ApplyAttack(SkillAttack attack) {
-        if (attack.Damage.Count > 0) {
-            logger.Debug("Actor Damage unimplemented");
-        }
-
-        foreach (SkillEffectMetadata effect in attack.Effects) {
-            if (effect.Condition != null) {
-                // ConditionSkill
-                switch (effect.Condition.Target) {
-                    case SkillEntity.Enemy:
-                        break;
-                    case SkillEntity.Player:
-                        break;
-                    case SkillEntity.Caster:
-                        break;
-                    case SkillEntity.PetOwner:
-                        break;
-                    case SkillEntity.Attacker:
-                        break;
-                    case SkillEntity.RegionBuff:
-                    case SkillEntity.RegionDebuff:
-                        break;
-                    case SkillEntity.RegionPet:
-                        break;
-                }
-            } else if (effect.Splash != null) {
-                logger.Debug("Actor Splash Skill unimplemented");
-            }
-        }
-    }
-
     public override void ApplyEffect(IActor owner, SkillEffectMetadata effect) {
         Debug.Assert(effect.Condition != null);
 
         foreach (SkillEffectMetadata.Skill skill in effect.Skills) {
             if (buffs.TryGetValue(skill.Id, out Buff? existing)) {
-                if (existing.Stack()) {
+                existing.Stack();
+                if (BroadcastBuffs) {
                     Field.Broadcast(BuffPacket.Update(existing));
                 }
                 continue;
@@ -113,15 +84,81 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
 
             var buff = new Buff(NextLocalId(), additionalEffect, owner, this);
             buffs[skill.Id] = buff;
-            Field.Broadcast(BuffPacket.Add(buff));
+            if (BroadcastBuffs) {
+                Field.Broadcast(BuffPacket.Add(buff));
+            }
         }
     }
 
     public override void Sync() {
         Scheduler.InvokeAll();
+
+        if (IsDead) {
+            return;
+        }
+
+        if (Stats[StatAttribute.Health].Current <= 0) {
+            IsDead = true;
+            OnDeath();
+            return;
+        }
+
+        foreach ((int id, Buff buff) in buffs) {
+            if (!buff.Enabled) {
+                if (buffs.Remove(id, out _)) {
+                    if (BroadcastBuffs) {
+                        Field.Broadcast(BuffPacket.Remove(buff));
+                    }
+                }
+            }
+
+            if (!buff.ShouldProc()) {
+                continue;
+            }
+
+            if (buff.Metadata.Recovery != null) {
+                var record = new HealDamageRecord(buff.Caster, buff.Target, buff.ObjectId, buff.Metadata.Recovery);
+                var updated = new List<StatAttribute>(3);
+                if (record.HpAmount != 0) {
+                    Stats[StatAttribute.Health].Add(record.HpAmount);
+                    updated.Add(StatAttribute.Health);
+                }
+                if (record.SpAmount != 0) {
+                    Stats[StatAttribute.Spirit].Add(record.SpAmount);
+                    updated.Add(StatAttribute.Spirit);
+                }
+                if (record.EpAmount != 0) {
+                    Stats[StatAttribute.Stamina].Add(record.EpAmount);
+                    updated.Add(StatAttribute.Stamina);
+                }
+
+                if (updated.Count > 0) {
+                    Field.Broadcast(StatsPacket.Update(this, updated.ToArray()));
+                }
+                Field.Broadcast(SkillDamagePacket.Heal(record));
+            }
+
+            if (buff.Metadata.Dot.Damage != null) {
+                logger.Information("Actor DotDamage unimplemented");
+            }
+
+            if (buff.Metadata.Dot.Buff != null) {
+                logger.Information("Actor DotBuff unimplemented");
+            }
+
+            foreach (SkillEffectMetadata effect in buff.Metadata.Skills) {
+                if (effect.Condition != null) {
+                    logger.Information("Actor Skill Condition-Effect unimplemented");
+                } else if (effect.Splash != null) {
+                    Field.AddSkill(buff.Caster, effect, new[]{Position.Align()}, Position, Rotation);
+                }
+            }
+        }
     }
 
     public void Dispose() {
         Scheduler.Stop();
     }
+
+    protected abstract void OnDeath();
 }
