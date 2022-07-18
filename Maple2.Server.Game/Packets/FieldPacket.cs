@@ -86,6 +86,9 @@ public static class FieldPacket {
 
         pWriter.WriteShort((short) session.Player.Buffs.Count);
         foreach (Buff buff in session.Player.Buffs.Values) {
+            pWriter.WriteInt(buff.Owner.ObjectId);
+            pWriter.WriteInt(buff.ObjectId);
+            pWriter.WriteInt(buff.Caster.ObjectId);
             pWriter.WriteClass<Buff>(buff);
         }
 
@@ -142,6 +145,9 @@ public static class FieldPacket {
 
         pWriter.WriteShort((short) npc.Buffs.Count);
         foreach (Buff buff in npc.Buffs.Values) {
+            pWriter.WriteInt(buff.Owner.ObjectId);
+            pWriter.WriteInt(buff.ObjectId);
+            pWriter.WriteInt(buff.Caster.ObjectId);
             pWriter.WriteClass<Buff>(buff);
         }
 

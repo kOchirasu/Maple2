@@ -51,12 +51,12 @@ public class FieldPlayer : Actor<Player> {
         var targets = new List<IActor>();
         foreach (int targetId in targetIds) {
             switch (attack.Range.ApplyTarget) {
-                case SkillEntity.Enemy:
+                case SkillEntity.Target:
                     if (Field.TryGetNpc(targetId, out FieldNpc? npc)) {
                         targets.Add(npc);
                     }
                     continue;
-                case SkillEntity.Player:
+                case SkillEntity.Owner:
                     if (Field.TryGetPlayer(targetId, out FieldPlayer? player)) {
                         targets.Add(player);
                     }

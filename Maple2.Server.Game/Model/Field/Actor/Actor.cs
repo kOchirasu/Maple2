@@ -44,6 +44,7 @@ public abstract class ActorBase<T> : IActor<T> {
     }
 
     public virtual void ApplyEffect(IActor caster, SkillEffectMetadata effect) { }
+    public virtual void AddBuff(IActor caster, int id, short level, bool notifyField = true) { }
 
     public virtual void Sync() { }
 }
@@ -65,18 +66,32 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
         Debug.Assert(effect.Condition != null);
 
         foreach (SkillEffectMetadata.Skill skill in effect.Skills) {
-            if (Buffs.TryGetValue(skill.Id, out Buff? existing)) {
-                existing.Stack();
+            AddBuff(caster, skill.Id, skill.Level);
+        }
+    }
+
+    public override void AddBuff(IActor caster, int id, short level, bool notifyField = true) {
+        if (Buffs.TryGetValue(id, out Buff? existing)) {
+            existing.Stack();
+            if (notifyField) {
                 Field.Broadcast(BuffPacket.Update(existing));
-                continue;
             }
+            return;
+        }
 
-            if (!Field.SkillMetadata.TryGetEffect(skill.Id, skill.Level, out AdditionalEffectMetadata? additionalEffect)) {
-                return;
-            }
+        if (!Field.SkillMetadata.TryGetEffect(id, level, out AdditionalEffectMetadata? additionalEffect)) {
+            Logger.Error("Invalid buff: {SkillId},{Level}", id, level);
+            return;
+        }
 
-            var buff = new Buff(Field, additionalEffect, NextLocalId(), caster, this);
-            Buffs[skill.Id] = buff;
+        var buff = new Buff(Field, additionalEffect, NextLocalId(), caster, this);
+        if (!Buffs.TryAdd(id, buff)) {
+            Logger.Error("Buff already exists: {SkillId}", id);
+            return;
+        }
+
+        Logger.Information("AddBuff to {ObjectId}: {SkillId},{Level} until {Tick}", ObjectId, id, level, buff.EndTick);
+        if (notifyField) {
             Field.Broadcast(BuffPacket.Add(buff));
         }
     }

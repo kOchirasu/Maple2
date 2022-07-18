@@ -29,7 +29,7 @@ public class Buff : IByteSerializable {
     public int ProcCount { get; private set; }
     public int Stacks { get; private set; }
 
-    public bool Enabled => Environment.TickCount <= EndTick;
+    public bool Enabled => EndTick == StartTick || Environment.TickCount <= EndTick || NextTick <= EndTick;
 
     public Buff(FieldManager field, AdditionalEffectMetadata metadata, int objectId, IActor caster, IActor owner) {
         this.field = field;
@@ -57,12 +57,12 @@ public class Buff : IByteSerializable {
     }
 
     public void Sync() {
-        if (!Enabled) {
+        int tickNow = Environment.TickCount;
+        if (EndTick > StartTick && tickNow > EndTick && NextTick > EndTick) {
             Remove();
             return;
         }
-
-        if (!Enabled || Environment.TickCount < NextTick) {
+        if (tickNow < NextTick) {
             return;
         }
 
@@ -74,7 +74,15 @@ public class Buff : IByteSerializable {
 
         foreach (SkillEffectMetadata effect in metadata.Skills) {
             if (effect.Condition != null) {
-                Log.Information("Buff Condition-Effect unimplemented");
+                Log.Error("Buff Condition-Effect unimplemented for {Id} on {Owner}", Id, Owner.ObjectId);
+                switch (effect.Condition.Target) {
+                    case SkillEntity.Target:
+                        // Owner.ApplyEffect(Caster, effect);
+                        break;
+                    default:
+                        Log.Error("Invalid Target: {Target}", effect.Condition.Target);
+                        break;
+                }
             } else if (effect.Splash != null) {
                 field.AddSkill(Caster, effect, new[]{Owner.Position.Align()}, Owner.Position, Owner.Rotation);
             }
@@ -82,7 +90,7 @@ public class Buff : IByteSerializable {
 
         // Buffs with IntervalTick=0 will just proc a single time
         if (metadata.Property.IntervalTick == 0) {
-            NextTick = EndTick + 1;
+            NextTick = int.MaxValue;
         } else {
             NextTick += metadata.Property.IntervalTick;
         }
@@ -154,12 +162,10 @@ public class Buff : IByteSerializable {
         }
 
         AdditionalEffectMetadataDot.DotBuff dotBuff = metadata.Dot.Buff;
-        if (field.SkillMetadata.TryGetEffect(dotBuff.Id, dotBuff.Level, out AdditionalEffectMetadata? additionalEffect)) {
-            foreach (SkillEffectMetadata skill in additionalEffect.Skills) {
-                Caster.ApplyEffect(Caster, skill);
-            }
+        if (dotBuff.Target == SkillEntity.Target) {
+            Owner.AddBuff(Caster, dotBuff.Id, dotBuff.Level);
         } else {
-            Log.Error("Invalid DotBuff: {SkillId},{Level}", dotBuff.Id, dotBuff.Level);
+            Caster.AddBuff(Caster, dotBuff.Id, dotBuff.Level);
         }
     }
 

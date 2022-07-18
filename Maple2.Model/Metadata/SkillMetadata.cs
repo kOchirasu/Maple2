@@ -34,7 +34,8 @@ public record SkillMetadataProperty(
     bool ReleaseObjectWeapon,
     //bool DisableWater, // 10500061,10500065,10500190 (Sharp Eyes)
     //bool HoldAttack, // 10700171,10700252
-    int SkillGroup);
+    int SkillGroup,
+    short MaxLevel);
 
 public record SkillMetadataState();
 
@@ -94,4 +95,11 @@ public record SkillMetadataDamage(
     float HitDelay,
     bool IsConstDamage, // Use 'Value' to determine damage
     long Value,
-    float DamageByTargetMaxHp);
+    float DamageByTargetMaxHp,
+    SkillMetadataPush? Push);
+
+public record SkillMetadataPush(
+    int Type,
+    float Distance,
+    float Duration,
+    float Probability);

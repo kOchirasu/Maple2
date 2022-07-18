@@ -7,6 +7,7 @@ using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
@@ -34,8 +35,7 @@ public partial class FieldManager {
     private readonly ConcurrentDictionary<FieldProperty, IFieldProperty> fieldProperties = new();
 
     #region Spawn
-    public FieldPlayer SpawnPlayer(GameSession session, Player player, int portalId = -1,
-        in Vector3 position = default, in Vector3 rotation = default) {
+    public FieldPlayer SpawnPlayer(GameSession session, Player player, int portalId = -1, in Vector3 position = default, in Vector3 rotation = default) {
         // TODO: Not sure what the difference is between instance ids.
         player.Character.MapId = MapId;
         player.Character.InstanceMapId = MapId;
@@ -45,6 +45,22 @@ public partial class FieldManager {
             Position = position,
             Rotation = rotation,
         };
+
+        // Add job passive skills to Player.
+        foreach (SkillInfo.Skill skill in session.Config.Skill.SkillInfo.GetSkills(SkillType.Passive, SkillRank.Both)) {
+            if (skill.Level <= 0) {
+                continue;
+            }
+            if (!SkillMetadata.TryGet(skill.Id, skill.Level, out SkillMetadata? metadata)) {
+                logger.Error("Invalid skill: {SkillId},{Level}", skill.Id, skill.Level);
+                continue;
+            }
+
+            logger.Information("Applying passive skill {Name}: {SkillId},{Level}", metadata.Name, metadata.Id, metadata.Level);
+            foreach (SkillEffectMetadata effect in metadata.Data.Skills) {
+                fieldPlayer.ApplyEffect(fieldPlayer, effect);
+            }
+        }
 
         // Use Portal if needed.
         if (fieldPlayer.Position == default && entities.Portals.TryGetValue(portalId, out Portal? portal)) {
@@ -211,9 +227,11 @@ public partial class FieldManager {
         }
 
         foreach (SkillEffectMetadata effect in attack.Skills) {
-            Debug.Assert(effect.Splash != null);
-
-            AddSkill(caster, effect, points, owner.Position, owner.Rotation);
+            if (effect.Condition != null) {
+                logger.Error("Field Condition-Skill not handled: {Id}", attack.CubeMagicPathId);
+            } else if (effect.Splash != null) {
+                AddSkill(caster, effect, points, owner.Position, owner.Rotation);
+            }
         }
     }
 
@@ -341,9 +359,6 @@ public partial class FieldManager {
         }
 
         added.Session.Send(TriggerPacket.Load(TriggerObjects));
-
-        added.Session.Send(StatsPacket.Init(added));
-        Broadcast(StatsPacket.Update(added), added.Session);
 
         if (background != null) {
             added.Session.Send(FieldPropertyPacket.Background(background));

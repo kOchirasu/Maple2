@@ -66,13 +66,13 @@ public class SkillManager {
         // Clear all skills for the rank we are saving as they will be set again.
         int[] skillIds = existingTab.Skills.Keys.ToArray();
         foreach (int skillId in skillIds) {
-            if (SkillInfo.GetSkill(skillId, ranks) != null) {
+            if (SkillInfo.GetMainSkill(skillId, ranks) != null) {
                 existingTab.Skills.Remove(skillId);
             }
         }
 
         foreach ((int skillId, int points) in tab.Skills) {
-            SkillInfo.Skill? skill = SkillInfo.GetSkill(skillId, ranks);
+            SkillInfo.Skill? skill = SkillInfo.GetMainSkill(skillId, ranks);
             if (skill != null) {
                 existingTab.Skills.Add(skillId, points);
             }
@@ -119,7 +119,7 @@ public class SkillManager {
 
     #region SkillInfo
     public void UpdateSkill(int skillId, short level, bool enabled) {
-        SkillInfo.Skill? skill = SkillInfo.GetSkill(skillId);
+        SkillInfo.Skill? skill = SkillInfo.GetMainSkill(skillId);
         if (skill == null) {
             return;
         }
@@ -136,7 +136,7 @@ public class SkillManager {
 
     public void ResetSkills(SkillRank rank = SkillRank.Both) {
         foreach (SkillType type in Enum.GetValues(typeof(SkillType))) {
-            foreach (SkillInfo.Skill skill in SkillInfo.GetSkills(type, rank)) {
+            foreach (SkillInfo.Skill skill in SkillInfo.GetMainSkills(type, rank)) {
                 skill.SetLevel(0);
             }
         }

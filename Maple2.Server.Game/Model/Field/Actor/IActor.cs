@@ -15,6 +15,7 @@ public interface IActor : IFieldEntity {
     public ActorSubState SubState { get; }
 
     public virtual void ApplyEffect(IActor caster, SkillEffectMetadata effect) { }
+    public virtual void AddBuff(IActor caster, int id, short level, bool notifyField = true) { }
 }
 
 public interface IActor<T> : IActor {
