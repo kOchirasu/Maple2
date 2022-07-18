@@ -53,7 +53,13 @@ public class SkillMapper : TypeMapper<StoredSkillMetadata> {
                                 HitDelay: attack.damageProperty.hitPauseTime,
                                 IsConstDamage: attack.damageProperty.isConstDamageValue != 0,
                                 Value: attack.damageProperty.value,
-                                DamageByTargetMaxHp: attack.damageProperty.damageByTargetMaxHP
+                                DamageByTargetMaxHp: attack.damageProperty.damageByTargetMaxHP,
+                                Push: attack.damageProperty.push > 0 ? new SkillMetadataPush(
+                                    Type: attack.damageProperty.push,
+                                    Distance: attack.damageProperty.pushdistance,
+                                    Duration: attack.damageProperty.pushduration,
+                                    Probability: attack.damageProperty.pushprob
+                                ) : null
                             ),
                             Skills: attack.conditionSkill.Select(skill => skill.Convert()).ToArray()
                         )).ToArray()
@@ -74,7 +80,8 @@ public class SkillMapper : TypeMapper<StoredSkillMetadata> {
                     UnrideOnHit: data.basic.kinds.unrideOnHit,
                     UnrideOnUse: data.basic.kinds.unrideOnUse,
                     ReleaseObjectWeapon: data.basic.kinds.releaseObjectWeapon,
-                    SkillGroup: data.basic.kinds.groupIDs.FirstOrDefault()),
+                    SkillGroup: data.basic.kinds.groupIDs.FirstOrDefault(),
+                    MaxLevel: levels.Keys.Max()),
                 State: new SkillMetadataState(),
                 Levels: levels
             );

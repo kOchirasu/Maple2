@@ -103,9 +103,9 @@ activated:
                         Log.Debug("- {Id} @ {Position}", target.ObjectId, target.Position);
                     }
                 }
-                // else {
+                // else if (Caster.ObjectId != 0) { // Not Ms2RegionSkill
                 //     Log.Debug("[{Tick}] {ObjectId}:{AttackPoint} has {Count}/{Limit} {Type}",
-                //         nextTick, ObjectId, attack.Point, 0, attack.TargetCount, attack.Range.ApplyTarget);
+                //         NextTick, ObjectId, attack.Point, 0, attack.TargetCount, attack.Range.ApplyTarget);
                 //     Log.Debug("{Range}", attack.Range);
                 //     foreach (Prism prism in prisms) {
                 //         Log.Debug("- {Prism}", prism);
@@ -146,7 +146,7 @@ activated:
                     if (effect.Condition != null) {
                         // ConditionSkill
                         switch (effect.Condition.Target) {
-                            case SkillEntity.Player:
+                            case SkillEntity.Owner:
                                 foreach (IActor target in targets) {
                                     target.ApplyEffect(Caster, effect);
                                 }
@@ -171,12 +171,12 @@ activated:
 
     private IEnumerable<IActor> GetTargets(Prism[] prisms, SkillEntity entity, int limit) {
         switch (entity) {
-            case SkillEntity.Player:
+            case SkillEntity.Owner:
             case SkillEntity.Attacker:
             case SkillEntity.RegionBuff:
             case SkillEntity.RegionDebuff:
                 return prisms.Filter(Field.Players.Values, limit);
-            case SkillEntity.Enemy:
+            case SkillEntity.Target:
                 return prisms.Filter(Field.Npcs.Values, limit);
             default:
                 Log.Debug("Unhandled SkillEntity:{Entity}", entity);

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Maple2.Database.Storage;
 using Maple2.Model;
 using Maple2.Model.Enum;
@@ -10,6 +9,7 @@ using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 using Maple2.Tools.Extensions;
+using Serilog;
 
 namespace Maple2.Server.Game.Manager.Config;
 
@@ -22,15 +22,18 @@ public class SkillInfo : IByteSerializable {
 
     public Job Job { get; private set; }
     public readonly IDictionary<int, Skill>[,] Skills;
+    public readonly IDictionary<int, Skill>[,] SubSkills;
 
     public SkillInfo(JobTable jobTable, SkillMetadataStorage skillMetadata, Job job, SkillTab? skillTab) {
         this.jobTable = jobTable;
         this.skillMetadata = skillMetadata;
 
-        Skills = new IDictionary<int, Skill>[SKILL_TYPES,SKILL_RANKS];
+        Skills = new IDictionary<int, Skill>[SKILL_TYPES, SKILL_RANKS];
+        SubSkills = new IDictionary<int, Skill>[SKILL_TYPES, SKILL_RANKS];
         for (int i = 0; i < SKILL_TYPES; i++) {
             for (int j = 0; j < SKILL_RANKS; j++) {
                 Skills[i, j] = new Dictionary<int, Skill>();
+                SubSkills[i, j] = new Dictionary<int, Skill>();
             }
         }
 
@@ -61,12 +64,24 @@ public class SkillInfo : IByteSerializable {
                 Debug.Assert(rank is SkillRank.Basic or SkillRank.Awakening);
 
                 foreach (JobTable.Skill skillData in jobSkills) {
+                    short baseLevel = (short) (baseSkills.Contains(skillData.Main) ? 1 : 0);
+                    var subSkills = new List<Skill>(skillData.Sub.Length);
+                    foreach (int subSkillId in skillData.Sub) {
+                        if (!skillMetadata.TryGet(subSkillId, 1, out SkillMetadata? subMetadata)) {
+                            Log.Warning("Skipping invalid subSkillId:{SkillId}", subSkillId);
+                            continue;
+                        }
+
+                        var subSkill = new Skill(subSkillId, baseLevel, subMetadata.Property.MaxLevel);
+                        subSkills.Add(subSkill);
+                        SubSkills[(int) subMetadata.Property.Type, (int) rank].Add(subSkillId, subSkill);
+                    }
+
                     if (!skillMetadata.TryGet(skillData.Main, 1, out SkillMetadata? metadata)) {
                         throw new InvalidOperationException($"Nonexistent skillId:{skillData.Main}");
                     }
 
-                    short baseLevel = (short) (baseSkills.Contains(skillData.Main) ? 1 : 0);
-                    var skill = new Skill(skillData.Main, skillData.Sub, baseLevel);
+                    var skill = new Skill(skillData.Main, subSkills.ToArray(), baseLevel, metadata.Property.MaxLevel);
                     Skills[(int) metadata.Property.Type, (int) rank].Add(skill.Id, skill);
                 }
             }
@@ -94,7 +109,13 @@ public class SkillInfo : IByteSerializable {
         }
     }
 
-    public IEnumerable<Skill> GetSkills(SkillType type, SkillRank rank) {
+    /// <summary>
+    /// Returns <b>Main</b> skills with specified filtering.
+    /// </summary>
+    /// <param name="type">Type of main skills to return.</param>
+    /// <param name="rank">Rank of main skills to return.</param>
+    /// <returns>Enumerable of skills that match the filter.</returns>
+    public IEnumerable<Skill> GetMainSkills(SkillType type, SkillRank rank) {
         if (rank is SkillRank.Basic or SkillRank.Both) {
             foreach (Skill skill in Skills[(int) type, (int) SkillRank.Basic].Values) {
                 yield return skill;
@@ -108,7 +129,33 @@ public class SkillInfo : IByteSerializable {
         }
     }
 
-    public Skill? GetSkill(int skillId, SkillRank rank = SkillRank.Both) {
+    /// <summary>
+    /// Returns <b>Main</b> and <b>Sub</b> skills with specified filtering.
+    /// </summary>
+    /// <param name="type">Type of skills to return.</param>
+    /// <param name="rank">Rank of skills to return.</param>
+    /// <returns>Enumerable of skills that match the filter.</returns>
+    public IEnumerable<Skill> GetSkills(SkillType type, SkillRank rank) {
+        if (rank is SkillRank.Basic or SkillRank.Both) {
+            foreach (Skill skill in Skills[(int) type, (int) SkillRank.Basic].Values) {
+                yield return skill;
+            }
+            foreach (Skill skill in SubSkills[(int) type, (int) SkillRank.Basic].Values) {
+                yield return skill;
+            }
+        }
+
+        if (rank is SkillRank.Awakening or SkillRank.Both) {
+            foreach (Skill skill in Skills[(int) type, (int) SkillRank.Awakening].Values) {
+                yield return skill;
+            }
+            foreach (Skill skill in SubSkills[(int) type, (int) SkillRank.Awakening].Values) {
+                yield return skill;
+            }
+        }
+    }
+
+    public Skill? GetMainSkill(int skillId, SkillRank rank = SkillRank.Both) {
         for (int i = 0; i < SKILL_TYPES; i++) {
             if (rank is SkillRank.Basic or SkillRank.Both) {
                 if (Skills[i, (int) SkillRank.Basic].TryGetValue(skillId, out Skill? skill)) {
@@ -134,7 +181,7 @@ public class SkillInfo : IByteSerializable {
         for (int i = 0; i < SKILL_TYPES; i++) {
             int count = 0;
             for (int j = 0; j < SKILL_RANKS; j++) {
-                count += Skills[i, j].Values.Sum(skill => skill.Count);
+                count += Skills[i, j].Count + SubSkills[i, j].Count;
             }
             writer.WriteByte((byte) count);
 
@@ -142,38 +189,46 @@ public class SkillInfo : IByteSerializable {
                 foreach (Skill skill in Skills[i, j].Values) {
                     writer.WriteClass<Skill>(skill);
                 }
+                foreach (Skill subSkill in SubSkills[i, j].Values) {
+                    writer.WriteClass<Skill>(subSkill);
+                }
             }
         }
     }
 
     public class Skill : IByteSerializable {
         public readonly int Id;
-        public readonly int[] SubIds;
         public readonly short BaseLevel;
+        public readonly short MaxLevel;
         public short Level { get; private set; }
         public bool Notify;
 
-        public int Count => SubIds.Length + 1;
+        private readonly Skill[] subSkills;
 
-
-        public Skill(int id, int[] subIds, short baseLevel) {
+        public Skill(int id, Skill[] subSkills, short baseLevel, short maxLevel) {
             Id = id;
-            SubIds = subIds;
+            this.subSkills = subSkills;
             BaseLevel = baseLevel;
+            MaxLevel = maxLevel;
             Level = baseLevel;
         }
+
+        public Skill(int id, short baseLevel, short maxLevel) : this(id, Array.Empty<Skill>(), baseLevel, maxLevel) { }
 
         public void Reset() {
             Level = BaseLevel;
             Notify = false;
         }
 
-        public void SetLevel(short level) {
-            if (BaseLevel == 0 && Level == 0 && level > 0) {
-                Notify = true;
+        public void SetLevel(short level, bool notify = true) {
+            if (notify && BaseLevel == 0 && Level == 0 && level > 0) {
+                Notify = notify;
             }
 
-            Level = Math.Max(BaseLevel, level);
+            Level = Math.Clamp(level, BaseLevel, MaxLevel);
+            foreach (Skill subSkill in subSkills) {
+                subSkill.SetLevel(level, false);
+            }
         }
 
         public void WriteTo(IByteWriter writer) {
@@ -184,14 +239,6 @@ public class SkillInfo : IByteSerializable {
             writer.WriteByte();
 
             Notify = false;
-
-            foreach (int subId in SubIds) {
-                writer.WriteBool(false);
-                writer.WriteBool(Level > 0);
-                writer.WriteInt(subId);
-                writer.WriteInt(Math.Max((int)Level, 1));
-                writer.WriteByte();
-            }
         }
     }
 }

@@ -92,7 +92,7 @@ public class PlayerCommand : Command {
                 } else if (job < currentJob) {
                     foreach (SkillTab skillTab in session.Config.Skill.SkillBook.SkillTabs) {
                         foreach (int skillId in skillTab.Skills.Keys.ToList()) {
-                            if (session.Config.Skill.SkillInfo.GetSkill(skillId, SkillRank.Awakening) != null) {
+                            if (session.Config.Skill.SkillInfo.GetMainSkill(skillId, SkillRank.Awakening) != null) {
                                 skillTab.Skills.Remove(skillId);
                             }
                         }
