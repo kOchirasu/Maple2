@@ -28,7 +28,7 @@ public static class CubePacket {
         RotateCube = 14,
         ReplaceCube = 15,
         LiftupObject = 17,
-        LiftupAttack = 18,
+        LiftupDrop = 18,
         UpdateProfile = 20,
         SetHomeName = 21,
         UpdatePlot = 22, // Buy/Extend/Forfeit
@@ -223,21 +223,21 @@ public static class CubePacket {
         return pWriter;
     }
 
-    public static ByteWriter LiftupObject(IActor<Player> player, ObjectWeapon objectWeapon, int itemId) {
+    public static ByteWriter LiftupObject(IActor<Player> player, LiftupWeapon liftupWeapon) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.LiftupObject);
         pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
         pWriter.WriteInt(player.ObjectId);
-        pWriter.Write<Vector3B>(objectWeapon.Position);
-        pWriter.WriteInt(itemId);
-        pWriter.WriteInt(Environment.TickCount + objectWeapon.RespawnTick);
+        pWriter.Write<Vector3B>(liftupWeapon.Object.Position);
+        pWriter.WriteInt(liftupWeapon.ItemId);
+        pWriter.WriteInt(Environment.TickCount + liftupWeapon.Object.RespawnTick);
 
         return pWriter;
     }
 
-    public static ByteWriter LiftupAttack(IActor<Player> player) {
+    public static ByteWriter LiftupDrop(IActor<Player> player) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
-        pWriter.Write<Command>(Command.LiftupAttack);
+        pWriter.Write<Command>(Command.LiftupDrop);
         pWriter.Write<UgcMapError>(UgcMapError.s_ugcmap_ok);
         pWriter.WriteInt(player.ObjectId);
 

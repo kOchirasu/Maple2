@@ -48,6 +48,11 @@ public record Ms2TriggerMesh(
     bool Visible)
 : Trigger(Discriminator.Ms2TriggerMesh, TriggerId, Visible);
 
+public record Ms2TriggerPortal(
+    int TriggerId,
+    bool Visible)
+: Trigger(Discriminator.Ms2TriggerPortal, TriggerId, Visible);
+
 public record Ms2TriggerRope(
     int TriggerId,
     bool Visible)

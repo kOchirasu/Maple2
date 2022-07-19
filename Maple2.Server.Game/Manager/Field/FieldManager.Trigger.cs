@@ -10,6 +10,7 @@ namespace Maple2.Server.Game.Manager.Field;
 public partial class FieldManager {
     public readonly TriggerCollection TriggerObjects;
 
+    private readonly ConcurrentDictionary<int, FieldBreakable> triggerBreakable = new ();
     private readonly ConcurrentDictionary<string, FieldTrigger> fieldTriggers = new();
     public readonly Dictionary<string, TickTimer> Timers = new();
 

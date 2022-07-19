@@ -29,11 +29,11 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                 tradableCount = data.property.globalTradableCountNA ?? tradableCount;
             }
 
-            ItemMetadataSkill? skill = data.skill.skillID == 0 ? null : new ItemMetadataSkill(
+            ItemMetadataSkill? skill = data.skill.skillID == 0 && data.objectWeaponSkill.skillID == 0 ? null : new ItemMetadataSkill(
                 Id: data.skill.skillID,
-                Level: data.skill.skillLevel,
+                Level: data.skill.skillID != 0 ? data.skill.skillLevel : (short) 0,
                 WeaponId: data.objectWeaponSkill.skillID,
-                WeaponLevel: data.objectWeaponSkill.skillLevel);
+                WeaponLevel: data.objectWeaponSkill.skillID != 0 ? data.objectWeaponSkill.skillLevel : (short) 0);
             ItemMetadataFunction? function = string.IsNullOrWhiteSpace(data.function.name) ? null : new ItemMetadataFunction(
                 Type: Enum.Parse<ItemFunction>(data.function.name),
                 Name: data.function.name, // Temp duplicate data makes it easier to read DB

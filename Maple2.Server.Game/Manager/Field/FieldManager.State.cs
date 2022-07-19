@@ -22,7 +22,7 @@ public partial class FieldManager {
     internal readonly ConcurrentDictionary<int, FieldNpc> Npcs = new();
 
     // Entities
-    private readonly ConcurrentMultiDictionary<string, int, FieldBreakable> fieldBreakables = new();
+    private readonly ConcurrentDictionary<string, FieldBreakable> fieldBreakables = new();
     private readonly ConcurrentDictionary<string, FieldLiftable> fieldLiftables = new();
     private readonly ConcurrentDictionary<int, FieldItem> fieldItems = new();
     private readonly ConcurrentDictionary<int, FieldMobSpawn> fieldMobSpawns = new();
@@ -129,7 +129,10 @@ public partial class FieldManager {
             Rotation = breakable.Rotation,
         };
 
-        fieldBreakables.TryAdd(entityId, breakable.Id, fieldBreakable);
+        fieldBreakables.TryAdd(entityId, fieldBreakable);
+        if (breakable.Id != 0) {
+            triggerBreakable.TryAdd(breakable.Id, fieldBreakable);
+        }
         return fieldBreakable;
     }
 
