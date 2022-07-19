@@ -29,7 +29,7 @@ public class FieldCommand : Command {
             return;
         }
 
-        ctx.Console.Out.WriteLine($"Map: {session.Field.MapId}, {session.Field.InstanceId}");
+        ctx.Console.Out.WriteLine($"Map: {session.Field.MapId}, {session.Field.InstanceId} ({session.Field.Metadata.XBlock})");
     }
 
     private class EntityInfoCommand : Command {

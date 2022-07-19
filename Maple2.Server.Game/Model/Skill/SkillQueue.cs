@@ -21,7 +21,7 @@ public class SkillQueue {
 
     public SkillRecord? Get(long uid) {
         for (int i = 0; i < MAX_PENDING; i++) {
-            if (casts[i]?.Uid == uid) {
+            if (casts[i]?.CastUid == uid) {
                 return casts[i];
             }
         }
@@ -31,7 +31,7 @@ public class SkillQueue {
 
     public void Remove(long uid) {
         for (int i = 0; i < MAX_PENDING; i++) {
-            if (casts[i]?.Uid != uid) {
+            if (casts[i]?.CastUid != uid) {
                 continue;
             }
 

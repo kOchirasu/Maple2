@@ -4,15 +4,15 @@ using Maple2.Tools;
 namespace Maple2.Server.Game.Model.Skill;
 
 public class TargetRecord : IByteSerializable {
-    public int AttackCounter;
-    public int CasterId;
+    public readonly long ZeroUid = 0;
+    public long Uid;
     public int TargetId;
     public byte Index;
     public byte Unknown;
 
     public void WriteTo(IByteWriter writer) {
-        writer.WriteInt(AttackCounter);
-        writer.WriteInt(CasterId);
+        writer.WriteLong(ZeroUid);
+        writer.WriteLong(Uid);
         writer.WriteInt(TargetId);
         writer.WriteByte(Index);
         writer.WriteByte(Unknown);

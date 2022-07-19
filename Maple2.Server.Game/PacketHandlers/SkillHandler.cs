@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Numerics;
 using Maple2.Database.Storage;
-using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -143,8 +141,7 @@ public class SkillHandler : PacketHandler<GameSession> {
         for (byte i = 0; i < count; i++) {
             var targets = new List<TargetRecord>();
             targets.Add(new TargetRecord {
-                AttackCounter = packet.ReadInt(),
-                CasterId = packet.ReadInt(),
+                Uid = packet.ReadLong(),
                 TargetId = packet.ReadInt(),
                 Index = packet.ReadByte(),
             });
@@ -152,8 +149,7 @@ public class SkillHandler : PacketHandler<GameSession> {
             // While more targets in packet.
             while (packet.ReadBool()) {
                 targets.Add(new TargetRecord {
-                    AttackCounter = packet.ReadInt(),
-                    CasterId = packet.ReadInt(),
+                    Uid = packet.ReadLong(),
                     TargetId = packet.ReadInt(),
                     Index = packet.ReadByte(),
                     Unknown = packet.ReadByte(),
@@ -173,14 +169,9 @@ public class SkillHandler : PacketHandler<GameSession> {
             return;
         }
 
-        int attackCounter = packet.ReadInt();
-        int casterId = packet.ReadInt(); // Unknown(0)
-        if (casterId != 0 && casterId != session.Player.ObjectId) {
-            Logger.Error("Unhandled skill-Target value1({Value}): {Record}", casterId, record);
-        }
-
-        packet.Read<Vector3>();
-        packet.Read<Vector3>();
+        record.TargetUid = packet.ReadLong();
+        record.ImpactPosition = packet.Read<Vector3>();
+        packet.Read<Vector3>(); // ImpactPosition2
         record.Direction = packet.Read<Vector3>();
         byte attackPoint = packet.ReadByte();
         if (!record.TrySetAttackPoint(attackPoint)) {

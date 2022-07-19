@@ -17,7 +17,7 @@ public static class VibratePacket {
         var pWriter = Packet.Of(SendOp.Vibrate);
         pWriter.Write<Command>(Command.Attack);
         pWriter.WriteString(entityId);
-        pWriter.WriteLong(skill.Uid);
+        pWriter.WriteLong(skill.CastUid);
         pWriter.WriteInt(skill.SkillId);
         pWriter.WriteShort(skill.Level);
         pWriter.WriteByte(skill.MotionPoint);

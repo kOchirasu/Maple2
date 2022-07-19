@@ -124,6 +124,9 @@ activated:
                     foreach (IActor target in targets) {
                         var targetRecord = new DamageRecordTarget {
                             ObjectId = target.ObjectId,
+                            // TODO: These should be from the block that did damage?
+                            Position = target.Position, // Of block
+                            Direction = target.Rotation, // Of block
                         };
                         long damageAmount = 0;
                         for (int i = 0; i < attack.Damage.Count; i++) {
