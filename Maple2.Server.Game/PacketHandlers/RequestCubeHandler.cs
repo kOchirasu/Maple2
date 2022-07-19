@@ -28,7 +28,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
         RotateCube = 14,
         ReplaceCube = 15,
         LiftupObject = 17,
-        LiftupAttack = 18,
+        LiftupDrop = 18,
         SetHomeName = 21,
         SetPasscode = 24,
         VoteHome = 25,
@@ -83,8 +83,8 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
             case Command.LiftupObject:
                 HandleLiftupObject(session, packet);
                 break;
-            case Command.LiftupAttack:
-                HandleLiftupAttack(session);
+            case Command.LiftupDrop:
+                HandleLiftupDrop(session);
                 break;
             case Command.SetHomeName:
                 HandleSetHomeName(session, packet);
@@ -283,24 +283,22 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (!session.Field.LiftupCube(position, out ObjectWeapon? weapon)) {
+        if (!session.Field.LiftupCube(position, out LiftupWeapon? weapon)) {
             session.Send(CubePacket.Error(UgcMapError.s_ugcmap_no_cube_to_lift));
             return;
         }
 
         session.HeldLiftup = weapon;
-        int itemId = session.HeldLiftup.ItemIds[Environment.TickCount % session.HeldLiftup.ItemIds.Length];
-        session.Field.Broadcast(CubePacket.LiftupObject(session.Player, session.HeldLiftup, itemId));
+        session.Field.Broadcast(CubePacket.LiftupObject(session.Player, session.HeldLiftup));
     }
 
-    private void HandleLiftupAttack(GameSession session) {
+    private void HandleLiftupDrop(GameSession session) {
         if (session.Field == null || session.HeldLiftup == null) {
-            session.Send(CubePacket.Error(UgcMapError.s_ugcmap_not_allowed_item));
             return;
         }
 
         session.HeldLiftup = null;
-        session.Field.Broadcast(CubePacket.LiftupAttack(session.Player));
+        session.Field.Broadcast(CubePacket.LiftupDrop(session.Player));
     }
 
     private void HandleSetHomeName(GameSession session, IByteReader packet) {

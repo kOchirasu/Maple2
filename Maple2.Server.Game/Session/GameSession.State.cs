@@ -20,7 +20,7 @@ public partial class GameSession {
     public FieldGuideObject? GuideObject;
     public HeldCube? HeldCube;
 
-    public ObjectWeapon? HeldLiftup;
+    public LiftupWeapon? HeldLiftup;
     public SkillQueue ActiveSkills = new();
 
     public NpcScript? NpcScript;

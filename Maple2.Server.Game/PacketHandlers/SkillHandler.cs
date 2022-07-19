@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Maple2.Database.Storage;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -8,7 +10,6 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -73,6 +74,16 @@ public class SkillHandler : PacketHandler<GameSession> {
         int serverTick = packet.ReadInt();
         int skillId = packet.ReadInt();
         short level = packet.ReadShort();
+
+        if (session.HeldLiftup != null) {
+            if (session.HeldLiftup.SkillId == skillId && session.HeldLiftup.Level == level) {
+                session.HeldLiftup = null;
+            } else {
+                // Cannot use other skills while holding LiftupWeapon.
+                return;
+            }
+        }
+
         if (!SkillMetadata.TryGet(skillId, level, out SkillMetadata? metadata)) {
             Logger.Error("Invalid skill use: {SkillId},{Level}", skillId, level);
             return;

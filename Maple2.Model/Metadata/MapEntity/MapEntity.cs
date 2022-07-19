@@ -48,7 +48,7 @@ public abstract partial record MapBlock([JsonDiscriminator] MapBlock.Discriminat
         Ms2TriggerEffect = 1728709847,
         Ms2TriggerLadder = 3330340952,
         Ms2TriggerMesh = 1957913511,
-        // Ms2TriggerPortal = 1960805826,
+        Ms2TriggerPortal = 1960805826,
         Ms2TriggerRope = 2325100735,
         Ms2TriggerSkill = 737806629,
         Ms2TriggerSound = 558345729,

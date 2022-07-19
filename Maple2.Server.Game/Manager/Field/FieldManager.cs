@@ -25,6 +25,7 @@ public sealed partial class FieldManager : IDisposable {
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
     public GameStorage GameStorage { get; init; } = null!;
+    public ItemMetadataStorage ItemMetadata { get; init; } = null!;
     public NpcMetadataStorage NpcMetadata { private get; init; } = null!;
     public SkillMetadataStorage SkillMetadata { get; init; } = null!;
     public TableMetadataStorage TableMetadata { get; init; } = null!;
@@ -188,11 +189,11 @@ public sealed partial class FieldManager : IDisposable {
     }
 
     public bool TryGetBreakable(string entityId, [NotNullWhen(true)] out FieldBreakable? fieldBreakable) {
-        return fieldBreakables.TryGet(entityId, out fieldBreakable);
+        return fieldBreakables.TryGetValue(entityId, out fieldBreakable);
     }
 
     public bool TryGetBreakable(int triggerId, [NotNullWhen(true)] out FieldBreakable? fieldBreakable) {
-        return fieldBreakables.TryGet(triggerId, out fieldBreakable);
+        return triggerBreakable.TryGetValue(triggerId, out fieldBreakable);
     }
 
     public bool TryGetLiftable(string entityId, [NotNullWhen(true)] out FieldLiftable? fieldLiftable) {
@@ -233,10 +234,19 @@ public sealed partial class FieldManager : IDisposable {
         return true;
     }
 
-    public bool LiftupCube(in Vector3B coordinates, [NotNullWhen(true)] out ObjectWeapon? objectWeapon) {
-        if (!entities.ObjectWeapons.TryGetValue(coordinates, out objectWeapon)) {
+    public bool LiftupCube(in Vector3B coordinates, [NotNullWhen(true)] out LiftupWeapon? liftupWeapon) {
+        if (!entities.ObjectWeapons.TryGetValue(coordinates, out ObjectWeapon? objectWeapon)) {
+            liftupWeapon = null;
             return false;
         }
+
+        int itemId = objectWeapon.ItemIds[Environment.TickCount % objectWeapon.ItemIds.Length];
+        if (!ItemMetadata.TryGet(itemId, out ItemMetadata? item) || !(item.Skill?.WeaponId > 0)) {
+            liftupWeapon = null;
+            return false;
+        }
+
+        liftupWeapon = new LiftupWeapon(objectWeapon, itemId, item.Skill.WeaponId, item.Skill.WeaponLevel);
 
         // TODO: Spawn Npcs
         if (objectWeapon.SpawnNpcId == 0 || Random.Shared.NextSingle() >= objectWeapon.SpawnNpcRate) {
