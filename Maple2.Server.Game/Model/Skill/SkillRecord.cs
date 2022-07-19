@@ -11,7 +11,8 @@ public class SkillRecord {
     public int SkillId => Metadata.Id;
     public short Level => Metadata.Level;
 
-    public readonly long Uid;
+    public readonly long CastUid;
+    public long TargetUid;
     public readonly int CasterId;
 
     public int ServerTick;
@@ -19,7 +20,8 @@ public class SkillRecord {
     public byte AttackPoint { get; private set; }
 
     public Vector3 Position;
-    public Vector3 Direction;
+    public Vector3 ImpactPosition;
+    public Vector3 Direction; // Sometimes Rotation
     public Vector3 Rotation;
     public float Rotate2Z;
     public bool Unknown;
@@ -28,9 +30,9 @@ public class SkillRecord {
     public int HoldInt;
     public string HoldString = string.Empty;
 
-    public SkillRecord(SkillMetadata metadata, long uid, int casterId) {
+    public SkillRecord(SkillMetadata metadata, long castUid, int casterId) {
         Metadata = metadata;
-        Uid = uid;
+        CastUid = castUid;
         CasterId = casterId;
     }
 
@@ -53,7 +55,7 @@ public class SkillRecord {
     }
 
     public override string ToString() {
-        return $"Uid:{Uid}, SkillId:{SkillId}, Level:{Level}, MotionPoint:{MotionPoint}, AttackPoint:{AttackPoint}\n"
+        return $"Uid:{CastUid}, SkillId:{SkillId}, Level:{Level}, MotionPoint:{MotionPoint}, AttackPoint:{AttackPoint}\n"
                + $"- Position:{Position}\n"
                + $"- Rotation:{Rotation}\n"
                + $"- Direction:{Direction}";

@@ -11,7 +11,7 @@ namespace Maple2.Server.Game.Packets;
 public static class SkillPacket {
     public static ByteWriter Use(SkillRecord skill) {
         var pWriter = Packet.Of(SendOp.SkillUse);
-        pWriter.WriteLong(skill.Uid);
+        pWriter.WriteLong(skill.CastUid);
         pWriter.WriteInt(skill.ServerTick);
         pWriter.WriteInt(skill.CasterId);
         pWriter.WriteInt(skill.SkillId);
@@ -33,7 +33,7 @@ public static class SkillPacket {
 
     public static ByteWriter Sync(SkillRecord skill) {
         var pWriter = Packet.Of(SendOp.SkillSync);
-        pWriter.WriteLong(skill.Uid);
+        pWriter.WriteLong(skill.CastUid);
         pWriter.WriteInt(skill.CasterId);
         pWriter.WriteInt(skill.SkillId);
         pWriter.WriteShort(skill.Level);
@@ -51,7 +51,7 @@ public static class SkillPacket {
 
     public static ByteWriter Cancel(SkillRecord skill) {
         var pWriter = Packet.Of(SendOp.SkillCancel);
-        pWriter.WriteLong(skill.Uid);
+        pWriter.WriteLong(skill.CastUid);
         pWriter.WriteInt(skill.CasterId);
 
         return pWriter;
@@ -60,7 +60,7 @@ public static class SkillPacket {
     public static ByteWriter Fail(SkillRecord skill) {
         var pWriter = Packet.Of(SendOp.SkillUseFailed);
         pWriter.WriteByte(); // Type?
-        pWriter.WriteLong(skill.Uid);
+        pWriter.WriteLong(skill.CastUid);
         pWriter.WriteInt(skill.CasterId);
         pWriter.WriteByte(); // Unknown
 

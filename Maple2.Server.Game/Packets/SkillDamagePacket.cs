@@ -25,7 +25,7 @@ public static class SkillDamagePacket {
     public static ByteWriter Target(SkillRecord record, ICollection<TargetRecord> targets) {
         var pWriter = Packet.Of(SendOp.SkillDamage);
         pWriter.Write<Command>(Command.Target);
-        pWriter.WriteLong(record.Uid);
+        pWriter.WriteLong(record.CastUid);
         pWriter.WriteInt(record.CasterId);
         pWriter.WriteInt(record.SkillId);
         pWriter.WriteShort(record.Level);
@@ -38,7 +38,6 @@ public static class SkillDamagePacket {
 
         pWriter.WriteByte((byte) targets.Count);
         foreach (TargetRecord target in targets) {
-            pWriter.WriteLong();
             pWriter.WriteClass<TargetRecord>(target);
         }
 
@@ -48,9 +47,8 @@ public static class SkillDamagePacket {
     public static ByteWriter Damage(DamageRecord record) {
         var pWriter = Packet.Of(SendOp.SkillDamage);
         pWriter.Write<Command>(Command.Damage);
-        pWriter.WriteLong(record.Uid);
-        pWriter.WriteInt(record.AttackCounter); // AttackCounter
-        pWriter.WriteInt(record.CasterId);
+        pWriter.WriteLong(record.SkillUid);
+        pWriter.WriteLong(record.TargetUid);
         pWriter.WriteInt(record.OwnerId);
         pWriter.WriteInt(record.SkillId);
         pWriter.WriteShort(record.Level);
@@ -96,7 +94,7 @@ public static class SkillDamagePacket {
     public static ByteWriter Region(DamageRecord record) {
         var pWriter = Packet.Of(SendOp.SkillDamage);
         pWriter.Write<Command>(Command.Region);
-        pWriter.WriteLong(record.Uid);
+        pWriter.WriteLong(record.SkillUid);
         pWriter.WriteInt(record.CasterId);
         pWriter.WriteInt(record.OwnerId);
         pWriter.WriteByte(record.AttackPoint);
@@ -105,8 +103,8 @@ public static class SkillDamagePacket {
         foreach (DamageRecordTarget target in record.Targets) {
             pWriter.WriteInt(target.ObjectId);
             pWriter.WriteByte((byte) target.Damage.Count);
-            pWriter.Write<Vector3S>(record.Position); // Of Block
-            pWriter.Write<Vector3>(record.Direction);
+            pWriter.Write<Vector3S>(target.Position); // Of Block
+            pWriter.Write<Vector3>(target.Direction);
             foreach ((DamageType type, long amount) in target.Damage) {
                 pWriter.Write<DamageType>(type);
                 pWriter.WriteLong(amount);
@@ -119,7 +117,7 @@ public static class SkillDamagePacket {
     public static ByteWriter Tile(DamageRecord record) {
         var pWriter = Packet.Of(SendOp.SkillDamage);
         pWriter.Write<Command>(Command.Tile);
-        pWriter.WriteLong(record.Uid);
+        pWriter.WriteLong(record.SkillUid);
         pWriter.WriteInt(record.SkillId);
         pWriter.WriteShort(record.Level);
 
@@ -127,8 +125,8 @@ public static class SkillDamagePacket {
         foreach (DamageRecordTarget target in record.Targets) {
             pWriter.WriteInt(target.ObjectId);
             pWriter.WriteByte((byte) target.Damage.Count);
-            pWriter.Write<Vector3S>(record.Position); // Of Block
-            pWriter.Write<Vector3>(record.Direction);
+            pWriter.Write<Vector3S>(target.Position); // Of Block
+            pWriter.Write<Vector3>(target.Direction);
             foreach ((DamageType type, long amount) in target.Damage) {
                 pWriter.Write<DamageType>(type);
                 pWriter.WriteLong(amount);

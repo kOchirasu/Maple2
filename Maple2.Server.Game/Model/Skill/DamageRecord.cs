@@ -5,9 +5,10 @@ using Maple2.Model.Enum;
 namespace Maple2.Server.Game.Model.Skill;
 
 public class DamageRecord {
-    public long Uid { get; init; }
-    public int AttackCounter;
-    public int CasterId;
+    public long SkillUid { get; init; }
+    public long TargetUid { get; init; } // For Non-Region skills
+    public int CasterId { get; init; }   // For Region skills
+
     public int OwnerId;
     public int SkillId;
     public short Level;
@@ -15,7 +16,6 @@ public class DamageRecord {
     public byte AttackPoint;
 
     public Vector3 Position;
-    public Vector3 Rotation;
     public Vector3 Direction;
 
     public readonly List<DamageRecordTarget> Targets;

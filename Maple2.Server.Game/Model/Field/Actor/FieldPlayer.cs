@@ -73,20 +73,20 @@ public class FieldPlayer : Actor<Player> {
 
         if (attack.Damage.Count > 0) {
             var damage = new DamageRecord {
-                AttackCounter = 1,
-                CasterId = ObjectId,
+                TargetUid = record.TargetUid,
                 OwnerId = ObjectId,
                 SkillId = record.SkillId,
                 Level = record.Level,
                 AttackPoint = record.AttackPoint,
                 MotionPoint = record.MotionPoint,
-                Position = record.Position,
-                // Rotation = record.Rotation,
+                Position = record.ImpactPosition,
                 Direction = record.Direction,
             };
 
             foreach (IActor target in targets) {
-                var targetRecord = new DamageRecordTarget {ObjectId = target.ObjectId};
+                var targetRecord = new DamageRecordTarget {
+                    ObjectId = target.ObjectId,
+                };
                 long damageAmount = 0;
                 for (int i = 0; i < attack.Damage.Count; i++) {
                     targetRecord.AddDamage(DamageType.Normal, -20);

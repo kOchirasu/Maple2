@@ -156,8 +156,12 @@ public partial class TriggerContext {
             .Select(boxId => Objects.Boxes.GetValueOrDefault(boxId))
             .Where(box => box != null)!;
 
-        return Field.Players.Values.Any(player => player.Value.Character.Job.Code() == (JobCode) jobCode
-                                                  && boxes.Any(box => box.Contains(player.Position)));
+        if (jobCode != 0) {
+            return Field.Players.Values
+                .Any(player => player.Value.Character.Job.Code() == (JobCode) jobCode && boxes.Any(box => box.Contains(player.Position)));
+        }
+
+        return Field.Players.Values.Any(player => boxes.Any(box => box.Contains(player.Position)));
     }
     #endregion
 

@@ -106,6 +106,9 @@ public class TriggerObjectCamera : TriggerObject<Ms2TriggerCamera> {
 }
 
 public class TriggerBox {
+    // Some extra height to compensate for entity height
+    private const float EXTRA_HEIGHT = 10f;
+
     public readonly Ms2TriggerBox Metadata;
 
     public int Id => Metadata.TriggerId;
@@ -117,8 +120,12 @@ public class TriggerBox {
 
         var min = new Vector2(metadata.Position.X - metadata.Dimensions.X / 2, metadata.Position.Y - metadata.Dimensions.Y / 2);
         var max = new Vector2(metadata.Position.X + metadata.Dimensions.X / 2, metadata.Position.Y + metadata.Dimensions.Y / 2);
-        box = new Prism(new BoundingBox(min, max), metadata.Position.Z - metadata.Dimensions.Z / 2, metadata.Dimensions.Z);
+        box = new Prism(new BoundingBox(min, max), metadata.Position.Z - metadata.Dimensions.Z / 2 - EXTRA_HEIGHT, metadata.Dimensions.Z + EXTRA_HEIGHT);
     }
 
     public bool Contains(in Vector3 point) => box.Contains(point);
+
+    public override string ToString() {
+        return $"Id:{Id}\n- {box}";
+    }
 }
