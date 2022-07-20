@@ -7,38 +7,60 @@ import "common.proto";
 
 // The world service definition.
 service World {
-  // Checks the health of this service
-  rpc Health(google.protobuf.Empty) returns (HealthResponse);
-
+  // Registers a game server with the world server.
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+  // Unregisters a game server.
+  rpc Unregister(UnregisterRequest) returns (UnregisterResponse);
   // Migrate out of a server.
   rpc MigrateOut(MigrateOutRequest) returns (MigrateOutResponse);
   // Migrate into a server.
   rpc MigrateIn(MigrateInRequest) returns (MigrateInResponse);
+  // Retrieve information about channels.
+  rpc Channels(ChannelsRequest) returns (ChannelsResponse);
   // Send a chat message.
   rpc Chat(maple2.ChatRequest) returns (maple2.ChatResponse);
   // Manage buddy list.
   rpc Buddy(maple2.BuddyRequest) returns (maple2.BuddyResponse);
 }
 
-message HealthResponse {}
+enum Server {
+  LOGIN = 0;
+  GAME = 1;
+}
+
+message RegisterRequest {
+  string ip_address = 1;
+  int32 port = 2;
+
+  // If channel is not specified, one will be determined by the world server.
+  optional int32 channel = 4;
+}
+
+message RegisterResponse {
+  int32 channel = 1;
+}
+
+message UnregisterRequest {
+  int32 channel = 1;
+}
+
+message UnregisterResponse {}
 
 message MigrateOutRequest {
-  enum Server {
-    LOGIN = 0;
-    GAME = 1;
-  }
-
   int64 account_id = 1;
   int64 character_id = 2;
   string machine_id = 3;
   Server server = 4;
-  int32 channel = 5;
+
+  // If channel is not specified, one will be determined by the world server.
+  optional int32 channel = 5;
 }
 
 message MigrateOutResponse {
   string ip_address = 1;
   int32 port = 2;
-  fixed64 token = 3;
+  int32 channel = 3;
+  fixed64 token = 4;
 }
 
 message MigrateInRequest {
@@ -50,4 +72,10 @@ message MigrateInRequest {
 
 message MigrateInResponse {
   int64 character_id = 1;
+}
+
+message ChannelsRequest {}
+
+message ChannelsResponse {
+  int32 channel_count = 1;
 }

@@ -5,13 +5,12 @@ services:
       dockerfile: ./Maple2.Server.World/Dockerfile
     image: maple2-world:dev
     ports:
-      - "127.0.0.1:20100:20100"
+      - "127.0.0.1:21001:21001"
     environment:
       GAME_DB_CONNECTION: "Server=host.docker.internal;Database=game-server;User=root;Password=maplestory;oldguids=true"
       DATA_DB_CONNECTION: "Server=host.docker.internal;Database=maple-data;User=root;Password=maplestory;oldguids=true"
       CHANNEL_SERVICE: "game"
       LOGIN_IP: "127.0.0.1"
-      GAME_IP: "127.0.0.1"
 
   login:
     build:
@@ -39,9 +38,10 @@ services:
       - world
       - login
     ports:
-      - "22001:22001"
-      - "127.0.0.1:22100:22100"
+      - "20002:20002"
+      - "127.0.0.1:21002:21002"
     environment:
       GAME_DB_CONNECTION: "Server=host.docker.internal;Database=game-server;User=root;Password=maplestory;oldguids=true"
       DATA_DB_CONNECTION: "Server=host.docker.internal;Database=maple-data;User=root;Password=maplestory;oldguids=true"
       WORLD_SERVICE: "world"
+      GAME_IP: "127.0.0.1"

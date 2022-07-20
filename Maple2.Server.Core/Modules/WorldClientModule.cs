@@ -14,6 +14,6 @@ public class WorldClientModule : GrpcClientModule {
 
     protected override void Options(GrpcClientFactoryOptions options) {
         string worldService = Environment.GetEnvironmentVariable("WORLD_SERVICE") ?? IPAddress.Loopback.ToString();
-        options.Address = new Uri($"http://{worldService}:{Target.GRPC_WORLD_PORT}");
+        options.Address = new Uri($"http://{worldService}:{Target.GrpcWorldPort}");
     }
 }

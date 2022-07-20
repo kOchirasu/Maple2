@@ -10,6 +10,7 @@
     <ItemGroup>
         <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="8.0.0" />
         <PackageReference Include="Google.Protobuf" Version="3.21.2" />
+        <PackageReference Include="Grpc.AspNetCore.HealthChecks" Version="2.47.0" />
         <PackageReference Include="Grpc.AspNetCore.Server" Version="2.47.0" />
         <PackageReference Include="Grpc.Net.ClientFactory" Version="2.47.0" />
         <PackageReference Include="Grpc.Tools" Version="2.47.0">

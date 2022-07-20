@@ -6,13 +6,8 @@ import "google/protobuf/empty.proto";
 
 // The global service definition.
 service Global {
-  // Checks the health of this service
-  rpc Health(google.protobuf.Empty) returns (HealthResponse);
-  
   rpc Login(LoginRequest) returns (LoginResponse);
 }
-
-message HealthResponse {}
 
 message LoginRequest {
   string username = 1;
@@ -23,7 +18,7 @@ message LoginRequest {
 message LoginResponse {
   enum Code {
     reserved 2, 5, 12;
-    
+
     OK = 0;
     // s_login_err_id
     ERROR_ID = 1; // 2

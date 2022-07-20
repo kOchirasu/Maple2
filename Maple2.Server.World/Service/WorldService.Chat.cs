@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Net;
+using System.Threading.Tasks;
 using Grpc.Core;
 using ChannelClient = Maple2.Server.Channel.Service.Channel.ChannelClient;
 
@@ -35,7 +36,7 @@ public partial class WorldService {
                 $"Unable to whisper: {request.Whisper.RecipientName}"));
         }
 
-        if (!channels.TryGetValue(channel, out ChannelClient? channelClient)) {
+        if (!channelClients.TryGetClient(channel, out ChannelClient? channelClient)) {
             logger.Error("No registry for channel: {Channel}", channel);
             throw new RpcException(new Status(StatusCode.InvalidArgument,
                 $"Unable to whisper: {request.Whisper.RecipientName} on channel: {channel}"));

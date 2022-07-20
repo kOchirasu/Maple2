@@ -1,15 +1,18 @@
 ﻿using System;
 using System.IO;
+using System.Net;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Maple2.Database.Context;
 using Maple2.Database.Storage;
-using Maple2.Model.Metadata;
+using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Modules;
 using Maple2.Server.Global.Service;
 using Maple2.Server.World.Containers;
 using Maple2.Server.World.Service;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,11 +29,16 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseKestrel(options => {
+    options.Listen(new IPEndPoint(IPAddress.Loopback, Target.GrpcWorldPort), listen => {
+        listen.Protocols = HttpProtocols.Http2;
+    });
+});
+
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(dispose: true);
 
 builder.Services.AddGrpc();
-builder.Services.RegisterModule<ChannelClientModule>();
 builder.Services.AddMemoryCache();
 
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
@@ -39,6 +47,8 @@ builder.Host.ConfigureContainer<ContainerBuilder>(autofac => {
     autofac.RegisterModule<GameDbModule>();
     autofac.RegisterModule<DataDbModule>();
 
+    autofac.RegisterType<ChannelClientLookup>()
+        .SingleInstance();
     autofac.RegisterType<PlayerChannelLookup>()
         .SingleInstance();
 });

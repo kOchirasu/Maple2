@@ -1,5 +1,7 @@
-﻿using System.CommandLine;
+﻿using System;
+using System.CommandLine;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
@@ -15,8 +17,11 @@ using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Service;
 using Maple2.Server.Game.Session;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -30,6 +35,13 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+builder.WebHost.UseKestrel(options => {
+    options.Listen(new IPEndPoint(IPAddress.Loopback, Target.GrpcChannelPort), listen => {
+        listen.Protocols = HttpProtocols.Http2;
+    });
+});
+builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(15));
+
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(dispose: true);
 
@@ -37,6 +49,14 @@ builder.Services.AddGrpc();
 builder.Services.RegisterModule<WorldClientModule>();
 builder.Services.AddSingleton<GameServer>();
 builder.Services.AddHostedService<GameServer>(provider => provider.GetService<GameServer>()!);
+
+builder.Services.AddGrpcHealthChecks();
+builder.Services.Configure<HealthCheckPublisherOptions>(options => {
+    options.Delay = TimeSpan.Zero;
+    options.Period = TimeSpan.FromSeconds(10);
+});
+builder.Services.AddHealthChecks()
+    .AddCheck<GameServer>("game_channel_health_check");
 
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 builder.Host.ConfigureContainer<ContainerBuilder>(autofac => {
@@ -78,5 +98,6 @@ WebApplication app = builder.Build();
 app.UseRouting();
 app.MapGet("/", () => "Communication with gRPC endpoints must be made through a gRPC client.");
 app.MapGrpcService<ChannelService>();
+app.MapGrpcHealthChecksService();
 
 await app.RunAsync();
