@@ -91,14 +91,6 @@ public partial class GameStorage {
                 return null;
             }
 
-#if !DEBUG
-            if (account.Online || character.Online) {
-                throw new InvalidOperationException($"AlreadyOnline accountId:{accountId}, characterId:{characterId}");
-            }
-#endif
-
-            account.Online = true;
-            character.Online = true;
             Context.Account.Update(account);
             Context.Character.Update(character);
             Context.SaveChanges();
@@ -143,7 +135,7 @@ public partial class GameStorage {
             return player;
         }
 
-        public bool SavePlayer(Player player, bool logoff = false) {
+        public bool SavePlayer(Player player) {
             Console.WriteLine($"> Begin Save... {Context.ContextId}");
             Model.Account account = player.Account!;
             account.Currency = new AccountCurrency {
@@ -165,11 +157,6 @@ public partial class GameStorage {
                 MenteeToken = player.Currency.MenteeToken,
                 StarPoint = player.Currency.StarPoint,
             };
-
-            if (logoff) {
-                account.Online = false;
-                character.Online = false;
-            }
 
             Context.Update(account);
             Context.Update(character);

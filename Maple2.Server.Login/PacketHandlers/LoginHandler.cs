@@ -7,6 +7,7 @@ using Maple2.Server.Core.Packets;
 using Maple2.Server.Global.Service;
 using Maple2.Server.Login.Session;
 using GlobalClient = Maple2.Server.Global.Service.Global.GlobalClient;
+using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
 namespace Maple2.Server.Login.PacketHandlers;
 
@@ -21,36 +22,44 @@ public class LoginHandler : PacketHandler<LoginSession> {
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
     public GlobalClient Global { private get; init; } = null!;
+    public WorldClient World { private get; init; } = null!;
     // ReSharper restore All
     #endregion
 
     public override void Handle(LoginSession session, IByteReader packet) {
         var command = packet.Read<Command>();
-        string user = packet.ReadUnicodeString();
-        string pass = packet.ReadUnicodeString();
-        packet.ReadShort(); // 1
-        var machineId = packet.Read<Guid>();
 
         try {
-            Logger.Debug("Logging in with user:{User} pass:{Pass}", user, pass);
-            LoginResponse response = Global.Login(new LoginRequest {
-                Username = user,
-                Password = pass,
-                MachineId = machineId.ToString(),
-            });
-            if (response.Code != LoginResponse.Types.Code.Ok) {
-                session.Send(LoginResultPacket.Error((byte) response.Code, response.Message, response.AccountId));
-                session.Disconnect();
-                return;
-            }
-
-            session.Init(response.AccountId, machineId);
-
             switch (command) {
                 case Command.ServerList:
                     session.ListServers();
                     return;
                 case Command.CharacterList:
+                    string user = packet.ReadUnicodeString();
+                    string pass = packet.ReadUnicodeString();
+                    packet.ReadShort(); // 1
+                    var machineId = packet.Read<Guid>();
+
+                    Logger.Debug("Logging in with user:{User} pass:{Pass}", user, pass);
+                    LoginResponse response = Global.Login(new LoginRequest {
+                        Username = user,
+                        Password = pass,
+                        MachineId = machineId.ToString(),
+                    });
+                    if (response.Code != LoginResponse.Types.Code.Ok) {
+                        session.Send(LoginResultPacket.Error((byte) response.Code, response.Message, response.AccountId));
+                        session.Disconnect();
+                        return;
+                    }
+
+                    // Account is already logged into game server.
+                    if (World.PlayerInfo(new PlayerInfoRequest {AccountId = response.AccountId}).IsOnline) {
+                        session.Send(LoginResultPacket.Error((byte) LoginResponse.Types.Code.AlreadyLogin, "", response.AccountId));
+                        return;
+                    }
+
+                    session.Init(response.AccountId, machineId);
+
                     session.Send(LoginResultPacket.Success(response.AccountId));
                     //session.Send(UgcPacket.SetEndpoint("http://127.0.0.1/ws.asmx?wsdl", "http://127.0.0.1"));
 

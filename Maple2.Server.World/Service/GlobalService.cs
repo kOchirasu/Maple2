@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Maple2.Database.Storage;
 using Maple2.Model.Game;
@@ -47,17 +46,14 @@ public partial class GlobalService : Global.GlobalBase {
 
             db.Commit();
         } else {
-#if !DEBUG
-            if (account.Online) {
-                return Task.FromResult(new LoginResponse {Code = LoginResponse.Types.Code.AlreadyLogin});
-            }
-#endif
-
             if (account.MachineId == default) {
                 account.MachineId = machineId;
                 db.UpdateAccount(account, true);
             } else if (account.MachineId != machineId) {
-                return Task.FromResult(new LoginResponse {Code = LoginResponse.Types.Code.BlockNexonSn});
+                return Task.FromResult(new LoginResponse {
+                    Code = LoginResponse.Types.Code.BlockNexonSn,
+                    Message = "MachineId mismatch",
+                });
             }
         }
 

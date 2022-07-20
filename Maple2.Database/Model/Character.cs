@@ -13,7 +13,6 @@ internal class Character {
     public long AccountId { get; set; }
     public long Id { get; set; }
     public string Name { get; set; }
-    public bool Online { get; set; }
     public Gender Gender { get; set; }
     public Job Job { get; set; }
     public short Level { get; set; }
@@ -85,7 +84,7 @@ internal class Character {
 
     public static implicit operator CharacterInfo?(Character? other) {
         return other == null ? null : new CharacterInfo(other.AccountId, other.Id, other.Name, other.Gender, other.Job,
-            other.Level, other.MapId, other.Profile.Picture, other.Profile.Motto) {Online = other.Online};
+            other.Level, other.MapId, other.Profile.Picture, other.Profile.Motto);
     }
 
     public static void Configure(EntityTypeBuilder<Character> builder) {

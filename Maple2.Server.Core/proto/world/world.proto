@@ -21,6 +21,8 @@ service World {
   rpc Chat(maple2.ChatRequest) returns (maple2.ChatResponse);
   // Manage buddy list.
   rpc Buddy(maple2.BuddyRequest) returns (maple2.BuddyResponse);
+  // Retrieve player info from online player.
+  rpc PlayerInfo(maple2.PlayerInfoRequest) returns (maple2.PlayerInfoResponse);
 }
 
 enum Server {

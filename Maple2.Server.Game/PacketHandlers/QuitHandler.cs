@@ -32,7 +32,7 @@ public class QuitHandler : PacketHandler<GameSession> {
         try {
             var request = new MigrateOutRequest {
                 AccountId = session.AccountId,
-                CharacterId = 0,
+                CharacterId = session.CharacterId,
                 MachineId = session.MachineId.ToString(),
                 Server = Server.World.Service.Server.Login,
             };
