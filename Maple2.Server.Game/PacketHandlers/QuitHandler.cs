@@ -34,7 +34,7 @@ public class QuitHandler : PacketHandler<GameSession> {
                 AccountId = session.AccountId,
                 CharacterId = 0,
                 MachineId = session.MachineId.ToString(),
-                Server = MigrateOutRequest.Types.Server.Login,
+                Server = Server.World.Service.Server.Login,
             };
 
             MigrateOutResponse response = World.MigrateOut(request);

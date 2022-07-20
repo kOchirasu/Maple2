@@ -18,7 +18,7 @@ public static class ServerListPacket {
         return pWriter;
     }
 
-    public static ByteWriter Load(string serverName, IList<IPEndPoint> serverIps, ushort channels) {
+    public static ByteWriter Load(string serverName, IList<IPEndPoint> serverIps, ushort channelCount) {
         var pWriter = Packet.Of(SendOp.ServerList);
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteInt(1); // Unknown
@@ -32,9 +32,9 @@ public static class ServerListPacket {
         pWriter.WriteInt(100); // Const
 
         // Channels
-        pWriter.Write<ushort>(channels);
+        pWriter.Write<ushort>(channelCount);
         // I think this should be sorted by population
-        for (short i = 1; i <= channels; i++) {
+        for (short i = 1; i <= channelCount; i++) {
             pWriter.WriteShort(i);
         }
 

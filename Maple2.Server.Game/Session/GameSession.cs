@@ -23,7 +23,7 @@ using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
 namespace Maple2.Server.Game.Session;
 
-public sealed partial class GameSession : Core.Network.Session, IDisposable {
+public sealed partial class GameSession : Core.Network.Session {
     protected override PatchType Type => PatchType.Ignore;
     public const int FIELD_KEY = 0x1234;
 
@@ -36,6 +36,7 @@ public sealed partial class GameSession : Core.Network.Session, IDisposable {
     public long AccountId { get; private set; }
     public long CharacterId { get; private set; }
     public Guid MachineId { get; private set; }
+    public int Channel => server.Channel;
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global

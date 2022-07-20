@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,18 +11,24 @@ using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Session;
+using Maple2.Server.World.Service;
+using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
 namespace Maple2.Server.Game;
 
 public class GameServer : Server<GameSession> {
     private readonly object mutex = new();
+    private readonly WorldClient world;
     private readonly FieldManager.Factory fieldFactory;
     private readonly HashSet<GameSession> connectingSessions;
     private readonly Dictionary<long, GameSession> sessions;
     private readonly List<GameEvent> gameEvents;
 
-    public GameServer(FieldManager.Factory fieldFactory, PacketRouter<GameSession> router, IComponentContext context)
-            : base(Target.GAME_PORT, router, context) {
+    public int Channel { get; private set; }
+
+    public GameServer(WorldClient world, FieldManager.Factory fieldFactory, PacketRouter<GameSession> router, IComponentContext context)
+            : base(Target.GamePort, router, context) {
+        this.world = world;
         this.fieldFactory = fieldFactory;
         connectingSessions = new HashSet<GameSession>();
         sessions = new Dictionary<long, GameSession>();
@@ -61,6 +68,16 @@ public class GameServer : Server<GameSession> {
         return gameEvents;
     }
 
+    protected override Task ExecuteAsync(CancellationToken cancellationToken) {
+        RegisterResponse response = world.Register(new RegisterRequest {
+            IpAddress = Target.GameIp.ToString(),
+            Port = Port,
+        }, cancellationToken: cancellationToken);
+
+        Channel = response.Channel;
+        return base.ExecuteAsync(cancellationToken);
+    }
+
     public override Task StopAsync(CancellationToken cancellationToken) {
         lock (mutex) {
             foreach (GameSession session in connectingSessions) {
@@ -74,6 +91,7 @@ public class GameServer : Server<GameSession> {
             fieldFactory.Dispose();
         }
 
+        world.Unregister(new UnregisterRequest{Channel = Channel}, cancellationToken: cancellationToken);
         return base.StopAsync(cancellationToken);
     }
 }

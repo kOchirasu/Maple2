@@ -66,7 +66,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
 
     private void HandleSelect(LoginSession session, IByteReader packet) {
         long characterId = packet.ReadLong();
-        packet.ReadShort(); // 01 00, world? channel?
+        short channel = packet.ReadShort(); // 01 00, world? channel?
 
         try {
             using GameStorage.Request db = GameStorage.Context();
@@ -80,8 +80,8 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
                 AccountId = session.AccountId,
                 CharacterId = characterId,
                 MachineId = session.MachineId.ToString(),
-                Server = MigrateOutRequest.Types.Server.Game,
-                Channel = Target.GAME_CHANNEL,
+                Server = Server.World.Service.Server.Game,
+                Channel = channel,
             };
 
             Logger.Information("Logging in to game as {Request}", request);
@@ -89,6 +89,10 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
             MigrateOutResponse response = World.MigrateOut(request);
             var endpoint = new IPEndPoint(IPAddress.Parse(response.IpAddress), response.Port);
             session.Send(MigrationPacket.LoginToGame(endpoint, response.Token, character.MapId));
+        } catch (RpcException ex) when (ex.StatusCode == StatusCode.Unavailable) {
+            session.Send(MigrationPacket.LoginToGameError(s_move_err_no_server, ex.Message));
+        } catch (RpcException ex) when (ex.StatusCode == StatusCode.ResourceExhausted) {
+            session.Send(MigrationPacket.LoginToGameError(s_move_err_member_limit, ex.Message));
         } catch (RpcException ex) {
             session.Send(MigrationPacket.LoginToGameError(s_move_err_default, ex.Message));
         } finally {

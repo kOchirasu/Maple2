@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Net;
+using System.Threading.Tasks;
 using Grpc.Core;
 using ChannelClient = Maple2.Server.Channel.Service.Channel.ChannelClient;
 
@@ -10,7 +11,7 @@ public partial class WorldService {
             return Task.FromResult(new BuddyResponse{Online = false});
         }
 
-        if (!channels.TryGetValue(channel, out ChannelClient? channelClient)) {
+        if (!channelClients.TryGetClient(channel, out ChannelClient? channelClient)) {
             logger.Error("No registry for channel: {Channel}", channel);
             return Task.FromResult(new BuddyResponse());
         }

@@ -19,10 +19,6 @@ public partial class GlobalService : Global.GlobalBase {
         this.gameStorage = gameStorage;
     }
 
-    public override Task<HealthResponse> Health(Empty request, ServerCallContext context) {
-        return Task.FromResult(new HealthResponse());
-    }
-
     public override Task<LoginResponse> Login(LoginRequest request, ServerCallContext context) {
 #if !DEBUG // Allow empty username for testing
         if (string.IsNullOrWhiteSpace(request.Username)) {

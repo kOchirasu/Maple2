@@ -7,12 +7,8 @@ import "common.proto";
 
 // The channel service definition.
 service Channel {
-  // Checks the health of this service
-  rpc Health(google.protobuf.Empty) returns (HealthResponse);
   // Send a chat message.
   rpc Chat(maple2.ChatRequest) returns (maple2.ChatResponse);
   // Manage buddy list.
   rpc Buddy(maple2.BuddyRequest) returns (maple2.BuddyResponse);
 }
-
-message HealthResponse {}

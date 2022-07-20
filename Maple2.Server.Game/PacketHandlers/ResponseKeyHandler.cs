@@ -32,7 +32,7 @@ public class ResponseKeyHandler : PacketHandler<GameSession> {
                 AccountId = accountId,
                 Token = token,
                 MachineId = machineId.ToString(),
-                Channel = Target.GAME_CHANNEL,
+                Channel = session.Channel,
             };
             MigrateInResponse response = World.MigrateIn(request);
             if (!session.EnterServer(accountId, response.CharacterId, machineId)) {

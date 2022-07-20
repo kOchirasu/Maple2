@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -6,6 +7,7 @@ using Grpc.Core;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.World.Containers;
 using Microsoft.Extensions.Caching.Memory;
+using ChannelClient = Maple2.Server.Channel.Service.Channel.ChannelClient;
 
 namespace Maple2.Server.World.Service;
 
@@ -26,17 +28,27 @@ public partial class WorldService {
 
         // TODO: Dynamic ip/port
         switch (request.Server) {
-            case MigrateOutRequest.Types.Server.Login:
+            case Server.Login:
                 return Task.FromResult(new MigrateOutResponse {
-                    IpAddress = Environment.GetEnvironmentVariable("LOGIN_IP") ?? IPAddress.Loopback.ToString(),
-                    Port = Target.LOGIN_PORT,
+                    IpAddress = Target.LoginIp.ToString(),
+                    Port = Target.LoginPort,
                     Token = token,
                 });
-            case MigrateOutRequest.Types.Server.Game:
+            case Server.Game:
+                if (channelClients.Count == 0) {
+                    throw new RpcException(new Status(StatusCode.Unavailable, $"No available game channels"));
+                }
+
+                int channel = request.HasChannel ? request.Channel : ChannelClientLookup.RandomChannel();
+                if (!channelClients.TryGetEndpoint(channel, out IPEndPoint? endpoint)) {
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, $"Migrating to invalid game channel: {request.Channel}"));
+                }
+
                 return Task.FromResult(new MigrateOutResponse {
-                    IpAddress = Environment.GetEnvironmentVariable("GAME_IP") ?? IPAddress.Loopback.ToString(),
-                    Port = Target.GAME_PORT,
+                    IpAddress = endpoint.Address.ToString(),
+                    Port = endpoint.Port,
                     Token = token,
+                    Channel = channel,
                 });
             default:
                 throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid server: {request.Server}"));

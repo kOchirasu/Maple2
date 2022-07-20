@@ -17,7 +17,7 @@ public class LoginServer : Server<LoginSession> {
     private readonly Dictionary<long, LoginSession> sessions;
 
     public LoginServer(PacketRouter<LoginSession> router, IComponentContext context)
-            : base(Target.LOGIN_PORT, router, context) {
+            : base(Target.LoginPort, router, context) {
         connectingSessions = new HashSet<LoginSession>();
         sessions = new Dictionary<long, LoginSession>();
     }
