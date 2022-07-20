@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
+using Grpc.Core;
 using Maple2.Model.Game;
 using Maple2.Model.Game.Event;
 using Maple2.Server.Core.Constants;
@@ -69,12 +70,18 @@ public class GameServer : Server<GameSession> {
     }
 
     protected override Task ExecuteAsync(CancellationToken cancellationToken) {
-        RegisterResponse response = world.Register(new RegisterRequest {
-            IpAddress = Target.GameIp.ToString(),
-            Port = Port,
-        }, cancellationToken: cancellationToken);
+        try {
+            RegisterResponse response = world.Register(new RegisterRequest {
+                IpAddress = Target.GameIp.ToString(),
+                Port = Port,
+            }, cancellationToken: cancellationToken);
 
-        Channel = response.Channel;
+            Channel = response.Channel;
+        } catch (RpcException ex) {
+            Logger.Fatal(ex, "Failed to register GameServer instance with WorldServer");
+            throw;
+        }
+
         return base.ExecuteAsync(cancellationToken);
     }
 

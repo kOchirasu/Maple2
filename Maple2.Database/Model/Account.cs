@@ -11,7 +11,6 @@ namespace Maple2.Database.Model;
 internal class Account {
     public long Id { get; set; }
     public string Username { get; set; }
-    public bool Online { get; set; }
     public Guid MachineId { get; set; }
     public int MaxCharacters { get; set; }
     public int PrestigeLevel { get; set; }
@@ -47,7 +46,6 @@ internal class Account {
 
         return new Maple2.Model.Game.Account {
             LastModified = other.LastModified,
-            Online = other.Online,
             Id = other.Id,
             Username = other.Username,
             MachineId = other.MachineId,

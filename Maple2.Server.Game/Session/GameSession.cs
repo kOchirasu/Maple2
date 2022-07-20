@@ -273,7 +273,7 @@ public sealed partial class GameSession : Core.Network.Session {
 
             using (GameStorage.Request db = GameStorage.Context()) {
                 db.BeginTransaction();
-                db.SavePlayer(Player, true);
+                db.SavePlayer(Player);
                 Config.Save(db);
                 Item.Save(db);
                 Housing.Save(db);

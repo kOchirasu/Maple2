@@ -40,7 +40,7 @@ public record CharacterInfo(long AccountId, long CharacterId, string Name, Gende
             Motto: player.Character.Motto
         ) {
             Channel = player.Character.Channel,
-            Online = player.Account.Online,
+            Online = player.Character.Channel != 0,
         };
     }
 }

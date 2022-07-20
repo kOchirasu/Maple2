@@ -1,18 +1,17 @@
 ﻿using System;
-using System.Linq;
 using System.Net;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Grpc.Core;
+using Maple2.Database.Storage;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.World.Containers;
 using Microsoft.Extensions.Caching.Memory;
-using ChannelClient = Maple2.Server.Channel.Service.Channel.ChannelClient;
 
 namespace Maple2.Server.World.Service;
 
 public partial class WorldService {
-    private readonly record struct TokenEntry(long AccountId, long CharacterId, Guid MachineId, int Channel);
+    private readonly record struct TokenEntry(Server Server, long AccountId, long CharacterId, Guid MachineId, int Channel);
 
     // Duration for which a token remains valid.
     private static readonly TimeSpan AuthExpiry = TimeSpan.FromSeconds(30);
@@ -22,11 +21,10 @@ public partial class WorldService {
 
     public override Task<MigrateOutResponse> MigrateOut(MigrateOutRequest request, ServerCallContext context) {
         ulong token = UniqueToken();
-        var entry = new TokenEntry(request.AccountId, request.CharacterId, new Guid(request.MachineId), request.Channel);
+        var entry = new TokenEntry(request.Server, request.AccountId, request.CharacterId, new Guid(request.MachineId), request.Channel);
         tokenCache.Set(token, entry, AuthExpiry);
-        playerChannels.Remove(request.CharacterId, out int _);
+        playerChannels.Remove(request.AccountId, request.CharacterId);
 
-        // TODO: Dynamic ip/port
         switch (request.Server) {
             case Server.Login:
                 return Task.FromResult(new MigrateOutResponse {
@@ -34,7 +32,7 @@ public partial class WorldService {
                     Port = Target.LoginPort,
                     Token = token,
                 });
-            case Server.Game:
+            case Server.Game: {
                 if (channelClients.Count == 0) {
                     throw new RpcException(new Status(StatusCode.Unavailable, $"No available game channels"));
                 }
@@ -50,6 +48,7 @@ public partial class WorldService {
                     Token = token,
                     Channel = channel,
                 });
+            }
             default:
                 throw new RpcException(new Status(StatusCode.InvalidArgument, $"Invalid server: {request.Server}"));
         }
@@ -70,7 +69,7 @@ public partial class WorldService {
         }
 
         tokenCache.Remove(request.Token);
-        playerChannels[data.CharacterId] = request.Channel;
+        playerChannels.Add(data.AccountId, data.CharacterId, request.Channel);
         return Task.FromResult(new MigrateInResponse { CharacterId = data.CharacterId });
     }
 

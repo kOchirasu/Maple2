@@ -9,6 +9,7 @@ using Maple2.Model.Metadata;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
+using Maple2.Server.Global.Service;
 using Maple2.Server.World.Service;
 using static Maple2.Model.Error.CharacterCreateError;
 using WorldClient = Maple2.Server.World.Service.World.WorldClient;
@@ -19,7 +20,7 @@ public class LoginSession : Core.Network.Session {
     protected override PatchType Type => PatchType.Delete;
 
     private bool disposed;
-    private readonly LoginServer server;
+    public readonly LoginServer Server;
 
     public long AccountId { get; private set; }
     public Guid MachineId { get; private set; }
@@ -34,7 +35,7 @@ public class LoginSession : Core.Network.Session {
     private Account account = null!;
 
     public LoginSession(TcpClient tcpClient, LoginServer server) : base(tcpClient) {
-        this.server = server;
+        Server = server;
         State = SessionState.Moving;
     }
 
@@ -42,15 +43,23 @@ public class LoginSession : Core.Network.Session {
         AccountId = accountId;
         MachineId = machineId;
 
+        // Account is already logged into login server.
+        if (Server.GetSession(accountId, out LoginSession? existing) && existing != this) {
+            Send(LoginResultPacket.Error((byte) LoginResponse.Types.Code.AlreadyLogin, "", accountId));
+            existing.Disconnect();
+            Disconnect();
+            return;
+        }
+
         State = SessionState.Connected;
-        server.OnConnected(this);
+        Server.OnConnected(this);
     }
 
     public void ListServers() {
         ChannelsResponse response = World.Channels(new ChannelsRequest());
         Send(BannerListPacket.SetBanner());
         Send(ServerListPacket.Load(Target.SEVER_NAME,
-            new []{new IPEndPoint(Target.LoginIp, server.Port)}, (ushort) response.ChannelCount));
+            new []{new IPEndPoint(Target.LoginIp, Server.Port)}, (ushort) response.ChannelCount));
     }
 
     public void ListCharacters() {
@@ -114,7 +123,7 @@ public class LoginSession : Core.Network.Session {
         disposed = true;
 
         try {
-            server.OnDisconnected(this);
+            Server.OnDisconnected(this);
             State = SessionState.Disconnected;
             Complete();
         } finally {
