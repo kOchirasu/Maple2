@@ -4,7 +4,7 @@ using System.Net;
 namespace Maple2.Server.Core.Constants;
 
 public static class Target {
-    public const string SEVER_NAME = "Paperwood";
+    public const string SERVER_NAME = "Paperwood";
     public const string LOCALE = "NA";
 
     public static readonly IPAddress LoginIp = IPAddress.Loopback;
@@ -31,7 +31,7 @@ public static class Target {
             GamePort = gamePortOverride;
         }
 
-        if (ushort.TryParse(Environment.GetEnvironmentVariable("GRPC_CHANNEL_PORT"), out ushort grpcWorldPortOverride)) {
+        if (ushort.TryParse(Environment.GetEnvironmentVariable("GRPC_WORLD_PORT"), out ushort grpcWorldPortOverride)) {
             GrpcWorldPort = grpcWorldPortOverride;
         }
         if (ushort.TryParse(Environment.GetEnvironmentVariable("GRPC_CHANNEL_PORT"), out ushort grpcChannelPortOverride)) {

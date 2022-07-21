@@ -42,13 +42,13 @@ public static class MigrationPacket {
         return pWriter;
     }
 
-    public static ByteWriter GameToGame(IPEndPoint endpoint, ulong token) {
+    public static ByteWriter GameToGame(IPEndPoint endpoint, ulong token, int mapId) {
         var pWriter = Packet.Of(SendOp.GameToGame);
         pWriter.Write<MigrationError>(MigrationError.ok);
         pWriter.Write<ulong>(token);
         pWriter.WriteBytes(endpoint.Address.GetAddressBytes());
         pWriter.Write<ushort>((ushort)endpoint.Port);
-        pWriter.WriteInt(); // Map
+        pWriter.WriteInt(mapId);
         pWriter.WriteByte();
 
         return pWriter;

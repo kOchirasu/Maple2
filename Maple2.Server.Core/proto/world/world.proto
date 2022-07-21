@@ -7,10 +7,6 @@ import "common.proto";
 
 // The world service definition.
 service World {
-  // Registers a game server with the world server.
-  rpc Register(RegisterRequest) returns (RegisterResponse);
-  // Unregisters a game server.
-  rpc Unregister(UnregisterRequest) returns (UnregisterResponse);
   // Migrate out of a server.
   rpc MigrateOut(MigrateOutRequest) returns (MigrateOutResponse);
   // Migrate into a server.
@@ -29,24 +25,6 @@ enum Server {
   LOGIN = 0;
   GAME = 1;
 }
-
-message RegisterRequest {
-  string ip_address = 1;
-  int32 port = 2;
-
-  // If channel is not specified, one will be determined by the world server.
-  optional int32 channel = 4;
-}
-
-message RegisterResponse {
-  int32 channel = 1;
-}
-
-message UnregisterRequest {
-  int32 channel = 1;
-}
-
-message UnregisterResponse {}
 
 message MigrateOutRequest {
   int64 account_id = 1;
@@ -79,5 +57,5 @@ message MigrateInResponse {
 message ChannelsRequest {}
 
 message ChannelsResponse {
-  int32 channel_count = 1;
+  repeated int32 channels = 1;
 }

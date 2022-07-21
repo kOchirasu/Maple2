@@ -66,7 +66,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
 
     private void HandleSelect(LoginSession session, IByteReader packet) {
         long characterId = packet.ReadLong();
-        short channel = packet.ReadShort(); // 01 00, world? channel?
+        packet.ReadShort(); // 01 00, world? channel?
 
         try {
             using GameStorage.Request db = GameStorage.Context();
@@ -81,7 +81,6 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
                 CharacterId = characterId,
                 MachineId = session.MachineId.ToString(),
                 Server = Server.World.Service.Server.Game,
-                Channel = channel,
             };
 
             Logger.Information("Logging in to game as {Request}", request);

@@ -13,7 +13,7 @@ public static class ServerEnterPacket {
         var pWriter = Packet.Of(SendOp.ServerEnter);
         pWriter.WriteInt(fieldPlayer.ObjectId);
         pWriter.WriteLong(player.Character.Id);
-        pWriter.WriteShort();
+        pWriter.WriteShort(player.Character.Channel);
         pWriter.WriteLong(player.Character.Exp);
         pWriter.WriteLong(player.Character.RestExp);
         pWriter.WriteLong(player.Currency.Meso);

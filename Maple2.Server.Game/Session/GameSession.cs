@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Numerics;
 using Autofac;
+using Grpc.Core;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
@@ -18,6 +19,7 @@ using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Manager.Items;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
+using Maple2.Server.World.Service;
 using Maple2.Tools.Scheduler;
 using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
@@ -88,6 +90,7 @@ public sealed partial class GameSession : Core.Network.Session {
         }
         db.Commit();
 
+        player.Character.Channel = (short) Channel;
         Player = new FieldPlayer(this, player);
         Currency = new CurrencyManager(this);
         Stats = new StatsManager(this);
@@ -119,7 +122,12 @@ public sealed partial class GameSession : Core.Network.Session {
 
         Send(RequestPacket.TickSync(Environment.TickCount));
 
-        // DynamicChannel
+        try {
+            ChannelsResponse response = World.Channels(new ChannelsRequest());
+            Send(ChannelPacket.Dynamic(response.Channels));
+        } catch (RpcException ex) {
+            Logger.Warning(ex, "Failed to populate channels");
+        }
         Send(ServerEnterPacket.Request(Player));
 
         // Ugc

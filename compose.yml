@@ -10,6 +10,7 @@ services:
       GAME_DB_CONNECTION: "Server=host.docker.internal;Database=game-server;User=root;Password=maplestory;oldguids=true"
       DATA_DB_CONNECTION: "Server=host.docker.internal;Database=maple-data;User=root;Password=maplestory;oldguids=true"
       CHANNEL_SERVICE: "game"
+      GAME_IP: "127.0.0.1"
       LOGIN_IP: "127.0.0.1"
 
   login:
