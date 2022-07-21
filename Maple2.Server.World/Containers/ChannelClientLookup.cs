@@ -1,100 +1,141 @@
 ﻿using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Grpc.Health.V1;
+using Grpc.Net.Client;
+using Maple2.Server.Core.Constants;
 using Serilog;
 using ChannelClient = Maple2.Server.Channel.Service.Channel.ChannelClient;
 
 namespace Maple2.Server.World.Containers;
 
 public class ChannelClientLookup {
-    private record Entry(IPEndPoint Endpoint, ChannelClient Client, CancellationTokenSource Cancel);
+#if DEBUG
+    private static readonly TimeSpan MonitorInterval = TimeSpan.FromSeconds(1);
+#else
+    private static readonly TimeSpan MonitorInterval = TimeSpan.FromSeconds(5);
+#endif
 
-    private readonly ConcurrentDictionary<int, Entry> channels;
+    private record Entry(IPEndPoint Endpoint, ChannelClient Client, Health.HealthClient Health);
+
+    private readonly Entry[] channels;
+    private readonly bool[] activeChannels;
 
     private readonly ILogger logger = Log.ForContext<ChannelClientLookup>();
 
-    public int Count => channels.Count;
+    public int Count => channels.Length;
 
-    public ChannelClientLookup() {
-        channels = new ConcurrentDictionary<int, Entry>();
+    public IEnumerable<int> Keys {
+        get {
+            for (int i = 0; i < activeChannels.Length; i++) {
+                if (activeChannels[i]) {
+                    yield return i + 1;
+                }
+            }
+        }
     }
 
-    // TODO
-    public static int RandomChannel() {
-        return 1;
+    // TODO: Dynamic channel
+    public ChannelClientLookup(int channelCount = 2) {
+        channels = new Entry[channelCount];
+        activeChannels = new bool[channelCount];
+
+        for (int i = 0; i < channelCount; i++) {
+            var gameEndpoint = new IPEndPoint(Target.GameIp, Target.GamePort + i);
+            var grpcEndpoint = new IPEndPoint(Target.GameIp, Target.GrpcChannelPort + i);
+
+            GrpcChannel grpcChannel = GrpcChannel.ForAddress($"http://{grpcEndpoint}");
+            var client = new ChannelClient(grpcChannel);
+            var healthClient = new Health.HealthClient(grpcChannel);
+            channels[i] = new Entry(gameEndpoint, client, healthClient);
+        }
+
+        var cancel = new CancellationToken();
+        MonitorChannels(cancel);
+    }
+
+    public int FirstChannel() {
+        for (int i = 0; i < activeChannels.Length; i++) {
+            if (activeChannels[i]) {
+                return i + 1;
+            }
+        }
+
+        return 0;
     }
 
     public bool Contains(int channel) {
-        return channels.ContainsKey(channel);
+        return ValidChannel(channel) && activeChannels[channel - 1];
     }
 
-    public bool TryAdd(int channel, IPEndPoint endpoint, ChannelBase channelBase) {
-        var client = new ChannelClient(channelBase);
-
-        var cancel = new CancellationTokenSource();
-        Task.Factory.StartNew(() => MonitorGameChannel(channelBase, channel, cancel.Token), cancel.Token);
-        return channels.TryAdd(channel, new Entry(endpoint, client, cancel));
-    }
-
-    public bool Remove(int channel) {
-        if (!channels.TryRemove(channel, out Entry? entry)) {
-            return false;
-        }
-
-        entry.Cancel.Cancel();
-        return true;
+    public bool ValidChannel(int channel) {
+        return channel > 0 && channel <= activeChannels.Length;
     }
 
     public bool TryGetClient(int channel, [NotNullWhen(true)] out ChannelClient? client) {
-        if (!channels.TryGetValue(channel, out Entry? entry)) {
+        if (!ValidChannel(channel)) {
             client = null;
             return false;
         }
 
-        client = entry.Client;
+        client = channels[channel - 1].Client;
         return true;
     }
 
-    public bool TryGetEndpoint(int channel, [NotNullWhen(true)] out IPEndPoint? endpoint) {
-        if (!channels.TryGetValue(channel, out Entry? entry)) {
+    public bool TryGetActiveEndpoint(int channel, [NotNullWhen(true)] out IPEndPoint? endpoint) {
+        int i = channel - 1;
+        if (!ValidChannel(channel) || !activeChannels[i]) {
             endpoint = null;
             return false;
         }
 
-        endpoint = entry.Endpoint;
+        endpoint = channels[i].Endpoint;
         return true;
     }
 
-    private async Task MonitorGameChannel(ChannelBase grpcChannel, int channel, CancellationToken cancellationToken) {
-        logger.Information("Begin monitoring game channel: {Channel} on {EndPoint}", channel, grpcChannel.Target);
+    private void MonitorChannels(CancellationToken cancellationToken) {
+        var monitorTasks = new List<Task>();
+        for (int i = 0; i < channels.Length; i++) {
+            int channel = i + 1;
+            Task<Task> task = Task.Factory.StartNew(() => MonitorChannel(channel, cancellationToken), cancellationToken: cancellationToken);
+            monitorTasks.Add(task);
+        }
 
-        try {
-            var healthClient = new Health.HealthClient(grpcChannel);
-            while (true) {
-                await Task.Delay(10000, cancellationToken); // Perform HealthCheck every 10s
-                HealthCheckResponse response = await healthClient.CheckAsync(new HealthCheckRequest(), cancellationToken: cancellationToken);
+        Task.WaitAll(monitorTasks.ToArray(), cancellationToken);
+    }
+
+    private async Task MonitorChannel(int channel, CancellationToken cancellationToken) {
+        int i = channel - 1;
+        logger.Information("Begin monitoring game channel: {Channel} for {EndPoint}", channel, channels[i].Endpoint);
+        do {
+            try {
+                HealthCheckResponse response = await channels[i].Health.CheckAsync(new HealthCheckRequest(), cancellationToken: cancellationToken);
                 switch (response.Status) {
                     case HealthCheckResponse.Types.ServingStatus.Serving:
-                        continue;
-                    case HealthCheckResponse.Types.ServingStatus.NotServing:
-                        logger.Warning("Removing unhealthy game channel: {Channel}", channel);
-                        Remove(channel);
-                        return;
+                        if (!activeChannels[i]) {
+                            logger.Information("Channel {Channel} has become active", channel);
+                            activeChannels[i] = true;
+                        }
+                        break;
+                    default:
+                        if (activeChannels[i]) {
+                            logger.Information("Channel {Channel} has become inactive due to {Status}", channel, response.Status);
+                            activeChannels[i] = false;
+                        }
+                        break;
                 }
-
-                logger.Error("Unexpected status: {Status}", response.Status);
+            } catch (RpcException ex) {
+                if (ex.Status.StatusCode != StatusCode.Unavailable) {
+                    logger.Warning("{Error} monitoring channel {Channel}", ex.Message, channel);
+                }
+                activeChannels[i] = false;
             }
-        } catch (OperationCanceledException) {
-            logger.Warning("Removing game channel: {Channel} due to cancellation", channel);
-            Remove(channel);
-        } catch (Exception ex) {
-            logger.Warning("Removing game channel due to broken connection: {Channel}", channel);
-            Remove(channel);
-        }
+
+            await Task.Delay(MonitorInterval, cancellationToken);
+        } while (!cancellationToken.IsCancellationRequested);
     }
 }

@@ -58,8 +58,8 @@ public class LoginSession : Core.Network.Session {
     public void ListServers() {
         ChannelsResponse response = World.Channels(new ChannelsRequest());
         Send(BannerListPacket.SetBanner());
-        Send(ServerListPacket.Load(Target.SEVER_NAME,
-            new []{new IPEndPoint(Target.LoginIp, Server.Port)}, (ushort) response.ChannelCount));
+        Send(ServerListPacket.Load(Target.SERVER_NAME,
+            new []{new IPEndPoint(Target.LoginIp, Server.Port)}, response.Channels));
     }
 
     public void ListCharacters() {

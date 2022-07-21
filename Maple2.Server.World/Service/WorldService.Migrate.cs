@@ -3,7 +3,6 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Grpc.Core;
-using Maple2.Database.Storage;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.World.Containers;
 using Microsoft.Extensions.Caching.Memory;
@@ -21,12 +20,12 @@ public partial class WorldService {
 
     public override Task<MigrateOutResponse> MigrateOut(MigrateOutRequest request, ServerCallContext context) {
         ulong token = UniqueToken();
-        var entry = new TokenEntry(request.Server, request.AccountId, request.CharacterId, new Guid(request.MachineId), request.Channel);
-        tokenCache.Set(token, entry, AuthExpiry);
         playerChannels.Remove(request.AccountId, request.CharacterId);
 
         switch (request.Server) {
             case Server.Login:
+                var longEntry = new TokenEntry(request.Server, request.AccountId, request.CharacterId, new Guid(request.MachineId), 0);
+                tokenCache.Set(token, longEntry, AuthExpiry);
                 return Task.FromResult(new MigrateOutResponse {
                     IpAddress = Target.LoginIp.ToString(),
                     Port = Target.LoginPort,
@@ -37,11 +36,13 @@ public partial class WorldService {
                     throw new RpcException(new Status(StatusCode.Unavailable, $"No available game channels"));
                 }
 
-                int channel = request.HasChannel ? request.Channel : ChannelClientLookup.RandomChannel();
-                if (!channelClients.TryGetEndpoint(channel, out IPEndPoint? endpoint)) {
-                    throw new RpcException(new Status(StatusCode.InvalidArgument, $"Migrating to invalid game channel: {request.Channel}"));
+                int channel = request.HasChannel ? request.Channel : channelClients.FirstChannel();
+                if (!channelClients.TryGetActiveEndpoint(channel, out IPEndPoint? endpoint)) {
+                    throw new RpcException(new Status(StatusCode.InvalidArgument, $"Migrating to invalid game channel: {channel}"));
                 }
 
+                var gameEntry = new TokenEntry(request.Server, request.AccountId, request.CharacterId, new Guid(request.MachineId), channel);
+                tokenCache.Set(token, gameEntry, AuthExpiry);
                 return Task.FromResult(new MigrateOutResponse {
                     IpAddress = endpoint.Address.ToString(),
                     Port = endpoint.Port,
@@ -59,7 +60,7 @@ public partial class WorldService {
             throw new RpcException(new Status(StatusCode.Unauthenticated, "Invalid token"));
         }
         if (data.Channel != request.Channel) {
-            throw new RpcException(new Status(StatusCode.FailedPrecondition, "Migrating to incorrect channel"));
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, $"Migrating to incorrect channel {request.Channel}, expected {data.Channel}"));
         }
         if (data.AccountId != request.AccountId) {
             throw new RpcException(new Status(StatusCode.PermissionDenied, "Invalid token for account"));
