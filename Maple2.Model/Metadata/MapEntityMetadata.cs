@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using Maple2.Model.Common;
+using Maple2.Tools.Collision;
 
 namespace Maple2.Model.Metadata;
 
@@ -18,6 +19,7 @@ public class MapEntityMetadata {
     public IReadOnlyDictionary<int, EventSpawnPointNPC> EventNpcSpawns { get; init; }
     public TaxiStation? Taxi { get; init; }
     public Telescope? Telescope { get; init; }
+    public Prism BoundingBox { get; init; }
 
     public IReadOnlyDictionary<Guid, BreakableActor> BreakableActors { get; init; }
     public IReadOnlyDictionary<int, InteractActor> InteractActors { get; init; }

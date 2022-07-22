@@ -257,6 +257,8 @@ public sealed partial class GameSession : Core.Network.Session {
         Player.Rotation = new Vector3(0, 0, stateSync.Rotation / 10f);
         Player.State = stateSync.State;
         Player.SubState = stateSync.SubState;
+
+        Field?.EnsurePlayerPosition(Player);
     }
 
     #region Dispose

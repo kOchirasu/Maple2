@@ -44,11 +44,15 @@ public class ChannelClientLookup {
         channels = new Entry[channelCount];
         activeChannels = new bool[channelCount];
 
+        string[]? channelServices = Environment.GetEnvironmentVariable("CHANNEL_SERVICE")?.Split(",");
+        if (channelServices == null) {
+            channelServices = new string[channelCount];
+            Array.Fill(channelServices, IPAddress.Loopback.ToString());
+        }
         for (int i = 0; i < channelCount; i++) {
             var gameEndpoint = new IPEndPoint(Target.GameIp, Target.GamePort + i);
-            var grpcEndpoint = new IPEndPoint(Target.GameIp, Target.GrpcChannelPort + i);
-
-            GrpcChannel grpcChannel = GrpcChannel.ForAddress($"http://{grpcEndpoint}");
+            var grpcUri = new Uri($"http://{channelServices[i]}:{Target.GrpcChannelPort + i}");
+            GrpcChannel grpcChannel = GrpcChannel.ForAddress(grpcUri);
             var client = new ChannelClient(grpcChannel);
             var healthClient = new Health.HealthClient(grpcChannel);
             channels[i] = new Entry(gameEndpoint, client, healthClient);

@@ -11,7 +11,7 @@ public class BoundingBox : IPolygon {
 
     public BoundingBox(in Vector2 vector1, in Vector2 vector2) {
         min = Vector2.Min(vector1, vector2);
-        max = Vector2.Max(vector2, vector2);
+        max = Vector2.Max(vector1, vector2);
     }
 
     public bool Contains(Vector2 point) {

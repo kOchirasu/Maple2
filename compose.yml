@@ -9,7 +9,7 @@ services:
     environment:
       GAME_DB_CONNECTION: "Server=host.docker.internal;Database=game-server;User=root;Password=maplestory;oldguids=true"
       DATA_DB_CONNECTION: "Server=host.docker.internal;Database=maple-data;User=root;Password=maplestory;oldguids=true"
-      CHANNEL_SERVICE: "game"
+      CHANNEL_SERVICE: "game-main,game-alt"
       GAME_IP: "127.0.0.1"
       LOGIN_IP: "127.0.0.1"
 
@@ -30,19 +30,40 @@ services:
       WORLD_SERVICE: "world"
       LOGIN_IP: "127.0.0.1"
 
-  game:
+  game-main:
     build:
       context: .
       dockerfile: ./Maple2.Server.Game/Dockerfile
     image: maple2-game:dev
     depends_on:
       - world
-      - login
     ports:
       - "20002:20002"
       - "127.0.0.1:21002:21002"
     environment:
       GAME_DB_CONNECTION: "Server=host.docker.internal;Database=game-server;User=root;Password=maplestory;oldguids=true"
       DATA_DB_CONNECTION: "Server=host.docker.internal;Database=maple-data;User=root;Password=maplestory;oldguids=true"
+      GAME_CHANNEL: 1
+      GAME_PORT: 20002
+      GRPC_CHANNEL_PORT: 21002
+      WORLD_SERVICE: "world"
+      GAME_IP: "127.0.0.1"
+
+  game-alt:
+    build:
+      context: .
+      dockerfile: ./Maple2.Server.Game/Dockerfile
+    image: maple2-game:dev
+    depends_on:
+      - world
+    ports:
+      - "20003:20003"
+      - "127.0.0.1:21003:21003"
+    environment:
+      GAME_DB_CONNECTION: "Server=host.docker.internal;Database=game-server;User=root;Password=maplestory;oldguids=true"
+      DATA_DB_CONNECTION: "Server=host.docker.internal;Database=maple-data;User=root;Password=maplestory;oldguids=true"
+      GAME_CHANNEL: 2
+      GAME_PORT: 20003
+      GRPC_CHANNEL_PORT: 21003
       WORLD_SERVICE: "world"
       GAME_IP: "127.0.0.1"

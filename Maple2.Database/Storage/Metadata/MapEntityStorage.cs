@@ -2,14 +2,22 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Numerics;
 using Maple2.Database.Context;
 using Maple2.Model.Common;
 using Maple2.Model.Metadata;
+using Maple2.Tools.Collision;
 
 namespace Maple2.Database.Storage;
 
 public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
     private const int CACHE_SIZE = 1500; // ~1.1k total Maps
+
+    private const float MAP_LIMIT = sbyte.MaxValue * 150f;
+    private static readonly Prism LargeBoundingBox = new(new BoundingBox(
+        new Vector2(-MAP_LIMIT, -MAP_LIMIT),
+        new Vector2(MAP_LIMIT, MAP_LIMIT)),
+        -MAP_LIMIT, MAP_LIMIT * 2);
 
     public MapEntityStorage(MetadataContext context) : base(context, CACHE_SIZE) { }
 
@@ -35,6 +43,7 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
             var eventNpcSpawns = new Dictionary<int, EventSpawnPointNPC>();
             TaxiStation? taxi = null;
             Telescope? telescope = null;
+            Prism? bounding = null;
             var breakableActors = new Dictionary<Guid, BreakableActor>();
             var interactActors = new Dictionary<int, InteractActor>();
             var triggerModels = new Dictionary<int, TriggerModel>();
@@ -126,6 +135,17 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                     case MapBlock.Discriminator.Ms2TriggerSound:
                         triggers.Add((Trigger) entity.Block);
                         break;
+                    case MapBlock.Discriminator.Ms2Bounding:
+                        if (entity.Block is Ms2Bounding mapBounding) {
+                            var box = new BoundingBox(
+                                new Vector2(mapBounding.Position1.X, mapBounding.Position1.Y),
+                                new Vector2(mapBounding.Position2.X, mapBounding.Position2.Y)
+                            );
+                            float baseHeight = Math.Min(mapBounding.Position1.Z, mapBounding.Position2.Z);
+                            float height = Math.Abs(mapBounding.Position2.Z - mapBounding.Position1.Z);
+                            bounding = new Prism(box, baseHeight, height);
+                        }
+                        break;
                 }
             }
 
@@ -141,6 +161,7 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                 RegionSkills = regionSkills,
                 Taxi = taxi,
                 Telescope = telescope,
+                BoundingBox = bounding ?? LargeBoundingBox,
                 BreakableActors = breakableActors,
                 InteractActors = interactActors,
                 TriggerModels = triggerModels,

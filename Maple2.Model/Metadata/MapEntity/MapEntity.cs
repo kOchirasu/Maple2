@@ -54,5 +54,7 @@ public abstract partial record MapBlock([JsonDiscriminator] MapBlock.Discriminat
         Ms2TriggerSound = 558345729,
 
         TriggerModel = 3583829728,
+
+        Ms2Bounding = 1539875768,
     }
 }

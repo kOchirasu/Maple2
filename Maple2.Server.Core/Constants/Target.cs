@@ -12,6 +12,7 @@ public static class Target {
 
     public static readonly IPAddress GameIp = IPAddress.Loopback;
     public static readonly ushort GamePort = 20002;
+    public static readonly short GameChannel = 1;
 
     public static readonly ushort GrpcWorldPort = 21001;
     public static readonly ushort GrpcChannelPort = 21002;
@@ -29,6 +30,9 @@ public static class Target {
         }
         if (ushort.TryParse(Environment.GetEnvironmentVariable("GAME_PORT"), out ushort gamePortOverride)) {
             GamePort = gamePortOverride;
+        }
+        if (short.TryParse(Environment.GetEnvironmentVariable("GAME_CHANNEL"), out short gameChannel)) {
+            GameChannel = gameChannel;
         }
 
         if (ushort.TryParse(Environment.GetEnvironmentVariable("GRPC_WORLD_PORT"), out ushort grpcWorldPortOverride)) {
