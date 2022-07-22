@@ -1,4 +1,5 @@
-﻿using Maple2.File.IO;
+﻿using System.Numerics;
+using Maple2.File.IO;
 using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
@@ -110,9 +111,10 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 AlignHeight: move.alignCubeHeight,
                 Rotate: move.rotation,
                 IgnoreAdjust: move.ignoreAdjustCubePosition,
-                Direction: move.direction,
+                Direction: move.direction != default ? Vector3.Normalize(move.direction) : default,
                 FireOffset: move.fireOffsetPosition,
                 FireFixed: move.fireFixedPosition,
+                TraceTargetOffset: move.traceTargetOffsetPos,
                 Velocity: move.vel,
                 Distance: move.distance,
                 RotateZDegree: move.dirRotZDegree,

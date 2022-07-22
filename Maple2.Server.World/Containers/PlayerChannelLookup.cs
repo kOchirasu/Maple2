@@ -1,5 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using System.Diagnostics;
+using Serilog;
 
 namespace Maple2.Server.World.Containers;
 
@@ -60,7 +60,10 @@ public class PlayerChannelLookup {
     }
 
     public bool Remove(long accountId, long characterId) {
-        Debug.Assert(accountId != 0 && characterId != 0);
+        if (accountId != 0 && characterId != 0) {
+            Log.Error("Removing with invalid key: AccountId:{AccountId}, CharacterId:{CharacterId}", accountId, characterId);
+            return false;
+        }
 
         if (lookup.TryRemove(new Entry(accountId, characterId), out _)) {
             accountIndex.TryRemove(accountId, out _);

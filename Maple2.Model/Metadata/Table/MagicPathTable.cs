@@ -13,6 +13,7 @@ public record MagicPath(
     Vector3 Direction,
     Vector3 FireOffset,
     Vector3 FireFixed,
+    bool TraceTargetOffset,
     float Velocity,
     float Distance,
     float RotateZDegree,

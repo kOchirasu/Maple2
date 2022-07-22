@@ -87,7 +87,7 @@ public class SkillHandler : PacketHandler<GameSession> {
             return;
         }
 
-        var record = new SkillRecord(metadata, skillUid, session.Player.ObjectId) {ServerTick = serverTick};
+        var record = new SkillRecord(metadata, skillUid, session.Player) {ServerTick = serverTick};
         byte motionPoint = packet.ReadByte();
         if (!record.TrySetMotionPoint(motionPoint)) {
             Logger.Error("Invalid MotionPoint({MotionPoint}) for {Record}", motionPoint, record);
@@ -227,7 +227,7 @@ public class SkillHandler : PacketHandler<GameSession> {
         record.Position = packet.Read<Vector3>();
         record.Rotation = packet.Read<Vector3>();
 
-        session.Field?.AddSkill(session.Player, session.Player, record.Attack);
+        session.Field?.AddSkill(record);
         session.Player.InBattle = true;
     }
 

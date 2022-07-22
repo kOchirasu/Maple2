@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Collections.Generic;
+using System.Numerics;
 using Maple2.Model.Metadata;
 
 namespace Maple2.Server.Game.Model.Skill;
@@ -13,7 +14,7 @@ public class SkillRecord {
 
     public readonly long CastUid;
     public long TargetUid;
-    public readonly int CasterId;
+    public readonly IActor Caster;
 
     public int ServerTick;
     public byte MotionPoint { get; private set; }
@@ -30,10 +31,13 @@ public class SkillRecord {
     public int HoldInt;
     public string HoldString = string.Empty;
 
-    public SkillRecord(SkillMetadata metadata, long castUid, int casterId) {
+    public IList<IActor> Targets;
+
+    public SkillRecord(SkillMetadata metadata, long castUid, IActor caster) {
         Metadata = metadata;
         CastUid = castUid;
-        CasterId = casterId;
+        Caster = caster;
+        Targets = new List<IActor>();
     }
 
     public bool TrySetMotionPoint(byte motionPoint) {

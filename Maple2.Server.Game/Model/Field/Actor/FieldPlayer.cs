@@ -48,17 +48,18 @@ public class FieldPlayer : Actor<Player> {
 
     public void TargetAttack(SkillRecord record, int[] targetIds) {
         SkillMetadataAttack attack = record.Attack;
-        var targets = new List<IActor>();
+        // Clear Targets just in case SkillRecord is being reused.
+        record.Targets.Clear();
         foreach (int targetId in targetIds) {
             switch (attack.Range.ApplyTarget) {
                 case SkillEntity.Target:
                     if (Field.TryGetNpc(targetId, out FieldNpc? npc)) {
-                        targets.Add(npc);
+                        record.Targets.Add(npc);
                     }
                     continue;
                 case SkillEntity.Owner:
                     if (Field.TryGetPlayer(targetId, out FieldPlayer? player)) {
-                        targets.Add(player);
+                        record.Targets.Add(player);
                     }
                     continue;
                 default:
@@ -67,7 +68,8 @@ public class FieldPlayer : Actor<Player> {
             }
         }
 
-        if (targets.Count == 0) {
+        Logger.Information("Added targets {Count} to {CastId}", record.Targets.Count, record.CastUid);
+        if (record.Targets.Count == 0) {
             return;
         }
 
@@ -83,7 +85,7 @@ public class FieldPlayer : Actor<Player> {
                 Direction = record.Direction,
             };
 
-            foreach (IActor target in targets) {
+            foreach (IActor target in record.Targets) {
                 var targetRecord = new DamageRecordTarget {
                     ObjectId = target.ObjectId,
                 };
@@ -106,7 +108,7 @@ public class FieldPlayer : Actor<Player> {
 
         foreach (SkillEffectMetadata effect in attack.Skills) {
             if (effect.Condition != null) {
-                foreach (IActor actor in targets) {
+                foreach (IActor actor in record.Targets) {
                     actor.ApplyEffect(this, effect);
                 }
             } else if (effect.Splash != null) {
