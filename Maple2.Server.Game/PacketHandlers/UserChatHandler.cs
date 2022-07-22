@@ -82,6 +82,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
         }
 
         var request = new ChatRequest {
+            AccountId = session.AccountId,
             CharacterId = session.CharacterId,
             Name = session.Player.Value.Character.Name,
             Message = message,
@@ -107,6 +108,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
 
     private void HandleParty(GameSession session, string message) {
         var request = new ChatRequest {
+            AccountId = session.AccountId,
             CharacterId = session.CharacterId,
             Name = session.Player.Value.Character.Name,
             Message = message,
@@ -120,6 +122,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
 
     private void HandleGuild(GameSession session, string message) {
         var request = new ChatRequest {
+            AccountId = session.AccountId,
             CharacterId = session.CharacterId,
             Name = session.Player.Value.Character.Name,
             Message = message,
@@ -133,6 +136,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
 
     private void HandleWorld(GameSession session, string message) {
         var request = new ChatRequest {
+            AccountId = session.AccountId,
             CharacterId = session.CharacterId,
             Name = session.Player.Value.Character.Name,
             Message = message,
@@ -150,6 +154,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
 
     private void HandleSuper(GameSession session, string message) {
         var request = new ChatRequest {
+            AccountId = session.AccountId,
             CharacterId = session.CharacterId,
             Name = session.Player.Value.Character.Name,
             Message = message,
@@ -163,6 +168,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
 
     private void HandleClub(GameSession session, string message, long clubId) {
         var request = new ChatRequest {
+            AccountId = session.AccountId,
             CharacterId = session.CharacterId,
             Name = session.Player.Value.Character.Name,
             Message = message,
@@ -176,6 +182,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
 
     private void HandleWedding(GameSession session, string message) {
         var request = new ChatRequest {
+            AccountId = session.AccountId,
             CharacterId = session.CharacterId,
             Name = session.Player.Value.Character.Name,
             Message = message,

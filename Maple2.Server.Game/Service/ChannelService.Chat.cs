@@ -30,11 +30,10 @@ public partial class ChannelService {
     }
 
     private void WhisperChat(ChatRequest request) {
-        if (server.GetSession(request.Whisper.RecipientId, out GameSession? session)) {
-            session.Send(ChatPacket.Whisper(
-                request.AccountId, request.CharacterId, request.Name, request.Message,string.Empty));
+        if (!server.GetSession(request.Whisper.RecipientId, out GameSession? session)) {
+            throw new RpcException(new Status(StatusCode.NotFound, $"Unable to whisper: {request.Whisper.RecipientName}"));
         }
 
-        throw new RpcException(new Status(StatusCode.NotFound, $"Unable to whisper: {request.Whisper.RecipientName}"));
+        session.Send(ChatPacket.Whisper(request.AccountId, request.CharacterId, request.Name, request.Message));
     }
 }

@@ -31,7 +31,7 @@ public class BreakableHandler : PacketHandler<GameSession> {
             return;
         }
 
-        var record = new SkillRecord(metadata, skillUid, session.Player.ObjectId);
+        var record = new SkillRecord(metadata, skillUid, session.Player);
         byte motionPoint = packet.ReadByte();
         if (!record.TrySetMotionPoint(motionPoint)) {
             Logger.Error("Invalid MotionPoint({MotionPoint}) for {Record}", motionPoint, record);

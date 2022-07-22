@@ -9,6 +9,7 @@ using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Util;
 using Maple2.Tools.Collision;
+using Maple2.Tools.Extensions;
 using Serilog;
 
 namespace Maple2.Server.Game.Model;
@@ -91,9 +92,13 @@ activated:
         //     }
         // }
 
-        foreach (SkillMetadataMotion motion in Value.Data.Motions) {
-            byte attackPoint = 0;
-            foreach (SkillMetadataAttack attack in motion.Attacks) {
+        var record = new SkillRecord(Value, 0, Caster) {
+            Position = Position,
+            Rotation = Rotation,
+        };
+        for (byte i = 0; record.TrySetMotionPoint(i); i++) {
+            for (byte j = 0; record.TrySetAttackPoint(j); j++) {
+                SkillMetadataAttack attack = record.Attack;
                 Prism[] prisms = Points.Select(point => attack.Range.GetPrism(point, UseDirection ? Rotation.Z : 0)).ToArray();
                 IActor[] targets = GetTargets(prisms, attack.Range.ApplyTarget, attack.TargetCount).ToArray();
                 if (targets.Length > 0) {
@@ -118,7 +123,8 @@ activated:
                         OwnerId = ObjectId,
                         SkillId = Value.Id,
                         Level = Value.Level,
-                        MotionPoint = attackPoint,
+                        MotionPoint = record.MotionPoint,
+                        AttackPoint = record.AttackPoint,
                     };
 
                     foreach (IActor target in targets) {
@@ -129,7 +135,7 @@ activated:
                             Direction = target.Rotation, // Of block
                         };
                         long damageAmount = 0;
-                        for (int i = 0; i < attack.Damage.Count; i++) {
+                        for (int k = 0; k < attack.Damage.Count; k++) {
                             targetRecord.AddDamage(DamageType.Normal, -10);
                             damageAmount -= 10;
                         }
@@ -159,12 +165,9 @@ activated:
                                 break;
                         }
                     } else if (effect.Splash != null) {
-                        Log.Debug("SkillSource Splash Skill untested");
-                        Field.AddSkill(Caster, this, attack);
+                        Field.AddSkill(record);
                     }
                 }
-
-                attackPoint++;
             }
         }
 

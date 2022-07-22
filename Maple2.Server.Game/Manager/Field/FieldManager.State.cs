@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -9,6 +10,7 @@ using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Model;
+using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools;
@@ -207,33 +209,53 @@ public partial class FieldManager {
         }
     }
 
-    public void AddSkill(IActor caster, IFieldEntity owner, SkillMetadataAttack attack) {
-        if (attack.CubeMagicPathId == 0) {
-            logger.Error("Invalid skill-MagicPath({CubeMagicPath})", attack.CubeMagicPathId);
+    public void AddSkill(SkillRecord record) {
+        SkillMetadataAttack attack = record.Attack;
+        // logger.Information("Handling FieldSkill: {MagicPath}, {CubeMagicPath}", attack.MagicPathId, attack.CubeMagicPathId);
+        if (!TableMetadata.MagicPathTable.Entries.TryGetValue(attack.MagicPathId, out IReadOnlyList<MagicPath>? magicPaths)) {
+            logger.Error("No MagicPath found for {MagicPath})", attack.MagicPathId);
             return;
         }
-        if (!TableMetadata.MagicPathTable.Entries.TryGetValue(attack.CubeMagicPathId, out IReadOnlyList<MagicPath>? magicPaths)) {
-            logger.Error("No MagicPath found for {CubeMagicPath})", attack.CubeMagicPathId);
+        if (!TableMetadata.MagicPathTable.Entries.TryGetValue(attack.CubeMagicPathId, out IReadOnlyList<MagicPath>? cubeMagicPaths)) {
+            logger.Error("No CubeMagicPath found for {CubeMagicPath})", attack.CubeMagicPathId);
             return;
         }
 
         var points = new Vector3[magicPaths.Count];
         for (int i = 0; i < magicPaths.Count; i++) {
             MagicPath magicPath = magicPaths[i];
-            Vector3 rotation = default;
-            if (magicPath.Rotate) {
-                rotation = owner.Rotation;
+            if (record.Targets.Count > 0) {
+                points[i] = record.Position;
+            } else {
+                Vector3 offset = magicPath.FireOffset + magicPath.Direction * magicPath.Distance;
+                points[i] = record.Position.Offset(offset, record.Rotation);
             }
-
-            Vector3 position = owner.Position.Offset(magicPath.FireOffset, rotation);
-            points[i] = magicPath.IgnoreAdjust ? position : position.Align();
         }
 
-        foreach (SkillEffectMetadata effect in attack.Skills) {
-            if (effect.Condition != null) {
-                logger.Error("Field Condition-Skill not handled: {Id}", attack.CubeMagicPathId);
-            } else if (effect.Splash != null) {
-                AddSkill(caster, effect, points, owner.Position, owner.Rotation);
+        foreach (Vector3 point in points) {
+            Vector3[] cubePoints;
+            if (attack.CubeMagicPathId != 0) {
+                cubePoints = new Vector3[cubeMagicPaths.Count];
+                for (int i = 0; i < cubeMagicPaths.Count; i++) {
+                    MagicPath magicPath = cubeMagicPaths[i];
+                    Vector3 rotation = default;
+                    if (magicPath.Rotate) {
+                        rotation = record.Rotation;
+                    }
+
+                    Vector3 position = point + magicPath.FireOffset.Rotate(rotation);
+                    cubePoints[i] = magicPath.IgnoreAdjust ? position : position.Align();
+                }
+            } else {
+                cubePoints = new[] {point};
+            }
+
+            foreach (SkillEffectMetadata effect in attack.Skills) {
+                if (effect.Condition != null) {
+                    logger.Error("Field Condition-Skill not handled: {MagicPath}, {CubeMagicPath}", attack.MagicPathId, attack.CubeMagicPathId);
+                } else if (effect.Splash != null) {
+                    AddSkill(record.Caster, effect, cubePoints, record.Position, record.Rotation);
+                }
             }
         }
     }

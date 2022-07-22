@@ -26,7 +26,7 @@ public static class SkillDamagePacket {
         var pWriter = Packet.Of(SendOp.SkillDamage);
         pWriter.Write<Command>(Command.Target);
         pWriter.WriteLong(record.CastUid);
-        pWriter.WriteInt(record.CasterId);
+        pWriter.WriteInt(record.Caster.ObjectId);
         pWriter.WriteInt(record.SkillId);
         pWriter.WriteShort(record.Level);
         pWriter.WriteByte(record.MotionPoint);

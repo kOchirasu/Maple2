@@ -13,7 +13,7 @@ public static class SkillPacket {
         var pWriter = Packet.Of(SendOp.SkillUse);
         pWriter.WriteLong(skill.CastUid);
         pWriter.WriteInt(skill.ServerTick);
-        pWriter.WriteInt(skill.CasterId);
+        pWriter.WriteInt(skill.Caster.ObjectId);
         pWriter.WriteInt(skill.SkillId);
         pWriter.WriteShort(skill.Level);
         pWriter.WriteByte(skill.MotionPoint);
@@ -34,7 +34,7 @@ public static class SkillPacket {
     public static ByteWriter Sync(SkillRecord skill) {
         var pWriter = Packet.Of(SendOp.SkillSync);
         pWriter.WriteLong(skill.CastUid);
-        pWriter.WriteInt(skill.CasterId);
+        pWriter.WriteInt(skill.Caster.ObjectId);
         pWriter.WriteInt(skill.SkillId);
         pWriter.WriteShort(skill.Level);
         pWriter.WriteByte(skill.MotionPoint);
@@ -52,7 +52,7 @@ public static class SkillPacket {
     public static ByteWriter Cancel(SkillRecord skill) {
         var pWriter = Packet.Of(SendOp.SkillCancel);
         pWriter.WriteLong(skill.CastUid);
-        pWriter.WriteInt(skill.CasterId);
+        pWriter.WriteInt(skill.Caster.ObjectId);
 
         return pWriter;
     }
@@ -61,7 +61,7 @@ public static class SkillPacket {
         var pWriter = Packet.Of(SendOp.SkillUseFailed);
         pWriter.WriteByte(); // Type?
         pWriter.WriteLong(skill.CastUid);
-        pWriter.WriteInt(skill.CasterId);
+        pWriter.WriteInt(skill.Caster.ObjectId);
         pWriter.WriteByte(); // Unknown
 
         // TODO: Handle Type=5, Type=6
