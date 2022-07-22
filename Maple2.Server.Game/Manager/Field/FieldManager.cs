@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using Maple2.Database.Storage;
 using Maple2.Model.Common;
@@ -157,6 +158,17 @@ public sealed partial class FieldManager : IDisposable {
             foreach (FieldMobSpawn mobSpawn in fieldMobSpawns.Values) mobSpawn.Sync();
             foreach (FieldSkill skill in fieldSkills.Values) skill.Sync();
             Thread.Sleep(50);
+        }
+    }
+
+    public void EnsurePlayerPosition(FieldPlayer player) {
+        if (entities.BoundingBox.Contains(player.Position)) {
+            return;
+        }
+
+        SpawnPointPC? spawn = entities.PlayerSpawns.Values.FirstOrDefault(spawn => spawn.Enable);
+        if (spawn != null) {
+            player.Session.Send(PortalPacket.MoveByPortal(player, spawn.Position, spawn.Rotation));
         }
     }
 

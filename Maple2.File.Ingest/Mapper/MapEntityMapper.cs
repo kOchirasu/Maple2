@@ -7,7 +7,6 @@ using Maple2.File.Flat.standardmodellibrary;
 using Maple2.File.IO;
 using Maple2.File.Parser.Flat;
 using Maple2.File.Parser.MapXBlock;
-using Maple2.File.Parser.Xml.Skill;
 using Maple2.Model.Metadata;
 using Maple2.Tools.Extensions;
 using static M2dXmlGenerator.FeatureLocaleFilter;
@@ -25,6 +24,8 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
     }
 
     private IEnumerable<MapEntity> ParseMap(string xblock, IEnumerable<IMapEntity> entities) {
+        IMS2Bounding? otherBounding = null;
+
         foreach (IMapEntity entity in entities) {
             switch (entity) {
                 case IActor actor: {
@@ -149,6 +150,15 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
                     string name = Path.GetFileNameWithoutExtension(triggerModel.XmlFilePath);
                     yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
                         Block = new TriggerModel(triggerModel.TriggerModelID, name, triggerModel.Position, triggerModel.Rotation),
+                    };
+                    continue;
+                case IMS2Bounding bounding:
+                    if (otherBounding == null) {
+                        otherBounding = bounding;
+                        continue;
+                    }
+                    yield return new MapEntity(xblock, new Guid(entity.EntityId), $"{otherBounding.EntityName},{bounding.EntityName}") {
+                        Block = new Ms2Bounding(otherBounding.Position, bounding.Position),
                     };
                     continue;
             }
