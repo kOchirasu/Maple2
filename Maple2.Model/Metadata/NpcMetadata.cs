@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Numerics;
 using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
@@ -9,6 +10,7 @@ public record NpcMetadata(
     string Model,
     NpcMetadataStat Stat,
     NpcMetadataBasic Basic,
+    NpcMetadataProperty Property,
     NpcMetadataAction Action,
     NpcMetadataDead Dead) : ISearchResult;
 
@@ -38,6 +40,20 @@ public record NpcMetadataBasic(
     string[] SubTags,
     long CustomExp);
 
+public record NpcMetadataProperty(
+    NpcMetadataSkill[] Skills,
+    NpcMetadataBuff[] Buffs,
+    NpcMetadataCapsule Capsule,
+    NpcMetadataCollision? Collision);
+
+public record NpcMetadataSkill(int Id, int Level, int Priority, int Probability);
+
+public record NpcMetadataBuff(int Id, int Level);
+
+public record NpcMetadataCapsule(float Radius, float Height);
+
+public record NpcMetadataCollision(Vector3 Dimensions, Vector3 Offset);
+
 public record NpcMetadataAction(
     float RotateSpeed,
     float WalkSpeed,
@@ -46,7 +62,7 @@ public record NpcMetadataAction(
     int MoveArea,
     string MaidExpired);
 
-public record NpcAction(string Name, float Probability);
+public record NpcAction(string Name, int Probability);
 
 public record NpcMetadataDead(
     float Time,

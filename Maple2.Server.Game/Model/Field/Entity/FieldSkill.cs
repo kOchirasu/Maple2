@@ -18,7 +18,7 @@ public class FieldSkill : FieldEntity<SkillMetadata> {
     public IActor Caster { get; init; }
     public int Interval { get; }
     public int FireCount { get; private set; }
-    public bool Enabled => FireCount != 0 || Environment.TickCount <= endTick;
+    public bool Enabled => NextTick <= endTick || Environment.TickCount <= endTick;
     public bool Active { get; private set; } = true;
 
     public readonly Vector3[] Points;
@@ -52,6 +52,7 @@ public class FieldSkill : FieldEntity<SkillMetadata> {
             endTick = baseTick + splash.Delay + splash.RemoveDelay + FireCount * splash.Interval;
         }
         if (splash.OnlySensingActive) {
+            endTick = baseTick + splash.Delay + splash.RemoveDelay;
             Active = false;
         }
     }
@@ -160,8 +161,13 @@ activated:
                                     target.ApplyEffect(Caster, effect);
                                 }
                                 break;
+                            case SkillEntity.Target:
+                                foreach (IActor target in targets) {
+                                    target.ApplyEffect(Caster, effect);
+                                }
+                                break;
                             default:
-                                Log.Error("Invalid Target: {Target}", effect.Condition.Target);
+                                Log.Error("Invalid FieldSkill Target: {Target}", effect.Condition.Target);
                                 break;
                         }
                     } else if (effect.Splash != null) {
@@ -178,6 +184,12 @@ activated:
     private IEnumerable<IActor> GetTargets(Prism[] prisms, SkillEntity entity, int limit) {
         switch (entity) {
             case SkillEntity.Owner:
+                IPrism shape = Caster.Shape;
+                if (!Caster.IsDead && prisms.Any(prism => prism.Intersects(shape))) {
+                    return new[] {Caster};
+                }
+
+                return Array.Empty<IActor>();
             case SkillEntity.Attacker:
             case SkillEntity.RegionBuff:
             case SkillEntity.RegionDebuff:

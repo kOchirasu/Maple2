@@ -258,6 +258,10 @@ public sealed partial class GameSession : Core.Network.Session {
         Player.State = stateSync.State;
         Player.SubState = stateSync.SubState;
 
+        if (stateSync.SyncNumber != int.MaxValue) {
+            Player.LastGroundPosition = stateSync.Position;
+        }
+
         Field?.EnsurePlayerPosition(Player);
     }
 

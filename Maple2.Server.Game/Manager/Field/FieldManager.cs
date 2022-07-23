@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Numerics;
 using System.Threading;
 using Maple2.Database.Storage;
 using Maple2.Model.Common;
@@ -13,6 +14,7 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Tools.Extensions;
 using Serilog;
 
 namespace Maple2.Server.Game.Manager.Field;
@@ -166,10 +168,7 @@ public sealed partial class FieldManager : IDisposable {
             return;
         }
 
-        SpawnPointPC? spawn = entities.PlayerSpawns.Values.FirstOrDefault(spawn => spawn.Enable);
-        if (spawn != null) {
-            player.Session.Send(PortalPacket.MoveByPortal(player, spawn.Position, spawn.Rotation));
-        }
+        player.Session.Send(PortalPacket.MoveByPortal(player, player.LastGroundPosition.Align() + new Vector3(0, 0, 150f), default));
     }
 
     public bool TryGetPlayerById(long characterId, [NotNullWhen(true)] out FieldPlayer? player) {

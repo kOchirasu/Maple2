@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
+using Maple2.Tools.Collision;
 
 namespace Maple2.Server.Game.Model;
 
@@ -11,6 +12,7 @@ public interface IActor : IFieldEntity {
     public Stats Stats { get; }
 
     public bool IsDead { get; }
+    public IPrism Shape { get; }
     public ActorState State { get; }
     public ActorSubState SubState { get; }
 

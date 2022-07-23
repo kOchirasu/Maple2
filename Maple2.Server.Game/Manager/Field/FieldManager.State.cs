@@ -211,51 +211,35 @@ public partial class FieldManager {
 
     public void AddSkill(SkillRecord record) {
         SkillMetadataAttack attack = record.Attack;
-        // logger.Information("Handling FieldSkill: {MagicPath}, {CubeMagicPath}", attack.MagicPathId, attack.CubeMagicPathId);
-        if (!TableMetadata.MagicPathTable.Entries.TryGetValue(attack.MagicPathId, out IReadOnlyList<MagicPath>? magicPaths)) {
-            logger.Error("No MagicPath found for {MagicPath})", attack.MagicPathId);
-            return;
-        }
         if (!TableMetadata.MagicPathTable.Entries.TryGetValue(attack.CubeMagicPathId, out IReadOnlyList<MagicPath>? cubeMagicPaths)) {
             logger.Error("No CubeMagicPath found for {CubeMagicPath})", attack.CubeMagicPathId);
             return;
         }
 
-        var points = new Vector3[magicPaths.Count];
-        for (int i = 0; i < magicPaths.Count; i++) {
-            MagicPath magicPath = magicPaths[i];
-            if (record.Targets.Count > 0) {
-                points[i] = record.Position;
-            } else {
-                Vector3 offset = magicPath.FireOffset + magicPath.Direction * magicPath.Distance;
-                points[i] = record.Position.Offset(offset, record.Rotation);
+        Vector3[] cubePoints;
+        if (attack.CubeMagicPathId != 0) {
+            // TODO: If this is a CubeMagicPath, we always align the height. Ideally we can detect the floor instead.
+            record.Position = record.Position.AlignHeight();
+            cubePoints = new Vector3[cubeMagicPaths.Count];
+            for (int i = 0; i < cubeMagicPaths.Count; i++) {
+                MagicPath magicPath = cubeMagicPaths[i];
+                Vector3 rotation = default;
+                if (magicPath.Rotate) {
+                    rotation = record.Rotation;
+                }
+
+                Vector3 position = record.Position + magicPath.FireOffset.Rotate(rotation);
+                cubePoints[i] = magicPath.IgnoreAdjust ? position : position.Align();
             }
+        } else {
+            cubePoints = new[] {record.Position};
         }
 
-        foreach (Vector3 point in points) {
-            Vector3[] cubePoints;
-            if (attack.CubeMagicPathId != 0) {
-                cubePoints = new Vector3[cubeMagicPaths.Count];
-                for (int i = 0; i < cubeMagicPaths.Count; i++) {
-                    MagicPath magicPath = cubeMagicPaths[i];
-                    Vector3 rotation = default;
-                    if (magicPath.Rotate) {
-                        rotation = record.Rotation;
-                    }
-
-                    Vector3 position = point + magicPath.FireOffset.Rotate(rotation);
-                    cubePoints[i] = magicPath.IgnoreAdjust ? position : position.Align();
-                }
-            } else {
-                cubePoints = new[] {point};
-            }
-
-            foreach (SkillEffectMetadata effect in attack.Skills) {
-                if (effect.Condition != null) {
-                    logger.Error("Field Condition-Skill not handled: {MagicPath}, {CubeMagicPath}", attack.MagicPathId, attack.CubeMagicPathId);
-                } else if (effect.Splash != null) {
-                    AddSkill(record.Caster, effect, cubePoints, record.Position, record.Rotation);
-                }
+        foreach (SkillEffectMetadata effect in attack.Skills) {
+            if (effect.Condition != null) {
+                logger.Error("Field Condition-Skill not handled: {MagicPath}, {CubeMagicPath}", attack.MagicPathId, attack.CubeMagicPathId);
+            } else if (effect.Splash != null) {
+                AddSkill(record.Caster, effect, cubePoints, record.Position, record.Rotation);
             }
         }
     }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using System.Text;
 using Maple2.Model.Common;
 using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
@@ -161,5 +162,33 @@ public class StateSync : IByteSerializable, IByteDeserializable {
         }
 
         SyncNumber = reader.ReadInt();
+    }
+
+    public override string ToString() {
+        var builder = new StringBuilder();
+        builder.AppendLine($"State:{State}, SubState:{SubState}, SyncNumber{SyncNumber}");
+        builder.AppendLine($" Position:{Position}, Rotation:{Rotation}, Speed:{Speed}");
+        builder.AppendLine($" Animation:{Animation} ({UnknownFloat1}, {UnknownFloat2}), Unknown1:{Unknown1}, Rotation2:{Rotation2}, Unknown3:{Unknown3}");
+        if (Flags.HasFlag(Flag.Flag1)) {
+            builder.Append($"Flag1: {Flag1Unknown1}, {Flag1Unknown2}");
+        }
+        if (Flags.HasFlag(Flag.Flag2)) {
+            builder.Append($"Flag2: {Flag2Unknown1}, {Flag2Unknown2}");
+        }
+        if (Flags.HasFlag(Flag.Flag3)) {
+            builder.Append($"Flag3: {Flag3Unknown1}, {Flag3Unknown2}");
+        }
+        if (Flags.HasFlag(Flag.Flag4)) {
+            builder.Append($"Flag4: {Flag4Animation}");
+        }
+        if (Flags.HasFlag(Flag.Flag5)) {
+            builder.Append($"Flag5: {Flag5Unknown1}, {Flag5Unknown2}");
+        }
+        if (Flags.HasFlag(Flag.Flag6)) {
+            builder.Append($"Flag6: {Flag6Unknown1}, {Flag6Unknown2}, {Flag6Unknown3}");
+            builder.Append($"- Position:{Flag6Position}, Rotation:{Flag6Rotation}");
+        }
+
+        return builder.ToString();
     }
 }
