@@ -57,7 +57,7 @@ public class FieldPlayer : Actor<Player> {
         foreach (int targetId in targetIds) {
             switch (attack.Range.ApplyTarget) {
                 case SkillEntity.Target:
-                    if (Field.TryGetNpc(targetId, out FieldNpc? npc)) {
+                    if (Field.Mobs.TryGetValue(targetId, out FieldNpc? npc)) {
                         record.Targets.Add(npc);
                     }
                     continue;

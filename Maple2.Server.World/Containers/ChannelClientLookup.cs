@@ -140,5 +140,6 @@ public class ChannelClientLookup {
 
             await Task.Delay(MonitorInterval, cancellationToken);
         } while (!cancellationToken.IsCancellationRequested);
+        logger.Error("End monitoring game channel: {Channel} for {EndPoint}", channel, channels[i].Endpoint);
     }
 }

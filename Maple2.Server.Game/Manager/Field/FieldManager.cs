@@ -154,6 +154,7 @@ public sealed partial class FieldManager : IDisposable {
 
             foreach (FieldPlayer player in Players.Values) player.Sync();
             foreach (FieldNpc npc in Npcs.Values) npc.Sync();
+            foreach (FieldNpc mob in Mobs.Values) mob.Sync();
             foreach (FieldBreakable breakable in fieldBreakables.Values) breakable.Sync();
             foreach (FieldLiftable liftable in fieldLiftables.Values) liftable.Sync();
             foreach (FieldItem item in fieldItems.Values) item.Sync();
@@ -185,10 +186,6 @@ public sealed partial class FieldManager : IDisposable {
 
     public bool TryGetPlayer(int objectId, [NotNullWhen(true)] out FieldPlayer? player) {
         return Players.TryGetValue(objectId, out player);
-    }
-
-    public bool TryGetNpc(int objectId, [NotNullWhen(true)] out FieldNpc? npc) {
-        return Npcs.TryGetValue(objectId, out npc);
     }
 
     public bool TryGetPortal(int portalId, [NotNullWhen(true)] out Portal? portal) {

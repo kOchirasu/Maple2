@@ -13,8 +13,11 @@ using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Server.Game.Util;
 using Maple2.Tools;
+using Maple2.Tools.Collision;
 using Maple2.Tools.Extensions;
+using Serilog;
 
 namespace Maple2.Server.Game.Manager.Field;
 
@@ -22,6 +25,7 @@ public partial class FieldManager {
     // Actors
     internal readonly ConcurrentDictionary<int, FieldPlayer> Players = new();
     internal readonly ConcurrentDictionary<int, FieldNpc> Npcs = new();
+    internal readonly ConcurrentDictionary<int, FieldNpc> Mobs = new();
 
     // Entities
     private readonly ConcurrentDictionary<string, FieldBreakable> fieldBreakables = new();
@@ -47,22 +51,6 @@ public partial class FieldManager {
             Position = position,
             Rotation = rotation,
         };
-
-        // Add job passive skills to Player.
-        foreach (SkillInfo.Skill skill in session.Config.Skill.SkillInfo.GetSkills(SkillType.Passive, SkillRank.Both)) {
-            if (skill.Level <= 0) {
-                continue;
-            }
-            if (!SkillMetadata.TryGet(skill.Id, skill.Level, out SkillMetadata? metadata)) {
-                logger.Error("Invalid skill: {SkillId},{Level}", skill.Id, skill.Level);
-                continue;
-            }
-
-            logger.Information("Applying passive skill {Name}: {SkillId},{Level}", metadata.Name, metadata.Id, metadata.Level);
-            foreach (SkillEffectMetadata effect in metadata.Data.Skills) {
-                fieldPlayer.ApplyEffect(fieldPlayer, effect);
-            }
-        }
 
         // Use Portal if needed.
         if (fieldPlayer.Position == default && entities.Portals.TryGetValue(portalId, out Portal? portal)) {
@@ -95,7 +83,12 @@ public partial class FieldManager {
             Position = position,
             Rotation = rotation,
         };
-        Npcs[fieldNpc.ObjectId] = fieldNpc;
+
+        if (npc.Basic.Friendly > 0) {
+            Npcs[fieldNpc.ObjectId] = fieldNpc;
+        } else {
+            Mobs[fieldNpc.ObjectId] = fieldNpc;
+        }
 
         return fieldNpc;
     }
@@ -235,12 +228,29 @@ public partial class FieldManager {
             cubePoints = new[] {record.Position};
         }
 
-        foreach (SkillEffectMetadata effect in attack.Skills) {
-            if (effect.Condition != null) {
-                logger.Error("Field Condition-Skill not handled: {MagicPath}, {CubeMagicPath}", attack.MagicPathId, attack.CubeMagicPathId);
-            } else if (effect.Splash != null) {
-                AddSkill(record.Caster, effect, cubePoints, record.Position, record.Rotation);
+        // Condition-Skills are expected to be handled separately.
+        foreach (SkillEffectMetadata effect in attack.Skills.Where(effect => effect.Splash != null)) {
+            if (effect.Splash == null) {
+                logger.Fatal("Invalid Splash-Skill being handled: {Effect}", effect);
+                continue;
             }
+
+            AddSkill(record.Caster, effect, cubePoints, record.Position, record.Rotation);
+        }
+    }
+
+    public IEnumerable<IActor> GetTargets(Prism[] prisms, SkillEntity entity, int limit) {
+        switch (entity) {
+            case SkillEntity.Owner:
+            case SkillEntity.Attacker:
+            case SkillEntity.RegionBuff:
+            case SkillEntity.RegionDebuff:
+                return prisms.Filter(Players.Values, limit);
+            case SkillEntity.Target:
+                return prisms.Filter(Mobs.Values, limit);
+            default:
+                Log.Debug("Unhandled SkillEntity:{Entity}", entity);
+                return Array.Empty<IActor>();
         }
     }
 
@@ -324,7 +334,7 @@ public partial class FieldManager {
     }
 
     public bool RemoveNpc(int objectId) {
-        if (!Npcs.TryRemove(objectId, out _)) {
+        if (!Mobs.TryRemove(objectId, out _) && !Npcs.TryRemove(objectId, out _)) {
             return false;
         }
 
@@ -349,7 +359,7 @@ public partial class FieldManager {
         foreach (FieldItem fieldItem in fieldItems.Values) {
             added.Session.Send(FieldPacket.DropItem(fieldItem));
         }
-        foreach (FieldNpc fieldNpc in Npcs.Values) {
+        foreach (FieldNpc fieldNpc in Npcs.Values.Concat(Mobs.Values)) {
             added.Session.Send(FieldPacket.AddNpc(fieldNpc));
         }
         // FieldAddPet
@@ -360,7 +370,7 @@ public partial class FieldManager {
         foreach (FieldPlayer fieldPlayer in Players.Values) {
             added.Session.Send(ProxyObjectPacket.AddPlayer(fieldPlayer));
         }
-        foreach (FieldNpc fieldNpc in Npcs.Values) {
+        foreach (FieldNpc fieldNpc in Npcs.Values.Concat(Mobs.Values)) {
             added.Session.Send(ProxyObjectPacket.AddNpc(fieldNpc));
         }
         foreach (FieldSkill skillSource in fieldSkills.Values) {
