@@ -51,10 +51,15 @@ public class FieldCommand : Command {
                 return;
             }
 
-            if (session.Field.TryGetNpc(objectId, out FieldNpc? npc)) {
+            if (session.Field.Npcs.TryGetValue(objectId, out FieldNpc? npc)) {
                 ctx.Console.Out.WriteLine($"Npc: {npc.Value.Metadata.Id} ({npc.Value.Metadata.Name})");
                 ctx.Console.Out.WriteLine($"  Position: {npc.Position}");
                 ctx.Console.Out.WriteLine($"  Rotation: {npc.Rotation}");
+            }
+            if (session.Field.Mobs.TryGetValue(objectId, out FieldNpc? mob)) {
+                ctx.Console.Out.WriteLine($"Mob: {mob.Value.Metadata.Id} ({mob.Value.Metadata.Name})");
+                ctx.Console.Out.WriteLine($"  Position: {mob.Position}");
+                ctx.Console.Out.WriteLine($"  Rotation: {mob.Rotation}");
             }
         }
     }

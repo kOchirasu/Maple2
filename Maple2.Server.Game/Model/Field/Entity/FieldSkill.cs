@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Maple2.Model.Enum;
@@ -9,7 +8,6 @@ using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Util;
 using Maple2.Tools.Collision;
-using Maple2.Tools.Extensions;
 using Serilog;
 
 namespace Maple2.Server.Game.Model;
@@ -18,13 +16,15 @@ public class FieldSkill : FieldEntity<SkillMetadata> {
     public IActor Caster { get; init; }
     public int Interval { get; }
     public int FireCount { get; private set; }
-    public bool Enabled => NextTick <= endTick || Environment.TickCount <= endTick;
+    public bool Enabled => FireCount < 0 || NextTick <= endTick || Environment.TickCount <= endTick;
     public bool Active { get; private set; } = true;
 
     public readonly Vector3[] Points;
     public readonly bool UseDirection;
     private readonly int endTick;
     public int NextTick { get; private set; }
+
+    private readonly ILogger logger = Log.ForContext<FieldSkill>();
 
     public FieldSkill(FieldManager field, int objectId, IActor caster,
                       SkillMetadata value, int interval, params Vector3[] points) : base(field, objectId, value) {
@@ -72,7 +72,7 @@ public class FieldSkill : FieldEntity<SkillMetadata> {
             foreach (SkillMetadataMotion motion in Value.Data.Motions) {
                 foreach (SkillMetadataAttack attack in motion.Attacks) {
                     Prism[] prisms = Points.Select(point => attack.Range.GetPrism(point, UseDirection ? Rotation.Z : 0)).ToArray();
-                    if (GetTargets(prisms, attack.Range.ApplyTarget, attack.TargetCount).Any()) {
+                    if (Field.GetTargets(prisms, attack.Range.ApplyTarget, attack.TargetCount).Any()) {
                         Active = true;
                         goto activated;
                     }
@@ -83,7 +83,7 @@ public class FieldSkill : FieldEntity<SkillMetadata> {
             return;
         }
 
-activated:
+    activated:
         // TODO: These are buffs? seems irrelevant to FieldSkill?
         // foreach (SkillEffectMetadata skill in Value.Data.Skills) {
         //     if (skill.Condition != null) {
@@ -101,20 +101,20 @@ activated:
             for (byte j = 0; record.TrySetAttackPoint(j); j++) {
                 SkillMetadataAttack attack = record.Attack;
                 Prism[] prisms = Points.Select(point => attack.Range.GetPrism(point, UseDirection ? Rotation.Z : 0)).ToArray();
-                IActor[] targets = GetTargets(prisms, attack.Range.ApplyTarget, attack.TargetCount).ToArray();
-                if (targets.Length > 0) {
-                    Log.Debug("[{Tick}] {ObjectId}:{AttackPoint} Targeting: {Count}/{Limit} {Type}",
-                        NextTick, ObjectId, attack.Point, targets.Length, attack.TargetCount, attack.Range.ApplyTarget);
-                    foreach (IActor target in targets) {
-                        Log.Debug("- {Id} @ {Position}", target.ObjectId, target.Position);
-                    }
-                }
+                IActor[] targets = Field.GetTargets(prisms, attack.Range.ApplyTarget, attack.TargetCount).ToArray();
+                // if (targets.Length > 0) {
+                //     logger.Debug("[{Tick}] {ObjectId}:{AttackPoint} Targeting: {Count}/{Limit} {Type}",
+                //         NextTick, ObjectId, attack.Point, targets.Length, attack.TargetCount, attack.Range.ApplyTarget);
+                //     foreach (IActor target in targets) {
+                //         logger.Debug("- {Id} @ {Position}", target.ObjectId, target.Position);
+                //     }
+                // }
                 // else if (Caster.ObjectId != 0) { // Not Ms2RegionSkill
-                //     Log.Debug("[{Tick}] {ObjectId}:{AttackPoint} has {Count}/{Limit} {Type}",
+                //     logger.Debug("[{Tick}] {ObjectId}:{AttackPoint} has {Count}/{Limit} {Type}",
                 //         NextTick, ObjectId, attack.Point, 0, attack.TargetCount, attack.Range.ApplyTarget);
-                //     Log.Debug("{Range}", attack.Range);
+                //     logger.Debug("{Range}", attack.Range);
                 //     foreach (Prism prism in prisms) {
-                //         Log.Debug("- {Prism}", prism);
+                //         logger.Debug("- {Prism}", prism);
                 //     }
                 // }
 
@@ -132,7 +132,7 @@ activated:
                         var targetRecord = new DamageRecordTarget {
                             ObjectId = target.ObjectId,
                             // TODO: These should be from the block that did damage?
-                            Position = target.Position, // Of block
+                            Position = target.Position,  // Of block
                             Direction = target.Rotation, // Of block
                         };
                         long damageAmount = 0;
@@ -152,53 +152,39 @@ activated:
                     Field.Broadcast(SkillDamagePacket.Region(damage));
                 }
 
-                foreach (SkillEffectMetadata effect in attack.Skills) {
-                    if (effect.Condition != null) {
-                        // ConditionSkill
-                        switch (effect.Condition.Target) {
-                            case SkillEntity.Owner:
-                                foreach (IActor target in targets) {
-                                    target.ApplyEffect(Caster, effect);
-                                }
-                                break;
-                            case SkillEntity.Target:
-                                foreach (IActor target in targets) {
-                                    target.ApplyEffect(Caster, effect);
-                                }
-                                break;
-                            default:
-                                Log.Error("Invalid FieldSkill Target: {Target}", effect.Condition.Target);
-                                break;
-                        }
-                    } else if (effect.Splash != null) {
-                        Field.AddSkill(record);
+                foreach (SkillEffectMetadata effect in attack.Skills.Where(effect => effect.Condition != null)) {
+                    if (effect.Condition == null) {
+                        logger.Fatal("Invalid Condition-Skill being handled: {Effect}", effect);
+                        continue;
                     }
+
+                    switch (effect.Condition.Target) {
+                        case SkillEntity.Owner:
+                            foreach (IActor target in targets) {
+                                target.ApplyEffect(Caster, effect);
+                            }
+                            break;
+                        case SkillEntity.Target:
+                            Caster.ApplyEffect(Caster, effect);
+                            break;
+                        default:
+                            logger.Error("Invalid FieldSkill Target: {Target}", effect.Condition.Target);
+                            break;
+                    }
+                }
+
+                if (attack.Skills.Any(effect => effect.Splash != null)) {
+                    Field.AddSkill(record);
                 }
             }
         }
 
-        FireCount--;
-        NextTick = Environment.TickCount + Interval;
-    }
-
-    private IEnumerable<IActor> GetTargets(Prism[] prisms, SkillEntity entity, int limit) {
-        switch (entity) {
-            case SkillEntity.Owner:
-                IPrism shape = Caster.Shape;
-                if (!Caster.IsDead && prisms.Any(prism => prism.Intersects(shape))) {
-                    return new[] {Caster};
-                }
-
-                return Array.Empty<IActor>();
-            case SkillEntity.Attacker:
-            case SkillEntity.RegionBuff:
-            case SkillEntity.RegionDebuff:
-                return prisms.Filter(Field.Players.Values, limit);
-            case SkillEntity.Target:
-                return prisms.Filter(Field.Npcs.Values, limit);
-            default:
-                Log.Debug("Unhandled SkillEntity:{Entity}", entity);
-                return Array.Empty<IActor>();
+        if (Interval == 0) {
+            FireCount = 0;
+            NextTick = int.MaxValue;
+        } else {
+            FireCount--;
+            NextTick += Interval;
         }
     }
 }

@@ -7,7 +7,6 @@ using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Tools;
-using Maple2.Tools.Extensions;
 using Serilog;
 
 namespace Maple2.Server.Game.Model;
@@ -30,6 +29,8 @@ public class Buff : IByteSerializable {
     public int Stacks { get; private set; }
 
     public bool Enabled => EndTick == StartTick || NextTick <= EndTick || Environment.TickCount <= EndTick;
+
+    private readonly ILogger logger = Log.ForContext<Buff>();
 
     public Buff(FieldManager field, AdditionalEffectMetadata metadata, int objectId, IActor caster, IActor owner) {
         this.field = field;
@@ -62,6 +63,10 @@ public class Buff : IByteSerializable {
             Remove();
             return;
         }
+        // Buffs with KeepCondition == 99 will not proc.
+        if (metadata.Property.KeepCondition == 99) {
+            return;
+        }
         if (tickNow < NextTick) {
             return;
         }
@@ -74,13 +79,20 @@ public class Buff : IByteSerializable {
 
         foreach (SkillEffectMetadata effect in metadata.Skills) {
             if (effect.Condition != null) {
-                Log.Error("Buff Condition-Effect unimplemented for {Id} on {Owner}", Id, Owner.ObjectId);
+                IActor skillOwner = effect.Condition.Owner switch {
+                    SkillEntity.Caster => Caster,
+                    _ => Owner,
+                };
+                // logger.Error("Buff Condition-Effect unimplemented from {Id} on {Owner}", Id, Owner.ObjectId);
                 switch (effect.Condition.Target) {
                     case SkillEntity.Target:
-                        // Owner.ApplyEffect(Caster, effect);
+                        Owner.ApplyEffect(skillOwner, effect);
+                        break;
+                    case SkillEntity.Caster:
+                        Caster.ApplyEffect(skillOwner, effect);
                         break;
                     default:
-                        Log.Error("Invalid Buff Target: {Target}", effect.Condition.Target);
+                        logger.Error("Invalid Buff Target: {Target}", effect.Condition.Target);
                         break;
                 }
             } else if (effect.Splash != null) {

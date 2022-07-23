@@ -57,6 +57,7 @@ public class JobHandler : PacketHandler<GameSession> {
         }
 
         session.Send(JobPacket.Update(session.Player, session.Config.Skill.SkillInfo));
+        session.Config.Skill.UpdatePassiveBuffs();
     }
 
     private void HandleReset(GameSession session, IByteReader packet) {
@@ -64,6 +65,7 @@ public class JobHandler : PacketHandler<GameSession> {
         session.Config.Skill.ResetSkills(rank);
 
         session.Send(JobPacket.Reset(session.Player, session.Config.Skill.SkillInfo));
+        session.Config.Skill.UpdatePassiveBuffs();
     }
 
     private void AutoDistribute(GameSession session, IByteReader packet) {
@@ -77,5 +79,6 @@ public class JobHandler : PacketHandler<GameSession> {
         }
 
         session.Send(JobPacket.AutoDistribute(session.Player, session.Config.Skill.SkillInfo));
+        session.Config.Skill.UpdatePassiveBuffs();
     }
 }

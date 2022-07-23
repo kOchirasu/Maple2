@@ -92,7 +92,8 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
             return;
         }
 
-        Logger.Information("AddBuff to {ObjectId}: {SkillId},{Level} for {Tick}ms", ObjectId, id, level, buff.EndTick - buff.StartTick);
+        Logger.Information("{Id} AddBuff to {ObjectId}: {SkillId},{Level} for {Tick}ms", buff.ObjectId, ObjectId, id, level, buff.EndTick - buff.StartTick);
+        // Logger.Information("> {Data}", additionalEffect.Property);
         if (notifyField) {
             Field.Broadcast(BuffPacket.Add(buff));
         }

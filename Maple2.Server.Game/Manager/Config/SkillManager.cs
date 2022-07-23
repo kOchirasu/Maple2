@@ -5,8 +5,10 @@ using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Serilog;
 
 namespace Maple2.Server.Game.Manager.Config;
 
@@ -15,6 +17,8 @@ public class SkillManager {
 
     public readonly SkillBook SkillBook;
     public readonly SkillInfo SkillInfo;
+
+    private readonly ILogger logger = Log.ForContext<SkillManager>();
 
     public SkillManager(GameSession session, SkillBook skillBook) {
         this.session = session;
@@ -28,6 +32,28 @@ public class SkillManager {
 
     public void LoadSkillBook() {
         session.Send(SkillBookPacket.Load(SkillBook));
+    }
+
+    public void UpdatePassiveBuffs() {
+        // Add job passive skills to Player.
+        foreach (SkillInfo.Skill skill in session.Config.Skill.SkillInfo.GetSkills(SkillType.Passive, SkillRank.Both)) {
+            if (skill.Level <= 0) {
+                // Remove any buffs that shouldn't be valid anymore.
+                if (session.Player.Buffs.TryGetValue(skill.Id, out Buff? buff) && buff.Owner.ObjectId == session.Player.ObjectId) {
+                    buff.Remove();
+                }
+                continue;
+            }
+            if (!session.SkillMetadata.TryGet(skill.Id, skill.Level, out SkillMetadata? metadata)) {
+                logger.Error("Invalid skill: {SkillId},{Level}", skill.Id, skill.Level);
+                continue;
+            }
+
+            logger.Information("Applying passive skill {Name}: {SkillId},{Level}", metadata.Name, metadata.Id, metadata.Level);
+            foreach (SkillEffectMetadata effect in metadata.Data.Skills) {
+                session.Player.ApplyEffect(session.Player, effect);
+            }
+        }
     }
 
     #region SkillBook
