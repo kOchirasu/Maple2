@@ -60,7 +60,7 @@ public class PlayerChannelLookup {
     }
 
     public bool Remove(long accountId, long characterId) {
-        if (accountId != 0 && characterId != 0) {
+        if (accountId == 0 || characterId == 0) {
             Log.Error("Removing with invalid key: AccountId:{AccountId}, CharacterId:{CharacterId}", accountId, characterId);
             return false;
         }

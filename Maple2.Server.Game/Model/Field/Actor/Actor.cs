@@ -7,6 +7,7 @@ using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Packets;
+using Maple2.Tools.Collision;
 using Maple2.Tools.Scheduler;
 using Serilog;
 
@@ -34,6 +35,7 @@ public abstract class ActorBase<T> : IActor<T> {
     public Vector3 Rotation { get; set; }
 
     public virtual bool IsDead { get; protected set; }
+    public abstract IPrism Shape { get; }
     public virtual ActorState State { get; set; }
     public virtual ActorSubState SubState { get; set; }
 

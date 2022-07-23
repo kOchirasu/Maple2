@@ -4,6 +4,7 @@ using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Packets;
+using Maple2.Tools.Collision;
 
 namespace Maple2.Server.Game.Model;
 
@@ -11,6 +12,11 @@ public class FieldNpc : Actor<Npc> {
     public Vector3 Velocity { get; set; }
 
     public FieldMobSpawn? Owner { get; init; }
+    public override IPrism Shape => new Prism(
+        new Circle(new Vector2(Position.X, Position.Y), Value.Metadata.Property.Capsule.Radius),
+        Position.Z,
+        Value.Metadata.Property.Capsule.Height
+    );
 
     public NpcState StateData;
 

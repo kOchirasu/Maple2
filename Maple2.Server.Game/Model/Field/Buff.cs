@@ -29,7 +29,7 @@ public class Buff : IByteSerializable {
     public int ProcCount { get; private set; }
     public int Stacks { get; private set; }
 
-    public bool Enabled => EndTick == StartTick || Environment.TickCount <= EndTick || NextTick <= EndTick;
+    public bool Enabled => EndTick == StartTick || NextTick <= EndTick || Environment.TickCount <= EndTick;
 
     public Buff(FieldManager field, AdditionalEffectMetadata metadata, int objectId, IActor caster, IActor owner) {
         this.field = field;
@@ -80,11 +80,11 @@ public class Buff : IByteSerializable {
                         // Owner.ApplyEffect(Caster, effect);
                         break;
                     default:
-                        Log.Error("Invalid Target: {Target}", effect.Condition.Target);
+                        Log.Error("Invalid Buff Target: {Target}", effect.Condition.Target);
                         break;
                 }
             } else if (effect.Splash != null) {
-                field.AddSkill(Caster, effect, new[]{Owner.Position.Align()}, Owner.Position, Owner.Rotation);
+                field.AddSkill(Caster, effect, new[]{Owner.Position}, Owner.Position, Owner.Rotation);
             }
         }
 

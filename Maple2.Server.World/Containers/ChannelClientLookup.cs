@@ -102,14 +102,13 @@ public class ChannelClientLookup {
     }
 
     private void MonitorChannels(CancellationToken cancellationToken) {
-        var monitorTasks = new List<Task>();
         for (int i = 0; i < channels.Length; i++) {
             int channel = i + 1;
-            Task<Task> task = Task.Factory.StartNew(() => MonitorChannel(channel, cancellationToken), cancellationToken: cancellationToken);
-            monitorTasks.Add(task);
+            Task.Factory.StartNew(() => MonitorChannel(channel, cancellationToken), cancellationToken: cancellationToken);
         }
 
-        Task.WaitAll(monitorTasks.ToArray(), cancellationToken);
+        // Try to let channel list populate, this only happens once.
+        Thread.Sleep(1000);
     }
 
     private async Task MonitorChannel(int channel, CancellationToken cancellationToken) {

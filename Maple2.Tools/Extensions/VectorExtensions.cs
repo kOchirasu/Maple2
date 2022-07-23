@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 namespace Maple2.Tools.Extensions;
 
@@ -8,6 +9,7 @@ public static class VectorExtensions {
     public const int BLOCK_SIZE = 150;
     private const float RAD_TO_DEG = MathF.PI / 180f;
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3 Align(this in Vector3 position, float interval = BLOCK_SIZE) {
         return new Vector3(
             MathF.Round(position.X / interval) * interval,
@@ -16,6 +18,12 @@ public static class VectorExtensions {
         );
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector3 AlignHeight(this in Vector3 position, float interval = BLOCK_SIZE) {
+        return position with {Z = MathF.Floor(position.Z / interval) * interval};
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3 AlignRotation(this in Vector3 position, float interval = 90f) {
         return new Vector3(
             MathF.Round(position.X / interval) * interval,
@@ -24,23 +32,28 @@ public static class VectorExtensions {
         );
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3 Offset(this in Vector3 position, float distance, float rotation) {
         return position + new Vector3(0, distance, 0).Rotate(new Vector3(0, 0, rotation));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3 Offset(this in Vector3 position, float distance, in Vector3 rotation) {
         return position + new Vector3(0, distance, 0).Rotate(rotation);
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3 Offset(this in Vector3 position, in Vector3 offset, float rotation) {
         return position + offset.Rotate(new Vector3(0, 0, rotation));
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3 Offset(this in Vector3 position, in Vector3 offset, in Vector3 rotation) {
         return position + offset.Rotate(rotation);
     }
 
     // Rotates a vector by specified euler angles.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3 Rotate(this in Vector3 magnitude, in Vector3 eulerAngle) {
         // Extra MathF.PI on X/Z are because Y-axis is mirrored.
         var rotation = Quaternion.CreateFromYawPitchRoll(
@@ -53,11 +66,13 @@ public static class VectorExtensions {
     }
 
     // Computes the rotation angle from src(x, y) to dst(x, y).
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static float Angle2D(this in Vector3 src, in Vector3 dst) {
         return (float) Math.Atan2(dst.Y - src.Y, dst.X - src.X) * RAD_TO_DEG + 90f;
     }
 
     // Clamps the length of a vector between min and max.
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3 ClampLength(this in Vector3 length, float min, float max) {
         float magnitude = length.Length();
         if (magnitude < min) {
@@ -69,6 +84,9 @@ public static class VectorExtensions {
 
         return length;
     }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static Vector2 Normal(this Vector2 vector) => new(vector.Y, -vector.X);
 
     // Returns all blocks within range in a 2D grid around position
     // position should be aligned here

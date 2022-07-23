@@ -1,8 +1,11 @@
-﻿using M2dXmlGenerator;
+﻿using System.Diagnostics;
+using System.Numerics;
+using M2dXmlGenerator;
 using Maple2.File.IO;
 using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.Npc;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 
 namespace Maple2.File.Ingest.Mapper;
@@ -16,13 +19,12 @@ public class NpcMapper : TypeMapper<NpcMetadata> {
 
     protected override IEnumerable<NpcMetadata> Map() {
         foreach ((int id, string name, NpcData data, List<EffectDummy> _) in parser.Parse()) {
-            float probDiv = data.normal.prob.Sum();
-            yield return new NpcMetadata(
-                Id: id,
+            Debug.Assert(data.collision.shape == "box" || string.IsNullOrWhiteSpace(data.collision.shape));
+
+            yield return new NpcMetadata(Id: id,
                 Name: name,
                 Model: data.model.kfm,
-                Stat: new NpcMetadataStat(
-                    Stats: MapStats(data.stat),
+                Stat: new NpcMetadataStat(Stats: MapStats(data.stat),
                     ScaleStatRate: new[] {
                         data.stat.scaleStatRate_1,
                         data.stat.scaleStatRate_2,
@@ -47,8 +49,7 @@ public class NpcMapper : TypeMapper<NpcMetadata> {
                         data.stat.scaleBaseSpaRate_3,
                         data.stat.scaleBaseSpaRate_4,
                     }),
-                new NpcMetadataBasic(
-                    Friendly: data.basic.friendly,
+                Basic: new NpcMetadataBasic(Friendly: data.basic.friendly,
                     AttackGroup: data.basic.npcAttackGroup,
                     DefenseGroup: data.basic.npcDefenseGroup,
                     Kind: data.basic.kind,
@@ -65,11 +66,20 @@ public class NpcMapper : TypeMapper<NpcMetadata> {
                     SubTags: data.basic.subTags,
                     Difficulty: data.basic.difficulty,
                     CustomExp: data.exp.customExp),
+                Property: new NpcMetadataProperty(
+                    Skills: data.skill.ids.Select((skillId, i) =>
+                        new NpcMetadataSkill(skillId, data.skill.levels[i], data.skill.priorities[i], data.skill.probs[i])).ToArray(),
+                    Buffs: data.additionalEffect.codes.Select((buffId, i) => new NpcMetadataBuff(buffId, data.additionalEffect.levels[i])).ToArray(),
+                    Capsule: new NpcMetadataCapsule(data.capsule.radius, data.capsule.height),
+                    Collision: data.collision.shape == "box" ? new NpcMetadataCollision(
+                        Dimensions: new Vector3(data.collision.width, data.collision.depth, data.collision.height),
+                        Offset: new Vector3(data.collision.widthOffset, data.collision.depthOffset, data.collision.heightOffset)
+                    ) : null),
                 Action: new NpcMetadataAction(
                     RotateSpeed: data.speed.rotation,
                     WalkSpeed: data.speed.walk,
                     RunSpeed: data.speed.run,
-                    Actions: data.normal.action.Zip(data.normal.prob, (action, prob) => new NpcAction(action, prob / probDiv)).ToArray(),
+                    Actions: data.normal.action.Zip(data.normal.prob, (action, prob) => new NpcAction(action, prob)).ToArray(),
                     MoveArea: data.normal.movearea,
                     MaidExpired: data.normal.maidExpired),
                 Dead: new NpcMetadataDead(

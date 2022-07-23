@@ -9,9 +9,6 @@ using Maple2.Tools.Collision;
 namespace Maple2.Server.Game.Util;
 
 public static class SkillUtils {
-    // Some extra height to compensate for entity height
-    private const float EXTRA_HEIGHT = 50f;
-
     public static Prism GetPrism(this SkillMetadataRange range, in Vector3 position, float angle) {
         if (range.Type == SkillRegion.None) {
             return new Prism(IPolygon.Null, 0, 0);
@@ -26,7 +23,7 @@ public static class SkillUtils {
             _ => throw new ArgumentOutOfRangeException($"Invalid range type: {range.Type}"),
         };
 
-        return new Prism(polygon, position.Z - EXTRA_HEIGHT, range.Height + range.RangeAdd.Z + EXTRA_HEIGHT);
+        return new Prism(polygon, position.Z, range.Height + range.RangeAdd.Z);
     }
 
     public static IEnumerable<T> Filter<T>(this Prism prism, IEnumerable<T> entities, int limit = 10) where T : IActor {
@@ -39,7 +36,8 @@ public static class SkillUtils {
                 continue;
             }
 
-            if (prism.Contains(entity.Position)) {
+            IPrism shape = entity.Shape;
+            if (prism.Intersects(shape)) {
                 limit--;
                 yield return entity;
             }
@@ -56,8 +54,9 @@ public static class SkillUtils {
                 continue;
             }
 
+            IPrism shape = entity.Shape;
             foreach (Prism prism in prisms) {
-                if (prism.Contains(entity.Position)) {
+                if (prism.Intersects(shape)) {
                     limit--;
                     yield return entity;
                 }

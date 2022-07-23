@@ -1,5 +1,4 @@
 ﻿using Maple2.Model.Game;
-using Maple2.Model.Metadata;
 using Maple2.Script.Npc;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Model.Skill;
