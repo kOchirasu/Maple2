@@ -42,11 +42,9 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
             var regionSkills = new List<Ms2RegionSkill>();
             var eventNpcSpawns = new Dictionary<int, EventSpawnPointNPC>();
             TaxiStation? taxi = null;
-            Telescope? telescope = null;
             Prism? bounding = null;
             var breakableActors = new Dictionary<Guid, BreakableActor>();
-            var interactActors = new Dictionary<int, InteractActor>();
-            var interactMeshes = new Dictionary<int, InteractMesh>();
+            var interacts = new Dictionary<Guid, InteractObject>();
             var triggerModels = new Dictionary<int, TriggerModel>();
             var triggers = new List<Trigger>();
             foreach (MapEntity entity in Context.MapEntity.Where(entity => entity.XBlock == xblock)) {
@@ -59,16 +57,6 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                     case MapBlock.Discriminator.BreakableActor:
                         if (entity.Block is BreakableActor breakableActor) {
                             breakableActors[entity.Guid] = breakableActor;
-                        }
-                        break;
-                    case MapBlock.Discriminator.InteractActor:
-                        if (entity.Block is InteractActor interactActor) {
-                            interactActors[interactActor.InteractId] = interactActor;
-                        }
-                        break;
-                    case MapBlock.Discriminator.InteractMesh:
-                        if (entity.Block is InteractMesh interactMesh) {
-                            interactMeshes[interactMesh.InteractId] = interactMesh;
                         }
                         break;
                     case MapBlock.Discriminator.Liftable:
@@ -117,16 +105,17 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                             taxi = taxiStation;
                         }
                         break;
-                    case MapBlock.Discriminator.Telescope:
-                        if (entity.Block is Telescope mapTelescope) {
-                            Debug.Assert(telescope == null, $"Multiple telescopes found in xblock:{xblock}");
-                            telescope = mapTelescope;
-                        }
-                        break;
                     case MapBlock.Discriminator.TriggerModel:
                         if (entity.Block is TriggerModel triggerModel) {
                             triggerModels.Add(triggerModel.Id, triggerModel);
                         }
+                        break;
+                    case MapBlock.Discriminator.Ms2InteractActor:
+                    case MapBlock.Discriminator.Ms2InteractDisplay:
+                    case MapBlock.Discriminator.Ms2InteractMesh:
+                    case MapBlock.Discriminator.Ms2SimpleUiObject:
+                    case MapBlock.Discriminator.Ms2Telescope:
+                        interacts.Add(entity.Guid, (InteractObject) entity.Block);
                         break;
                     case MapBlock.Discriminator.Ms2TriggerActor:
                     case MapBlock.Discriminator.Ms2TriggerAgent:
@@ -166,11 +155,9 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                 RegionSpawns = regionSpawns,
                 RegionSkills = regionSkills,
                 Taxi = taxi,
-                Telescope = telescope,
                 BoundingBox = bounding ?? LargeBoundingBox,
                 BreakableActors = breakableActors,
-                InteractActors = interactActors,
-                InteractMeshes = interactMeshes,
+                Interacts = interacts,
                 TriggerModels = triggerModels,
                 Trigger = new TriggerStorage(triggers),
             };

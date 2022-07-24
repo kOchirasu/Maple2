@@ -18,13 +18,11 @@ public class MapEntityMetadata {
     public IReadOnlyList<Ms2RegionSkill> RegionSkills { get; init; }
     public IReadOnlyDictionary<int, EventSpawnPointNPC> EventNpcSpawns { get; init; }
     public TaxiStation? Taxi { get; init; }
-    public Telescope? Telescope { get; init; }
     public Prism BoundingBox { get; init; }
 
     public IReadOnlyDictionary<Guid, BreakableActor> BreakableActors { get; init; }
-    public IReadOnlyDictionary<int, InteractActor> InteractActors { get; init; }
-    public IReadOnlyDictionary<int, InteractMesh> InteractMeshes { get; init; }
 
+    public IReadOnlyDictionary<Guid, InteractObject> Interacts { get; init; }
     public IReadOnlyDictionary<int, TriggerModel> TriggerModels { get; init; }
     public ITriggerStorage Trigger { get; init; }
 }
