@@ -29,9 +29,13 @@ public abstract partial record MapBlock([JsonDiscriminator] MapBlock.Discriminat
 
 
         // BASE: Ms2InteractObject = 1928632421,
-        InteractActor = 3797506670,
-        InteractMesh = 1638661275,
-        Telescope = 1660396588,
+        Ms2InteractActor = 3797506670,
+        Ms2InteractDisplay = 2294285972,
+        Ms2InteractMesh = 1638661275,
+        // Ms2InteractWebActor = 2262431957,
+        // Ms2InteractWebMesh = 131882917,
+        Ms2SimpleUiObject = 2211554062,
+        Ms2Telescope = 1660396588,
 
         // BASE: SpawnPoint = 2593567611,
         SpawnPointPC = 476587788,
