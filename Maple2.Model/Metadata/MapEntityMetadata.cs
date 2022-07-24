@@ -23,6 +23,7 @@ public class MapEntityMetadata {
 
     public IReadOnlyDictionary<Guid, BreakableActor> BreakableActors { get; init; }
     public IReadOnlyDictionary<int, InteractActor> InteractActors { get; init; }
+    public IReadOnlyDictionary<int, InteractMesh> InteractMeshes { get; init; }
 
     public IReadOnlyDictionary<int, TriggerModel> TriggerModels { get; init; }
     public ITriggerStorage Trigger { get; init; }

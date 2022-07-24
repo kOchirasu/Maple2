@@ -29,7 +29,7 @@ public sealed partial class FieldManager : IDisposable {
     // ReSharper disable MemberCanBePrivate.Global
     public GameStorage GameStorage { get; init; } = null!;
     public ItemMetadataStorage ItemMetadata { get; init; } = null!;
-    public NpcMetadataStorage NpcMetadata { private get; init; } = null!;
+    public NpcMetadataStorage NpcMetadata { get; init; } = null!;
     public SkillMetadataStorage SkillMetadata { get; init; } = null!;
     public TableMetadataStorage TableMetadata { get; init; } = null!;
     public Lua.Lua Lua { private get; init; } = null!;
@@ -37,8 +37,8 @@ public sealed partial class FieldManager : IDisposable {
     #endregion
 
     public readonly MapMetadata Metadata;
+    public readonly MapEntityMetadata Entities;
     private readonly UgcMapMetadata ugcMetadata;
-    private readonly MapEntityMetadata entities;
 
     private readonly ConcurrentBag<SpawnPointNPC> npcSpawns = new();
 
@@ -55,7 +55,7 @@ public sealed partial class FieldManager : IDisposable {
     public FieldManager(MapMetadata metadata, UgcMapMetadata ugcMetadata, MapEntityMetadata entities, int instanceId = 0) {
         Metadata = metadata;
         this.ugcMetadata = ugcMetadata;
-        this.entities = entities;
+        this.Entities = entities;
         TriggerObjects = new TriggerCollection(entities);
 
         InstanceId = instanceId;
@@ -73,20 +73,20 @@ public sealed partial class FieldManager : IDisposable {
             }
         }
 
-        foreach (TriggerModel trigger in entities.TriggerModels.Values) {
+        foreach (TriggerModel trigger in Entities.TriggerModels.Values) {
             AddTrigger(trigger);
         }
-        foreach (Portal portal in entities.Portals.Values) {
+        foreach (Portal portal in Entities.Portals.Values) {
             SpawnPortal(portal);
         }
-        foreach ((Guid guid, BreakableActor breakable) in entities.BreakableActors) {
+        foreach ((Guid guid, BreakableActor breakable) in Entities.BreakableActors) {
             AddBreakable(guid.ToString("N"), breakable);
         }
-        foreach ((Guid guid, Liftable liftable) in entities.Liftables) {
+        foreach ((Guid guid, Liftable liftable) in Entities.Liftables) {
             AddLiftable(guid.ToString("N"), liftable);
         }
 
-        foreach (SpawnPointNPC spawnPointNpc in entities.NpcSpawns) {
+        foreach (SpawnPointNPC spawnPointNpc in Entities.NpcSpawns) {
             if (spawnPointNpc.RegenCheckTime > 0) {
                 npcSpawns.Add(spawnPointNpc);
             }
@@ -106,7 +106,7 @@ public sealed partial class FieldManager : IDisposable {
         }
 
         foreach (MapMetadataSpawn spawn in Metadata.Spawns) {
-            if (!entities.RegionSpawns.TryGetValue(spawn.Id, out Ms2RegionSpawn? regionSpawn)) {
+            if (!Entities.RegionSpawns.TryGetValue(spawn.Id, out Ms2RegionSpawn? regionSpawn)) {
                 continue;
             }
 
@@ -124,7 +124,7 @@ public sealed partial class FieldManager : IDisposable {
             }
         }
 
-        foreach (Ms2RegionSkill regionSkill in entities.RegionSkills) {
+        foreach (Ms2RegionSkill regionSkill in Entities.RegionSkills) {
             if (!SkillMetadata.TryGet(regionSkill.SkillId, regionSkill.Level, out SkillMetadata? skill)) {
                 continue;
             }
@@ -150,6 +150,11 @@ public sealed partial class FieldManager : IDisposable {
 
     private void Sync() {
         while (!cancel.IsCancellationRequested) {
+            if (Players.IsEmpty) {
+                Thread.Sleep(1000);
+                continue;
+            }
+
             foreach (FieldTrigger trigger in fieldTriggers.Values) trigger.Sync();
 
             foreach (FieldPlayer player in Players.Values) player.Sync();
@@ -165,7 +170,7 @@ public sealed partial class FieldManager : IDisposable {
     }
 
     public void EnsurePlayerPosition(FieldPlayer player) {
-        if (entities.BoundingBox.Contains(player.Position)) {
+        if (Entities.BoundingBox.Contains(player.Position)) {
             return;
         }
 
@@ -189,7 +194,7 @@ public sealed partial class FieldManager : IDisposable {
     }
 
     public bool TryGetPortal(int portalId, [NotNullWhen(true)] out Portal? portal) {
-        return entities.Portals.TryGetValue(portalId, out portal);
+        return Entities.Portals.TryGetValue(portalId, out portal);
     }
 
     public bool TryGetItem(int objectId, [NotNullWhen(true)] out FieldItem? fieldItem) {
@@ -243,7 +248,7 @@ public sealed partial class FieldManager : IDisposable {
     }
 
     public bool LiftupCube(in Vector3B coordinates, [NotNullWhen(true)] out LiftupWeapon? liftupWeapon) {
-        if (!entities.ObjectWeapons.TryGetValue(coordinates, out ObjectWeapon? objectWeapon)) {
+        if (!Entities.ObjectWeapons.TryGetValue(coordinates, out ObjectWeapon? objectWeapon)) {
             liftupWeapon = null;
             return false;
         }

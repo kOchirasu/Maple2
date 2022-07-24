@@ -53,14 +53,14 @@ public partial class FieldManager {
         };
 
         // Use Portal if needed.
-        if (fieldPlayer.Position == default && entities.Portals.TryGetValue(portalId, out Portal? portal)) {
+        if (fieldPlayer.Position == default && Entities.Portals.TryGetValue(portalId, out Portal? portal)) {
             fieldPlayer.Position = portal.Position.Offset(portal.FrontOffset, portal.Rotation);
             fieldPlayer.Rotation = portal.Rotation;
         }
 
         // Use SpawnPoint if needed.
         if (fieldPlayer.Position == default) {
-            SpawnPointPC? spawn = entities.PlayerSpawns.Values.FirstOrDefault(spawn => spawn.Enable);
+            SpawnPointPC? spawn = Entities.PlayerSpawns.Values.FirstOrDefault(spawn => spawn.Enable);
             if (spawn != null) {
                 fieldPlayer.Position = spawn.Position + new Vector3(0, 0, 25);
                 fieldPlayer.Rotation = spawn.Rotation;

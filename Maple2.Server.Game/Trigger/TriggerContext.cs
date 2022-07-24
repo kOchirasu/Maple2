@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
@@ -7,6 +9,7 @@ using Maple2.Server.Game.Model;
 using Maple2.Tools.Scheduler;
 using Maple2.Trigger;
 using Serilog;
+using Serilog.Core;
 
 namespace Maple2.Server.Game.Trigger;
 
@@ -32,40 +35,67 @@ public partial class TriggerContext : ITriggerContext {
 
     private void Broadcast(ByteWriter packet) => Field.Broadcast(packet);
 
+    [Conditional("TRIGGER_DEBUG")]
+    [MessageTemplateFormatMethod("messageTemplate")]
+    private void DebugLog(string messageTemplate, params object[] args) {
+        logger.Debug(messageTemplate, args);
+    }
+
+    [Conditional("TRIGGER_DEBUG")]
+    [MessageTemplateFormatMethod("messageTemplate")]
+    private void WarnLog(string messageTemplate, params object[] args) {
+        logger.Warning(messageTemplate, args);
+    }
+
+    [Conditional("TRIGGER_DEBUG")]
+    [MessageTemplateFormatMethod("messageTemplate")]
+    private void ErrorLog(string messageTemplate, params object[] args) {
+        logger.Error(messageTemplate, args);
+    }
+
     // Accessors
     public int GetShadowExpeditionPoints() {
+        ErrorLog("[GetShadowExpeditionPoints]");
         return 0;
     }
 
     public bool GetDungeonVariable(int id) {
+        ErrorLog("[GetDungeonVariable] id:{Id}", id);
         return false;
     }
 
     public float GetNpcDamageRate(int spawnPointId) {
+        ErrorLog("[GetNpcDamageRate] spawnPointId:{Id}", spawnPointId);
         return 1.0f;
     }
 
     public float GetNpcHpRate(int spawnPointId) {
+        ErrorLog("[GetNpcHpRate] spawnPointId:{Id}", spawnPointId);
         return 1.0f;
     }
 
     public int GetDungeonId() {
+        ErrorLog("[GetDungeonId]");
         return 0;
     }
 
     public int GetDungeonLevel() {
+        ErrorLog("[GetDungeonLevel]");
         return 3;
     }
 
     public int GetDungeonMaxUserCount() {
+        ErrorLog("[GetDungeonMaxUserCount]");
         return 1;
     }
 
     public int GetDungeonRoundsRequired() {
+        ErrorLog("[GetDungeonRoundsRequired]");
         return int.MaxValue;
     }
 
     public int GetUserCount(int boxId, int userTagId) {
+        DebugLog("[GetUserCount] boxId:{BoxId}, userTagId:{TagId}", boxId, userTagId);
         if (!Objects.Boxes.TryGetValue(boxId, out TriggerBox? box)) {
             return 0;
         }
@@ -77,28 +107,34 @@ public partial class TriggerContext : ITriggerContext {
         return Field.Players.Values.Count(player => box.Contains(player.Position));
     }
 
-    public int GetNpcExtraData(int spawnPointId, string extraDataKey) {
+    public int GetNpcExtraData(int spawnId, string extraDataKey) {
+        ErrorLog("[GetNpcExtraData] spawnId:{SpawnId}, extraDataKey:{Key}", spawnId, extraDataKey);
         return 0;
     }
 
     public int GetDungeonPlayTime() {
+        ErrorLog("[GetDungeonPlayTime]");
         return 0;
     }
 
     // Scripts seem to just check if this is "Fail"
     public string GetDungeonState() {
+        ErrorLog("[GetDungeonState]");
         return "";
     }
 
     public int GetDungeonFirstUserMissionScore() {
+        ErrorLog("[GetDungeonFirstUserMissionScore]");
         return 0;
     }
 
     public int GetScoreBoardScore() {
+        ErrorLog("[GetScoreBoardScore]");
         return 0;
     }
 
     public int GetUserValue(string key) {
+        ErrorLog("[GetUserValue] key:{Key}", key);
         return 0;
     }
 
