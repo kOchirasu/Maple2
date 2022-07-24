@@ -28,16 +28,30 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
 
         foreach (IMapEntity entity in entities) {
             switch (entity) {
+                case IMS2InteractObject interactObject:
+                    switch (interactObject) {
+                        case IMS2Telescope telescope:
+                            yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                                Block = new Telescope(telescope.interactID, telescope.Enabled, telescope.Position, telescope.Rotation)
+                            };
+                            continue;
+                        case IMS2InteractActor interactActor:
+                            yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                                Block = new InteractActor(interactActor.interactID, interactActor.MinimapInVisible, interactActor.IsVisible, interactActor.Position, interactActor.Rotation),
+                            };
+                            continue;
+                        case IMS2InteractMesh interactMesh:
+                            yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                                Block = new InteractMesh(interactMesh.interactID, interactMesh.MinimapInVisible, interactMesh.IsVisible, interactMesh.Position, interactMesh.Rotation),
+                            };
+                            continue;
+                    }
+                    continue;
                 case IActor actor: {
                     switch (actor) {
                         case IMS2BreakableActor breakable:
                             yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
                                 Block = new BreakableActor(actor.IsVisible, (int) breakable.TriggerBreakableID, breakable.hideTimer, breakable.resetTimer, breakable.Position, breakable.Rotation)
-                            };
-                            continue;
-                        case IMS2InteractActor interact:
-                            yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                                Block = new InteractActor(interact.interactID, interact.MinimapInVisible, interact.Position, interact.Rotation)
                             };
                             continue;
                     }
@@ -75,15 +89,6 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
                                     };
                                     continue;
                             }
-                    }
-                    continue;
-                case IMS2InteractObject interactObject:
-                    switch (interactObject) {
-                        case IMS2Telescope telescope:
-                            yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                                Block = new Telescope(telescope.interactID, telescope.Enabled, telescope.Position, telescope.Rotation)
-                            };
-                            continue;
                     }
                     continue;
                 case IMS2MapProperties mapProperties:

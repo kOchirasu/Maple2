@@ -46,6 +46,7 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
             Prism? bounding = null;
             var breakableActors = new Dictionary<Guid, BreakableActor>();
             var interactActors = new Dictionary<int, InteractActor>();
+            var interactMeshes = new Dictionary<int, InteractMesh>();
             var triggerModels = new Dictionary<int, TriggerModel>();
             var triggers = new List<Trigger>();
             foreach (MapEntity entity in Context.MapEntity.Where(entity => entity.XBlock == xblock)) {
@@ -63,6 +64,11 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                     case MapBlock.Discriminator.InteractActor:
                         if (entity.Block is InteractActor interactActor) {
                             interactActors[interactActor.InteractId] = interactActor;
+                        }
+                        break;
+                    case MapBlock.Discriminator.InteractMesh:
+                        if (entity.Block is InteractMesh interactMesh) {
+                            interactMeshes[interactMesh.InteractId] = interactMesh;
                         }
                         break;
                     case MapBlock.Discriminator.Liftable:
@@ -164,6 +170,7 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                 BoundingBox = bounding ?? LargeBoundingBox,
                 BreakableActors = breakableActors,
                 InteractActors = interactActors,
+                InteractMeshes = interactMeshes,
                 TriggerModels = triggerModels,
                 Trigger = new TriggerStorage(triggers),
             };

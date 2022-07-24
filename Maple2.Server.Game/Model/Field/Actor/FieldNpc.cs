@@ -19,6 +19,7 @@ public class FieldNpc : Actor<Npc> {
     );
 
     public NpcState StateData;
+    public int SpawnPointId = -1;
 
     public override ActorState State {
         get => StateData.State;
