@@ -116,12 +116,12 @@ public static class MapperExtensions {
         SkillEffectMetadata.Skill[] skills;
         if (trigger.linkSkillID.Length > 0) {
             skills = trigger.skillID
-                .Zip(trigger.level,(skillId, level) => new {skillId, level})
-                .Zip(trigger.linkSkillID, (skill, linkSkillId) => new SkillEffectMetadata.Skill(skill.skillId, (short) skill.level, linkSkillId))
+                .Zip(trigger.level, (skillId, level) => new {skillId, level})
+                .Zip(trigger.linkSkillID, (skill, linkSkillId) => new SkillEffectMetadata.Skill(skill.skillId, skill.level, linkSkillId))
                 .ToArray();
         } else {
             skills = trigger.skillID
-                .Zip(trigger.level,(skillId, level) => new SkillEffectMetadata.Skill(skillId, (short) level))
+                .Zip(trigger.level, (skillId, level) => new SkillEffectMetadata.Skill(skillId, level))
                 .ToArray();
         }
 

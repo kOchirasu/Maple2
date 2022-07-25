@@ -4,6 +4,7 @@ using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
+using InteractObject = Maple2.File.Parser.Xml.Table.InteractObject;
 using JobTable = Maple2.Model.Metadata.JobTable;
 using MagicPath = Maple2.Model.Metadata.MagicPath;
 
@@ -22,6 +23,8 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "job.xml", Table = ParseJobTable()};
         yield return new TableMetadata {Name = "magicpath.xml", Table = ParseMagicPath()};
         yield return new TableMetadata {Name = "instrumentcategoryinfo.xml", Table = ParseInstrument()};
+        yield return new TableMetadata {Name = "interactobject.xml", Table = ParseInteractObject(false)};
+        yield return new TableMetadata {Name = "interactobject_mastery.xml", Table = ParseInteractObject(true)};
     }
 
     private ItemBreakTable ParseItemBreakIngredient() {
@@ -148,5 +151,61 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
 
         return new InstrumentTable(results);
+    }
+
+    private InteractObjectTable ParseInteractObject(bool isMastery) {
+        var results = new Dictionary<int, InteractObjectMetadata>();
+        foreach ((int id, InteractObject info) in isMastery ? parser.ParseInteractObjectMastery() : parser.ParseInteractObject()) {
+            var spawn = new InteractObjectMetadataSpawn[info.spawn.code.Length];
+            for (int i = 0; i < spawn.Length; i++) {
+                spawn[i] = new InteractObjectMetadataSpawn(
+                    Id: info.spawn.code[i],
+                    Radius: info.spawn.radius[i],
+                    Count: info.spawn.count[i],
+                    Probability: info.spawn.prop[i],
+                    LifeTime: info.spawn.lifeTime[i]);
+            }
+
+            results[id] = new InteractObjectMetadata(
+                Id: info.id,
+                Type: (InteractType) info.type,
+                Collection: info.collection,
+                ReactCount: info.reactCount,
+                TargetPortalId: info.portal.targetPortalId,
+                GuildPosterId: info.guild.housePosterId,
+                WeaponItemId: info.weapon.weaponItemId,
+                Item: new InteractObjectMetadataItem(info.item.code, info.item.consume, info.item.rank, info.item.checkCount, info.gathering.receipeID),
+                Time: new InteractObjectMetadataTime(info.time.resetTime, info.time.reactTime, info.time.hideTime),
+                AdditionalEffect: new InteractObjectMetadataEffect(
+                    Condition: ParseConditional(info.conditionAdditionalEffect),
+                    Invoke: ParseInvoke(info.additionalEffect),
+                    ModifyCode: info.additionalEffect.modify.code,
+                    ModifyTime: info.additionalEffect.modify.modifyTime),
+                Spawn: spawn
+            );
+        }
+
+        return new InteractObjectTable(results);
+
+        InteractObjectMetadataEffect.ConditionEffect[] ParseConditional(InteractObject.ConditionAdditionalEffect additionalEffect) {
+            if (additionalEffect.id.Length == 0 || additionalEffect.id[0] == 0) {
+                return Array.Empty<InteractObjectMetadataEffect.ConditionEffect>();
+            }
+
+            return additionalEffect.id.Zip(additionalEffect.level, (effectId, level) =>
+                    new InteractObjectMetadataEffect.ConditionEffect(effectId, level)).ToArray();
+        }
+
+        InteractObjectMetadataEffect.InvokeEffect[] ParseInvoke(InteractObject.AdditionalEffect additionalEffect) {
+            if (additionalEffect.invoke.code.Length == 0 || additionalEffect.invoke.code[0] == 0) {
+                return Array.Empty<InteractObjectMetadataEffect.InvokeEffect>();
+            }
+
+            return additionalEffect.invoke.code
+                .Zip(additionalEffect.invoke.level, (effectId, level) => new {skillId = effectId, level})
+                .Zip(additionalEffect.invoke.prop, (effect, prop) =>
+                    new InteractObjectMetadataEffect.InvokeEffect(effect.skillId, effect.level, prop))
+                .ToArray();
+        }
     }
 }

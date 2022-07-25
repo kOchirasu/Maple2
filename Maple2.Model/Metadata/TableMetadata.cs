@@ -31,5 +31,6 @@ public abstract partial record Table([JsonDiscriminator] Table.Discriminator Typ
         GemstoneUpgradeTable = 3,
         MagicPathTable = 4,
         InstrumentTable = 5,
+        InteractObjectTable = 6,
     }
 }

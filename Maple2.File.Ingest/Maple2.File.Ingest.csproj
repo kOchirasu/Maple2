@@ -18,7 +18,7 @@
     <ItemGroup>
         <PackageReference Include="Crc32.NET" Version="1.2.0" />
         <PackageReference Include="DotNetZip" Version="1.16.0" />
-        <PackageReference Include="Maple2.File.Parser" Version="2.0.9" />
+        <PackageReference Include="Maple2.File.Parser" Version="2.0.10" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="6.0.1" />
     </ItemGroup>
 
