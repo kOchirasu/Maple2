@@ -10,7 +10,6 @@ public interface IInteractObject : IByteSerializable {
     public InteractType Type { get; }
     public string EntityId { get; }
     public int Id { get; }
-    public InteractState State { get; set; }
 }
 
 public abstract class InteractObject<T> : IInteractObject where T : InteractObject {
@@ -20,17 +19,15 @@ public abstract class InteractObject<T> : IInteractObject where T : InteractObje
     public int Id => Metadata.InteractId;
 
     public string EntityId { get; }
-    public InteractState State { get; set; }
 
     protected InteractObject(string entityId, T metadata) {
         EntityId = entityId;
         Metadata = metadata;
-        State = InteractState.Idle;
     }
 
     public virtual void WriteTo(IByteWriter writer) {
         writer.WriteString(EntityId);
-        writer.Write<InteractState>(State);
+        writer.Write<InteractState>(InteractState.Reactable);
         writer.Write<InteractType>(Type);
         writer.WriteInt(Id);
         writer.Write<Vector3>(Metadata.Position);
@@ -39,7 +36,7 @@ public abstract class InteractObject<T> : IInteractObject where T : InteractObje
         writer.WriteUnicodeString(); // e.g. interaction_chestA_02
         writer.WriteUnicodeString(); // e.g. Opened_A
         writer.WriteUnicodeString(); // e.g. Idle_A
-        writer.WriteFloat(Metadata.Scale);
+        writer.WriteFloat(1f); // Scale
         writer.WriteBool(false);
     }
 }

@@ -15,9 +15,9 @@ public enum InteractType : byte {
 }
 
 public enum InteractState : byte {
-    Inactive = 0,
-    Idle = 1,
-    Active = 2,
+    Normal = 0,
+    Reactable = 1,
+    Hidden = 2,
 }
 
 // ReSharper disable InconsistentNaming, IdentifierTypo

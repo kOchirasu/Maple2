@@ -8,7 +8,6 @@ using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
-using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
@@ -30,12 +29,11 @@ public partial class FieldManager {
     // Entities
     private readonly ConcurrentDictionary<string, FieldBreakable> fieldBreakables = new();
     private readonly ConcurrentDictionary<string, FieldLiftable> fieldLiftables = new();
+    private readonly ConcurrentDictionary<string, FieldInteract> fieldInteracts = new();
     private readonly ConcurrentDictionary<int, FieldItem> fieldItems = new();
     private readonly ConcurrentDictionary<int, FieldMobSpawn> fieldMobSpawns = new();
     private readonly ConcurrentDictionary<int, FieldSkill> fieldSkills = new();
-
-    // Objects
-    private readonly ConcurrentDictionary<int, FieldObject<Portal>> fieldPortals = new();
+    private readonly ConcurrentDictionary<int, FieldPortal> fieldPortals = new();
 
     private string? background;
     private readonly ConcurrentDictionary<FieldProperty, IFieldProperty> fieldProperties = new();
@@ -93,8 +91,8 @@ public partial class FieldManager {
         return fieldNpc;
     }
 
-    public FieldObject<Portal> SpawnPortal(Portal portal, Vector3 position = default, Vector3 rotation = default) {
-        var fieldPortal = new FieldObject<Portal>(NextLocalId(), portal) {
+    public FieldPortal SpawnPortal(Portal portal, Vector3 position = default, Vector3 rotation = default) {
+        var fieldPortal = new FieldPortal(this, NextLocalId(), portal) {
             Position = position != default ? position : portal.Position,
             Rotation = rotation != default ? rotation : portal.Rotation,
         };
@@ -143,6 +141,20 @@ public partial class FieldManager {
 
         fieldLiftables[entityId] = fieldLiftable;
         return fieldLiftable;
+    }
+
+    public FieldInteract? AddInteract(string entityId, InteractObject interact) {
+        if (!TableMetadata.InteractObjectTable.Entries.TryGetValue(interact.InteractId, out InteractObjectMetadata? metadata)) {
+            return null;
+        }
+
+        var fieldInteract = new FieldInteract(this, NextLocalId(), entityId, metadata) {
+            Position = interact.Position,
+            Rotation = interact.Rotation,
+        };
+
+        fieldInteracts[entityId] = fieldInteract;
+        return fieldInteract;
     }
 
     public FieldMobSpawn? AddMobSpawn(MapMetadataSpawn metadata, Ms2RegionSpawn regionSpawn, ICollection<int> npcIds) {
@@ -350,6 +362,7 @@ public partial class FieldManager {
         // LOAD:
         added.Session.Send(LiftablePacket.Update(fieldLiftables.Values));
         added.Session.Send(BreakablePacket.Update(fieldBreakables.Values));
+        added.Session.Send(InteractObjectPacket.Load(fieldInteracts.Values));
         // InteractObject
         foreach (FieldPlayer fieldPlayer in Players.Values) {
             added.Session.Send(FieldPacket.AddPlayer(fieldPlayer.Session));
@@ -363,7 +376,7 @@ public partial class FieldManager {
             added.Session.Send(FieldPacket.AddNpc(fieldNpc));
         }
         // FieldAddPet
-        foreach (FieldObject<Portal> fieldPortal in fieldPortals.Values) {
+        foreach (FieldPortal fieldPortal in fieldPortals.Values) {
             added.Session.Send(PortalPacket.Add(fieldPortal));
         }
         // ProxyGameObj

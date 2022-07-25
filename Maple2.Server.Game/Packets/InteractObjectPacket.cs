@@ -4,6 +4,7 @@ using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
+using Maple2.Server.Game.Model;
 using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.Packets;
@@ -22,7 +23,7 @@ public static class InteractObjectPacket {
         Hold = 15,
     }
 
-    public static ByteWriter Update(IInteractObject interact) {
+    public static ByteWriter Update(FieldInteract interact) {
         var pWriter = Packet.Of(SendOp.InteractObject);
         pWriter.Write<Command>(Command.Update);
         pWriter.WriteString(interact.EntityId);
@@ -32,7 +33,7 @@ public static class InteractObjectPacket {
         return pWriter;
     }
 
-    public static ByteWriter Interact(IInteractObject interact, short gatherResult = 0, int decreaseAmount = 0) {
+    public static ByteWriter Interact(FieldInteract interact, short gatherResult = 0, int decreaseAmount = 0) {
         var pWriter = Packet.Of(SendOp.InteractObject);
         pWriter.Write<Command>(Command.Interact);
         pWriter.WriteString(interact.EntityId);
@@ -46,10 +47,10 @@ public static class InteractObjectPacket {
         return pWriter;
     }
 
-    public static ByteWriter SetState(IInteractObject interact) {
+    public static ByteWriter SetState(FieldInteract interact) {
         var pWriter = Packet.Of(SendOp.InteractObject);
         pWriter.Write<Command>(Command.SetState);
-        pWriter.WriteInt(interact.Id);
+        pWriter.WriteInt(interact.Value.Id);
         pWriter.Write<InteractState>(interact.State);
 
         return pWriter;
@@ -63,17 +64,17 @@ public static class InteractObjectPacket {
         return pWriter;
     }
 
-    public static ByteWriter Load(ICollection<IInteractObject> interacts) {
+    public static ByteWriter Load(ICollection<FieldInteract> interacts) {
         var pWriter = Packet.Of(SendOp.InteractObject);
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteInt(interacts.Count);
-        foreach (IInteractObject interact in interacts) {
+        foreach (FieldInteract interact in interacts) {
             pWriter.WriteString(interact.EntityId);
             pWriter.Write<InteractState>(interact.State);
             pWriter.Write<InteractType>(interact.Type);
 
-            if (interact is InteractGatheringObject gathering) {
-                pWriter.WriteInt(gathering.Count);   // RemainGatherCount
+            if (interact.Type == InteractType.Gathering) {
+                pWriter.WriteInt(10);   // RemainGatherCount
             }
         }
 
@@ -97,7 +98,7 @@ public static class InteractObjectPacket {
         return pWriter;
     }
 
-    public static ByteWriter Result(InteractResult result, IInteractObject interact) {
+    public static ByteWriter Result(InteractResult result, FieldInteract interact) {
         var pWriter = Packet.Of(SendOp.InteractObject);
         pWriter.Write<Command>(Command.Result);
         pWriter.Write<InteractResult>(result);

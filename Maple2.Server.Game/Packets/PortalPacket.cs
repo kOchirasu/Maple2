@@ -11,18 +11,18 @@ public static class PortalPacket {
     private enum Command : byte {
         Add = 0,
         Remove = 1,
-        Trigger = 2,
+        Update = 2,
         Move = 3,
     }
 
-    public static ByteWriter Add(FieldObject<Portal> fieldPortal) {
+    public static ByteWriter Add(FieldPortal fieldPortal) {
         Portal portal = fieldPortal;
 
         var pWriter = Packet.Of(SendOp.FieldPortal);
         pWriter.Write<Command>(Command.Add);
         pWriter.WriteInt(portal.Id);
-        pWriter.WriteBool(portal.Visible);
-        pWriter.WriteBool(portal.Enable);
+        pWriter.WriteBool(fieldPortal.Visible);
+        pWriter.WriteBool(fieldPortal.Enabled);
         pWriter.Write<Vector3>(fieldPortal.Position);
         pWriter.Write<Vector3>(fieldPortal.Rotation);
         pWriter.Write<Vector3>(portal.Dimension);
@@ -30,7 +30,7 @@ public static class PortalPacket {
         pWriter.WriteInt(portal.TargetMapId);
         pWriter.WriteInt(fieldPortal.ObjectId);
         pWriter.WriteInt();
-        pWriter.WriteBool(portal.MinimapVisible);
+        pWriter.WriteBool(fieldPortal.MinimapVisible);
         pWriter.WriteLong();
         pWriter.WriteByte(portal.Type);
         pWriter.WriteInt(); // StartTick
@@ -44,26 +44,27 @@ public static class PortalPacket {
         return pWriter;
     }
 
-    public static ByteWriter Remove(int objectId) {
+    public static ByteWriter Remove(int portalId) {
         var pWriter = Packet.Of(SendOp.FieldPortal);
         pWriter.Write<Command>(Command.Remove);
-        pWriter.WriteInt(objectId);
+        pWriter.WriteInt(portalId);
 
         return pWriter;
     }
 
-    public static ByteWriter Trigger(bool visible, bool enabled, bool minimapVisible, short unknown) {
+    public static ByteWriter Update(FieldPortal fieldPortal, short unknown = 0) {
         var pWriter = Packet.Of(SendOp.FieldPortal);
-        pWriter.Write<Command>(Command.Trigger);
-        pWriter.WriteBool(visible);
-        pWriter.WriteBool(enabled);
-        pWriter.WriteBool(minimapVisible);
+        pWriter.Write<Command>(Command.Update);
+        pWriter.WriteInt(fieldPortal.Value.Id);
+        pWriter.WriteBool(fieldPortal.Visible);
+        pWriter.WriteBool(fieldPortal.Enabled);
+        pWriter.WriteBool(fieldPortal.MinimapVisible);
         pWriter.WriteShort(unknown);
 
         return pWriter;
     }
 
-    public static ByteWriter Move(FieldObject<Portal> fieldPortal) {
+    public static ByteWriter Move(FieldPortal fieldPortal) {
         var pWriter = Packet.Of(SendOp.FieldPortal);
         pWriter.Write<Command>(Command.Move);
         pWriter.Write<Vector3>(fieldPortal.Position);

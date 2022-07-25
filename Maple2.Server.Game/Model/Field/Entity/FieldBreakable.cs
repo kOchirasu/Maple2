@@ -39,28 +39,20 @@ public class FieldBreakable : FieldEntity<BreakableActor> {
         State = state;
         Field.Broadcast(BreakablePacket.Update(this));
 
-        switch (State) {
-            case BreakableState.Show:
-                nextTick = 0;
-                break;
-            case BreakableState.Break:
-                nextTick = Environment.TickCount + Value.HideTime;
-                break;
-            case BreakableState.Hide:
-                nextTick = Environment.TickCount + Value.ResetTime;
-                break;
-            case BreakableState.Unknown5:
-                break;
-            case BreakableState.Unknown6:
-                break;
-        }
+        nextTick = State switch {
+            BreakableState.Show => 0,
+            BreakableState.Break => Environment.TickCount + Value.HideTime,
+            BreakableState.Hide => Environment.TickCount + Value.ResetTime,
+            BreakableState.Unknown5 => 0,
+            BreakableState.Unknown6 => 0,
+            _ => 0,
+        };
 
         return true;
     }
 
     public override void Sync() {
-        int ticks = Environment.TickCount;
-        if (nextTick == 0 || ticks < nextTick) {
+        if (nextTick == 0 || Environment.TickCount < nextTick) {
             return;
         }
 

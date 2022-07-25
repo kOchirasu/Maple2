@@ -51,7 +51,7 @@ public class NpcScriptContext : INpcScriptContext {
     }
 
     public bool MovePlayer(int portalId) {
-        if (session.Field?.TryGetPortal(portalId, out Portal? portal) is null or false) {
+        if (session.Field?.TryGetPortal(portalId, out FieldPortal? _) != true) {
             return false;
         }
 
