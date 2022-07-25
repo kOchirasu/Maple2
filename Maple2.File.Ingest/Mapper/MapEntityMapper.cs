@@ -32,24 +32,24 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
                     switch (interactObject) {
                         case IMS2InteractActor interactActor:
                             yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                                Block = new Ms2InteractActor(interactActor.interactID, interactActor.Position, interactActor.Rotation, interactActor.Scale),
+                                Block = new Ms2InteractActor(interactActor.interactID, interactActor.Position, interactActor.Rotation),
                             };
                             continue;
                         case IMS2InteractDisplay interactDisplay:
                             yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                                Block = new Ms2InteractDisplay(interactDisplay.interactID, interactDisplay.Position, interactDisplay.Rotation, interactDisplay.Scale),
+                                Block = new Ms2InteractDisplay(interactDisplay.interactID, interactDisplay.Position, interactDisplay.Rotation),
                             };
                             continue;
                         case IMS2InteractMesh interactMesh:
                             yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                                Block = new Ms2InteractMesh(interactMesh.interactID, interactMesh.Position, interactMesh.Rotation, interactMesh.Scale),
+                                Block = new Ms2InteractMesh(interactMesh.interactID, interactMesh.Position, interactMesh.Rotation),
                             };
                             continue;
                         case IMS2SimpleUiObject simpleUiObject:
                             continue;
                         case IMS2Telescope telescope:
                             yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                                Block = new Ms2Telescope(telescope.interactID, telescope.Position, telescope.Rotation, telescope.Scale),
+                                Block = new Ms2Telescope(telescope.interactID, telescope.Position, telescope.Rotation),
                             };
                             continue;
                     }

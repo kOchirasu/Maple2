@@ -10,12 +10,16 @@ public class TableMetadataStorage {
     private readonly Lazy<JobTable> jobTable;
     private readonly Lazy<MagicPathTable> magicPathTable;
     private readonly Lazy<InstrumentTable> instrumentTable;
+    private readonly Lazy<InteractObjectTable> interactObjectTable;
+    private readonly Lazy<InteractObjectTable> interactMasteryTable;
 
     public ItemBreakTable ItemBreakTable => itemBreakTable.Value;
     public GemstoneUpgradeTable GemstoneUpgradeTable => gemstoneUpgradeTable.Value;
     public JobTable JobTable => jobTable.Value;
     public MagicPathTable MagicPathTable => magicPathTable.Value;
     public InstrumentTable InstrumentTable => instrumentTable.Value;
+    public InteractObjectTable InteractObjectTable => interactObjectTable.Value;
+    public InteractObjectTable InteractMasteryTable => interactMasteryTable.Value;
 
     public TableMetadataStorage(MetadataContext context) {
         itemBreakTable = Retrieve<ItemBreakTable>(context, "itembreakingredient.xml");
@@ -23,6 +27,8 @@ public class TableMetadataStorage {
         jobTable = Retrieve<JobTable>(context, "job.xml");
         magicPathTable = Retrieve<MagicPathTable>(context, "magicpath.xml");
         instrumentTable = Retrieve<InstrumentTable>(context, "instrumentcategoryinfo.xml");
+        interactObjectTable = Retrieve<InteractObjectTable>(context, "interactobject.xml");
+        interactMasteryTable = Retrieve<InteractObjectTable>(context, "interactobject_mastery.xml");
     }
 
     private static Lazy<T> Retrieve<T>(MetadataContext context, string key) where T : Table {

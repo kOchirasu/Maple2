@@ -83,7 +83,7 @@ public class MapMapper : TypeMapper<MapMetadata> {
                     Recall: !data.cashCall.RecallOtherUserProhibit),
                 // TODO: There are also EntranceBuffs for Survival
                 EntranceBuffs: data.property.enteranceBuffIDs.Zip(data.property.enteranceBuffLevels,
-                        (skillId, level) => new MapEntranceBuff(skillId, (short) level)).ToArray());
+                        (skillId, level) => new MapEntranceBuff(skillId, level)).ToArray());
         }
     }
 }
