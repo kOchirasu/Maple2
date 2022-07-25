@@ -24,7 +24,7 @@ public partial class TriggerContext {
 
     public void KickMusicAudience(int targetBoxId, int targetPortalId) {
         DebugLog("[KickMusicAudience] targetBoxId:{BoxId}, targetPortalId:{PortalId}", targetBoxId, targetPortalId);
-        if (!Field.TryGetPortal(targetPortalId, out Portal? portal)) {
+        if (!Field.TryGetPortal(targetPortalId, out FieldPortal? portal)) {
             return;
         }
 
@@ -46,7 +46,7 @@ public partial class TriggerContext {
                     return;
                 }
 
-                if (!Field.TryGetPortal(portalId, out Portal? portal)) {
+                if (!Field.TryGetPortal(portalId, out FieldPortal? portal)) {
                     return;
                 }
                 player.Session.Send(PortalPacket.MoveByPortal(player, portal));
@@ -61,7 +61,7 @@ public partial class TriggerContext {
 
     public void MoveToPortal(int userTagId, int portalId, int boxId) {
         DebugLog("[MoveToPortal] userTagId:{TagId}, portalId:{PortalId}, boxId:{BoxId}", userTagId, portalId, boxId);
-        if (!Field.TryGetPortal(portalId, out Portal? portal)) {
+        if (!Field.TryGetPortal(portalId, out FieldPortal? portal)) {
             return;
         }
 
@@ -82,7 +82,7 @@ public partial class TriggerContext {
                 return;
             }
 
-            if (!Field.TryGetPortal(portalId, out Portal? portal)) {
+            if (!Field.TryGetPortal(portalId, out FieldPortal? portal)) {
                 return;
             }
             foreach (FieldPlayer player in PlayersInBox(boxId)) {
@@ -104,7 +104,7 @@ public partial class TriggerContext {
 
     public void MoveUserToBox(int boxId, int portalId) {
         DebugLog("[MoveUserToBox] boxId:{BoxId}, portalId:{PortalId}", boxId, portalId);
-        if (!Field.TryGetPortal(portalId, out Portal? portal)) {
+        if (!Field.TryGetPortal(portalId, out FieldPortal? portal)) {
             return;
         }
 

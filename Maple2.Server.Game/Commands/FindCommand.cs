@@ -51,6 +51,11 @@ public class FindCommand : Command {
             try {
                 string query = string.Join(' ', args);
                 List<T> results = storage.Search(query);
+                if (results.Count == 0) {
+                    ctx.Console.Out.WriteLine("No results found.");
+                    return;
+                }
+
                 int pages = (int)Math.Ceiling(results.Count / (float) PAGE_SIZE);
                 page = Math.Clamp(page, 1, pages);
                 var builder = new StringBuilder($"<b>{results.Count} results for '{query}' ({page}/{pages}):</b>");

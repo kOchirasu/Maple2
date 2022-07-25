@@ -12,7 +12,7 @@ public class FieldTrigger : FieldEntity<TriggerModel> {
     private readonly TriggerContext context;
 
     private long nextTick;
-    private TriggerState state;
+    private TriggerState? state;
     private TriggerState? nextState;
 
     public FieldTrigger(FieldManager field, int objectId, TriggerModel value) : base(field, objectId, value) {
@@ -21,7 +21,7 @@ public class FieldTrigger : FieldEntity<TriggerModel> {
         }
 
         context = new TriggerContext(this);
-        state = initialState(context);
+        nextState = initialState(context);
         nextTick = Environment.TickCount64;
     }
 
@@ -34,13 +34,15 @@ public class FieldTrigger : FieldEntity<TriggerModel> {
 
         nextTick += Constant.OnEnterTriggerDefaultTick;
         if (nextState != null) {
-            state.OnExit();
+            context.DebugLog("[OnExit] {State}", state?.GetType().ToString() ?? "null");
+            state?.OnExit();
             state = nextState;
             context.StartTick = Environment.TickCount64;
+            context.DebugLog("[OnEnter] {State}", state.GetType());
             state.OnEnter();
             nextState = null;
         }
 
-        nextState = state.Execute();
+        nextState = state?.Execute();
     }
 }

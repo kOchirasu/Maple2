@@ -11,6 +11,7 @@ using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
+using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
@@ -84,6 +85,9 @@ public sealed partial class FieldManager : IDisposable {
         }
         foreach ((Guid guid, Liftable liftable) in Entities.Liftables) {
             AddLiftable(guid.ToString("N"), liftable);
+        }
+        foreach ((Guid guid, InteractObject interact) in Entities.Interacts) {
+            AddInteract(guid.ToString("N"), interact);
         }
 
         foreach (SpawnPointNPC spawnPointNpc in Entities.NpcSpawns) {
@@ -162,6 +166,7 @@ public sealed partial class FieldManager : IDisposable {
             foreach (FieldNpc mob in Mobs.Values) mob.Sync();
             foreach (FieldBreakable breakable in fieldBreakables.Values) breakable.Sync();
             foreach (FieldLiftable liftable in fieldLiftables.Values) liftable.Sync();
+            foreach (FieldInteract interact in fieldInteracts.Values) interact.Sync();
             foreach (FieldItem item in fieldItems.Values) item.Sync();
             foreach (FieldMobSpawn mobSpawn in fieldMobSpawns.Values) mobSpawn.Sync();
             foreach (FieldSkill skill in fieldSkills.Values) skill.Sync();
@@ -193,8 +198,9 @@ public sealed partial class FieldManager : IDisposable {
         return Players.TryGetValue(objectId, out player);
     }
 
-    public bool TryGetPortal(int portalId, [NotNullWhen(true)] out Portal? portal) {
-        return Entities.Portals.TryGetValue(portalId, out portal);
+    public bool TryGetPortal(int portalId, [NotNullWhen(true)] out FieldPortal? portal) {
+        portal = fieldPortals.Values.SingleOrDefault(p => p.Value.Id == portalId);
+        return portal != null;
     }
 
     public bool TryGetItem(int objectId, [NotNullWhen(true)] out FieldItem? fieldItem) {
@@ -213,8 +219,13 @@ public sealed partial class FieldManager : IDisposable {
         return fieldLiftables.TryGetValue(entityId, out fieldLiftable);
     }
 
+    public ICollection<FieldInteract> EnumerateInteract() => fieldInteracts.Values;
+    public bool TryGetInteract(string entityId, [NotNullWhen(true)] out FieldInteract? fieldInteract) {
+        return fieldInteracts.TryGetValue(entityId, out fieldInteract);
+    }
+
     public bool MoveToPortal(GameSession session, int portalId) {
-        if (!TryGetPortal(portalId, out Portal? portal)) {
+        if (!TryGetPortal(portalId, out FieldPortal? portal)) {
             return false;
         }
 
@@ -223,13 +234,19 @@ public sealed partial class FieldManager : IDisposable {
     }
 
     public bool UsePortal(GameSession session, int portalId) {
-        if (!TryGetPortal(portalId, out Portal? srcPortal)) {
+        if (!TryGetPortal(portalId, out FieldPortal? fieldPortal)) {
+            return false;
+        }
+
+        if (!fieldPortal.Enabled) {
+            session.Send(NoticePacket.MessageBox(new InterfaceText($"Cannot use disabled portal: {portalId}")));
             return false;
         }
 
         // MoveByPortal (same map)
+        Portal srcPortal = fieldPortal;
         if (srcPortal.TargetMapId == MapId) {
-            if (TryGetPortal(srcPortal.TargetPortalId, out Portal? dstPortal)) {
+            if (TryGetPortal(srcPortal.TargetPortalId, out FieldPortal? dstPortal)) {
                 session.Send(PortalPacket.MoveByPortal(session.Player, dstPortal));
             }
 

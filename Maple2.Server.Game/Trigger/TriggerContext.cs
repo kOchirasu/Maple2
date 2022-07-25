@@ -37,19 +37,19 @@ public partial class TriggerContext : ITriggerContext {
 
     [Conditional("TRIGGER_DEBUG")]
     [MessageTemplateFormatMethod("messageTemplate")]
-    private void DebugLog(string messageTemplate, params object[] args) {
+    internal void DebugLog(string messageTemplate, params object[] args) {
         logger.Debug(messageTemplate, args);
     }
 
     [Conditional("TRIGGER_DEBUG")]
     [MessageTemplateFormatMethod("messageTemplate")]
-    private void WarnLog(string messageTemplate, params object[] args) {
+    internal void WarnLog(string messageTemplate, params object[] args) {
         logger.Warning(messageTemplate, args);
     }
 
     [Conditional("TRIGGER_DEBUG")]
     [MessageTemplateFormatMethod("messageTemplate")]
-    private void ErrorLog(string messageTemplate, params object[] args) {
+    internal void ErrorLog(string messageTemplate, params object[] args) {
         logger.Error(messageTemplate, args);
     }
 

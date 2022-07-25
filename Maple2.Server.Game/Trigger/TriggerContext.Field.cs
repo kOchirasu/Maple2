@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Tools.Extensions;
@@ -192,10 +194,13 @@ public partial class TriggerContext {
         }
     }
 
-    public void SetInteractObject(int[] triggerIds, byte state, bool arg3, bool arg4) {
-        ErrorLog("[SetInteractObject] triggerIds:{Ids}, state:{State}, arg3:{Arg3}, arg4:{Arg4}", string.Join(", ", triggerIds), state, arg3, arg4);
-        foreach (int triggerId in triggerIds) {
-            //Objects.
+    public void SetInteractObject(int[] interactIds, byte stateValue, bool arg3, bool arg4) {
+        var state = (InteractState) stateValue;
+        DebugLog("[SetInteractObject] interactIds:{Ids}, state:{State}, arg3:{Arg3}, arg4:{Arg4}", string.Join(", ", interactIds), state, arg3, arg4);
+        foreach (FieldInteract interact in Field.EnumerateInteract()) {
+            if (interactIds.Contains(interact.Value.Id)) {
+                interact.SetState(state);
+            }
         }
     }
 
@@ -235,9 +240,17 @@ public partial class TriggerContext {
         }
     }
 
-    public void SetPortal(int triggerId, bool visible, bool enabled, bool minimapVisible, bool arg5) {
-        ErrorLog("[SetPortal] triggerId:{Id}, visible:{Visible}, enabled:{Enabled}, minimapVisible:{MinimapVisible}, arg5:{Arg5}",
-            triggerId, visible, enabled, minimapVisible, arg5);
+    public void SetPortal(int portalId, bool visible, bool enabled, bool minimapVisible, bool arg5) {
+        DebugLog("[SetPortal] portalId:{Id}, visible:{Visible}, enabled:{Enabled}, minimapVisible:{MinimapVisible}, arg5:{Arg5}",
+            portalId, visible, enabled, minimapVisible, arg5);
+        if (!Field.TryGetPortal(portalId, out FieldPortal? portal)) {
+            return;
+        }
+
+        portal.Visible = visible;
+        portal.Enabled = enabled;
+        portal.MinimapVisible = minimapVisible;
+        Broadcast(PortalPacket.Update(portal));
     }
 
     public void SetRandomMesh(int[] triggerIds, bool visible, int meshCount, int arg4, int delay) {
@@ -373,9 +386,16 @@ public partial class TriggerContext {
         return false;
     }
 
-    public bool ObjectInteracted(int[] interactIds, byte state) {
-        ErrorLog("[ObjectInteracted] interactIds:{Ids}, state:{State}", string.Join(", ", interactIds), state);
-        return false;
+    public bool ObjectInteracted(int[] interactIds, byte stateValue) {
+        var state = (InteractState) stateValue;
+        DebugLog("[ObjectInteracted] interactIds:{Ids}, state:{State}", string.Join(", ", interactIds), state);
+        foreach (FieldInteract interact in Field.EnumerateInteract()) {
+            if (interactIds.Contains(interact.Value.Id) && interact.State != state) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public bool PvpZoneEnded(int boxId) {
