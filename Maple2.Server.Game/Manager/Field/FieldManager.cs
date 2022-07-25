@@ -199,7 +199,7 @@ public sealed partial class FieldManager : IDisposable {
     }
 
     public bool TryGetPortal(int portalId, [NotNullWhen(true)] out FieldPortal? portal) {
-        portal = fieldPortals.Values.SingleOrDefault(p => p.Value.Id == portalId);
+        portal = fieldPortals.Values.FirstOrDefault(p => p.Value.Id == portalId);
         return portal != null;
     }
 

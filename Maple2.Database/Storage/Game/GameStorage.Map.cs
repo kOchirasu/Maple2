@@ -53,7 +53,7 @@ public partial class GameStorage {
         public PlotInfo? BuyPlot(long ownerId, PlotInfo plot, TimeSpan days) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
 
-            UgcMap? ugcMap = Context.UgcMap.SingleOrDefault(map => map.Id == plot.Id && !map.Indoor);
+            UgcMap? ugcMap = Context.UgcMap.FirstOrDefault(map => map.Id == plot.Id && !map.Indoor);
             if (ugcMap == null) {
                 return null;
             }
