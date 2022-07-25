@@ -27,7 +27,7 @@ public partial class GameStorage {
 
         public Account? GetAccount(string username) {
             return Context.Account
-                .SingleOrDefault(account => account.Username == username);
+                .FirstOrDefault(account => account.Username == username);
         }
 
         public bool UpdateAccount(Account account, bool commit = false) {
@@ -42,7 +42,7 @@ public partial class GameStorage {
         public (Account?, IList<Character>?) ListCharacters(long accountId) {
             Model.Account? model = Context.Account
                 .Include(account => account.Characters)
-                .SingleOrDefault(account => account.Id == accountId);
+                .FirstOrDefault(account => account.Id == accountId);
 
             return (model, model?.Characters.Select<Model.Character, Character>(c => c!).ToList());
         }
@@ -54,26 +54,26 @@ public partial class GameStorage {
             }
 
             // Limit character fetching to those owned by account.
-            return Context.Character.SingleOrDefault(character =>
+            return Context.Character.FirstOrDefault(character =>
                 character.Id == characterId && character.AccountId == accountId);
         }
 
         public long GetCharacterId(string name) {
             return Context.Character.Where(character => character.Name == name)
                 .Select(character => character.Id)
-                .SingleOrDefault();
+                .FirstOrDefault();
         }
 
         public CharacterInfo? GetCharacterInfo(long characterId) {
             return Context.Character.Where(character => character.Id == characterId)
                 .Select<Model.Character, CharacterInfo>(character => character!)
-                .SingleOrDefault();
+                .FirstOrDefault();
         }
 
         public CharacterInfo? GetCharacterInfo(string name) {
             return Context.Character.Where(character => character.Name == name)
                 .Select<Model.Character, CharacterInfo>(character => character!)
-                .SingleOrDefault();
+                .FirstOrDefault();
         }
 
         // We pass in objectId only for Player initialization.
@@ -85,7 +85,7 @@ public partial class GameStorage {
                 return null;
             }
 
-            Model.Character? character = Context.Character.SingleOrDefault(character =>
+            Model.Character? character = Context.Character.FirstOrDefault(character =>
                 character.Id == characterId && character.AccountId == accountId);
             if (character == null) {
                 return null;
@@ -296,7 +296,7 @@ public partial class GameStorage {
         public bool UpdateDelete(long accountId, long characterId, long time) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
 
-            Model.Character? model = Context.Character.SingleOrDefault(character =>
+            Model.Character? model = Context.Character.FirstOrDefault(character =>
                 character.Id == characterId && character.AccountId == accountId);
             if (model == null) {
                 return false;
@@ -310,7 +310,7 @@ public partial class GameStorage {
         public bool DeleteCharacter(long accountId, long characterId) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
 
-            Model.Character? character = Context.Character.SingleOrDefault(character =>
+            Model.Character? character = Context.Character.FirstOrDefault(character =>
                 character.Id == characterId && character.AccountId == accountId);
             if (character == null) {
                 return false;

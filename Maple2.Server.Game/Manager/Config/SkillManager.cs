@@ -60,7 +60,7 @@ public class SkillManager {
     public SkillTab? GetActiveTab() => GetSkillTab(SkillBook.ActiveSkillTabId);
 
     public SkillTab? GetSkillTab(long id) {
-        return SkillBook.SkillTabs.SingleOrDefault(skillTab => skillTab.Id == id);
+        return SkillBook.SkillTabs.FirstOrDefault(skillTab => skillTab.Id == id);
     }
 
     public bool SaveSkillTab(long activeSkillTabId, SkillRank ranks, SkillTab? tab = null) {

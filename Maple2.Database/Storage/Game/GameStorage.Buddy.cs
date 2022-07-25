@@ -39,7 +39,7 @@ public partial class GameStorage {
                         LastModified = buddy.LastModified.ToEpochSeconds(),
                         Message = buddy.Message,
                         Type = buddy.Type,
-                    }).SingleOrDefault();
+                    }).FirstOrDefault();
         }
 
         public Buddy? GetBuddy(long ownerId, long buddyId) {
@@ -56,11 +56,11 @@ public partial class GameStorage {
                         LastModified = buddy.LastModified.ToEpochSeconds(),
                         Message = buddy.Message,
                         Type = buddy.Type,
-                    }).SingleOrDefault();
+                    }).FirstOrDefault();
         }
 
         public BuddyType? GetBuddyType(long ownerId, long buddyId) {
-            return Context.Buddy.SingleOrDefault(buddy => buddy.OwnerId == ownerId && buddy.BuddyId == buddyId)?.Type;
+            return Context.Buddy.FirstOrDefault(buddy => buddy.OwnerId == ownerId && buddy.BuddyId == buddyId)?.Type;
         }
 
         public Buddy? CreateBuddy(long ownerId, long buddyId, BuddyType type, string message = "") {
