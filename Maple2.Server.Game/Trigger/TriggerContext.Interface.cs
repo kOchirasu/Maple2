@@ -15,6 +15,7 @@ namespace Maple2.Server.Game.Trigger;
 public partial class TriggerContext {
     public void CreateWidget(WidgetType type) {
         ErrorLog("[CreateWidget] type:{Type}", type);
+        Field.Widgets[type] = new Widget(type);
     }
 
     public void GuideEvent(int eventId) {
@@ -162,12 +163,23 @@ public partial class TriggerContext {
 
     public void WidgetAction(WidgetType type, string name, int widgetArgType, string args) {
         ErrorLog("[WidgetAction] type:{Type}, name:{Name}, widgetArgType:{ArgType}, args:{Args}", type, name, widgetArgType, args);
+        if (!Field.Widgets.TryGetValue(type, out Widget? widget)) {
+            return;
+        }
     }
 
     #region Conditions
     public bool WidgetCondition(WidgetType type, string condition, string value) {
         ErrorLog("[WidgetCondition] type:{Type}, condition:{Condition}, value:{Value}", type, condition, value);
-        return false;
+        if (!Field.Widgets.TryGetValue(type, out Widget? widget)) {
+            return false;
+        }
+        if (!widget.Conditions.TryGetValue(condition, out string? widgetValue)) {
+            return false;
+        }
+
+        value = value.Trim();
+        return string.IsNullOrWhiteSpace(value) || widgetValue == value;
     }
     #endregion
 }

@@ -1,4 +1,5 @@
-﻿using Maple2.Server.Game.Packets;
+﻿using Maple2.Server.Game.Model;
+using Maple2.Server.Game.Packets;
 using Maple2.Trigger;
 using Maple2.Trigger.Enum;
 
@@ -70,21 +71,33 @@ public partial class TriggerContext {
     }
 
     public void SetSceneSkip(TriggerState? state, string nextState) {
-        ErrorLog("[SetSceneSkip] state:{State}, nextState:{NextState}", nameof(state), nextState);
+        WarnLog("[SetSceneSkip] state:{State}, nextState:{NextState}", nameof(state), nextState);
+        Skip = state;
+        Broadcast(CinematicPacket.SetSkipScene(nextState));
     }
 
     public void SetSkip(TriggerState? state) {
-        ErrorLog("[SetSkip] state:{State}", nameof(state));
+        WarnLog("[SetSkip] state:{State}", nameof(state));
+        Skip = state;
+        Broadcast(CinematicPacket.SetSkipState(""));
     }
 
     public void AddBalloonTalk(int spawnId, string msg, int duration, int delayTick) {
-        ErrorLog("[AddBalloonTalk] spawnId:{SpawnId}, msg:{Message}, duration:{Duration}, delayTick:{Delay}", spawnId, msg, duration, delayTick);
-        //CinematicPacket.BalloonTalk(false, 0, msg, duration, delayTick);
+        DebugLog("[AddBalloonTalk] spawnId:{SpawnId}, msg:{Message}, duration:{Duration}, delayTick:{Delay}", spawnId, msg, duration, delayTick);
+        foreach (FieldNpc npc in Field.Npcs.Values) {
+            if (spawnId == 0 || npc.SpawnPointId == spawnId) {
+                Broadcast(CinematicPacket.BalloonTalk(true, npc.ObjectId, msg, duration, delayTick));
+            }
+        }
     }
 
     public void RemoveBalloonTalk(int spawnId) {
-        ErrorLog("[RemoveBalloonTalk] spawnId:{SpawnId}", spawnId);
-        //CinematicPacket.RemoveBalloonTalk(0);
+        DebugLog("[RemoveBalloonTalk] spawnId:{SpawnId}", spawnId);
+        foreach (FieldNpc npc in Field.Npcs.Values) {
+            if (spawnId == 0 || npc.SpawnPointId == spawnId) {
+                Broadcast(CinematicPacket.RemoveBalloonTalk(npc.ObjectId));
+            }
+        }
     }
 
     public void ShowCaption(

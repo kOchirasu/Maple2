@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -22,6 +23,7 @@ public partial class TriggerContext : ITriggerContext {
 
     private float currentRandom = float.MaxValue;
 
+    public TriggerState? Skip { get; internal set; }
     public readonly EventQueue Events;
     public long StartTick;
 
@@ -134,8 +136,8 @@ public partial class TriggerContext : ITriggerContext {
     }
 
     public int GetUserValue(string key) {
-        ErrorLog("[GetUserValue] key:{Key}", key);
-        return 0;
+        WarnLog("[GetUserValue] key:{Key}", key);
+        return Field.UserValues.GetValueOrDefault(key, 0);
     }
 
     public void DebugString(string value, string feature) {

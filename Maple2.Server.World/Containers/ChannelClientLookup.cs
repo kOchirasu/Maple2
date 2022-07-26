@@ -116,7 +116,8 @@ public class ChannelClientLookup {
         logger.Information("Begin monitoring game channel: {Channel} for {EndPoint}", channel, channels[i].Endpoint);
         do {
             try {
-                HealthCheckResponse response = await channels[i].Health.CheckAsync(new HealthCheckRequest(), cancellationToken: cancellationToken);
+                HealthCheckResponse response = await channels[i].Health.CheckAsync(new HealthCheckRequest(), deadline: DateTime.UtcNow.AddSeconds(5),
+                    cancellationToken: cancellationToken);
                 switch (response.Status) {
                     case HealthCheckResponse.Types.ServingStatus.Serving:
                         if (!activeChannels[i]) {

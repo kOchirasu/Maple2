@@ -1,5 +1,7 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
@@ -43,6 +45,7 @@ public partial class TriggerContext {
     }
 
     private void SpawnMonster(int spawnId) {
+        DebugLog("[SpawnMonster] spawnId:{SpawnId}", spawnId);
         if (!Field.Entities.EventNpcSpawns.TryGetValue(spawnId, out EventSpawnPointNPC? spawn)) {
             logger.Error("[SpawnMonster] Invalid spawnId:{SpawnId}", spawnId);
             return;
@@ -75,11 +78,22 @@ public partial class TriggerContext {
     }
 
     public void MoveNpcToPos(int spawnId, Vector3 position, Vector3 rotation) {
-        ErrorLog("[MoveNpc] spawnId:{SpawnId}", spawnId);
+        WarnLog("[MoveNpcToPos] spawnId:{SpawnId}", spawnId);
+        foreach (FieldNpc npc in Field.Npcs.Values) {
+            if (npc.SpawnPointId == spawnId) {
+                npc.Position = position;
+                npc.Rotation = rotation;
+            }
+        }
     }
 
     public void NpcRemoveAdditionalEffect(int spawnId, int additionalEffectId) {
-        ErrorLog("[MoveNpc] spawnId:{SpawnId}", spawnId);
+        WarnLog("[NpcRemoveAdditionalEffect] spawnId:{SpawnId}", spawnId);
+        foreach (FieldNpc npc in Field.Npcs.Values) {
+            if (npc.SpawnPointId == spawnId && npc.Buffs.TryGetValue(additionalEffectId, out Buff? buff)) {
+                buff.Remove();
+            }
+        }
     }
 
     public void NpcToPatrolInBox(int boxId, int npcId, string spawnId, string patrolName) {
@@ -108,7 +122,12 @@ public partial class TriggerContext {
     }
 
     public void SetNpcRotation(int spawnId, float rotation) {
-        ErrorLog("[SetNpcRotation] spawnId:{SpawnId}, rotation:{Rotation}", spawnId, rotation);
+        WarnLog("[SetNpcRotation] spawnId:{SpawnId}, rotation:{Rotation}", spawnId, rotation);
+        foreach (FieldNpc npc in Field.Npcs.Values) {
+            if (npc.SpawnPointId == spawnId) {
+                npc.Rotation = npc.Rotation with {Z = rotation};
+            }
+        }
     }
 
     public void SpawnNpcRange(int[] spawnIds, bool isAutoTargeting, int randomPickCount, int score) {
@@ -123,17 +142,47 @@ public partial class TriggerContext {
     }
 
     public bool MonsterDead(int[] spawnIds, bool arg2) {
-        ErrorLog("[MonsterDead] spawnIds:{SpawnIds}, arg2:{Arg2}", string.Join(", ", spawnIds), arg2);
-        return false;
+        DebugLog("[MonsterDead] spawnIds:{SpawnIds}, arg2:{Arg2}", string.Join(", ", spawnIds), arg2);
+        foreach (FieldNpc mob in Field.Mobs.Values) {
+            if (mob.SpawnPointId > 0 || !spawnIds.Contains(mob.SpawnPointId)) {
+                continue;
+            }
+
+            if (!mob.IsDead) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public bool MonsterInCombat(int[] spawnIds) {
-        ErrorLog("[MonsterInCombat] spawnIds:{SpawnIds}", string.Join(", ", spawnIds));
+        WarnLog("[MonsterInCombat] spawnIds:{SpawnIds}", string.Join(", ", spawnIds));
+        foreach (FieldNpc mob in Field.Mobs.Values) {
+            if (mob.SpawnPointId > 0 || !spawnIds.Contains(mob.SpawnPointId)) {
+                continue;
+            }
+
+            if (mob.TargetId != 0) {
+                return true;
+            }
+        }
+
         return false;
     }
 
     public bool NpcDetected(int boxId, int[] spawnIds) {
-        ErrorLog("[NpcDetected] boxId:{BoxId}, spawnIds:{SpawnIds}", boxId, string.Join(", ", spawnIds));
+        DebugLog("[NpcDetected] boxId:{BoxId}, spawnIds:{SpawnIds}", boxId, string.Join(", ", spawnIds));
+        if (spawnIds.Length == 0 || spawnIds[0] == 0) {
+            return NpcsInBox(boxId).Any();
+        }
+
+        foreach (FieldNpc mob in NpcsInBox(boxId)) {
+            if (mob.SpawnPointId > 0 && spawnIds.Contains(mob.SpawnPointId)) {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -142,4 +191,28 @@ public partial class TriggerContext {
         return false;
     }
     #endregion
+
+    private IEnumerable<FieldNpc> MonstersInBox(params int[] boxIds) {
+        if (boxIds.Length == 0 || boxIds[0] == 0) {
+            return Field.Mobs.Values;
+        }
+
+        IEnumerable<TriggerBox> boxes = boxIds
+            .Select(boxId => Objects.Boxes.GetValueOrDefault(boxId))
+            .Where(box => box != null)!;
+
+        return Field.Mobs.Values.Where(mob => boxes.Any(box => box.Contains(mob.Position)));
+    }
+
+    private IEnumerable<FieldNpc> NpcsInBox(params int[] boxIds) {
+        if (boxIds.Length == 0 || boxIds[0] == 0) {
+            return Field.Mobs.Values;
+        }
+
+        IEnumerable<TriggerBox> boxes = boxIds
+            .Select(boxId => Objects.Boxes.GetValueOrDefault(boxId))
+            .Where(box => box != null)!;
+
+        return Field.Npcs.Values.Where(mob => boxes.Any(box => box.Contains(mob.Position)));
+    }
 }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
@@ -35,15 +34,19 @@ public class SkillManager {
     }
 
     public void UpdatePassiveBuffs() {
+        // TODO: Only remove buffs that have been unlearned.
+        foreach (Buff buff in session.Player.Buffs.Values) {
+            if (buff.StartTick == buff.EndTick) {
+                buff.Remove();
+            }
+        }
+
         // Add job passive skills to Player.
         foreach (SkillInfo.Skill skill in session.Config.Skill.SkillInfo.GetSkills(SkillType.Passive, SkillRank.Both)) {
             if (skill.Level <= 0) {
-                // Remove any buffs that shouldn't be valid anymore.
-                if (session.Player.Buffs.TryGetValue(skill.Id, out Buff? buff) && buff.Owner.ObjectId == session.Player.ObjectId) {
-                    buff.Remove();
-                }
                 continue;
             }
+
             if (!session.SkillMetadata.TryGet(skill.Id, skill.Level, out SkillMetadata? metadata)) {
                 logger.Error("Invalid skill: {SkillId},{Level}", skill.Id, skill.Level);
                 continue;
@@ -51,6 +54,10 @@ public class SkillManager {
 
             logger.Information("Applying passive skill {Name}: {SkillId},{Level}", metadata.Name, metadata.Id, metadata.Level);
             foreach (SkillEffectMetadata effect in metadata.Data.Skills) {
+                if (effect.Condition == null) {
+                    continue;
+                }
+
                 session.Player.ApplyEffect(session.Player, effect);
             }
         }

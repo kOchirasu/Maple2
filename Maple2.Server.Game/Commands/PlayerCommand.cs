@@ -7,6 +7,7 @@ using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -102,6 +103,10 @@ public class PlayerCommand : Command {
 
                 session.Player.Value.Character.Job = job;
                 session.Config.Skill.SkillInfo.SetJob(job);
+
+                foreach (Buff buff in session.Player.Buffs.Values) {
+                    buff.Remove();
+                }
                 session.Stats.Refresh();
                 session.Field?.Broadcast(JobPacket.Awakening(session.Player, session.Config.Skill.SkillInfo));
                 ctx.ExitCode = 0;

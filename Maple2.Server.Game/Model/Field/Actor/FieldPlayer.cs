@@ -94,8 +94,8 @@ public class FieldPlayer : Actor<Player> {
                 };
                 long damageAmount = 0;
                 for (int i = 0; i < attack.Damage.Count; i++) {
-                    targetRecord.AddDamage(DamageType.Normal, -20);
-                    damageAmount -= 20;
+                    targetRecord.AddDamage(DamageType.Normal, -2000);
+                    damageAmount -= 2000;
                 }
 
                 if (damageAmount != 0) {

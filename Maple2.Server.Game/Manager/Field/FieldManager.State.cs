@@ -186,7 +186,7 @@ public partial class FieldManager {
     }
 
     public void AddSkill(SkillMetadata metadata, int interval, in Vector3 position, in Vector3 rotation = default) {
-        var fieldSkill = new FieldSkill(this, NextLocalId(), fieldActor, metadata, interval, position) {
+        var fieldSkill = new FieldSkill(this, NextLocalId(), FieldActor, metadata, interval, position) {
             Position = position,
             Rotation = rotation,
         };
@@ -363,7 +363,6 @@ public partial class FieldManager {
         added.Session.Send(LiftablePacket.Update(fieldLiftables.Values));
         added.Session.Send(BreakablePacket.Update(fieldBreakables.Values));
         added.Session.Send(InteractObjectPacket.Load(fieldInteracts.Values));
-        // InteractObject
         foreach (FieldPlayer fieldPlayer in Players.Values) {
             added.Session.Send(FieldPacket.AddPlayer(fieldPlayer.Session));
         }

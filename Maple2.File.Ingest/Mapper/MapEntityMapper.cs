@@ -98,40 +98,6 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
                             }
                     }
                     continue;
-                case IMS2MapProperties mapProperties:
-                    switch (mapProperties) {
-                        case IMS2PhysXProp physXProp:
-                            if (mapProperties.IsObjectWeapon) {
-                                int[] itemIds = physXProp.ObjectWeaponItemCode.Split(',').Select(int.Parse).ToArray();
-                                if (physXProp.ObjectWeaponSpawnNpcCode == 0) {
-                                    yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                                        Block = new ObjectWeapon(itemIds, (int) physXProp.ObjectWeaponRespawnTick, physXProp.ObjectWeaponActiveDistance, physXProp.Position, physXProp.Rotation)
-                                    };
-                                } else {
-                                    yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                                        Block = new ObjectWeapon(itemIds, (int) physXProp.ObjectWeaponRespawnTick, physXProp.ObjectWeaponActiveDistance, physXProp.Position, physXProp.Rotation, (int) physXProp.ObjectWeaponSpawnNpcCode, (int) physXProp.ObjectWeaponSpawnNpcCount, physXProp.ObjectWeaponSpawnNpcRate, (int) physXProp.ObjectWeaponSpawnNpcLifeTick)
-                                    };
-                                }
-                                continue;
-                            }
-
-                            switch (physXProp) {
-                                case IMS2Liftable liftable:
-                                    yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                                        Block = new Liftable((int) liftable.ItemID, liftable.ItemStackCount, liftable.ItemLifeTime, liftable.LiftableRegenCheckTime, liftable.LiftableFinishTime, liftable.MaskQuestID, liftable.MaskQuestState, liftable.EffectQuestID, liftable.EffectQuestState, liftable.Position, liftable.Rotation)
-                                    };
-                                    continue;
-                                case IMS2TaxiStation taxiStation:
-                                    yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                                        Block = new TaxiStation(taxiStation.Position, taxiStation.Rotation)
-                                    };
-                                    continue;
-                                // Intentionally do not parse IMS2Vibrate, there are 4M entries.
-                                // case IMS2Vibrate vibrate:
-                            }
-                            continue;
-                    }
-                    continue;
                 case IMS2RegionSpawnBase spawn:
                     yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
                         Block = new Ms2RegionSpawn(spawn.SpawnPointID, spawn.UseRotAsSpawnDir, spawn.Position, spawn.Rotation)
@@ -172,6 +138,40 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
                     yield return new MapEntity(xblock, new Guid(entity.EntityId), $"{otherBounding.EntityName},{bounding.EntityName}") {
                         Block = new Ms2Bounding(otherBounding.Position, bounding.Position),
                     };
+                    continue;
+                case IMS2MapProperties mapProperties:
+                    switch (mapProperties) {
+                        case IMS2PhysXProp physXProp:
+                            if (mapProperties.IsObjectWeapon) {
+                                int[] itemIds = physXProp.ObjectWeaponItemCode.Split(',').Select(int.Parse).ToArray();
+                                if (physXProp.ObjectWeaponSpawnNpcCode == 0) {
+                                    yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                                        Block = new ObjectWeapon(itemIds, (int) physXProp.ObjectWeaponRespawnTick, physXProp.ObjectWeaponActiveDistance, physXProp.Position, physXProp.Rotation)
+                                    };
+                                } else {
+                                    yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                                        Block = new ObjectWeapon(itemIds, (int) physXProp.ObjectWeaponRespawnTick, physXProp.ObjectWeaponActiveDistance, physXProp.Position, physXProp.Rotation, (int) physXProp.ObjectWeaponSpawnNpcCode, (int) physXProp.ObjectWeaponSpawnNpcCount, physXProp.ObjectWeaponSpawnNpcRate, (int) physXProp.ObjectWeaponSpawnNpcLifeTick)
+                                    };
+                                }
+                                continue;
+                            }
+
+                            switch (physXProp) {
+                                case IMS2Liftable liftable:
+                                    yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                                        Block = new Liftable((int) liftable.ItemID, liftable.ItemStackCount, liftable.ItemLifeTime, liftable.LiftableRegenCheckTime, liftable.LiftableFinishTime, liftable.MaskQuestID, liftable.MaskQuestState, liftable.EffectQuestID, liftable.EffectQuestState, liftable.Position, liftable.Rotation)
+                                    };
+                                    continue;
+                                case IMS2TaxiStation taxiStation:
+                                    yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                                        Block = new TaxiStation(taxiStation.Position, taxiStation.Rotation)
+                                    };
+                                    continue;
+                                // Intentionally do not parse IMS2Vibrate, there are 4M entries.
+                                // case IMS2Vibrate vibrate:
+                            }
+                            continue;
+                    }
                     continue;
             }
         }
