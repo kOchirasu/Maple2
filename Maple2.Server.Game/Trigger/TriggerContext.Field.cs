@@ -268,6 +268,7 @@ public partial class TriggerContext {
     private void UpdateMesh(ArraySegment<int> triggerIds, bool visible, int fade, int delay, float scale = 0) {
         foreach (int triggerId in triggerIds) {
             if (!Objects.Meshes.TryGetValue(triggerId, out TriggerObjectMesh? mesh)) {
+                logger.Warning("Invalid mesh: {Id}", triggerId);
                 continue;
             }
             if (mesh.Visible == visible) {
@@ -334,13 +335,40 @@ public partial class TriggerContext {
         Field.Broadcast(BreakablePacket.Update(updated));
     }
 
-    public void AddBuff(int[] boxIds, int skillId, short level, bool arg4, bool arg5, string feature) {
-        ErrorLog("[AddBuff] boxIds:{Ids}, skillId:{SkillId}, level:{Level}, arg4:{Arg4}, arg5:{Arg5}, feature:{Feature}",
-            string.Join(", ", boxIds), skillId, level, arg4, arg5, feature);
+    public void AddBuff(int[] boxIds, int buffId, short level, bool isPlayer, bool isSkillSet, string feature) {
+        DebugLog("[AddBuff] boxIds:{Ids}, buffId:{BuffId}, level:{Level}, isPlayer:{IsPlayer}, isSkillSet:{Arg5}, feature:{Feature}",
+            string.Join(", ", boxIds), buffId, level, isPlayer, isSkillSet, feature);
+        if (isSkillSet) {
+            logger.Error("[AddBuff] SkillSets not implemented...");
+            return;
+        }
+
+        if (isPlayer) {
+            foreach (IActor player in PlayersInBox(boxIds)) {
+                player.AddBuff(Field.FieldActor, buffId, level);
+            }
+        } else {
+            foreach (IActor monster in MonstersInBox(boxIds)) {
+                monster.AddBuff(Field.FieldActor, buffId, level);
+            }
+        }
     }
 
-    public void RemoveBuff(int boxId, int skillId, bool arg3) {
-        ErrorLog("[RemoveBuff] boxId:{Id}, skillId:{SkillId}, arg3:{Arg3}", boxId, skillId, arg3);
+    public void RemoveBuff(int boxId, int buffId, bool isPlayer) {
+        ErrorLog("[RemoveBuff] boxId:{Id}, buffId:{BuffId}, isPlayer:{IsPlayer}", boxId, buffId, isPlayer);
+        if (isPlayer) {
+            foreach (IActor player in PlayersInBox(boxId)) {
+                if (player.Buffs.TryGetValue(buffId, out Buff? buff)) {
+                    buff.Remove();
+                }
+            }
+        } else {
+            foreach (IActor monster in MonstersInBox(boxId)) {
+                if (monster.Buffs.TryGetValue(buffId, out Buff? buff)) {
+                    buff.Remove();
+                }
+            }
+        }
     }
 
     public void CreateItem(int[] spawnIds, int triggerId, int itemId, int arg5) {

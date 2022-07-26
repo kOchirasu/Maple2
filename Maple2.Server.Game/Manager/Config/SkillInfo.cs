@@ -49,41 +49,49 @@ public class SkillInfo : IByteSerializable {
     }
 
     public void SetJob(Job job) {
-        // If both jobs shared the same JobCode, we do not need to update Skills.
-        if (Job.Code() != job.Code()) {
-            foreach (IDictionary<int, Skill> dict in Skills) {
-                dict.Clear();
+        // If job is unchanged, we do not need to update Skills.
+        if (Job == job) {
+            return;
+        }
+
+        if (!jobTable.Entries.TryGetValue(job.Code(), out JobTable.Entry? jobTableEntry)) {
+            throw new ArgumentException($"No Table found for job: {job} => {job.Code()}");
+        }
+
+        foreach (IDictionary<int, Skill> dict in Skills) {
+            dict.Clear();
+        }
+        foreach (IDictionary<int, Skill> dict in SubSkills) {
+            dict.Clear();
+        }
+
+        var baseSkills = new HashSet<int>(jobTableEntry.BaseSkills);
+        foreach ((SkillRank rank, JobTable.Skill[] jobSkills) in jobTableEntry.Skills) {
+            Debug.Assert(rank is SkillRank.Basic or SkillRank.Awakening);
+            if (rank == SkillRank.Awakening && !job.IsAwakening()) {
+                continue;
             }
 
-            if (!jobTable.Entries.TryGetValue(job.Code(), out JobTable.Entry? jobTableEntry)) {
-                throw new ArgumentException($"No Table found for job: {job} => {job.Code()}");
-            }
-
-            var baseSkills = new HashSet<int>(jobTableEntry.BaseSkills);
-            foreach ((SkillRank rank, JobTable.Skill[] jobSkills) in jobTableEntry.Skills) {
-                Debug.Assert(rank is SkillRank.Basic or SkillRank.Awakening);
-
-                foreach (JobTable.Skill skillData in jobSkills) {
-                    short baseLevel = (short) (baseSkills.Contains(skillData.Main) ? 1 : 0);
-                    var subSkills = new List<Skill>(skillData.Sub.Length);
-                    foreach (int subSkillId in skillData.Sub) {
-                        if (!skillMetadata.TryGet(subSkillId, 1, out SkillMetadata? subMetadata)) {
-                            Log.Warning("Skipping invalid subSkillId:{SkillId}", subSkillId);
-                            continue;
-                        }
-
-                        var subSkill = new Skill(subSkillId, baseLevel, subMetadata.Property.MaxLevel);
-                        subSkills.Add(subSkill);
-                        SubSkills[(int) subMetadata.Property.Type, (int) rank].Add(subSkillId, subSkill);
+            foreach (JobTable.Skill skillData in jobSkills) {
+                short baseLevel = (short) (baseSkills.Contains(skillData.Main) ? 1 : 0);
+                var subSkills = new List<Skill>(skillData.Sub.Length);
+                foreach (int subSkillId in skillData.Sub) {
+                    if (!skillMetadata.TryGet(subSkillId, 1, out SkillMetadata? subMetadata)) {
+                        Log.Warning("Skipping invalid subSkillId:{SkillId}", subSkillId);
+                        continue;
                     }
 
-                    if (!skillMetadata.TryGet(skillData.Main, 1, out SkillMetadata? metadata)) {
-                        throw new InvalidOperationException($"Nonexistent skillId:{skillData.Main}");
-                    }
-
-                    var skill = new Skill(skillData.Main, subSkills.ToArray(), baseLevel, metadata.Property.MaxLevel);
-                    Skills[(int) metadata.Property.Type, (int) rank].Add(skill.Id, skill);
+                    var subSkill = new Skill(subSkillId, baseLevel, subMetadata.Property.MaxLevel);
+                    subSkills.Add(subSkill);
+                    SubSkills[(int) subMetadata.Property.Type, (int) rank].Add(subSkillId, subSkill);
                 }
+
+                if (!skillMetadata.TryGet(skillData.Main, 1, out SkillMetadata? metadata)) {
+                    throw new InvalidOperationException($"Nonexistent skillId:{skillData.Main}");
+                }
+
+                var skill = new Skill(skillData.Main, subSkills.ToArray(), baseLevel, metadata.Property.MaxLevel);
+                Skills[(int) metadata.Property.Type, (int) rank].Add(skill.Id, skill);
             }
         }
 

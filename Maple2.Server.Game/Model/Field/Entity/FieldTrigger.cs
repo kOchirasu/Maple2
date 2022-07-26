@@ -1,6 +1,7 @@
 ﻿using System;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Field;
+using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Trigger;
 using Maple2.Trigger;
 
@@ -23,6 +24,16 @@ public class FieldTrigger : FieldEntity<TriggerModel> {
         context = new TriggerContext(this);
         nextState = initialState(context);
         nextTick = Environment.TickCount64;
+    }
+
+    public bool Skip() {
+        if (context.Skip != null) {
+            nextState = context.Skip;
+            Field.Broadcast(CinematicPacket.StartSkip());
+            return true;
+        }
+
+        return false;
     }
 
     public override void Sync() {

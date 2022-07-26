@@ -43,7 +43,7 @@ public sealed partial class FieldManager : IDisposable {
 
     private readonly ConcurrentBag<SpawnPointNPC> npcSpawns = new();
 
-    private readonly FieldActor fieldActor;
+    internal readonly FieldActor FieldActor;
     private readonly CancellationTokenSource cancel;
     private readonly Thread thread;
     private bool initialized = false;
@@ -60,7 +60,7 @@ public sealed partial class FieldManager : IDisposable {
         TriggerObjects = new TriggerCollection(entities);
 
         InstanceId = instanceId;
-        fieldActor = new FieldActor(this);
+        FieldActor = new FieldActor(this);
         cancel = new CancellationTokenSource();
         thread = new Thread(Sync);
     }

@@ -75,13 +75,13 @@ public partial class TriggerContext {
     public void MoveUser(int mapId, int portalId, int boxId) {
         DebugLog("[MoveUser] mapId:{MapId}, portalId:{PortalId}, boxId:{BoxId}", mapId, portalId, boxId);
         if (mapId == 0) {
-            if (portalId == 0) {
-                foreach (FieldPlayer player in PlayersInBox(boxId)) {
-                    player.Session.ReturnField();
-                }
-                return;
+            foreach (FieldPlayer player in PlayersInBox(boxId)) {
+                player.Session.ReturnField();
             }
+            return;
+        }
 
+        if (mapId == Field.MapId) {
             if (!Field.TryGetPortal(portalId, out FieldPortal? portal)) {
                 return;
             }
@@ -156,11 +156,15 @@ public partial class TriggerContext {
     }
 
     public void AddUserValue(string key, int value) {
-        ErrorLog("[AddUserValue] key:{Key}, value:{Value}", key, value);
+        WarnLog("[AddUserValue] key:{Key}, value:{Value}", key, value);
+        if (Field.UserValues.TryGetValue(key, out int userValue)) {
+            Field.UserValues[key] = userValue + value;
+        }
     }
 
     public void SetUserValue(string key, int value, int triggerId) {
-        ErrorLog("[SetUserValue] key:{Key}, value:{Value}, triggerId:{TriggerId}", key, value, triggerId);
+        WarnLog("[SetUserValue] key:{Key}, value:{Value}, triggerId:{TriggerId}", key, value, triggerId);
+        Field.UserValues[key] = value;
     }
 
     public void FaceEmotion(int spawnId, string emotionName) {
@@ -173,7 +177,13 @@ public partial class TriggerContext {
 
     #region Conditions
     public bool CheckAnyUserAdditionalEffect(int boxId, int additionalEffectId, short level) {
-        ErrorLog("[CheckAnyUserAdditionalEffect] boxId:{BoxId}, additionalEffectId:{EffectId}, level:{Level}", boxId, additionalEffectId, level);
+        DebugLog("[CheckAnyUserAdditionalEffect] boxId:{BoxId}, additionalEffectId:{EffectId}, level:{Level}", boxId, additionalEffectId, level);
+        foreach (FieldPlayer player in PlayersInBox(boxId)) {
+            if (player.Buffs.TryGetValue(additionalEffectId, out Buff? buff) && buff.Level == level) {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -184,8 +194,9 @@ public partial class TriggerContext {
 
     public bool QuestUserDetected(int[] boxIds, int[] questIds, byte[] questStates, byte jobCode) {
         ErrorLog("[QuestUserDetected] boxIds:{BoxIds}, questIds:{QuestIds}, questStates:{QuestStates}, jobCode:{JobCode}",
-            string.Join(", ", boxIds), string.Join(", ", questIds), questStates, (JobCode) jobCode);
-        return false;
+            string.Join(", ", boxIds), string.Join(", ", questIds), string.Join(", ", questStates), (JobCode) jobCode);
+
+        return UserDetected(boxIds, jobCode);
     }
 
     public bool UserDetected(int[] boxIds, byte jobCode) {

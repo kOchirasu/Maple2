@@ -10,6 +10,10 @@ public static class ModelExtensions {
         return (JobCode) ((int) job / 10);
     }
 
+    public static bool IsAwakening(this Job job) {
+        return ((int) job % 10) != 0;
+    }
+
     public static InventoryType Inventory(this ItemMetadata metadata) {
         return metadata.Property.Type switch {
             0 => metadata.Property.SubType == 2 ? InventoryType.Consumable : InventoryType.Misc, // Unknown
