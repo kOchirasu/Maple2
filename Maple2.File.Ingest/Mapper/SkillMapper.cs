@@ -23,6 +23,7 @@ public class SkillMapper : TypeMapper<StoredSkillMetadata> {
             Dictionary<short, SkillMetadataLevel> levels = data.level.ToDictionary(
                 level => level.value,
                 level => new SkillMetadataLevel(
+                    Condition: level.beginCondition.Convert(),
                     Consume: new SkillMetadataConsume(
                         Meso: level.consume.money,
                         UseItem: level.consume.useItem,
@@ -73,6 +74,7 @@ public class SkillMapper : TypeMapper<StoredSkillMetadata> {
                     Type: (SkillType) data.basic.kinds.type,
                     SubType: (SkillSubType) data.basic.kinds.subType,
                     RangeType: (RangeType) data.basic.kinds.rangeType,
+                    AttackType: (AttackType) data.basic.ui.attackType,
                     Element: (Element) data.basic.kinds.element,
                     ContinueSkill: data.basic.kinds.continueSkill,
                     SpRecoverySkill: data.basic.kinds.spRecoverySkill,

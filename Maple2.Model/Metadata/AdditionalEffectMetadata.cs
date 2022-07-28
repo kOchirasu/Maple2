@@ -5,8 +5,10 @@ namespace Maple2.Model.Metadata;
 public record AdditionalEffectMetadata(
     int Id,
     short Level,
+    BeginCondition Condition,
     AdditionalEffectMetadataProperty Property,
     AdditionalEffectMetadataConsume Consume,
+    AdditionalEffectMetadataUpdate Update,
     AdditionalEffectMetadataRecovery? Recovery,
     AdditionalEffectMetadataDot Dot,
     AdditionalEffectMetadataShield? Shield,
@@ -29,6 +31,18 @@ public record AdditionalEffectMetadataProperty(
 public record AdditionalEffectMetadataConsume(
     float HpRate,
     float SpRate);
+
+public record AdditionalEffectMetadataUpdate(
+    AdditionalEffectMetadataUpdate.CancelEffect? Cancel,
+    int[] ImmuneIds,
+    int[] ImmuneCategories,
+    int[] ResetCooldown,
+    AdditionalEffectMetadataUpdate.ModifyDuration[] Duration
+) {
+    public record CancelEffect(bool CheckSameCaster, bool PassiveEffect, int[] Ids, int[] Categories);
+
+    public record ModifyDuration(int Id, float Rate, float Value);
+}
 
 public record AdditionalEffectMetadataRecovery(
     float RecoveryRate,

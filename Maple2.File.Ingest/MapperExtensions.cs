@@ -2,6 +2,7 @@
 using Maple2.File.Parser.Xml.Skill;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
+using BeginCondition = Maple2.Model.Metadata.BeginCondition;
 
 namespace Maple2.File.Ingest;
 
@@ -105,6 +106,7 @@ public static class MapperExtensions {
                 owner = (SkillEntity) trigger.skillOwner;
             }
             condition = new SkillEffectMetadataCondition(
+                Condition: trigger.beginCondition.Convert(),
                 Owner: owner,
                 Target: (SkillEntity) trigger.skillTarget,
                 OverlapCount: trigger.overlapCount,
@@ -130,5 +132,65 @@ public static class MapperExtensions {
             Skills: skills,
             Condition: condition,
             Splash: splash);
+    }
+
+    public static BeginCondition Convert(this Maple2.File.Parser.Xml.Skill.BeginCondition beginCondition) {
+        return new BeginCondition(
+            Level: beginCondition.level,
+            Gender: (Gender) beginCondition.gender,
+            Mesos: beginCondition.money,
+            JobCode: beginCondition.job.Select(job => (JobCode) job.code).ToArray(),
+            Target: Convert(beginCondition.skillTarget),
+            Owner: Convert(beginCondition.skillOwner),
+            Caster: Convert(beginCondition.skillCaster));
+    }
+
+    // We use this default to avoid writing useless checks
+    private static readonly BeginConditionTarget DefaultBeginConditionTarget = new(Array.Empty<BeginConditionTarget.HasBuff>(), null, null);
+    private static BeginConditionTarget? Convert(SubConditionTarget? target) {
+        if (target == null) {
+            return null;
+        }
+
+        var result = new BeginConditionTarget(
+            Buff: ParseBuffs(target),
+            Skill: ParseSkill(target),
+            Event: ParseEvent(target));
+
+        return DefaultBeginConditionTarget.Equals(result) ? null : result;
+
+        BeginConditionTarget.HasBuff[] ParseBuffs(SubConditionTarget data) {
+            if (data.hasBuffID.Length == 0 || data.hasBuffID[0] == 0) {
+                return Array.Empty<BeginConditionTarget.HasBuff>();
+            }
+
+            var hasBuff = new BeginConditionTarget.HasBuff[data.hasBuffID.Length];
+            for (int i = 0; i < hasBuff.Length; i++) {
+                hasBuff[i] = new BeginConditionTarget.HasBuff(
+                    Id: data.hasBuffID[i],
+                    Level: (short) (data.hasBuffLevel.Length > i ? data.hasBuffLevel[i] : 0),
+                    Owned: data.hasBuffOwner.Length > i && data.hasBuffOwner[i] != 0,
+                    Count: data.hasBuffCount.Length > i ? data.hasBuffCount[i] : 0,
+                    Compare: data.hasBuffCountCompare.Length > i ? Enum.Parse<CompareType>(data.hasBuffCountCompare[i]) : CompareType.Equals);
+            }
+
+            return hasBuff;
+        }
+
+        BeginConditionTarget.HasSkill? ParseSkill(SubConditionTarget data) {
+            return data.hasSkillID > 0 ? new BeginConditionTarget.HasSkill(data.hasSkillID, data.hasSkillLevel) : null;
+        }
+
+        BeginConditionTarget.EventCondition? ParseEvent(SubConditionTarget data) {
+            if (data.eventCondition == 0) {
+                return null;
+            }
+
+            return new BeginConditionTarget.EventCondition(
+                Type: data.eventCondition,
+                IgnoreOwner: data.ignoreOwnerEvent != 0,
+                SkillIds: data.eventSkillID,
+                BuffIds: data.eventEffectID);
+        }
     }
 }

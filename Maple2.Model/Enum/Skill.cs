@@ -4,9 +4,13 @@ using System.ComponentModel;
 namespace Maple2.Model.Enum;
 
 public enum SkillType : byte {
+    [Description("s_word_skill_active: Active")]
     Active = 0,
+    [Description("s_word_skill_passive: Passive")]
     Passive = 1,
-    Special = 2, // Literally only 11000054
+    [Description("s_word_skill_move: Action")]
+    Action = 2, // Literally only 11000054
+    [Description("")]
     Consumable = 3,
 }
 
@@ -24,10 +28,23 @@ public enum SkillSubType : byte {
 }
 
 public enum RangeType : byte {
+    [Description("")]
     None = 0,
+    [Description("s_word_nearrange: Close Range")]
     Melee = 1,
+    [Description("s_word_longrange: Long Range")]
     Range = 2,
+    [Description("Invalid?")]
     Unknown = 3, // 10200282,10200283,35001301
+}
+
+public enum AttackType : byte {
+    None = 0,
+    [Description("s_word_element_physics: Physical")]
+    Physical = 1,
+    [Description("s_word_magic: Magic")]
+    Magic = 2,
+    Unknown = 3,
 }
 
 public enum Element : byte {

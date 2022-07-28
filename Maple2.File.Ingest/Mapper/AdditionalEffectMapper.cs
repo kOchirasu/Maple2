@@ -19,6 +19,7 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                 yield return new AdditionalEffectMetadata(
                     Id: id,
                     Level: data.BasicProperty.level,
+                    Condition: data.beginCondition.Convert(),
                     Property: new AdditionalEffectMetadataProperty(
                         Type: (BuffType) data.BasicProperty.buffType,
                         SubType: (BuffSubType) data.BasicProperty.buffSubType,
@@ -35,6 +36,7 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                     Consume: new AdditionalEffectMetadataConsume(
                         HpRate: data.ConsumeProperty.hpRate,
                         SpRate: data.ConsumeProperty.spRate),
+                    Update: Convert(data),
                     Recovery: Convert(data.RecoveryProperty),
                     Dot: new AdditionalEffectMetadataDot(
                         Damage: Convert(data.DotDamageProperty),
@@ -43,6 +45,31 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                     Skills: data.conditionSkill.Concat(data.splashSkill).Select(skill => skill.Convert()).ToArray());
             }
         }
+    }
+
+    private static AdditionalEffectMetadataUpdate Convert(AdditionalEffectData data) {
+        CancelEffectProperty cancel = data.CancelEffectProperty;
+        AdditionalEffectMetadataUpdate.CancelEffect? cancelEffect = null;
+        if (cancel.cancelEffectCodes.Length != 0 || cancel.cancelBuffCategories.Length != 0) {
+            cancelEffect = new AdditionalEffectMetadataUpdate.CancelEffect(
+                CheckSameCaster: cancel.cancelCheckSameCaster,
+                PassiveEffect: cancel.cancelPassiveEffect,
+                Ids: cancel.cancelEffectCodes,
+                Categories: cancel.cancelBuffCategories);
+        }
+
+        ModifyEffectDurationProperty modify = data.ModifyEffectDurationProperty;
+        var modifyDuration = new AdditionalEffectMetadataUpdate.ModifyDuration[modify.effectCodes.Length];
+        for (int i = 0; i < modifyDuration.Length; i++) {
+            modifyDuration[i] = new AdditionalEffectMetadataUpdate.ModifyDuration(modify.effectCodes[i], modify.durationFactors[i], modify.durationValues[i]);
+        }
+
+        return new AdditionalEffectMetadataUpdate(
+            Cancel: cancelEffect,
+            ImmuneIds: data.ImmuneEffectProperty.immuneEffectCodes,
+            ImmuneCategories: data.ImmuneEffectProperty.immuneBuffCategories,
+            ResetCooldown: data.ResetSkillCoolDownTimeProperty.skillCodes,
+            Duration: modifyDuration);
     }
 
     private static AdditionalEffectMetadataRecovery? Convert(RecoveryProperty recovery) {
