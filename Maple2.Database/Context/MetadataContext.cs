@@ -41,8 +41,10 @@ public sealed class MetadataContext : DbContext {
     private static void ConfigureAdditionalEffectMetadata(EntityTypeBuilder<AdditionalEffectMetadata> builder) {
         builder.ToTable("additional-effect");
         builder.HasKey(effect => new {effect.Id, effect.Level});
+        builder.Property(effect => effect.Condition).HasJsonConversion();
         builder.Property(effect => effect.Property).HasJsonConversion();
         builder.Property(effect => effect.Consume).HasJsonConversion();
+        builder.Property(effect => effect.Update).HasJsonConversion();
         builder.Property(effect => effect.Recovery).HasJsonConversion();
         builder.Property(effect => effect.Dot).HasJsonConversion();
         builder.Property(effect => effect.Shield).HasJsonConversion();

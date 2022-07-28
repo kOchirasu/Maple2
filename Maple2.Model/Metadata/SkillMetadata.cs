@@ -24,6 +24,7 @@ public record SkillMetadataProperty(
     SkillType Type,
     SkillSubType SubType,
     RangeType RangeType,
+    AttackType AttackType,
     Element Element,
     bool ContinueSkill,
     bool SpRecoverySkill,
@@ -40,6 +41,7 @@ public record SkillMetadataProperty(
 public record SkillMetadataState();
 
 public record SkillMetadataLevel(
+    BeginCondition Condition,
     SkillMetadataConsume Consume,
     SkillMetadataRecovery Recovery,
     SkillEffectMetadata[] Skills,
