@@ -1,17 +1,35 @@
 ﻿using System.CodeDom.Compiler;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Xml;
 using Maple2.File.Ingest.Utils;
 using Maple2.File.IO;
 using Maple2.File.IO.Crypto.Common;
+using static System.Char;
 
 namespace Maple2.File.Ingest.Generator;
 
 public class TriggerGenerator {
     private readonly M2dReader reader;
+    private readonly Dictionary<string, string> checkUserCountStates = new();
+    private readonly Dictionary<string, string> checkUser10States = new();
 
     public TriggerGenerator(M2dReader xmlReader) {
         reader = xmlReader;
+
+        XmlDocument checkUserCountDocument = reader.GetXmlDocument(reader.Files.First(entry =>
+            entry.Name.StartsWith("trigger/dungeon_common/checkusercount.xml")));
+        foreach (XmlNode stateNode in checkUserCountDocument.SelectNodes("ms2/state")) {
+            string stateName = stateNode.Attributes["name"].Value;
+            checkUserCountStates.Add(stateName, stateName);
+        }
+
+        XmlDocument guildCheckUserDocument = reader.GetXmlDocument(reader.Files.First(entry =>
+            entry.Name.StartsWith("trigger/dungeon_common/checkuser10_guildraid.xml")));
+        foreach (XmlNode stateNode in guildCheckUserDocument.SelectNodes("ms2/state")) {
+            string stateName = stateNode.Attributes["name"].Value;
+            checkUser10States.Add(stateName, stateName);
+        }
     }
 
     public void Generate() {
@@ -27,27 +45,46 @@ public class TriggerGenerator {
             XmlDocument document = reader.GetXmlDocument(entry);
             XmlNodeList stateNodeList = document.SelectNodes("ms2/state")!;
             try {
+                writer.WriteLine("from common import *");
+                writer.WriteLine("import state");
+
+                var stateIndex = new Dictionary<string, string>();
                 foreach (XmlNode importNode in document.SelectNodes("ms2/import")!) {
                     string path = importNode.Attributes["path"].Value.ToLower();
-                    string importDir = Directory.GetParent(path).Name;
+                    string importModule = Directory.GetParent(path).Name;
                     string importName = Path.GetFileNameWithoutExtension(path);
 
-                    writer.WriteLine("import common");
-                    writer.WriteLine($"import {importDir}/{importName}");
+                    writer.WriteLine($"from {importModule}.{importName} import *");
+                    switch (importName) {
+                        case "checkusercount":
+                            foreach (KeyValuePair<string, string> state in checkUserCountStates) {
+                                stateIndex.Add(state.Key, state.Value);
+                            }
+                            break;
+                        case "checkuser10_guildraid":
+                            foreach (KeyValuePair<string, string> state in checkUser10States) {
+                                stateIndex.Add(state.Key, state.Value);
+                            }
+                            break;
+                        default:
+                            throw new InvalidOperationException($"Unknown import: {importModule}/{importName}");
+                    }
                 }
+                stateIndex.Add("DungeonStart", "state.DungeonStart");
                 writer.WriteLine();
 
                 // Copy node list so that we can remove duplicate states
                 List<XmlNode> stateNodes = stateNodeList.Cast<XmlNode>().ToList();
-                var stateIndex = new Dictionary<string, short>();
-                short index = 0;
                 foreach (XmlNode stateNode in stateNodes.ToList()) {
                     string name = stateNode.Attributes["name"].Value;
+                    if (name == "DungeonStart") continue; // Special case
+
+                    name = FixClassName(name);
                     if (stateIndex.ContainsKey(name)) {
                         Console.WriteLine($"Duplicate state in {entry.Name} ignored and removed: {name}");
                         stateNodes.Remove(stateNode);
                     } else {
-                        stateIndex.Add(name, index++);
+                        stateIndex.Add(name, name);
                     }
                 }
 
@@ -64,10 +101,13 @@ public class TriggerGenerator {
                 Console.WriteLine(ex.StackTrace);
             }
         }
+
+        // Create module for dungeon_common
+        System.IO.File.Create("trigger/dungeon_common/__init__.py");
     }
 
-    private static TriggerScript.State ParseState(XmlNode node, Dictionary<string, short> stateIndex, string filePath) {
-        string name = node.Attributes["name"].Value;
+    private static TriggerScript.State ParseState(XmlNode node, Dictionary<string, string> stateIndex, string filePath) {
+        string name = FixClassName(node.Attributes["name"].Value);
         var onEnter = new List<TriggerScript.Action>();
         foreach (XmlNode action in node.SelectNodes("onEnter/action")) {
             onEnter.Add(ParseAction(action));
@@ -104,7 +144,7 @@ public class TriggerGenerator {
         };
     }
 
-    private static TriggerScript.Condition ParseCondition(XmlNode node, Dictionary<string, short> stateIndex, string filePath) {
+    private static TriggerScript.Condition ParseCondition(XmlNode node, Dictionary<string, string> stateIndex, string filePath) {
         var args = new Dictionary<string, string>();
         foreach (XmlAttribute attribute in node.Attributes) {
             args[attribute.Name] = attribute.Value;
@@ -117,12 +157,16 @@ public class TriggerGenerator {
             actions.Add(ParseAction(action));
         }
 
-        string? transition = node.SelectSingleNode("transition")?.Attributes?["state"]?.Value;
-        // if (transition == null || !stateIndex.ContainsKey(transition)) {
-        //     Console.WriteLine($"Script {filePath} Missing transition: {transition}");
-        //     Console.WriteLine($"- {string.Join(",", stateIndex.Keys)}");
-        //     transition = null;
-        // }
+        string? transition = FixClassName(node.SelectSingleNode("transition")?.Attributes?["state"]?.Value);
+        if (transition != null) {
+            if (stateIndex.TryGetValue(transition, out string result)) {
+                transition = result;
+            } else {
+                Console.WriteLine($"Script {filePath} Missing transition: {transition}");
+                Console.WriteLine($"- {string.Join(",", stateIndex.Keys)}");
+                transition = null;
+            }
+        }
 
         return new TriggerScript.Condition {
             Name = name.TrimStart('!'),
@@ -130,6 +174,47 @@ public class TriggerGenerator {
             Args = args,
             Actions = actions,
             Transition = transition,
+            TransitionComment = FixClassName(node.SelectSingleNode("transition")?.Attributes?["state"]?.Value),
         };
+    }
+
+    private static readonly Dictionary<string, string> SubStart = new() {
+        {"1st", "First"},
+        {"2nd", "Second"},
+        {"3rd", "Third"},
+        {"4th", "Fourth"},
+        {"5th", "Fifth"},
+        {"6th", "Sixth"},
+        {"7th", "Seventh"},
+    };
+    [return: NotNullIfNotNull("name")]
+    private static string? FixClassName(string? name) {
+        if (name == null) {
+            return null;
+        }
+
+        name = name.Replace("-", "To");
+        foreach ((string key, string value) in SubStart) {
+            if (name.StartsWith(key)) {
+                name = name.Replace(key, value);
+                break;
+            }
+        }
+
+        string prefix = "";
+        while (name.Length > 0 && !IsLetter(name[0])) {
+            prefix += name[0];
+            name = name[1..];
+        }
+
+        // name is already valid
+        if (prefix.Length == 0) {
+            return name;
+        }
+        if (name.Length == 0) {
+            return $"State{prefix}";
+        }
+
+        return !IsLetter(name[^1]) ? $"{name}_{prefix}" : $"{name}{prefix}";
     }
 }
