@@ -16,36 +16,54 @@ internal class TriggerScript {
         public IList<Action> OnExit = new List<Action>();
 
         public void WriteTo(IndentedTextWriter writer) {
-            writer.WriteLine($"class {Name}(State):");
+            if (Name == "DungeonStart") {
+                writer.WriteLine($"class {Name}(state.DungeonStart):");
+            } else {
+                writer.WriteLine($"class {Name}(state.State):");
+            }
+
+            bool hasBody = false;
             writer.Indent++;
             if (OnEnter.Count > 0) {
-                writer.WriteLine("def on_enter():");
+                writer.WriteLine("def on_enter(self):");
                 writer.Indent++;
                 foreach (Action action in OnEnter) {
                     action.WriteTo(writer);
                 }
                 writer.Indent--;
                 WriteBlankLine(writer);
+                hasBody = true;
             }
             if (Conditions.Count > 0) {
-                writer.WriteLine("def on_tick():");
+                writer.WriteLine("def on_tick(self) -> state.State:");
                 writer.Indent++;
                 foreach (Condition condition in Conditions) {
                     condition.WriteTo(writer);
                 }
                 writer.Indent--;
                 WriteBlankLine(writer);
+                hasBody = true;
             }
             if (OnExit.Count > 0) {
-                writer.WriteLine("def on_exit():");
+                writer.WriteLine("def on_exit(self):");
                 writer.Indent++;
                 foreach (Action action in OnExit) {
                     action.WriteTo(writer);
                 }
                 writer.Indent--;
                 WriteBlankLine(writer);
+                hasBody = true;
+            }
+
+            if (!hasBody) {
+                writer.WriteLine("pass");
+                WriteBlankLine(writer);
             }
             writer.Indent--;
+            if (Name == "DungeonStart") {
+                writer.WriteLine("state.DungeonStart = DungeonStart");
+                WriteBlankLine(writer);
+            }
             WriteBlankLine(writer);
         }
     }
@@ -55,7 +73,7 @@ internal class TriggerScript {
         public IDictionary<string, string> Args = new Dictionary<string, string>();
 
         public void WriteTo(IndentedTextWriter writer) {
-            writer.WriteLine($"{Name}({string.Join(", ", Args.Select(arg => $"{arg.Key}={arg.Value}"))})");
+            writer.WriteLine($"{Name}({string.Join(", ", Args.Select(arg => $"{arg.Key}='{arg.Value}'"))})");
         }
     }
 
@@ -65,14 +83,24 @@ internal class TriggerScript {
         public IDictionary<string, string> Args = new Dictionary<string, string>();
         public IList<Action> Actions = new List<Action>();
         public string? Transition;
+        public string? TransitionComment;
 
         public void WriteTo(IndentedTextWriter writer) {
-            writer.WriteLine($"if {(Negated ? "not " : "")}{Name}({string.Join(", ", Args.Select(arg => $"{arg.Key}={arg.Value}"))}):");
+            writer.WriteLine($"if {(Negated ? "not " : "")}{Name}({string.Join(", ", Args.Select(arg => $"{arg.Key}='{arg.Value}'"))}):");
             writer.Indent++;
             foreach (Action action in Actions) {
                 action.WriteTo(writer);
             }
-            writer.WriteLine($"return '{Transition}'");
+
+            if (Transition == null) {
+                if (TransitionComment != null) {
+                    writer.WriteLine($"return None # Missing {TransitionComment}");
+                } else {
+                    writer.WriteLine("return None");
+                }
+            } else {
+                writer.WriteLine($"return {Transition}()");
+            }
             writer.Indent--;
         }
     }
