@@ -1,6 +1,8 @@
 ﻿using System.CodeDom.Compiler;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Text;
+using System.Text.RegularExpressions;
 using System.Xml;
 using Maple2.File.Ingest.Utils;
 using Maple2.File.IO;
@@ -13,6 +15,10 @@ public class TriggerGenerator {
     private readonly M2dReader reader;
     private readonly Dictionary<string, string> checkUserCountStates = new();
     private readonly Dictionary<string, string> checkUser10States = new();
+
+    private static readonly HashSet<(string, bool, bool, bool)> ProcessedStrings = new();
+    private static readonly SortedDictionary<string, (bool IsState, bool IsAction, bool IsCondition)> KoreanStrings = new();
+    private static readonly TriggerScriptCommon CommonScript = new();
 
     public TriggerGenerator(M2dReader xmlReader) {
         reader = xmlReader;
@@ -95,7 +101,7 @@ public class TriggerGenerator {
                 }
 
                 script.WriteTo(writer);
-                Console.WriteLine($"Generated {pyName}...");
+                //Console.WriteLine($"Generated {pyName}...");
             } catch (Exception ex) {
                 Console.WriteLine($"Failed to parse file: {entry.Name} - {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
@@ -104,10 +110,15 @@ public class TriggerGenerator {
 
         // Create module for dungeon_common
         System.IO.File.Create("trigger/dungeon_common/__init__.py");
+        using var commonStream = new StreamWriter("trigger/common.py");
+        using var commonWriter = new IndentedTextWriter(commonStream, "  ");
+        CommonScript.WriteTo(commonWriter);
     }
 
     private static TriggerScript.State ParseState(XmlNode node, Dictionary<string, string> stateIndex, string filePath) {
         string name = FixClassName(node.Attributes["name"].Value);
+        // IndexStrings(name, isState: true);
+
         var onEnter = new List<TriggerScript.Action>();
         foreach (XmlNode action in node.SelectNodes("onEnter/action")) {
             onEnter.Add(ParseAction(action));
@@ -138,6 +149,15 @@ public class TriggerGenerator {
         }
 
         Debug.Assert(args.Remove("name", out string? name), "Unable to find name param");
+        // IndexStrings(name, isAction: true);
+        name = Translate(name, TriggerTranslate.TranslateAction);
+        if (!CommonScript.Actions.TryGetValue(name, out TriggerScriptCommon.Function? function)) {
+            function = new TriggerScriptCommon.Function {Name = name};
+            CommonScript.Actions.Add(name, function);
+        }
+        foreach (string argName in args.Keys) {
+            function.AddParameter(new TriggerScriptCommon.Parameter(TriggerScriptCommon.Type.Str, argName));
+        }
         return new TriggerScript.Action {
             Name = name,
             Args = args,
@@ -151,6 +171,16 @@ public class TriggerGenerator {
         }
         Debug.Assert(args.Remove("name", out string? name), "Unable to find name param");
         bool negated = name.StartsWith('!');
+        name = name.TrimStart('!');
+        // IndexStrings(name, isCondition: true);
+        name = Translate(name, TriggerTranslate.TranslateCondition);
+        if (!CommonScript.Conditions.TryGetValue(name, out TriggerScriptCommon.Function? function)) {
+            function = new TriggerScriptCommon.Function {Name = name, ReturnType = TriggerScriptCommon.Type.Bool};
+            CommonScript.Conditions.Add(name, function);
+        }
+        foreach (string argName in args.Keys) {
+            function.AddParameter(new TriggerScriptCommon.Parameter(TriggerScriptCommon.Type.Str, argName));
+        }
 
         var actions = new List<TriggerScript.Action>();
         foreach (XmlNode action in node.SelectNodes("action")) {
@@ -159,7 +189,7 @@ public class TriggerGenerator {
 
         string? transition = FixClassName(node.SelectSingleNode("transition")?.Attributes?["state"]?.Value);
         if (transition != null) {
-            if (stateIndex.TryGetValue(transition, out string result)) {
+            if (stateIndex.TryGetValue(transition, out string? result)) {
                 transition = result;
             } else {
                 Console.WriteLine($"Script {filePath} Missing transition: {transition}");
@@ -169,7 +199,7 @@ public class TriggerGenerator {
         }
 
         return new TriggerScript.Condition {
-            Name = name.TrimStart('!'),
+            Name = name,
             Negated = negated,
             Args = args,
             Actions = actions,
@@ -216,5 +246,46 @@ public class TriggerGenerator {
         }
 
         return !IsLetter(name[^1]) ? $"{name}_{prefix}" : $"{name}{prefix}";
+    }
+
+    [return: NotNullIfNotNull("name")]
+    private static string? Translate(string? name, Func<string, string> translator) {
+        if (name == null) {
+            return null;
+        }
+
+        var builder = new StringBuilder();
+        foreach (string split in name.Split('_', ' ')) {
+            builder.Append(translator(split));
+        }
+
+        return TriggerTranslate.NormalizePythonFunction(builder.ToString());
+    }
+
+    private static void IndexStrings(string? text, bool isState = false, bool isAction = false, bool isCondition = false) {
+        if (text == null || ProcessedStrings.Contains((text, isState, isAction, isCondition))) {
+            return;
+        }
+
+        var builder = new StringBuilder();
+        foreach (string split in text.Split('_', ' ', 'U')) {
+            string korean = Regex.Replace(split, "[0-9a-zA-Z]+", "");
+            if (korean.Length == 0) {
+                continue;
+            }
+
+            builder.Append($"{korean},");
+
+            KoreanStrings.TryGetValue(korean, out (bool IsState, bool IsAction, bool IsCondition) value);
+            value.IsState |= isState;
+            value.IsAction |= isAction;
+            value.IsCondition |= isCondition;
+            KoreanStrings[korean] = value;
+        }
+
+        ProcessedStrings.Add((text, isState, isAction, isCondition));
+        if (builder.Length > 0) {
+            //Console.WriteLine($"{text} => {builder}");
+        }
     }
 }
