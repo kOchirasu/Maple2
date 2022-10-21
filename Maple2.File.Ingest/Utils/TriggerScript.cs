@@ -111,10 +111,107 @@ internal class TriggerScript {
         }
     }
 
-    private static void WriteBlankLine(IndentedTextWriter writer) {
+    public static void WriteBlankLine(IndentedTextWriter writer) {
         int indent = writer.Indent;
         writer.Indent = 0;
         writer.WriteLine();
         writer.Indent = indent;
+    }
+}
+
+internal class TriggerScriptCommon {
+    public readonly SortedDictionary<string, Function> Actions = new();
+    public readonly SortedDictionary<string, Function> Conditions = new();
+
+    public void WriteTo(IndentedTextWriter writer) {
+        writer.WriteLine("from typing import List");
+        writer.WriteLine();
+
+        TriggerScript.WriteBlankLine(writer);
+        writer.WriteLine(@""""""" Actions """"""");
+        foreach (Function action in Actions.Values) {
+            action.WriteTo(writer);
+            TriggerScript.WriteBlankLine(writer);
+        }
+
+        TriggerScript.WriteBlankLine(writer);
+        writer.WriteLine(@""""""" Conditions """"""");
+        foreach (Function condition in Conditions.Values) {
+            condition.WriteTo(writer);
+            TriggerScript.WriteBlankLine(writer);
+        }
+    }
+
+    internal enum Type { None = 0, Str, Int, Float, IntList, Bool }
+    internal record Parameter(Type Type, string Name);
+
+    internal class Function : IComparable<Function> {
+        public string Name { get; init; }
+        public Type ReturnType { get; init; }
+        private readonly List<Parameter> parameters = new();
+
+        public int CompareTo(Function? other) {
+            if (ReferenceEquals(this, other)) return 0;
+            if (ReferenceEquals(null, other)) return 1;
+
+            int nameComparison = string.Compare(Name, other.Name, StringComparison.Ordinal);
+            if (nameComparison != 0) return nameComparison;
+
+            return ReturnType.CompareTo(other.ReturnType);
+        }
+
+        public bool AddParameter(Parameter parameter) {
+            if (parameters.Contains(parameter)) {
+                return false;
+            }
+
+            parameters.Add(parameter);
+            return true;
+        }
+
+        public void WriteTo(IndentedTextWriter writer) {
+            writer.Write($"def {Name}(");
+            bool firstLoop = true;
+            foreach (Parameter parameter in parameters) {
+                if (!firstLoop) {
+                    writer.Write(", ");
+                }
+                writer.Write($"{parameter.Name}: ");
+                switch (parameter.Type) {
+                    case Type.Str:
+                        writer.Write("str");
+                        break;
+                    case Type.Int:
+                        writer.Write("int");
+                        break;
+                    case Type.Float:
+                        writer.Write("float");
+                        break;
+                    case Type.IntList:
+                        writer.Write("List[int]");
+                        break;
+                    case Type.Bool:
+                        writer.Write("bool");
+                        break;
+                    default:
+                        throw new ArgumentException($"Invalid parameter type: {parameter.Type}");
+                }
+
+                firstLoop = false;
+            }
+
+            string returnTypeStr = ReturnType switch {
+                Type.None => "",
+                Type.Str => " -> str",
+                Type.Int => " -> int",
+                Type.Float => " -> float",
+                Type.Bool => " -> bool",
+                _ => throw new ArgumentException($"Invalid return type: {ReturnType}")
+            };
+            writer.WriteLine($"){returnTypeStr}:");
+            writer.Indent++;
+            writer.WriteLine("pass");
+            writer.Indent--;
+        }
     }
 }
