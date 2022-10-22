@@ -10,12 +10,16 @@ internal class TriggerScript {
     }
 
     public class State {
+        public readonly List<string> Comments = new();
         public string Name = string.Empty;
         public IList<Action> OnEnter = new List<Action>();
         public IList<Condition> Conditions = new List<Condition>();
         public IList<Action> OnExit = new List<Action>();
 
         public void WriteTo(IndentedTextWriter writer) {
+            foreach (string comment in Comments) {
+                writer.WriteLine(CommentString(comment));
+            }
             if (Name == "DungeonStart") {
                 writer.WriteLine($"class {Name}(state.DungeonStart):");
             } else {
@@ -69,24 +73,60 @@ internal class TriggerScript {
     }
 
     public class Action {
+        public readonly List<string> Comments = new();
+        public string? LineComment;
+
         public string Name = string.Empty;
         public IList<Parameter> Args = new List<Parameter>();
 
         public void WriteTo(IndentedTextWriter writer) {
-            writer.WriteLine($"{Name}({string.Join(", ", Args.Select(arg => $"{arg.Name}={arg.FormatValue()}"))})");
+            foreach (string comment in Comments) {
+                writer.WriteLine(CommentString(comment));
+            }
+            IEnumerable<string> args = Args
+                .Where(arg => !string.IsNullOrWhiteSpace(arg.Value))
+                .Select(arg => $"{arg.Name}={arg.FormatValue()}");
+            writer.Write($"{Name}({string.Join(", ", args)})");
+            if (LineComment != null) {
+                LineComment = LineComment.Trim();
+                if (LineComment.StartsWith("<action")) {
+                    writer.WriteLine();
+                    foreach (string line in LineComment.Split('\n')) {
+                        writer.WriteLine($"# {line.Trim()}");
+                    }
+                } else {
+                    writer.WriteLine($" # {LineComment}");
+                }
+            } else {
+                writer.WriteLine();
+            }
         }
     }
 
     public class Condition {
+        public readonly List<string> Comments = new();
+        public string? LineComment;
+        public string? TransitionComment;
+
         public string Name = string.Empty;
         public bool Negated;
         public IList<Parameter> Args = new List<Parameter>();
         public IList<Action> Actions = new List<Action>();
         public string? Transition;
-        public string? TransitionComment;
 
         public void WriteTo(IndentedTextWriter writer) {
-            writer.WriteLine($"if {(Negated ? "not " : "")}{Name}({string.Join(", ", Args.Select(arg => $"{arg.Name}={arg.FormatValue()}"))}):");
+            foreach (string comment in Comments) {
+                writer.WriteLine(CommentString(comment));
+            }
+            writer.Write($"if {(Negated ? "not " : "")}{Name}({string.Join(", ", Args.Select(arg => $"{arg.Name}={arg.FormatValue()}"))}):");
+            if (LineComment != null) {
+                if (!LineComment.Contains('\n') && !LineComment.TrimStart().StartsWith("<condition")) {
+                    writer.Write($" # {LineComment.Trim()}");
+                    // Clear after write, so we don't write again.
+                    LineComment = null;
+                }
+            }
+            writer.WriteLine();
             writer.Indent++;
             foreach (Action action in Actions) {
                 action.WriteTo(writer);
@@ -94,7 +134,7 @@ internal class TriggerScript {
 
             if (Transition == null) {
                 if (TransitionComment != null) {
-                    writer.WriteLine($"return None # Missing {TransitionComment}");
+                    writer.WriteLine($"return None # Missing State: {TransitionComment}");
                 } else {
                     writer.WriteLine("return None");
                 }
@@ -102,6 +142,11 @@ internal class TriggerScript {
                 writer.WriteLine($"return {Transition}()");
             }
             writer.Indent--;
+            if (LineComment != null) {
+                writer.WriteLine(@"""""""");
+                writer.WriteLine(LineComment.Trim().Replace("\t", "    "));
+                writer.WriteLine(@"""""""");
+            }
         }
     }
 
@@ -116,6 +161,10 @@ internal class TriggerScript {
         writer.Indent = 0;
         writer.WriteLine();
         writer.Indent = indent;
+    }
+
+    public static string CommentString(string str) {
+        return $"# {str.Replace("\n", "\n# ")}";
     }
 }
 
