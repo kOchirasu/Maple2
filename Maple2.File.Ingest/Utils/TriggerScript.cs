@@ -70,23 +70,23 @@ internal class TriggerScript {
 
     public class Action {
         public string Name = string.Empty;
-        public IDictionary<string, string> Args = new Dictionary<string, string>();
+        public IList<Parameter> Args = new List<Parameter>();
 
         public void WriteTo(IndentedTextWriter writer) {
-            writer.WriteLine($"{Name}({string.Join(", ", Args.Select(arg => $"{arg.Key}='{arg.Value}'"))})");
+            writer.WriteLine($"{Name}({string.Join(", ", Args.Select(arg => $"{arg.Name}={arg.FormatValue()}"))})");
         }
     }
 
     public class Condition {
         public string Name = string.Empty;
         public bool Negated;
-        public IDictionary<string, string> Args = new Dictionary<string, string>();
+        public IList<Parameter> Args = new List<Parameter>();
         public IList<Action> Actions = new List<Action>();
         public string? Transition;
         public string? TransitionComment;
 
         public void WriteTo(IndentedTextWriter writer) {
-            writer.WriteLine($"if {(Negated ? "not " : "")}{Name}({string.Join(", ", Args.Select(arg => $"{arg.Key}='{arg.Value}'"))}):");
+            writer.WriteLine($"if {(Negated ? "not " : "")}{Name}({string.Join(", ", Args.Select(arg => $"{arg.Name}={arg.FormatValue()}"))}):");
             writer.Indent++;
             foreach (Action action in Actions) {
                 action.WriteTo(writer);
@@ -124,6 +124,7 @@ internal class TriggerScriptCommon {
     public readonly SortedDictionary<string, Function> Conditions = new();
 
     public void WriteTo(IndentedTextWriter writer) {
+        writer.WriteLine("import state");
         writer.WriteLine("from typing import List");
         writer.WriteLine();
 
@@ -142,13 +143,25 @@ internal class TriggerScriptCommon {
         }
     }
 
-    internal enum Type { None = 0, Str, Int, Float, IntList, Bool }
-    internal record Parameter(Type Type, string Name);
-
     internal class Function : IComparable<Function> {
-        public string Name { get; init; }
-        public Type ReturnType { get; init; }
+        public string? Comment = null;
+        public readonly string Name;
+        public ScriptType ReturnType { get; init; }
         private readonly List<Parameter> parameters = new();
+
+        private readonly Dictionary<string, (ScriptType, string?)> typeOverrides;
+        private readonly Dictionary<string, string> nameOverrides;
+
+        public Function(string name, bool isCondition) {
+            Name = name;
+            if (isCondition) {
+                nameOverrides = TriggerDefinitionOverride.ConditionNameOverride.GetValueOrDefault(name, new Dictionary<string, string>());
+                typeOverrides = TriggerDefinitionOverride.ConditionTypeOverride.GetValueOrDefault(name, new Dictionary<string, (ScriptType, string?)>());
+            } else {
+                nameOverrides = TriggerDefinitionOverride.ActionNameOverride.GetValueOrDefault(name, new Dictionary<string, string>());
+                typeOverrides = TriggerDefinitionOverride.ActionTypeOverride.GetValueOrDefault(name, new Dictionary<string, (ScriptType, string?)>());
+            }
+        }
 
         public int CompareTo(Function? other) {
             if (ReferenceEquals(this, other)) return 0;
@@ -160,57 +173,102 @@ internal class TriggerScriptCommon {
             return ReturnType.CompareTo(other.ReturnType);
         }
 
-        public bool AddParameter(Parameter parameter) {
-            if (parameters.Contains(parameter)) {
-                return false;
+        // Returns normalized parameter name
+        public (ScriptType, string) AddParameter(ScriptType type, string name, string? defaultValue = null) {
+            if (nameOverrides.ContainsKey(name)) {
+                name = nameOverrides[name];
             }
 
-            parameters.Add(parameter);
-            return true;
+            Parameter? existing = parameters.FirstOrDefault(param => param.Name == name);
+            if (existing != null) {
+                return (existing.Type, existing.Name);
+            }
+
+            if (typeOverrides.ContainsKey(name)) {
+                (ScriptType, string?) typeOverride = typeOverrides[name];
+                type = typeOverride.Item1;
+                defaultValue = typeOverride.Item2;
+            }
+
+            parameters.Add(new Parameter(type, name, defaultValue));
+            return (type, name);
         }
 
         public void WriteTo(IndentedTextWriter writer) {
+            if (Comment != null) {
+                writer.WriteLine($"# {Comment}");
+            }
             writer.Write($"def {Name}(");
             bool firstLoop = true;
             foreach (Parameter parameter in parameters) {
+                if (parameter.Type == ScriptType.None) {
+                    continue;
+                }
+
                 if (!firstLoop) {
                     writer.Write(", ");
                 }
                 writer.Write($"{parameter.Name}: ");
                 switch (parameter.Type) {
-                    case Type.Str:
+                    case ScriptType.Str:
                         writer.Write("str");
                         break;
-                    case Type.Int:
+                    case ScriptType.Int:
                         writer.Write("int");
                         break;
-                    case Type.Float:
+                    case ScriptType.Float:
                         writer.Write("float");
                         break;
-                    case Type.IntList:
+                    case ScriptType.IntList:
                         writer.Write("List[int]");
                         break;
-                    case Type.Bool:
+                    case ScriptType.StrList:
+                        writer.Write("List[str]");
+                        break;
+                    case ScriptType.Vector3:
+                        writer.Write("List[float]");
+                        break;
+                    case ScriptType.Bool:
                         writer.Write("bool");
+                        break;
+                    case ScriptType.State:
+                        writer.Write("state.State");
                         break;
                     default:
                         throw new ArgumentException($"Invalid parameter type: {parameter.Type}");
                 }
 
+                string defaultValue = parameter.Value ?? parameter.Type switch {
+                    ScriptType.Str => "None",
+                    ScriptType.Int => "0",
+                    ScriptType.Float => "0.0",
+                    ScriptType.IntList => "[]",
+                    ScriptType.StrList => "[]",
+                    ScriptType.Vector3 => "[0,0,0]",
+                    ScriptType.Bool => "False",
+                    ScriptType.State => "None",
+                    _ => throw new ArgumentException($"Invalid parameter type: {parameter.Type}"),
+                };
+                writer.Write($"={defaultValue}");
+
                 firstLoop = false;
             }
 
             string returnTypeStr = ReturnType switch {
-                Type.None => "",
-                Type.Str => " -> str",
-                Type.Int => " -> int",
-                Type.Float => " -> float",
-                Type.Bool => " -> bool",
+                ScriptType.None => "",
+                ScriptType.Str => " -> str",
+                ScriptType.Int => " -> int",
+                ScriptType.Float => " -> float",
+                ScriptType.Bool => " -> bool",
                 _ => throw new ArgumentException($"Invalid return type: {ReturnType}")
             };
             writer.WriteLine($"){returnTypeStr}:");
             writer.Indent++;
-            writer.WriteLine("pass");
+            if (ReturnType == ScriptType.Bool) {
+                writer.WriteLine("return False");
+            } else {
+                writer.WriteLine("pass");
+            }
             writer.Indent--;
         }
     }

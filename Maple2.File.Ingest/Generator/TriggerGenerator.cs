@@ -45,7 +45,7 @@ public class TriggerGenerator {
             Directory.CreateDirectory($"trigger/{scriptDir}");
             string pyName = $"trigger/{scriptDir}/{scriptName}.py";
             using var stream = new StreamWriter(pyName);
-            using var writer = new IndentedTextWriter(stream, "  ");
+            using var writer = new IndentedTextWriter(stream, "    ");
             writer.WriteLine(@$""""""" {entry.Name} """"""");
 
             XmlDocument document = reader.GetXmlDocument(entry);
@@ -87,7 +87,7 @@ public class TriggerGenerator {
 
                     name = FixClassName(name);
                     if (stateIndex.ContainsKey(name)) {
-                        Console.WriteLine($"Duplicate state in {entry.Name} ignored and removed: {name}");
+                        // Console.WriteLine($"Duplicate state in {entry.Name} ignored and removed: {name}");
                         stateNodes.Remove(stateNode);
                     } else {
                         stateIndex.Add(name, name);
@@ -111,7 +111,7 @@ public class TriggerGenerator {
         // Create module for dungeon_common
         System.IO.File.Create("trigger/dungeon_common/__init__.py");
         using var commonStream = new StreamWriter("trigger/common.py");
-        using var commonWriter = new IndentedTextWriter(commonStream, "  ");
+        using var commonWriter = new IndentedTextWriter(commonStream, "    ");
         CommonScript.WriteTo(commonWriter);
     }
 
@@ -143,21 +143,41 @@ public class TriggerGenerator {
     }
 
     private static TriggerScript.Action ParseAction(XmlNode node) {
-        var args = new Dictionary<string, string>();
+        var strArgs = new List<(string, string)>();
+        string? origName = null;
         foreach (XmlAttribute attribute in node.Attributes) {
-            args[attribute.Name] = attribute.Value;
+            if (attribute.Name == "name") {
+                origName = attribute.Value;
+                continue;
+            }
+            strArgs.Add((attribute.Name, attribute.Value));
         }
+        Debug.Assert(origName != null, "Unable to find name param");
 
-        Debug.Assert(args.Remove("name", out string? name), "Unable to find name param");
         // IndexStrings(name, isAction: true);
-        name = Translate(name, TriggerTranslate.TranslateAction);
+        string name = Translate(origName, TriggerTranslate.TranslateAction);
         if (!CommonScript.Actions.TryGetValue(name, out TriggerScriptCommon.Function? function)) {
-            function = new TriggerScriptCommon.Function {Name = name};
+            function = new TriggerScriptCommon.Function(name, false) {
+                Comment = origName,
+            };
             CommonScript.Actions.Add(name, function);
         }
-        foreach (string argName in args.Keys) {
-            function.AddParameter(new TriggerScriptCommon.Parameter(TriggerScriptCommon.Type.Str, argName));
+
+        var args = new List<Parameter>();
+        foreach ((string argName, string argValue) in strArgs) {
+            (ScriptType Type, string Name) param = function.AddParameter(ScriptType.Str, argName);
+            if (param.Type != ScriptType.None) {
+                args.Add(new Parameter(param.Type, param.Name, argValue));
+            }
         }
+        // Fix state names referenced in args
+        if (name is "set_skip" or "set_scene_skip") {
+            Parameter? result = args.Find(arg => arg.Name == "state");
+            if (result != null) {
+                result.Value = FixClassName(result.Value);
+            }
+        }
+
         return new TriggerScript.Action {
             Name = name,
             Args = args,
@@ -165,21 +185,43 @@ public class TriggerGenerator {
     }
 
     private static TriggerScript.Condition ParseCondition(XmlNode node, Dictionary<string, string> stateIndex, string filePath) {
-        var args = new Dictionary<string, string>();
+        var strArgs = new List<(string, string)>();
+        string? origName = null;
         foreach (XmlAttribute attribute in node.Attributes) {
-            args[attribute.Name] = attribute.Value;
+            if (attribute.Name == "name") {
+                origName = attribute.Value;
+                continue;
+            }
+            strArgs.Add((attribute.Name, attribute.Value));
         }
-        Debug.Assert(args.Remove("name", out string? name), "Unable to find name param");
-        bool negated = name.StartsWith('!');
-        name = name.TrimStart('!');
+        Debug.Assert(origName != null, "Unable to find name param");
+
+        bool negated = origName.StartsWith('!');
+        string name = origName.TrimStart('!');
         // IndexStrings(name, isCondition: true);
         name = Translate(name, TriggerTranslate.TranslateCondition);
         if (!CommonScript.Conditions.TryGetValue(name, out TriggerScriptCommon.Function? function)) {
-            function = new TriggerScriptCommon.Function {Name = name, ReturnType = TriggerScriptCommon.Type.Bool};
+            function = new TriggerScriptCommon.Function(name, true) {
+                Comment = origName,
+                ReturnType = ScriptType.Bool,
+            };
             CommonScript.Conditions.Add(name, function);
         }
-        foreach (string argName in args.Keys) {
-            function.AddParameter(new TriggerScriptCommon.Parameter(TriggerScriptCommon.Type.Str, argName));
+
+        var args = new List<Parameter>();
+        foreach ((string argName, string argValue) in strArgs) {
+            (ScriptType Type, string Name) param = function.AddParameter(ScriptType.Str, argName);
+            if (param.Type != ScriptType.None) {
+                args.Add(new Parameter(param.Type, param.Name, argValue));
+            }
+        }
+        // Negative boxId matching
+        if (name is "user_detected") {
+            Parameter? result = args.Find(arg => arg.Name == "boxIds");
+            if (result != null && result.Value?.StartsWith("!") == true) {
+                result.Value = result.Value.TrimStart('!');
+                negated = !negated;
+            }
         }
 
         var actions = new List<TriggerScript.Action>();
@@ -192,8 +234,8 @@ public class TriggerGenerator {
             if (stateIndex.TryGetValue(transition, out string? result)) {
                 transition = result;
             } else {
-                Console.WriteLine($"Script {filePath} Missing transition: {transition}");
-                Console.WriteLine($"- {string.Join(",", stateIndex.Keys)}");
+                // Console.WriteLine($"Script {filePath} Missing transition: {transition}");
+                // Console.WriteLine($"- {string.Join(",", stateIndex.Keys)}");
                 transition = null;
             }
         }
@@ -233,7 +275,9 @@ public class TriggerGenerator {
 
         string prefix = "";
         while (name.Length > 0 && !IsLetter(name[0])) {
-            prefix += name[0];
+            if (name[0] != '_') {
+                prefix += name[0];
+            }
             name = name[1..];
         }
 
