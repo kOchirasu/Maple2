@@ -12,7 +12,7 @@ internal record Parameter(ScriptType Type, string Name) {
         Value = value;
     }
 
-    public string? FormatValue() {
+    public string FormatValue() {
         ValidateValue();
         return Type switch {
             ScriptType.Str => string.IsNullOrWhiteSpace(Value) ? "None" : $"'{Value.Replace("'", "\\'")}'",

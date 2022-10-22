@@ -42,18 +42,18 @@ public class TriggerGenerator {
         foreach (PackFileEntry entry in reader.Files.Where(file => file.Name.StartsWith("trigger/"))) {
             string scriptDir = entry.Name.Split('/', StringSplitOptions.RemoveEmptyEntries)[1];
             string scriptName = Path.GetFileNameWithoutExtension(entry.Name);
-            Directory.CreateDirectory($"trigger/{scriptDir}");
-            string pyName = $"trigger/{scriptDir}/{scriptName}.py";
+            Directory.CreateDirectory($"Scripts/Trigger/{scriptDir}");
+            string pyName = $"Scripts/Trigger/{scriptDir}/{scriptName}.py";
             using var stream = new StreamWriter(pyName);
             using var writer = new IndentedTextWriter(stream, "    ");
             writer.WriteLine(@$""""""" {entry.Name} """"""");
+            writer.WriteLine("from common import *");
+            writer.WriteLine("import state");
+            writer.WriteLine();
 
             XmlDocument document = reader.GetXmlDocument(entry);
             XmlNodeList stateNodeList = document.SelectNodes("ms2/state")!;
             try {
-                writer.WriteLine("from common import *");
-                writer.WriteLine("import state");
-
                 var stateIndex = new Dictionary<string, string>();
                 foreach (XmlNode importNode in document.SelectNodes("ms2/import")!) {
                     string path = importNode.Attributes["path"].Value.ToLower();
@@ -97,6 +97,14 @@ public class TriggerGenerator {
                 var script = new TriggerScript();
                 foreach (XmlNode stateNode in stateNodes) {
                     TriggerScript.State scriptState = ParseState(stateNode, stateIndex, entry.Name);
+                    XmlNode current = stateNode;
+                    while (current.PreviousSibling is XmlComment comment && comment.Value != null) {
+                        if (comment.Value.Contains("</state")) {
+                            break;
+                        }
+                        scriptState.Comments.Insert(0, comment.Value);
+                        current = comment;
+                    }
                     script.States.Add(scriptState);
                 }
 
@@ -109,8 +117,8 @@ public class TriggerGenerator {
         }
 
         // Create module for dungeon_common
-        System.IO.File.Create("trigger/dungeon_common/__init__.py");
-        using var commonStream = new StreamWriter("trigger/common.py");
+        System.IO.File.Create("Scripts/Trigger/dungeon_common/__init__.py");
+        using var commonStream = new StreamWriter("Scripts/Trigger/common.py");
         using var commonWriter = new IndentedTextWriter(commonStream, "    ");
         CommonScript.WriteTo(commonWriter);
     }
@@ -120,18 +128,30 @@ public class TriggerGenerator {
         // IndexStrings(name, isState: true);
 
         var onEnter = new List<TriggerScript.Action>();
-        foreach (XmlNode action in node.SelectNodes("onEnter/action")) {
-            onEnter.Add(ParseAction(action));
+        foreach (XmlNode actionNode in node.SelectNodes("onEnter/action")) {
+            TriggerScript.Action action = ParseAction(actionNode, stateIndex);
+            if (actionNode.NextSibling is XmlComment comment) {
+                action.LineComment = comment.Value;
+            }
+            onEnter.Add(action);
         }
 
         var conditions = new List<TriggerScript.Condition>();
-        foreach (XmlNode condition in node.SelectNodes("condition")) {
-            conditions.Add(ParseCondition(condition, stateIndex, filePath));
+        foreach (XmlNode conditionNode in node.SelectNodes("condition")) {
+            TriggerScript.Condition condition = ParseCondition(conditionNode, stateIndex, filePath);
+            if (conditionNode.NextSibling is XmlComment comment) {
+                condition.LineComment = comment.Value;
+            }
+            conditions.Add(condition);
         }
 
         var onExit = new List<TriggerScript.Action>();
-        foreach (XmlNode action in node.SelectNodes("onExit/action")) {
-            onExit.Add(ParseAction(action));
+        foreach (XmlNode actionNode in node.SelectNodes("onExit/action")) {
+            TriggerScript.Action action = ParseAction(actionNode, stateIndex);
+            if (actionNode.NextSibling is XmlComment comment) {
+                action.LineComment = comment.Value;
+            }
+            onExit.Add(action);
         }
 
         return new TriggerScript.State {
@@ -142,7 +162,7 @@ public class TriggerGenerator {
         };
     }
 
-    private static TriggerScript.Action ParseAction(XmlNode node) {
+    private static TriggerScript.Action ParseAction(XmlNode node, Dictionary<string, string> stateIndex) {
         var strArgs = new List<(string, string)>();
         string? origName = null;
         foreach (XmlAttribute attribute in node.Attributes) {
@@ -171,17 +191,30 @@ public class TriggerGenerator {
             }
         }
         // Fix state names referenced in args
+        string? comment = null;
         if (name is "set_skip" or "set_scene_skip") {
             Parameter? result = args.Find(arg => arg.Name == "state");
             if (result != null) {
-                result.Value = FixClassName(result.Value);
+                string? fixedName = FixClassName(result.Value);
+                if (fixedName != null && stateIndex.ContainsKey(fixedName)) {
+                    result.Value = fixedName;
+                } else {
+                    if (!string.IsNullOrWhiteSpace(fixedName)) {
+                        comment = $"Missing State: {fixedName}";
+                    }
+                    result.Value = null;
+                }
             }
         }
 
-        return new TriggerScript.Action {
+        var action = new TriggerScript.Action {
             Name = name,
             Args = args,
         };
+        if (comment != null) {
+            action.Comments.Insert(0, comment);
+        }
+        return action;
     }
 
     private static TriggerScript.Condition ParseCondition(XmlNode node, Dictionary<string, string> stateIndex, string filePath) {
@@ -226,7 +259,7 @@ public class TriggerGenerator {
 
         var actions = new List<TriggerScript.Action>();
         foreach (XmlNode action in node.SelectNodes("action")) {
-            actions.Add(ParseAction(action));
+            actions.Add(ParseAction(action, stateIndex));
         }
 
         string? transition = FixClassName(node.SelectSingleNode("transition")?.Attributes?["state"]?.Value);
@@ -263,6 +296,10 @@ public class TriggerGenerator {
     private static string? FixClassName(string? name) {
         if (name == null) {
             return null;
+        }
+
+        if (name == "None") {
+            return "StateNone";
         }
 
         name = name.Replace("-", "To");
@@ -330,6 +367,18 @@ public class TriggerGenerator {
         ProcessedStrings.Add((text, isState, isAction, isCondition));
         if (builder.Length > 0) {
             //Console.WriteLine($"{text} => {builder}");
+        }
+    }
+
+    private static void WriteXmlComments(IndentedTextWriter writer, XmlNode? node) {
+        if (node == null) {
+            return;
+        }
+
+        foreach (XmlNode comment in node.ChildNodes) {
+            if (comment is XmlComment) {
+                writer.WriteLine($"# {comment.Value}");
+            }
         }
     }
 }
