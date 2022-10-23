@@ -3,13 +3,43 @@ using System.Globalization;
 
 namespace Maple2.File.Ingest.Utils;
 
-internal enum ScriptType { None = 0, Str, Int, Float, IntList, StrList, Vector3, Bool, State }
+internal enum ScriptType { None = 0, Str, Int, Float, IntList, StrList, StateList, Vector3, Bool, State }
 
 internal record Parameter(ScriptType Type, string Name) {
     public string? Value = null;
 
     public Parameter(ScriptType type, string name, string? value) : this(type, name) {
         Value = value;
+    }
+
+    public string TypeStr() {
+        return Type switch {
+            ScriptType.Str => "str",
+            ScriptType.Int => "int",
+            ScriptType.Float => "float",
+            ScriptType.IntList => "List[int]",
+            ScriptType.StrList => "List[str]",
+            ScriptType.StateList => "List[common.Trigger]",
+            ScriptType.Vector3 => "List[float]",
+            ScriptType.Bool => "bool",
+            ScriptType.State => "'Trigger'",
+            _ => throw new ArgumentException($"Invalid parameter type: {Type}")
+        };
+    }
+
+    public string DefaultStr() {
+        return Value ?? Type switch {
+            ScriptType.Str => "None",
+            ScriptType.Int => "0",
+            ScriptType.Float => "0.0",
+            ScriptType.IntList => "[]",
+            ScriptType.StrList => "[]",
+            ScriptType.StateList => "[]",
+            ScriptType.Vector3 => "[0,0,0]",
+            ScriptType.Bool => "False",
+            ScriptType.State => "None",
+            _ => throw new ArgumentException($"Invalid parameter type: {Type}"),
+        };
     }
 
     public string FormatValue() {
@@ -22,6 +52,8 @@ internal record Parameter(ScriptType Type, string Name) {
                 : $"[{string.Join(",", GetIntList(Value).Select(int.Parse))}]",
             ScriptType.StrList => string.IsNullOrWhiteSpace(Value) ? "[]"
                 : $"[{string.Join(",", Value.Split(new []{',', ' '}, StringSplitOptions.RemoveEmptyEntries).Select(str => $"'{str.Replace("'", "\\'")}'"))}]",
+            ScriptType.StateList => string.IsNullOrWhiteSpace(Value) ? "[]"
+                : $"[{string.Join(",", Value.Split(new []{',', ' '}, StringSplitOptions.RemoveEmptyEntries))}]",
             ScriptType.Vector3 => string.IsNullOrWhiteSpace(Value) ? "[]"
                 : $"[{string.Join(",", Value.Split(new []{',', ' '}, StringSplitOptions.RemoveEmptyEntries))}]",
             ScriptType.Bool => Value?.ToLower() == "true" || Value == "1" ? "True" : "False",
@@ -55,6 +87,8 @@ internal record Parameter(ScriptType Type, string Name) {
                 }
                 return;
             case ScriptType.StrList:
+                return;
+            case ScriptType.StateList:
                 return;
             case ScriptType.Vector3:
                 string[] values = Value.Split(",", StringSplitOptions.RemoveEmptyEntries);

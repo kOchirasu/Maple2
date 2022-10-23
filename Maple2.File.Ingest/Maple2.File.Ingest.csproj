@@ -26,11 +26,4 @@
         <ProjectReference Include="..\Maple2.Database\Maple2.Database.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-        <None Update="Resources\state.py">
-            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-            <TargetPath>Scripts\trigger\state.py</TargetPath>
-        </None>
-    </ItemGroup>
-
 </Project>
