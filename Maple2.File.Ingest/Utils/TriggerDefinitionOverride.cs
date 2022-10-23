@@ -13,8 +13,8 @@ internal static class TriggerDefinitionOverride {
         // Action Override
         AddActionNameOverride("add_balloon_talk", ("spawnPointID", "spawnId"));
         AddActionTypeOverride("add_balloon_talk", ("spawnId", Int, null), ("duration", Int, null), ("delayTick", Int, null), ("npcID", Int, null));
-        AddActionNameOverride("add_buff", ("arg1", "boxIds"), ("arg2", "skillId"), ("arg3", "level"));
-        AddActionTypeOverride("add_buff", ("boxIds", IntList, null), ("skillId", Int, null), ("level", Int, null), ("arg4", Bool, "True"), ("arg5", Bool, "True"));
+        AddActionNameOverride("add_buff", ("arg1", "boxIds"), ("arg2", "skillId"), ("arg3", "level"), ("arg4", "isPlayer"), ("arg5", "isSkillSet"));
+        AddActionTypeOverride("add_buff", ("boxIds", IntList, null), ("skillId", Int, null), ("level", Int, null), ("isPlayer", Bool, "True"), ("isSkillSet", Bool, "True"));
         AddActionNameOverride("add_cinematic_talk", ("npcID", "npcId"), ("illustID", "illustId"), ("delay", "delayTick"));
         AddActionTypeOverride("add_cinematic_talk", ("npcId", Int, null), ("duration", Int, null), ("delayTick", Int, null));
         AddActionNameOverride("add_effect_nif", ("spawnPointID", "spawnId"));
@@ -41,8 +41,8 @@ internal static class TriggerDefinitionOverride {
         AddActionTypeOverride("create_field_game", ("reset", Bool, null));
         AddActionNameOverride("create_item", ("arg1", "spawnIds"), ("arg2", "triggerId"), ("arg3", "itemId"));
         AddActionTypeOverride("create_item", ("spawnIds", IntList, null), ("triggerId", Int, null), ("itemId", Int, null), ("arg5", Int, null));
-        AddActionNameOverride("create_monster", ("arg1", "spawnIds"), ("agr2", "arg2"));
-        AddActionTypeOverride("create_monster", ("spawnIds", IntList, null), ("arg2", Bool, "True"), ("arg3", Int, null), ("arg", None, null));
+        AddActionNameOverride("create_monster", ("arg1", "spawnIds"), ("arg2", "animationEffect"), ("agr2", "animationEffect"), ("arg3", "animationDelay"));
+        AddActionTypeOverride("create_monster", ("spawnIds", IntList, null), ("animationEffect", Bool, "True"), ("animationDelay", Int, null), ("arg", None, null));
         AddActionNameOverride("create_widget", ("arg1", "type"));
         // AddActionTypeOverride("create_widget");
         AddActionNameOverride("dark_stream", ("spawnID", "spawnIds"));
@@ -90,7 +90,7 @@ internal static class TriggerDefinitionOverride {
         // AddActionNameOverride("field_game_constant");
         // AddActionTypeOverride("field_game_constant");
         AddActionNameOverride("field_game_message", ("arg2", "script"), ("arg3", "duration"));
-        AddActionTypeOverride("field_game_message", ("custom", Int, null), ("arg1", Int, null), ("duration", Int, null));
+        AddActionTypeOverride("field_game_message", ("custom", Int, null), ("arg1", None, null), ("duration", Int, null)); // arg1 always True
         // AddActionNameOverride("field_war_end");
         AddActionTypeOverride("field_war_end", ("isClear", Bool, null));
         AddActionNameOverride("give_exp", ("arg1", "boxId"), ("arg2", "amount"));
@@ -165,8 +165,8 @@ internal static class TriggerDefinitionOverride {
         AddActionTypeOverride("random_additional_effect", ("boxId", Int, null), ("spawnId", Int, null), ("targetCount", Int, null), ("tick", Int, null), ("waitTick", Int, null), ("additionalEffectId", Int, null));
         AddActionNameOverride("remove_balloon_talk", ("spawnPointID", "spawnId"));
         AddActionTypeOverride("remove_balloon_talk", ("spawnId", Int, null));
-        AddActionNameOverride("remove_buff", ("arg1", "boxId"), ("arg2", "skillId"));
-        AddActionTypeOverride("remove_buff", ("boxId", Int, null), ("skillId", Int, null), ("arg3", Bool, null));
+        AddActionNameOverride("remove_buff", ("arg1", "boxId"), ("arg2", "skillId"), ("arg3", "isPlayer"));
+        AddActionTypeOverride("remove_buff", ("boxId", Int, null), ("skillId", Int, null), ("isPlayer", Bool, null));
         // AddActionNameOverride("remove_cinematic_talk");
         // AddActionTypeOverride("remove_cinematic_talk");
         AddActionNameOverride("remove_effect_nif", ("spawnPointID", "spawnId"));
@@ -197,8 +197,8 @@ internal static class TriggerDefinitionOverride {
         AddActionTypeOverride("set_ai_extra_data", ("value", Int, null), ("isModify", Bool, null), ("boxId", Int, null));
         AddActionNameOverride("set_ambient_light", ("arg1", "primary"), ("arg2", "secondary"), ("arg3", "tertiary"));
         AddActionTypeOverride("set_ambient_light", ("primary", Vector3, null), ("secondary", Vector3, null), ("tertiary", Vector3, null));
-        AddActionNameOverride("set_breakable", ("arg1", "triggerIds"), ("arg2", "enabled"));
-        AddActionTypeOverride("set_breakable", ("triggerIds", IntList, null), ("enabled", Bool, null));
+        AddActionNameOverride("set_breakable", ("arg1", "triggerIds"), ("arg2", "enable"));
+        AddActionTypeOverride("set_breakable", ("triggerIds", IntList, null), ("enable", Bool, null));
         // AddActionNameOverride("set_cinematic_intro");
         // AddActionTypeOverride("set_cinematic_intro");
         AddActionNameOverride("set_cinematic_ui", ("arg1", "type"), ("arg2", "script"));
@@ -221,8 +221,8 @@ internal static class TriggerDefinitionOverride {
         AddActionTypeOverride("set_ladder", ("triggerIds", IntList, null), ("visible", Bool, null), ("animationEffect", Bool, null), ("animationDelay", Int, null));
         // AddActionNameOverride("set_local_camera");
         AddActionTypeOverride("set_local_camera", ("cameraId", Int, null), ("enable", Bool, null));
-        AddActionNameOverride("set_mesh", ("arg1", "triggerIds"), ("arg2", "visible"));
-        AddActionTypeOverride("set_mesh", ("triggerIds", IntList, null), ("visible", Bool, null), ("arg3", Int, null), ("arg4", Int, null), ("arg5", Float, null));
+        AddActionNameOverride("set_mesh", ("arg1", "triggerIds"), ("arg2", "visible"), ("arg4", "delay"), ("arg5", "scale"));
+        AddActionTypeOverride("set_mesh", ("triggerIds", IntList, null), ("visible", Bool, null), ("arg3", Int, null), ("delay", Int, null), ("scale", Float, null));
         AddActionNameOverride("set_mesh_animation", ("arg1", "triggerIds"), ("arg2", "visible"));
         AddActionTypeOverride("set_mesh_animation", ("triggerIds", IntList, null), ("visible", Bool, null), ("arg3", Int, null), ("arg4", Int, null));
         AddActionNameOverride("set_mini_game_area_for_hack", ("boxID", "boxId"));
@@ -245,8 +245,8 @@ internal static class TriggerDefinitionOverride {
         AddActionTypeOverride("set_pc_rotation", ("rotation", Vector3, null));
         // AddActionNameOverride("set_photo_studio");
         AddActionTypeOverride("set_photo_studio", ("isEnable", Bool, null));
-        AddActionNameOverride("set_portal", ("arg1", "portalId"), ("arg2", "visible"), ("arg3", "enabled"), ("arg4", "minimapVisible"), ("arg", "minimapVisible"));
-        AddActionTypeOverride("set_portal", ("portalId", Int, null), ("visible", Bool, null), ("enabled", Bool, null), ("minimapVisible", Bool, null), ("arg5", Bool, null));
+        AddActionNameOverride("set_portal", ("arg1", "portalId"), ("arg2", "visible"), ("arg3", "enable"), ("arg4", "minimapVisible"), ("arg", "minimapVisible"));
+        AddActionTypeOverride("set_portal", ("portalId", Int, null), ("visible", Bool, null), ("enable", Bool, null), ("minimapVisible", Bool, null), ("arg5", Bool, null));
         AddActionNameOverride("set_pvp_zone", ("arg1", "boxId"), ("arg3", "duration"), ("arg4", "additionalEffectId"), ("arg6", "boxIds"));
         AddActionTypeOverride("set_pvp_zone", ("boxId", Int, null), ("arg2", Int, null), ("duration", Int, null), ("additionalEffectId", Int, null), ("arg5", Int, null), ("boxIds", IntList, null));
         AddActionNameOverride("set_quest_accept", ("questID", "questId"), ("arg1", "questId"));
@@ -257,20 +257,20 @@ internal static class TriggerDefinitionOverride {
         AddActionTypeOverride("set_random_mesh", ("triggerIds", IntList, null), ("visible", Bool, null), ("meshCount", Int, null), ("arg4", Int, null), ("delay", Int, null));
         AddActionNameOverride("set_rope", ("arg1", "triggerId"), ("arg2", "visible"), ("arg3", "animationEffect"), ("arg4", "animationDelay"));
         AddActionTypeOverride("set_rope", ("triggerId", Int, null), ("visible", Bool, null), ("animationEffect", Bool, null), ("animationDelay", Int, null));
-        AddActionNameOverride("set_scene_skip", ("arg1", "state"));
+        AddActionNameOverride("set_scene_skip", ("arg1", "state"), ("arg2", "action"));
         AddActionTypeOverride("set_scene_skip", ("state", State, null));
-        AddActionNameOverride("set_skill", ("objectIDs", "triggerIds"), ("arg1", "triggerIds"), ("arg2", "isEnable"));
-        AddActionTypeOverride("set_skill", ("triggerIds", IntList, null), ("isEnable", Bool, null));
+        AddActionNameOverride("set_skill", ("objectIDs", "triggerIds"), ("arg1", "triggerIds"), ("arg2", "enable"));
+        AddActionTypeOverride("set_skill", ("triggerIds", IntList, null), ("enable", Bool, null));
         AddActionNameOverride("set_skip", ("arg1", "state"));
         AddActionTypeOverride("set_skip", ("state", State, null));
-        AddActionNameOverride("set_sound", ("arg1", "triggerId"));
-        AddActionTypeOverride("set_sound", ("triggerId", Int, null), ("arg2", Bool, null));
-        // AddActionNameOverride("set_state");
-        AddActionTypeOverride("set_state", ("arg1", Int, null), ("arg2", StrList, null), ("arg3", Bool, null));
+        AddActionNameOverride("set_sound", ("arg1", "triggerId"), ("arg2", "enable"));
+        AddActionTypeOverride("set_sound", ("triggerId", Int, null), ("enable", Bool, null));
+        AddActionNameOverride("set_state", ("arg1", "id"), ("arg2", "states"), ("arg3", "randomize"));
+        AddActionTypeOverride("set_state", ("id", Int, null), ("states", StateList, null), ("randomize", Bool, null));
         // AddActionNameOverride("set_time_scale");
         AddActionTypeOverride("set_time_scale", ("enable", Bool, null), ("startScale", Float, null), ("endScale", Float, null), ("duration", Float, null), ("interpolator", Int, null));
-        AddActionNameOverride("set_timer", ("arg1", "timerId"), ("arg2", "seconds"), ("arg3", "clearAtZero"), ("arg4", "display"));
-        AddActionTypeOverride("set_timer", ("seconds", Int, null), ("clearAtZero", Bool, null), ("display", Bool, null), ("arg5", Int, null));
+        AddActionNameOverride("set_timer", ("arg1", "timerId"), ("arg2", "seconds"), ("arg3", "startDelay"), ("arg4", "interval"), ("arg5", "vOffset"), ("arg6", "type"));
+        AddActionTypeOverride("set_timer", ("seconds", Int, null), ("startDelay", Int, null), ("interval", Int, null), ("vOffset", Int, null));
         AddActionNameOverride("set_user_value", ("triggerID", "triggerId"));
         AddActionTypeOverride("set_user_value", ("triggerId", Int, null), ("value", Int, null));
         AddActionNameOverride("set_user_value_from_dungeon_reward_count", ("dungeonRewardID", "dungeonRewardId"));
@@ -279,8 +279,8 @@ internal static class TriggerDefinitionOverride {
         AddActionTypeOverride("set_user_value_from_guild_vs_game_score", ("teamId", Int, null));
         AddActionNameOverride("set_user_value_from_user_count", ("triggerBoxID", "triggerBoxId"), ("userTagID", "userTagId"));
         AddActionTypeOverride("set_user_value_from_user_count", ("triggerBoxId", Int, null), ("userTagId", Int, null));
-        AddActionNameOverride("set_visible_breakable_object", ("arg1", "triggerIds"));
-        AddActionTypeOverride("set_visible_breakable_object", ("triggerIds", IntList, null), ("arg2", Bool, null));
+        AddActionNameOverride("set_visible_breakable_object", ("arg1", "triggerIds"), ("arg2", "visible"));
+        AddActionTypeOverride("set_visible_breakable_object", ("triggerIds", IntList, null), ("visible", Bool, null));
         AddActionNameOverride("set_visible_ui", ("uiName", "uiNames"));
         AddActionTypeOverride("set_visible_ui", ("uiNames", StrList, null), ("visible", Bool, null));
         // AddActionNameOverride("shadow_expedition");
@@ -316,7 +316,7 @@ internal static class TriggerDefinitionOverride {
         // AddActionNameOverride("unset_mini_game_area_for_hack");
         // AddActionTypeOverride("unset_mini_game_area_for_hack");
         // AddActionNameOverride("use_state");
-        AddActionTypeOverride("use_state", ("arg1", Str, null), ("arg2", Bool, null));
+        AddActionTypeOverride("use_state", ("arg1", Int, null), ("arg2", Bool, null));
         // AddActionNameOverride("user_tag_symbol");
         // AddActionTypeOverride("user_tag_symbol");
         AddActionNameOverride("user_value_to_number_mesh", ("startMeshID", "startMeshId"));
@@ -345,8 +345,8 @@ internal static class TriggerDefinitionOverride {
         // AddActionTypeOverride("wedding_vow_complete");
         AddActionNameOverride("widget_action", ("arg1", "type"), ("arg2", "func"), ("arg3", "widgetArg"));
         AddActionTypeOverride("widget_action", ("widgetArgNum", Int, null));
-        AddActionNameOverride("write_log", ("arg1", "logName"), ("arg2", "event"));
-        AddActionTypeOverride("write_log");
+        AddActionNameOverride("write_log", ("arg1", "logName"), ("arg2", "triggerId"), ("arg3", "event"), ("arg5", "subEvent"));
+        AddActionTypeOverride("write_log", ("triggerId", Int, null), ("arg4", Int, null));
 
         // Condition Override
         // AddConditionNameOverride("all_of");
@@ -362,7 +362,7 @@ internal static class TriggerDefinitionOverride {
         AddConditionNameOverride("check_npc_additional_effect", ("spawnPointID", "spawnId"), ("additionalEffectID", "additionalEffectId"));
         AddConditionTypeOverride("check_npc_additional_effect", ("spawnId", Int, null), ("additionalEffectId", Int, null), ("level", Int, null));
         AddConditionNameOverride("check_npc_damage", ("spawnPointID", "spawnId"));
-        AddConditionTypeOverride("check_npc_damage", ("spawnId", Int, null), ("damageRate", Float, null));
+        AddConditionTypeOverride("check_npc_damage", ("spawnId", Int, null), ("damageRate", Float, null), ("operator", Str, "'GreaterEqual'"));
         AddConditionNameOverride("check_npc_hp", ("spawnPointId", "spawnId"));
         AddConditionTypeOverride("check_npc_hp", ("value", Int, null), ("spawnId", Int, null), ("isRelative", Bool, null));
         AddConditionNameOverride("check_same_user_tag", ("triggerBoxID", "boxId"));
@@ -372,17 +372,17 @@ internal static class TriggerDefinitionOverride {
         // AddConditionNameOverride("check_user_count");
         AddConditionTypeOverride("check_user_count", ("checkCount", Int, null));
         AddConditionNameOverride("count_users", ("arg1", "boxId"), ("arg2", "boxId"), ("arg3", "operator"), ("userTagID", "userTagId"));
-        AddConditionTypeOverride("count_users", ("boxId", Int, null), ("arg2", Int, null), ("userTagId", Int, null));
+        AddConditionTypeOverride("count_users", ("boxId", Int, null), ("arg2", Int, null), ("operator", Str, "'GreaterEqual'"), ("userTagId", Int, null));
         // AddConditionNameOverride("day_of_week");
         AddConditionTypeOverride("day_of_week", ("dayOfWeeks", IntList, null));
         AddConditionNameOverride("detect_liftable_object", ("triggerBoxIDs", "boxIds"), ("itemID", "itemId"));
         AddConditionTypeOverride("detect_liftable_object", ("boxIds", IntList, null), ("itemId", Int, null));
         // AddConditionNameOverride("dungeon_check_play_time");
-        AddConditionTypeOverride("dungeon_check_play_time", ("playSeconds", Int, null));
+        AddConditionTypeOverride("dungeon_check_play_time", ("playSeconds", Int, null), ("operator", Str, "'GreaterEqual'"));
         // AddConditionNameOverride("dungeon_check_state");
         // AddConditionTypeOverride("dungeon_check_state");
         // AddConditionNameOverride("dungeon_first_user_mission_score");
-        AddConditionTypeOverride("dungeon_first_user_mission_score", ("score", Int, null));
+        AddConditionTypeOverride("dungeon_first_user_mission_score", ("score", Int, null), ("operator", Str, "'GreaterEqual'"));
         AddConditionNameOverride("dungeon_id", ("dungeonID", "dungeonId"));
         AddConditionTypeOverride("dungeon_id", ("dungeonId", Int, null));
         // AddConditionNameOverride("dungeon_level");
@@ -393,7 +393,7 @@ internal static class TriggerDefinitionOverride {
         AddConditionTypeOverride("dungeon_round_require", ("round", Int, null));
         // AddConditionNameOverride("dungeon_time_out");
         // AddConditionTypeOverride("dungeon_time_out");
-        // AddConditionNameOverride("dungeon_variable");
+        AddConditionNameOverride("dungeon_variable", ("varID", "varId"));
         AddConditionTypeOverride("dungeon_variable", ("varId", Int, null), ("value", Int, null));
         AddConditionNameOverride("guild_vs_game_scored_team", ("teamID", "teamId"));
         AddConditionTypeOverride("guild_vs_game_scored_team", ("teamId", Int, null));
@@ -409,16 +409,16 @@ internal static class TriggerDefinitionOverride {
         AddConditionTypeOverride("monster_in_combat", ("boxIds", IntList, null));
         AddConditionNameOverride("npc_detected", ("arg1", "boxId"), ("arg2", "spawnIds"));
         AddConditionTypeOverride("npc_detected", ("boxId", Int, null), ("spawnIds", IntList, null));
-        AddConditionNameOverride("object_interacted", ("arg1", "interactIds"));
-        AddConditionTypeOverride("object_interacted", ("interactIds", IntList, null), ("arg2", Int, null));
+        AddConditionNameOverride("object_interacted", ("arg1", "interactIds"), ("arg2", "stateValue"));
+        AddConditionTypeOverride("object_interacted", ("interactIds", IntList, null), ("stateValue", Int, null));
         AddConditionNameOverride("pvp_zone_ended", ("arg1", "boxId"));
         AddConditionTypeOverride("pvp_zone_ended", ("boxId", Int, null));
         AddConditionNameOverride("quest_user_detected", ("arg1", "boxIds"), ("arg2", "questIds"), ("arg3", "questStates"), ("arg4", "jobCode"));
         AddConditionTypeOverride("quest_user_detected", ("boxIds", IntList, null), ("questIds", IntList, null), ("questStates", IntList, null), ("jobCode", Int, null));
         AddConditionNameOverride("random_condition", ("arg1", "rate"));
         AddConditionTypeOverride("random_condition", ("rate", Float, null));
-        // AddConditionNameOverride("score_board_compare");
-        AddConditionTypeOverride("score_board_compare", ("score", Int, null));
+        AddConditionNameOverride("score_board_compare", ("compareOp", "operator"));
+        AddConditionTypeOverride("score_board_compare", ("operator", Str, "'GreaterEqual'"), ("score", Int, null));
         // AddConditionNameOverride("shadow_expedition_reach_point");
         AddConditionTypeOverride("shadow_expedition_reach_point", ("point", Int, null));
         AddConditionNameOverride("time_expired", ("arg1", "timerId"));
@@ -428,7 +428,7 @@ internal static class TriggerDefinitionOverride {
         AddConditionNameOverride("user_detected", ("arg1", "boxIds"), ("arg2", "jobCode"));
         AddConditionTypeOverride("user_detected", ("boxIds", IntList, null), ("jobCode", Int, null));
         // AddConditionNameOverride("user_value");
-        AddConditionTypeOverride("user_value", ("value", Int, null));
+        AddConditionTypeOverride("user_value", ("value", Int, null), ("operator", Str, "'GreaterEqual'"));
         // AddConditionNameOverride("wait_and_reset_tick");
         AddConditionTypeOverride("wait_and_reset_tick", ("waitTick", Int, null));
         // AddConditionNameOverride("wait_seconds_user_value");

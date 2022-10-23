@@ -40,6 +40,13 @@ public class TriggerGenerator {
 
     public void Generate() {
         foreach (PackFileEntry entry in reader.Files.Where(file => file.Name.StartsWith("trigger/"))) {
+            XmlDocument document = reader.GetXmlDocument(entry);
+            XmlNodeList stateNodeList = document.SelectNodes("ms2/state")!;
+            if (stateNodeList.Count == 0) {
+                Console.WriteLine($"Empty script: {entry.Name}");
+                continue;
+            }
+
             string scriptDir = entry.Name.Split('/', StringSplitOptions.RemoveEmptyEntries)[1];
             string scriptName = Path.GetFileNameWithoutExtension(entry.Name);
             Directory.CreateDirectory($"Scripts/Trigger/{scriptDir}");
@@ -47,12 +54,11 @@ public class TriggerGenerator {
             using var stream = new StreamWriter(pyName);
             using var writer = new IndentedTextWriter(stream, "    ");
             writer.WriteLine(@$""""""" {entry.Name} """"""");
-            writer.WriteLine("from common import *");
-            writer.WriteLine("import state");
-            writer.WriteLine();
 
-            XmlDocument document = reader.GetXmlDocument(entry);
-            XmlNodeList stateNodeList = document.SelectNodes("ms2/state")!;
+            var script = new TriggerScript {
+                Shared = scriptDir == "dungeon_common",
+            };
+
             try {
                 var stateIndex = new Dictionary<string, string>();
                 foreach (XmlNode importNode in document.SelectNodes("ms2/import")!) {
@@ -60,7 +66,7 @@ public class TriggerGenerator {
                     string importModule = Directory.GetParent(path).Name;
                     string importName = Path.GetFileNameWithoutExtension(path);
 
-                    writer.WriteLine($"from {importModule}.{importName} import *");
+                    script.Imports.Add($"{importModule}.{importName}");
                     switch (importName) {
                         case "checkusercount":
                             foreach (KeyValuePair<string, string> state in checkUserCountStates) {
@@ -76,8 +82,7 @@ public class TriggerGenerator {
                             throw new InvalidOperationException($"Unknown import: {importModule}/{importName}");
                     }
                 }
-                stateIndex.Add("DungeonStart", "state.DungeonStart");
-                writer.WriteLine();
+                stateIndex.Add("DungeonStart", "DungeonStart");
 
                 // Copy node list so that we can remove duplicate states
                 List<XmlNode> stateNodes = stateNodeList.Cast<XmlNode>().ToList();
@@ -94,7 +99,6 @@ public class TriggerGenerator {
                     }
                 }
 
-                var script = new TriggerScript();
                 foreach (XmlNode stateNode in stateNodes) {
                     TriggerScript.State scriptState = ParseState(stateNode, stateIndex, entry.Name);
                     XmlNode current = stateNode;
@@ -178,7 +182,7 @@ public class TriggerGenerator {
         string name = Translate(origName, TriggerTranslate.TranslateAction);
         if (!CommonScript.Actions.TryGetValue(name, out TriggerScriptCommon.Function? function)) {
             function = new TriggerScriptCommon.Function(name, false) {
-                Comment = origName,
+                Description = origName,
             };
             CommonScript.Actions.Add(name, function);
         }
@@ -230,12 +234,12 @@ public class TriggerGenerator {
         Debug.Assert(origName != null, "Unable to find name param");
 
         bool negated = origName.StartsWith('!');
-        string name = origName.TrimStart('!');
+        origName = origName.TrimStart('!');
         // IndexStrings(name, isCondition: true);
-        name = Translate(name, TriggerTranslate.TranslateCondition);
+        string name = Translate(origName, TriggerTranslate.TranslateCondition);
         if (!CommonScript.Conditions.TryGetValue(name, out TriggerScriptCommon.Function? function)) {
             function = new TriggerScriptCommon.Function(name, true) {
-                Comment = origName,
+                Description = origName,
                 ReturnType = ScriptType.Bool,
             };
             CommonScript.Conditions.Add(name, function);

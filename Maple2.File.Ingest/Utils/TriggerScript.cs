@@ -4,9 +4,12 @@ namespace Maple2.File.Ingest.Utils;
 
 internal class TriggerScript {
     public readonly IList<State> States;
+    public readonly IList<string> Imports;
+    public bool Shared { get; init; }
 
     public TriggerScript() {
         States = new List<State>();
+        Imports = new List<string>();
     }
 
     public class State {
@@ -20,11 +23,7 @@ internal class TriggerScript {
             foreach (string comment in Comments) {
                 writer.WriteLine(CommentString(comment));
             }
-            if (Name == "DungeonStart") {
-                writer.WriteLine($"class {Name}(state.DungeonStart):");
-            } else {
-                writer.WriteLine($"class {Name}(state.State):");
-            }
+            writer.WriteLine($"class {Name}(common.Trigger):");
 
             bool hasBody = false;
             writer.Indent++;
@@ -39,7 +38,7 @@ internal class TriggerScript {
                 hasBody = true;
             }
             if (Conditions.Count > 0) {
-                writer.WriteLine("def on_tick(self) -> state.State:");
+                writer.WriteLine("def on_tick(self) -> common.Trigger:");
                 writer.Indent++;
                 foreach (Condition condition in Conditions) {
                     condition.WriteTo(writer);
@@ -64,10 +63,6 @@ internal class TriggerScript {
                 WriteBlankLine(writer);
             }
             writer.Indent--;
-            if (Name == "DungeonStart") {
-                writer.WriteLine("state.DungeonStart = DungeonStart");
-                WriteBlankLine(writer);
-            }
             WriteBlankLine(writer);
         }
     }
@@ -86,10 +81,10 @@ internal class TriggerScript {
             IEnumerable<string> args = Args
                 .Where(arg => !string.IsNullOrWhiteSpace(arg.Value))
                 .Select(arg => $"{arg.Name}={arg.FormatValue()}");
-            writer.Write($"{Name}({string.Join(", ", args)})");
+            writer.Write($"self.{Name}({string.Join(", ", args)})");
             if (LineComment != null) {
                 LineComment = LineComment.Trim();
-                if (LineComment.StartsWith("<action")) {
+                if (LineComment.Contains("action name=")) {
                     writer.WriteLine();
                     foreach (string line in LineComment.Split('\n')) {
                         writer.WriteLine($"# {line.Trim()}");
@@ -118,7 +113,7 @@ internal class TriggerScript {
             foreach (string comment in Comments) {
                 writer.WriteLine(CommentString(comment));
             }
-            writer.Write($"if {(Negated ? "not " : "")}{Name}({string.Join(", ", Args.Select(arg => $"{arg.Name}={arg.FormatValue()}"))}):");
+            writer.Write($"if {(Negated ? "not " : "")}self.{Name}({string.Join(", ", Args.Select(arg => $"{arg.Name}={arg.FormatValue()}"))}):");
             if (LineComment != null) {
                 if (!LineComment.Contains('\n') && !LineComment.TrimStart().StartsWith("<condition")) {
                     writer.Write($" # {LineComment.Trim()}");
@@ -139,7 +134,7 @@ internal class TriggerScript {
                     writer.WriteLine("return None");
                 }
             } else {
-                writer.WriteLine($"return {Transition}()");
+                writer.WriteLine($"return {Transition}(self.ctx)");
             }
             writer.Indent--;
             if (LineComment != null) {
@@ -151,8 +146,24 @@ internal class TriggerScript {
     }
 
     public void WriteTo(IndentedTextWriter writer) {
+        writer.WriteLine("import common");
+        if (Imports.Count > 0) {
+            writer.WriteLine();
+            foreach (string import in Imports) {
+                writer.WriteLine($"#include {import.Replace('.', '/')}.py");
+                writer.WriteLine($"from {import} import *");
+            }
+        }
+        writer.WriteLine();
+        writer.WriteLine();
+
         foreach (State state in States) {
             state.WriteTo(writer);
+        }
+
+        // No initialization for dungeon_common
+        if (!Shared) {
+            writer.WriteLine($"initial_state = {States.First().Name}");
         }
     }
 
@@ -164,7 +175,7 @@ internal class TriggerScript {
     }
 
     public static string CommentString(string str) {
-        return $"# {str.Replace("\n", "\n# ")}";
+        return $"# {str.Trim().Replace("\n", "\n# ")}";
     }
 }
 
@@ -173,9 +184,34 @@ internal class TriggerScriptCommon {
     public readonly SortedDictionary<string, Function> Conditions = new();
 
     public void WriteTo(IndentedTextWriter writer) {
-        writer.WriteLine("import state");
         writer.WriteLine("from typing import List");
         writer.WriteLine();
+
+        TriggerScript.WriteBlankLine(writer);
+        writer.WriteLine("class Trigger:");
+        writer.Indent++;
+        writer.WriteLine("def __init__(self, ctx: ...):");
+        writer.Indent++;
+        writer.WriteLine("self.ctx = ctx");
+        writer.Indent--;
+        TriggerScript.WriteBlankLine(writer);
+        writer.WriteLine("def on_enter(self):");
+        writer.Indent++;
+        writer.WriteLine(@"""""""Invoked after transitioning to this state.""""""");
+        writer.WriteLine("pass");
+        writer.Indent--;
+        TriggerScript.WriteBlankLine(writer);
+        writer.WriteLine("def on_tick(self) -> 'Trigger':");
+        writer.Indent++;
+        writer.WriteLine(@"""""""Periodically invoked while in this state.""""""");
+        writer.WriteLine("pass");
+        writer.Indent--;
+        TriggerScript.WriteBlankLine(writer);
+        writer.WriteLine("def on_exit(self):");
+        writer.Indent++;
+        writer.WriteLine(@"""""""Invoked before transitioning to another state.""""""");
+        writer.WriteLine("pass");
+        writer.Indent--;
 
         TriggerScript.WriteBlankLine(writer);
         writer.WriteLine(@""""""" Actions """"""");
@@ -190,10 +226,12 @@ internal class TriggerScriptCommon {
             condition.WriteTo(writer);
             TriggerScript.WriteBlankLine(writer);
         }
+
+        writer.Indent--;
     }
 
     internal class Function : IComparable<Function> {
-        public string? Comment = null;
+        public string? Description = null;
         public readonly string Name;
         public ScriptType ReturnType { get; init; }
         private readonly List<Parameter> parameters = new();
@@ -244,75 +282,61 @@ internal class TriggerScriptCommon {
         }
 
         public void WriteTo(IndentedTextWriter writer) {
-            if (Comment != null) {
-                writer.WriteLine($"# {Comment}");
-            }
-            writer.Write($"def {Name}(");
-            bool firstLoop = true;
+            writer.Write($"def {Name}(self");
             foreach (Parameter parameter in parameters) {
                 if (parameter.Type == ScriptType.None) {
                     continue;
                 }
 
-                if (!firstLoop) {
-                    writer.Write(", ");
-                }
+                writer.Write(", ");
                 writer.Write($"{parameter.Name}: ");
-                switch (parameter.Type) {
-                    case ScriptType.Str:
-                        writer.Write("str");
-                        break;
-                    case ScriptType.Int:
-                        writer.Write("int");
-                        break;
-                    case ScriptType.Float:
-                        writer.Write("float");
-                        break;
-                    case ScriptType.IntList:
-                        writer.Write("List[int]");
-                        break;
-                    case ScriptType.StrList:
-                        writer.Write("List[str]");
-                        break;
-                    case ScriptType.Vector3:
-                        writer.Write("List[float]");
-                        break;
-                    case ScriptType.Bool:
-                        writer.Write("bool");
-                        break;
-                    case ScriptType.State:
-                        writer.Write("state.State");
-                        break;
-                    default:
-                        throw new ArgumentException($"Invalid parameter type: {parameter.Type}");
-                }
-
-                string defaultValue = parameter.Value ?? parameter.Type switch {
-                    ScriptType.Str => "None",
-                    ScriptType.Int => "0",
-                    ScriptType.Float => "0.0",
-                    ScriptType.IntList => "[]",
-                    ScriptType.StrList => "[]",
-                    ScriptType.Vector3 => "[0,0,0]",
-                    ScriptType.Bool => "False",
-                    ScriptType.State => "None",
-                    _ => throw new ArgumentException($"Invalid parameter type: {parameter.Type}"),
-                };
-                writer.Write($"={defaultValue}");
-
-                firstLoop = false;
+                writer.Write(parameter.TypeStr());
+                writer.Write($"={parameter.DefaultStr()}");
             }
 
+            writer.Write(")");
             string returnTypeStr = ReturnType switch {
                 ScriptType.None => "",
-                ScriptType.Str => " -> str",
-                ScriptType.Int => " -> int",
-                ScriptType.Float => " -> float",
-                ScriptType.Bool => " -> bool",
+                ScriptType.Str => "str",
+                ScriptType.Int => "int",
+                ScriptType.Float => "float",
+                ScriptType.Bool => "bool",
                 _ => throw new ArgumentException($"Invalid return type: {ReturnType}")
             };
-            writer.WriteLine($"){returnTypeStr}:");
+            if (!string.IsNullOrWhiteSpace(returnTypeStr)) {
+                writer.Write($" -> {returnTypeStr}");
+            }
+            writer.WriteLine(":");
             writer.Indent++;
+
+            // Write docstring
+            if (parameters.Count == 0 && string.IsNullOrWhiteSpace(returnTypeStr)) { // Single-line
+                writer.WriteLine($@"""""""{Description}""""""");
+            } else {
+                writer.WriteLine($@"""""""{Description}");
+                if (parameters.Count > 0) {
+                    TriggerScript.WriteBlankLine(writer);
+                    writer.WriteLine("Args:");
+                    writer.Indent++;
+                    foreach (Parameter parameter in parameters) {
+                        if (parameter.Type == ScriptType.None) {
+                            continue;
+                        }
+
+                        writer.WriteLine($"{parameter.Name} ({parameter.TypeStr()}): _description_. Defaults to {parameter.DefaultStr()}.");
+                    }
+                    writer.Indent--;
+                }
+                if (!string.IsNullOrWhiteSpace(returnTypeStr)) {
+                    TriggerScript.WriteBlankLine(writer);
+                    writer.WriteLine("Returns:");
+                    writer.Indent++;
+                    writer.WriteLine($"{returnTypeStr}: _description_");
+                    writer.Indent--;
+                }
+                writer.WriteLine(@"""""""");
+            }
+
             if (ReturnType == ScriptType.Bool) {
                 writer.WriteLine("return False");
             } else {
