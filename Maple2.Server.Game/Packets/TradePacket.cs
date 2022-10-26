@@ -1,4 +1,5 @@
-﻿using Maple2.Model.Game;
+﻿using Maple2.Model.Error;
+using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
@@ -32,13 +33,13 @@ public static class TradePacket {
         return pWriter;
     }
 
-    public static ByteWriter Error() {
+    public static ByteWriter Error(TradeError error, string name = "", int itemId = 0, int level = 0) {
         var pWriter = Packet.Of(SendOp.Trade);
         pWriter.Write<Command>(Command.Error);
-        pWriter.WriteByte();
-        pWriter.WriteUnicodeString();
-        pWriter.WriteInt();
-        pWriter.WriteInt();
+        pWriter.Write<TradeError>(error);
+        pWriter.WriteUnicodeString(name);
+        pWriter.WriteInt(itemId);
+        pWriter.WriteInt(level);
 
         return pWriter;
     }
@@ -74,10 +75,10 @@ public static class TradePacket {
         return pWriter;
     }
 
-    public static ByteWriter AddItem(bool index, Item item) {
+    public static ByteWriter AddItem(bool isSelf, Item item) {
         var pWriter = Packet.Of(SendOp.Trade);
         pWriter.Write<Command>(Command.AddItem);
-        pWriter.WriteBool(index);
+        pWriter.WriteBool(isSelf);
         pWriter.WriteInt(item.Id);
         pWriter.WriteLong(item.Uid);
         pWriter.WriteInt(item.Rarity);
@@ -89,45 +90,45 @@ public static class TradePacket {
         return pWriter;
     }
 
-    public static ByteWriter RemoveItem(bool index, int tradeSlot, long itemUid) {
+    public static ByteWriter RemoveItem(bool isSelf, int tradeSlot, long itemUid) {
         var pWriter = Packet.Of(SendOp.Trade);
         pWriter.Write<Command>(Command.RemoveItem);
-        pWriter.WriteBool(index);
+        pWriter.WriteBool(isSelf);
         pWriter.WriteInt(tradeSlot);
         pWriter.WriteLong(itemUid);
 
         return pWriter;
     }
 
-    public static ByteWriter SetMesos(bool index, long mesos) {
+    public static ByteWriter SetMesos(bool isSelf, long mesos) {
         var pWriter = Packet.Of(SendOp.Trade);
         pWriter.Write<Command>(Command.SetMesos);
-        pWriter.WriteBool(index);
+        pWriter.WriteBool(isSelf);
         pWriter.WriteLong(mesos);
 
         return pWriter;
     }
 
-    public static ByteWriter Finalize(bool index) {
+    public static ByteWriter Finalize(bool isSelf) {
         var pWriter = Packet.Of(SendOp.Trade);
         pWriter.Write<Command>(Command.Finalize);
-        pWriter.WriteBool(index);
+        pWriter.WriteBool(isSelf);
 
         return pWriter;
     }
 
-    public static ByteWriter UnFinalize(bool index) {
+    public static ByteWriter UnFinalize(bool isSelf) {
         var pWriter = Packet.Of(SendOp.Trade);
         pWriter.Write<Command>(Command.UnFinalize);
-        pWriter.WriteBool(index);
+        pWriter.WriteBool(isSelf);
 
         return pWriter;
     }
 
-    public static ByteWriter Complete(bool index) {
+    public static ByteWriter Complete(bool isSelf) {
         var pWriter = Packet.Of(SendOp.Trade);
         pWriter.Write<Command>(Command.Complete);
-        pWriter.WriteBool(index);
+        pWriter.WriteBool(isSelf);
 
         return pWriter;
     }
