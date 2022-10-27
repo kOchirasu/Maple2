@@ -169,6 +169,24 @@ public sealed partial class GameSession : Core.Network.Session {
         return true;
     }
 
+    private void LeaveField() {
+        Array.Clear(ItemLockStaging);
+        Array.Clear(DismantleStaging);
+        DismantleOpened = false;
+        Trade?.Dispose();
+        Instrument = null;
+        GuideObject = null;
+        HeldCube = null;
+        HeldLiftup = null;
+        ActiveSkills.Clear();
+        NpcScript = null;
+
+        if (Field != null) {
+            Scheduler.Stop();
+            Field.RemovePlayer(Player.ObjectId, out _);
+        }
+    }
+
     public bool PrepareField(int mapId, int portalId = -1, in Vector3 position = default, in Vector3 rotation = default) {
         FieldManager? newField = FieldFactory.Get(mapId);
         if (newField == null) {
@@ -176,10 +194,7 @@ public sealed partial class GameSession : Core.Network.Session {
         }
 
         State = SessionState.Moving;
-        if (Field != null) {
-            Scheduler.Stop();
-            Field.RemovePlayer(Player.ObjectId, out _);
-        }
+        LeaveField();
 
         Field = newField;
         Player = Field.SpawnPlayer(this, Player, portalId, position, rotation);
@@ -276,7 +291,7 @@ public sealed partial class GameSession : Core.Network.Session {
         try {
             Scheduler.Stop();
             server.OnDisconnected(this);
-            Field?.RemovePlayer(Player.ObjectId, out FieldPlayer? _);
+            LeaveField();
             State = SessionState.Disconnected;
             Complete();
         } finally {

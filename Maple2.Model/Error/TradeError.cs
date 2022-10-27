@@ -1,4 +1,6 @@
-﻿using System.ComponentModel;
+﻿// ReSharper disable InconsistentNaming, IdentifierTypo
+
+using System.ComponentModel;
 
 namespace Maple2.Model.Error;
 
