@@ -39,4 +39,10 @@ public class SkillQueue {
             return;
         }
     }
+
+    public void Clear() {
+        for (int i = 0; i < MAX_PENDING; i++) {
+            casts[i] = null;
+        }
+    }
 }
