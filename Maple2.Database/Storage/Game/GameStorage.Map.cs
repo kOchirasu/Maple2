@@ -172,6 +172,11 @@ public partial class GameStorage {
         }
 
         public bool InitUgcMap(IEnumerable<UgcMapMetadata> maps) {
+            // If there are entries, we assume it's already initialized.
+            if (Context.UgcMap.Any()) {
+                return true;
+            }
+
             foreach (UgcMapMetadata map in maps) {
                 if (map.Id == Constant.DefaultHomeMapId) {
                     continue;

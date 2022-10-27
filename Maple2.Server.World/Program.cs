@@ -60,30 +60,14 @@ app.MapGrpcService<WorldService>();
 app.MapGrpcService<GlobalService>();
 
 
-string? gameDbConnection = Environment.GetEnvironmentVariable("GAME_DB_CONNECTION");
-if (gameDbConnection == null) {
-    throw new ArgumentException("GAME_DB_CONNECTION environment variable was not set");
-}
+ILifetimeScope root = app.Services.GetAutofacRoot();
+var gameStorage = root.Resolve<GameStorage>();
+var mapStorage = root.Resolve<MapMetadataStorage>();
 
-
-DbContextOptions options = new DbContextOptionsBuilder()
-    .UseMySql(gameDbConnection, ServerVersion.AutoDetect(gameDbConnection)).Options;
-await using (var initContext = new InitializationContext(options)) {
-    // Initialize database if needed
-    if (initContext.Initialize()) {
-        ILifetimeScope root = app.Services.GetAutofacRoot();
-        var gameStorage = root.Resolve<GameStorage>();
-        var mapStorage = root.Resolve<MapMetadataStorage>();
-
-        using GameStorage.Request db = gameStorage.Context();
-        if (!db.InitUgcMap(mapStorage.GetAllUgc())) {
-            Log.Fatal("Failed to initialize UgcMap");
-            return;
-        }
-
-        Log.Debug("Database has been initialized");
-    } else {
-        Log.Debug("Database has already been initialized");
+using (GameStorage.Request db = gameStorage.Context()) {
+    if (!db.InitUgcMap(mapStorage.GetAllUgc())) {
+        Log.Fatal("Failed to initialize UgcMap");
+        return;
     }
 }
 
