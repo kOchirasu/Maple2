@@ -88,6 +88,15 @@ public partial class GameStorage {
                 )!;
         }
 
+        public (long Mesos, short Expand) GetStorageInfo(long accountId) {
+            ItemStorage? info = Context.ItemStorage.Find(accountId);
+            if (info == null) {
+                return (0, 0);
+            }
+
+            return (info.Meso, info.Expand);
+        }
+
         public List<Item> GetStorage(long accountId) {
             return Context.Item.Where(item => item.OwnerId == accountId && item.Group == ItemGroup.Default)
                 .AsEnumerable()
@@ -114,6 +123,23 @@ public partial class GameStorage {
                 models[i] = items[i]!;
                 models[i].OwnerId = ownerId;
                 Context.Item.Update(models[i]);
+            }
+
+            return Context.TrySaveChanges();
+        }
+
+        public bool SaveStorageInfo(long accountId, long mesos, short expand) {
+            ItemStorage? info = Context.ItemStorage.Find(accountId);
+            if (info == null) {
+                Context.Add(new ItemStorage {
+                    AccountId = accountId,
+                    Meso = mesos,
+                    Expand = expand,
+                });
+            } else {
+                info.Meso = mesos;
+                info.Expand = expand;
+                Context.ItemStorage.Update(info);
             }
 
             return Context.TrySaveChanges();
