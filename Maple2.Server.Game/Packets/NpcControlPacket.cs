@@ -26,11 +26,11 @@ public static class NpcControlPacket {
         return pWriter;
     }
 
-    public static ByteWriter ControlPet(params FieldNpc[] pets) {
+    public static ByteWriter ControlPet(params FieldPet[] pets) {
         var pWriter = Packet.Of(SendOp.NpcControl);
         pWriter.WriteShort((short) pets.Length);
 
-        foreach (FieldNpc pet in pets) {
+        foreach (FieldPet pet in pets) {
             using var buffer = new PoolByteWriter();
             buffer.PetBuffer(pet);
             pWriter.WriteShort((short) buffer.Length);
@@ -40,7 +40,7 @@ public static class NpcControlPacket {
         return pWriter;
     }
 
-    private static void PetBuffer(this PoolByteWriter buffer, FieldNpc pet, float sequenceSpeed = 1) {
+    private static void PetBuffer(this PoolByteWriter buffer, FieldPet pet, float sequenceSpeed = 1) {
         buffer.WriteInt(pet.ObjectId);
         buffer.WriteByte(); // Flags bit-1, bit-2
         buffer.Write<Vector3S>(pet.Position);

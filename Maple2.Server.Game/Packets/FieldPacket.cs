@@ -110,7 +110,13 @@ public static class FieldPacket {
         pWriter.WriteByte(); // InsigniaValue
 
         pWriter.WriteInt();
-        pWriter.WriteBool(false); // TODO: Pet
+        pWriter.WriteBool(session.Pet != null);
+        if (session.Pet != null) {
+            pWriter.WriteInt(session.Pet.Pet.Id);
+            pWriter.WriteLong(session.Pet.Pet.Uid);
+            pWriter.WriteInt(session.Pet.Pet.Rarity);
+            pWriter.WriteClass<Item>(session.Pet.Pet);
+        }
         pWriter.WriteLong(player.Account.PremiumTime);
         pWriter.WriteInt();
         pWriter.WriteByte();
@@ -210,6 +216,33 @@ public static class FieldPacket {
 
     public static ByteWriter RemoveItem(int objectId) {
         var pWriter = Packet.Of(SendOp.FieldRemoveItem);
+        pWriter.WriteInt(objectId);
+
+        return pWriter;
+    }
+
+    public static ByteWriter AddPet(FieldPet pet) {
+        var pWriter = Packet.Of(SendOp.FieldAddPet);
+        pWriter.WriteInt(pet.ObjectId);
+        pWriter.WriteInt(pet.SkinId);
+        pWriter.WriteInt(pet.Value.Id);
+        pWriter.Write<Vector3>(pet.Position);
+        pWriter.Write<Vector3>(pet.Rotation);
+        pWriter.WriteFloat(pet.Scale);
+        pWriter.WriteInt(pet.OwnerId);
+        pWriter.WriteNpcStats(pet.Stats);
+        pWriter.WriteLong(pet.Pet.Uid);
+        pWriter.WriteByte();
+        pWriter.WriteShort(pet.Value.Metadata.Basic.Level);
+        pWriter.WriteShort(pet.TamingLevel); // lua calc_PetTamingRank
+        pWriter.WriteInt();
+        pWriter.WriteUnicodeString(pet.Pet.Pet?.Name ?? "");
+
+        return pWriter;
+    }
+
+    public static ByteWriter RemovePet(int objectId) {
+        var pWriter = Packet.Of(SendOp.FieldRemovePet);
         pWriter.WriteInt(objectId);
 
         return pWriter;

@@ -120,12 +120,12 @@ public static class ProxyObjectPacket {
         return pWriter;
     }
 
-    public static ByteWriter AddPet(FieldObject<NpcMetadata> fieldPet) {
+    public static ByteWriter AddPet(FieldPet fieldPet) {
         var pWriter = Packet.Of(SendOp.ProxyGameObj);
         pWriter.Write<Command>(Command.AddPet);
         pWriter.WriteInt(fieldPet.ObjectId);
-        pWriter.WriteInt(fieldPet.Value.Id); // PetItemId
-        pWriter.WriteInt(fieldPet.Value.Id); // NpcId
+        pWriter.WriteInt(fieldPet.SkinId);
+        pWriter.WriteInt(fieldPet.Value.Id);
         pWriter.WriteByte(); // CProxyGameObject+3C
         pWriter.Write<Vector3>(fieldPet.Position);
 
@@ -140,7 +140,7 @@ public static class ProxyObjectPacket {
         return pWriter;
     }
 
-    public static ByteWriter UpdatePet(FieldObject<NpcMetadata> fieldPet) {
+    public static ByteWriter UpdatePet(FieldPet fieldPet) {
         var pWriter = Packet.Of(SendOp.ProxyGameObj);
         pWriter.Write<Command>(Command.UpdatePet);
         pWriter.WriteInt(fieldPet.ObjectId);

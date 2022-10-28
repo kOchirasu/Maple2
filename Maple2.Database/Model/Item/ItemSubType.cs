@@ -44,10 +44,10 @@ internal record ItemBlueprint() {
     }
 }
 
-internal record ItemPet(string Name, long Exp, int Level) : ItemSubType(Discriminator.Pet) {
+internal record ItemPet(string Name, long Exp, int EvolvePoints, short Level, short RenameRemaining) : ItemSubType(Discriminator.Pet) {
     [return:NotNullIfNotNull("other")]
     public static implicit operator ItemPet?(Maple2.Model.Game.ItemPet? other) {
-        return other == null ? null : new ItemPet(other.Name, other.Exp, other.Level);
+        return other == null ? null : new ItemPet(other.Name, other.Exp, other.EvolvePoints, other.Level, other.RenameRemaining);
     }
 
     [return:NotNullIfNotNull("other")]
@@ -55,7 +55,9 @@ internal record ItemPet(string Name, long Exp, int Level) : ItemSubType(Discrimi
         return other == null ? null : new Maple2.Model.Game.ItemPet {
             Name = other.Name,
             Exp = other.Exp,
+            EvolvePoints = other.EvolvePoints,
             Level = other.Level,
+            RenameRemaining = other.RenameRemaining,
         };
     }
 }

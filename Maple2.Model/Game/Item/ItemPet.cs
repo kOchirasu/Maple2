@@ -1,30 +1,36 @@
 ﻿using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
-namespace Maple2.Model.Game; 
+namespace Maple2.Model.Game;
 
 public class ItemPet : IByteSerializable, IByteDeserializable {
     public string Name;
     public long Exp;
-    public int Level;
+    public int EvolvePoints;
+    public short Level;
+    public bool HasItems;
+
+    public short RenameRemaining;
 
     public ItemPet() {
         Name = string.Empty;
+        Level = 1;
+        RenameRemaining = 1;
     }
-    
+
     public void WriteTo(IByteWriter writer) {
         writer.WriteUnicodeString(Name);
-        writer.WriteInt();
         writer.WriteLong(Exp);
+        writer.WriteInt(EvolvePoints);
         writer.WriteInt(Level);
-        writer.WriteByte();
+        writer.WriteBool(HasItems);
     }
 
     public void ReadFrom(IByteReader reader) {
         Name = reader.ReadUnicodeString();
-        reader.ReadInt();
         Exp = reader.ReadLong();
-        Level = reader.ReadInt();
-        reader.ReadByte();
+        EvolvePoints = reader.ReadInt();
+        Level = (short) reader.ReadInt();
+        HasItems = reader.ReadBool();
     }
 }
