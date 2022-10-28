@@ -1,6 +1,7 @@
 ﻿using Maple2.Model.Game;
 using Maple2.Script.Npc;
 using Maple2.Server.Game.Manager;
+using Maple2.Server.Game.Manager.Items;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Model.Skill;
 
@@ -15,6 +16,7 @@ public partial class GameSession {
     public readonly (long Uid, int Amount)[] DismantleStaging = new (long, int)[DISMANTLE_MAX_STAGED_ITEMS];
 
     public TradeManager? Trade;
+    public StorageManager? Storage;
 
     public Ride? Ride;
     public FieldInstrument? Instrument;

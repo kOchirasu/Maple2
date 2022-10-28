@@ -174,6 +174,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Array.Clear(DismantleStaging);
         DismantleOpened = false;
         Trade?.Dispose();
+        Storage?.Dispose();
         Instrument = null;
         GuideObject = null;
         HeldCube = null;

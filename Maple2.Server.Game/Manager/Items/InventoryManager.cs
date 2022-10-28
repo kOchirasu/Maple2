@@ -65,6 +65,27 @@ public class InventoryManager {
         };
     }
 
+    private static short MaxSize(InventoryType type) {
+        return type switch {
+            InventoryType.Gear => Constant.BagSlotTabGameCountMax,
+            InventoryType.Outfit => Constant.BagSlotTabSkinCountMax,
+            InventoryType.Mount => Constant.BagSlotTabSummonCountMax,
+            InventoryType.Catalyst => Constant.BagSlotTabMaterialCountMax,
+            InventoryType.FishingMusic => Constant.BagSlotTabLifeCountMax,
+            InventoryType.Quest => Constant.BagSlotTabQuestCountMax,
+            InventoryType.Gemstone => Constant.BagSlotTabGemCountMax,
+            InventoryType.Misc => Constant.BagSlotTabMiscCountMax,
+            InventoryType.LifeSkill => Constant.BagSlotTabMasteryCountMax,
+            InventoryType.Pets => Constant.BagSlotTabPetCountMax,
+            InventoryType.Consumable => Constant.BagSlotTabActiveSkillCountMax,
+            InventoryType.Currency => Constant.BagSlotTabCoinCountMax,
+            InventoryType.Badge => Constant.BagSlotTabBadgeCountMax,
+            InventoryType.Lapenshard => Constant.BagSlotTabLapenshardCountMax,
+            InventoryType.Fragment => Constant.BagSlotTabPieceCountMax,
+            _ => throw new ArgumentOutOfRangeException($"Invalid InventoryType: {type}"),
+        };
+    }
+
     public void Load() {
         lock (session.Item) {
             foreach ((InventoryType type, ItemCollection items) in tabs) {
@@ -227,12 +248,17 @@ public class InventoryManager {
                 return;
             }
 
+            short newSize = (short) (items.Size + Constant.InventoryExpandRowCount);
+            if (newSize > MaxSize(type)) {
+                return;
+            }
+
             if (session.Currency.Meret < Constant.InventoryExpandPrice1Row) {
                 session.Send(ItemInventoryPacket.Error(s_cannot_charge_merat));
                 return;
             }
 
-            if (!items.Expand((short) (items.Size + Constant.InventoryExpandRowCount))) {
+            if (!items.Expand(newSize)) {
                 return;
             }
 
@@ -315,6 +341,7 @@ public class InventoryManager {
         if (amount > 0) {
             Item? item = items.Get(uid);
             if (item == null || item.Amount < amount) {
+                session.Send(ItemInventoryPacket.Error(s_item_err_invalid_count));
                 removed = null;
                 return false;
             }

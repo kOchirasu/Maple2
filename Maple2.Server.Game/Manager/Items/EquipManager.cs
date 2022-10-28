@@ -5,6 +5,7 @@ using System.Linq;
 using Maple2.Database.Storage;
 using Maple2.Model;
 using Maple2.Model.Enum;
+using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
@@ -71,6 +72,11 @@ public class EquipManager {
                 session.Send(NoticePacket.MessageBox(StringCode.s_item_err_puton_expired));
                 return false;
             }
+            if (item.Binding != null && item.Binding.CharacterId != session.CharacterId) {
+                session.Send(NoticePacket.MessageBox(StringCode.s_item_err_puton_invalid_binding));
+                return false;
+            }
+
             if (item.Metadata.Property.IsSkin != isSkin) {
                 return false;
             }
