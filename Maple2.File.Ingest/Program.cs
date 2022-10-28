@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using Maple2.Database.Context;
 using Maple2.Database.Extensions;
-using Maple2.Database.Model.Metadata;using Maple2.File.Ingest.Generator;
+using Maple2.Database.Model.Metadata;
 using Maple2.File.Ingest.Mapper;
 using Maple2.File.IO;
 using Maple2.File.Parser.Tools;
@@ -9,10 +9,16 @@ using Microsoft.EntityFrameworkCore;
 
 const string locale = "NA";
 const string env = "Live";
-const string xmlPath = @"C:\Nexon\Library\Library\maplestory2\appdata\Data\Xml.m2d";
-const string exportedPath = @"C:\Nexon\Library\Library\maplestory2\appdata\Data\Resource\Exported.m2d";
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+string? ms2Root = Environment.GetEnvironmentVariable("MS2_ROOT");
+if (ms2Root == null) {
+    throw new ArgumentException("MS2_ROOT environment variable was not set");
+}
+
+string xmlPath = Path.Combine(ms2Root, "appdata/Data/Xml.m2d");
+string exportedPath = Path.Combine(ms2Root, @"appdata/Data/Resource/Exported.m2d");
 
 string? dataDbConnection = Environment.GetEnvironmentVariable("DATA_DB_CONNECTION");
 if (dataDbConnection == null) {
@@ -33,8 +39,7 @@ Filter.Load(xmlReader, locale, env);
 
 // new NpcScriptGenerator(xmlReader).Generate();
 // new NpcScriptGenerator(xmlReader).GenerateEvent();
-new TriggerGenerator(xmlReader).Generate();
-return;
+// new TriggerGenerator(xmlReader).Generate();
 
 UpdateDatabase(metadataContext, new AdditionalEffectMapper(xmlReader));
 UpdateDatabase(metadataContext, new AnimationMapper(xmlReader));
