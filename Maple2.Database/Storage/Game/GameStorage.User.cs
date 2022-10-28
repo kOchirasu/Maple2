@@ -103,7 +103,7 @@ public partial class GameStorage {
             UgcMap[] ugcMaps = Context.UgcMap
                 .Where(map => map.OwnerId == accountId)
                 .ToArray();
-            PlotInfo? indoor = ToPlotInfo(ugcMaps.First(map => map.Indoor));
+            PlotInfo? indoor = ToPlotInfo(ugcMaps.FirstOrDefault(map => map.Indoor));
             if (indoor == null) {
                 Logger.LogError("Account does not have a home entry: {AccountId}", accountId);
                 return null;

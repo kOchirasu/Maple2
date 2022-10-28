@@ -253,6 +253,13 @@ public class ItemCollection : IEnumerable<Item> {
         }
     }
 
+    /// <summary>
+    /// Simulates stacking an item on existing items in this collection without modification.
+    /// Ignores any open slots.
+    /// </summary>
+    /// <param name="item">The item to attempt to add.</param>
+    /// <param name="amount">The amount of item to add.</param>
+    /// <returns>The remaining amount that could not be stacked.</returns>
     public int GetStackResult(Item item, int amount = -1) {
         int remaining = amount < 0 ? item.Amount : Math.Min(amount, item.Amount);
         mutex.EnterReadLock();

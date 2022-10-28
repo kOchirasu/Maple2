@@ -59,6 +59,12 @@ public class CurrencyManager {
         }
     }
 
+    public long CanAddMeso(long amount) {
+        return amount >= 0
+            ? Math.Min(amount, Constant.MaxMeso - Currency.Meso)
+            : Math.Max(amount, -Currency.Meso);
+    }
+
     public long this[CurrencyType type] {
         get => type switch {
             CurrencyType.ValorToken => Currency.ValorToken,

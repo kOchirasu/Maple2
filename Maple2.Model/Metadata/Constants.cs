@@ -30,6 +30,7 @@ public static class Constant {
     public const int HomeMessageMaxLength = 100;
     public const int HomePasscodeLength = 6;
     public const int PerformanceMapId = 2000064; // Queenstown
+    public const int BaseStorageCount = 36;
 
     public const long FurnishingBaseId = 2870000000000000000;
 
