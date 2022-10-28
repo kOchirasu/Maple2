@@ -6,6 +6,7 @@ using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Item = Maple2.Model.Game.Item;
+using PetConfig = Maple2.Model.Game.PetConfig;
 using UgcItemLook = Maple2.Model.Game.UgcItemLook;
 
 namespace Maple2.Database.Storage;
@@ -13,7 +14,7 @@ namespace Maple2.Database.Storage;
 public partial class GameStorage {
     public partial class Request {
         public Item? CreateItem(long ownerId, Item item) {
-            Model.Item model = item!;
+            Model.Item model = item;
             model.OwnerId = ownerId;
             model.Id = 0;
             Context.Item.Add(model);
@@ -22,7 +23,7 @@ public partial class GameStorage {
         }
 
         public Item? SplitItem(long ownerId, Item item, int amount) {
-            Model.Item model = item!;
+            Model.Item model = item;
             model.Amount = amount;
             model.OwnerId = ownerId;
             model.Slot = -1;
@@ -36,7 +37,7 @@ public partial class GameStorage {
         public List<Item>? CreateItems(long ownerId, params Item[] items) {
             var models = new Model.Item[items.Length];
             for (int i = 0; i < items.Length; i++) {
-                models[i] = items[i]!;
+                models[i] = items[i];
                 models[i].OwnerId = ownerId;
                 models[i].Id = 0;
                 Context.Item.Add(models[i]);
@@ -98,10 +99,8 @@ public partial class GameStorage {
             return (info.Meso, info.Expand);
         }
 
-        public (PetPotionConfig[] Potion, PetLootConfig Loot) GetPetConfig(long itemUid) {
-            PetConfig config = Context.PetConfig.Find(itemUid) ?? new PetConfig();
-
-            return (config.PotionConfigs, config.LootConfig);
+        public PetConfig GetPetConfig(long itemUid) {
+            return Context.PetConfig.Find(itemUid) ?? new PetConfig();
         }
 
         public List<Item> GetStorage(long accountId) {
@@ -127,7 +126,7 @@ public partial class GameStorage {
                     continue;
                 }
 
-                models[i] = items[i]!;
+                models[i] = items[i];
                 models[i].OwnerId = ownerId;
                 Context.Item.Update(models[i]);
             }
@@ -152,17 +151,18 @@ public partial class GameStorage {
             return Context.TrySaveChanges();
         }
 
-        public bool SavePetConfig(long itemUid, PetPotionConfig[] potionConfigs, PetLootConfig lootConfig) {
-            PetConfig? config = Context.PetConfig.Find(itemUid);
-            if (config == null) {
-                Context.Add(new PetConfig {
-                    PotionConfigs = potionConfigs,
-                    LootConfig = lootConfig,
-                });
+        public bool SavePetConfig(long itemUid, PetConfig config) {
+            Model.PetConfig? model = Context.PetConfig.Find(itemUid);
+            if (model == null) {
+                model = config;
+                model.ItemUid = itemUid;
+
+                Context.Add(model);
             } else {
-                config.PotionConfigs = potionConfigs;
-                config.LootConfig = lootConfig;
-                Context.Update(config);
+                model = config;
+                model.ItemUid = itemUid;
+
+                Context.Update(model);
             }
 
             return Context.TrySaveChanges();

@@ -28,7 +28,7 @@ public partial class GameStorage {
             return Context.UgcMap.Where(map => map.OwnerId == ownerId)
                 .Join(Context.UgcMapCube, ugcMap => ugcMap.Id, cube => cube.UgcMapId, (ugcMap, cube) => cube)
                 .AsEnumerable()
-                .Select<UgcMapCube, PlotCube>(cube => cube!)
+                .Select<UgcMapCube, PlotCube>(cube => cube)
                 .ToList();
         }
 
@@ -112,7 +112,7 @@ public partial class GameStorage {
         }
 
         public bool SaveHome(Home home) {
-            Model.Home model = home!;
+            Model.Home model = home;
             Context.Home.Update(model);
             if (!Context.TrySaveChanges()) {
                 return false;
@@ -146,7 +146,7 @@ public partial class GameStorage {
             var results = new List<UgcMapCube>();
             var updated = new HashSet<long>();
             foreach (PlotCube cube in cubes) {
-                UgcMapCube model = cube!;
+                UgcMapCube model = cube;
                 model.UgcMapId = plotInfo.Id;
                 if (model.Id >= Constant.FurnishingBaseId) {
                     model.Id = 0; // This needs to be auto-generated.
@@ -168,7 +168,7 @@ public partial class GameStorage {
                 return null;
             }
 
-            return results.Select<UgcMapCube, PlotCube>(cube => cube!).ToArray();
+            return results.Select<UgcMapCube, PlotCube>(cube => cube).ToArray();
         }
 
         public bool InitUgcMap(IEnumerable<UgcMapMetadata> maps) {

@@ -59,11 +59,11 @@ internal class Item {
             IsLocked = other.IsLocked,
             UnlockTime = other.UnlockTime,
             GlamorForges = other.GlamorForges,
-            Appearance = other.Appearance switch {
-                Maple2.Model.Game.HairAppearance hair => (HairAppearance) hair!,
-                Maple2.Model.Game.DecalAppearance decal => (DecalAppearance) decal!,
-                Maple2.Model.Game.CapAppearance cap => (CapAppearance) cap!,
-                _ => (ColorAppearance) other.Appearance!,
+            Appearance = other.Appearance == null ? null : other.Appearance switch {
+                Maple2.Model.Game.HairAppearance hair => (HairAppearance) hair,
+                Maple2.Model.Game.DecalAppearance decal => (DecalAppearance) decal,
+                Maple2.Model.Game.CapAppearance cap => (CapAppearance) cap,
+                _ => (ColorAppearance) other.Appearance,
             },
             Stats = other.Stats,
             Enchant = other.Enchant,

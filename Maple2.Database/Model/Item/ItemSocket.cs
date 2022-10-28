@@ -21,7 +21,7 @@ internal record ItemSocket(byte MaxSlots, ItemGemstone[] Sockets) {
         }
 
         Maple2.Model.Game.ItemGemstone[] sockets =
-            Array.ConvertAll(other.Sockets, gemstone => (Maple2.Model.Game.ItemGemstone)gemstone!);
+            Array.ConvertAll(other.Sockets, gemstone => (Maple2.Model.Game.ItemGemstone)gemstone);
         return new Maple2.Model.Game.ItemSocket(other.MaxSlots, sockets);
     }
 }

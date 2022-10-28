@@ -1,6 +1,17 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 
 namespace Maple2.Model.Game;
+
+public class PetConfig {
+    public PetPotionConfig[] PotionConfig;
+    public PetLootConfig LootConfig;
+
+    public PetConfig(PetPotionConfig[]? potionConfig = null, PetLootConfig? lootConfig = null) {
+        PotionConfig = potionConfig ?? Array.Empty<PetPotionConfig>();
+        LootConfig = lootConfig ?? new PetLootConfig(true, true, true, true, true, true, true, false, 1, true);
+    }
+}
 
 [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 12)]
 public readonly record struct PetPotionConfig(

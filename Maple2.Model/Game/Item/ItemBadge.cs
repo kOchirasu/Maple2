@@ -2,11 +2,11 @@
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
-namespace Maple2.Model.Game; 
+namespace Maple2.Model.Game;
 
 public class ItemBadge : IByteSerializable, IByteDeserializable {
     private const int TRANSPARENCY_COUNT = 10;
-    
+
     public readonly int Id;
     public readonly BadgeType Type;
     public readonly bool[] Transparency;
@@ -18,7 +18,7 @@ public class ItemBadge : IByteSerializable, IByteDeserializable {
             701 => (Id % 10) switch {
                 0 => BadgeType.PetSkin,
                 1 => BadgeType.Transparency,
-                _ => BadgeType.AutoGather
+                _ => BadgeType.AutoGather,
             },
             702 => BadgeType.ChatBubble,
             703 => BadgeType.NameTag,
@@ -28,7 +28,7 @@ public class ItemBadge : IByteSerializable, IByteDeserializable {
             707 => BadgeType.Fishing,
             708 => BadgeType.Buddy,
             709 => BadgeType.Effect,
-            _ => BadgeType.None
+            _ => BadgeType.None,
         };
 
         if (transparency is not {Length: TRANSPARENCY_COUNT}) {
@@ -37,7 +37,7 @@ public class ItemBadge : IByteSerializable, IByteDeserializable {
             Transparency = transparency;
         }
     }
-    
+
     public void WriteTo(IByteWriter writer) {
         writer.WriteByte(1);
         writer.WriteByte((byte)Type);
@@ -59,7 +59,7 @@ public class ItemBadge : IByteSerializable, IByteDeserializable {
         reader.ReadByte();
         reader.ReadByte(); // Type
         reader.ReadUnicodeString(); // String ItemId
-        
+
         switch (Type) {
             case BadgeType.Transparency: // Flags for each slot
                 for (int i = 0; i < TRANSPARENCY_COUNT; i++) {
