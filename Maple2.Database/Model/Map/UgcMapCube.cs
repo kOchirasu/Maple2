@@ -1,4 +1,5 @@
-﻿using Maple2.Database.Extensions;
+﻿using System.Diagnostics.CodeAnalysis;
+using Maple2.Database.Extensions;
 using Maple2.Model.Common;
 using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ internal class UgcMapCube {
     public int ItemId { get; set; }
     public UgcItemLook? Template { get; set; }
 
+    [return:NotNullIfNotNull("other")]
     public static implicit operator PlotCube?(UgcMapCube? other) {
         return other == null ? null : new PlotCube(other.ItemId, other.Id, other.Template) {
             Position = new Vector3B(other.X, other.Y, other.Z),
@@ -24,6 +26,7 @@ internal class UgcMapCube {
         };
     }
 
+    [return:NotNullIfNotNull("other")]
     public static implicit operator UgcMapCube?(PlotCube? other) {
         return other == null ? null : new UgcMapCube {
             Id = other.Id,

@@ -82,7 +82,7 @@ public partial class GameStorage {
 
         public bool UpdateBuddy(params Buddy[] buddies) {
             foreach (Buddy buddy in buddies) {
-                Context.Buddy.Update(buddy!);
+                Context.Buddy.Update(buddy);
             }
 
             return Context.TrySaveChanges();

@@ -16,7 +16,7 @@ public partial class GameStorage {
             }
 
             IList<ClubMember> members = GetClubMembers(clubId);
-            Club club = model!;
+            Club club = model;
             club.Leader = members.First(member => member.Info.CharacterId == model.LeaderId);
             members.Remove(club.Leader);
             club.Members = members;
@@ -31,10 +31,10 @@ public partial class GameStorage {
         }
 
         public Club? CreateClub(Club club) {
-            Model.Club model = club!;
+            Model.Club model = club;
             model.Id = 0;
-            model.Members = club.Members.Select<ClubMember, Model.ClubMember>(member => member!).ToList();
-            model.Members.Add(club.Leader!);
+            model.Members = club.Members.Select<ClubMember, Model.ClubMember>(member => member).ToList();
+            model.Members.Add(club.Leader);
 
             Context.Club.Add(model);
 

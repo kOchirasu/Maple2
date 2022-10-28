@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
@@ -37,6 +38,7 @@ internal class Item {
     public DateTime CreationTime { get; set; }
     public DateTime LastModified { get; set; }
 
+    [return:NotNullIfNotNull("other")]
     public static implicit operator Item?(Maple2.Model.Game.Item? other) {
         if (other == null) {
             return null;
@@ -73,13 +75,13 @@ internal class Item {
         };
 
         if (other.Template != null && other.Blueprint != null) {
-            item.SubType = new ItemUgc(other.Template!, other.Blueprint!);
+            item.SubType = new ItemUgc(other.Template, other.Blueprint);
         } else if (other.Pet != null) {
-            item.SubType = (ItemPet) other.Pet!;
+            item.SubType = (ItemPet) other.Pet;
         } else if (other.Music != null) {
-            item.SubType = (ItemCustomMusicScore) other.Music!;
+            item.SubType = (ItemCustomMusicScore) other.Music;
         } else if (other.Badge != null) {
-            item.SubType = (ItemBadge) other.Badge!;
+            item.SubType = (ItemBadge) other.Badge;
         }
 
         return item;

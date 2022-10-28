@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Maple2.Database.Extensions;
 using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
@@ -24,6 +25,7 @@ internal class Account {
 
     public ICollection<Character> Characters { get; set; }
 
+    [return:NotNullIfNotNull("other")]
     public static implicit operator Account?(Maple2.Model.Game.Account? other) {
         return other == null ? null : new Account {
             LastModified = other.LastModified,
@@ -39,6 +41,7 @@ internal class Account {
         };
     }
 
+    [return:NotNullIfNotNull("other")]
     public static implicit operator Maple2.Model.Game.Account?(Account? other) {
         if (other == null) {
             return null;

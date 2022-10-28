@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Maple2.Tools.Extensions;
@@ -18,6 +19,7 @@ internal class CharacterUnlock {
     public InventoryExpand Expand { get; set; }
     public DateTime LastModified { get; init; }
 
+    [return:NotNullIfNotNull("other")]
     public static implicit operator CharacterUnlock?(Maple2.Model.Game.Unlock? other) {
         return other == null ? new CharacterUnlock() : new CharacterUnlock {
             LastModified = other.LastModified,
@@ -46,6 +48,7 @@ internal class CharacterUnlock {
         };
     }
 
+    [return:NotNullIfNotNull("other")]
     public static implicit operator Maple2.Model.Game.Unlock?(CharacterUnlock? other) {
         if (other == null) {
             return new Maple2.Model.Game.Unlock();

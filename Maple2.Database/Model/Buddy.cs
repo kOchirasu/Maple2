@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -15,6 +16,7 @@ internal class Buddy {
 
     public DateTime LastModified { get; set; }
 
+    [return:NotNullIfNotNull("other")]
     public static implicit operator Buddy?(Maple2.Model.Game.Buddy? other) {
         return other == null ? null : new Buddy {
             Id = other.Id,

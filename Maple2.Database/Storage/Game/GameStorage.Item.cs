@@ -3,6 +3,7 @@ using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Item = Maple2.Model.Game.Item;
 using UgcItemLook = Maple2.Model.Game.UgcItemLook;
@@ -97,6 +98,12 @@ public partial class GameStorage {
             return (info.Meso, info.Expand);
         }
 
+        public (PetPotionConfig[] Potion, PetLootConfig Loot) GetPetConfig(long itemUid) {
+            PetConfig config = Context.PetConfig.Find(itemUid) ?? new PetConfig();
+
+            return (config.PotionConfigs, config.LootConfig);
+        }
+
         public List<Item> GetStorage(long accountId) {
             return Context.Item.Where(item => item.OwnerId == accountId && item.Group == ItemGroup.Default)
                 .AsEnumerable()
@@ -140,6 +147,22 @@ public partial class GameStorage {
                 info.Meso = mesos;
                 info.Expand = expand;
                 Context.ItemStorage.Update(info);
+            }
+
+            return Context.TrySaveChanges();
+        }
+
+        public bool SavePetConfig(long itemUid, PetPotionConfig[] potionConfigs, PetLootConfig lootConfig) {
+            PetConfig? config = Context.PetConfig.Find(itemUid);
+            if (config == null) {
+                Context.Add(new PetConfig {
+                    PotionConfigs = potionConfigs,
+                    LootConfig = lootConfig,
+                });
+            } else {
+                config.PotionConfigs = potionConfigs;
+                config.LootConfig = lootConfig;
+                Context.Update(config);
             }
 
             return Context.TrySaveChanges();

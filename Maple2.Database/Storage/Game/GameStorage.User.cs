@@ -31,7 +31,7 @@ public partial class GameStorage {
         }
 
         public bool UpdateAccount(Account account, bool commit = false) {
-            Context.Account.Update(account!);
+            Context.Account.Update(account);
             if (commit) {
                 return Context.TrySaveChanges();
             }
@@ -44,7 +44,7 @@ public partial class GameStorage {
                 .Include(account => account.Characters)
                 .FirstOrDefault(account => account.Id == accountId);
 
-            return (model, model?.Characters.Select<Model.Character, Character>(c => c!).ToList());
+            return (model, model?.Characters.Select<Model.Character, Character>(c => c).ToList());
         }
 
         //  If accountId is specified, only characters for the account will be returned.
@@ -66,13 +66,13 @@ public partial class GameStorage {
 
         public CharacterInfo? GetCharacterInfo(long characterId) {
             return Context.Character.Where(character => character.Id == characterId)
-                .Select<Model.Character, CharacterInfo>(character => character!)
+                .Select<Model.Character, CharacterInfo>(character => character)
                 .FirstOrDefault();
         }
 
         public CharacterInfo? GetCharacterInfo(string name) {
             return Context.Character.Where(character => character.Name == name)
-                .Select<Model.Character, CharacterInfo>(character => character!)
+                .Select<Model.Character, CharacterInfo>(character => character)
                 .FirstOrDefault();
         }
 
@@ -109,7 +109,7 @@ public partial class GameStorage {
                 return null;
             }
 
-            var player = new Player(account!, character!, objectId) {
+            var player = new Player(account, character, objectId) {
                 Currency = new Currency{
                     Meret = account.Currency.Meret,
                     GameMeret = account.Currency.GameMeret,
@@ -126,7 +126,7 @@ public partial class GameStorage {
                     MesoToken = account.Currency.MesoToken,
                 },
                 Unlock = Context.CharacterUnlock.Find(characterId)!,
-                Home = home!,
+                Home = home,
             };
 
             player.Home.Indoor = indoor;
@@ -137,14 +137,14 @@ public partial class GameStorage {
 
         public bool SavePlayer(Player player) {
             Console.WriteLine($"> Begin Save... {Context.ContextId}");
-            Model.Account account = player.Account!;
+            Model.Account account = player.Account;
             account.Currency = new AccountCurrency {
                 Meret = player.Currency.Meret,
                 GameMeret = player.Currency.GameMeret,
                 MesoToken = player.Currency.MesoToken,
             };
 
-            Model.Character character = player.Character!;
+            Model.Character character = player.Character;
             character.Currency = new CharacterCurrency {
                 Meso = player.Currency.Meso,
                 EventMeret = player.Currency.EventMeret,
@@ -161,7 +161,7 @@ public partial class GameStorage {
             Context.Update(account);
             Context.Update(character);
 
-            CharacterUnlock unlock = player.Unlock!;
+            CharacterUnlock unlock = player.Unlock;
             unlock.CharacterId = character.Id;
             Context.Update(unlock);
 
@@ -179,15 +179,15 @@ public partial class GameStorage {
                 MaxSkillTabs = config.SkillBook.MaxSkillTabs,
                 ActiveSkillTabId = config.SkillBook.ActiveSkillTabId,
                 SkillTabs = Context.SkillTab.Where(tab => tab.CharacterId == characterId)
-                    .Select<Model.SkillTab, SkillTab>(tab => tab!)
+                    .Select<Model.SkillTab, SkillTab>(tab => tab)
                     .ToList(),
             };
 
             return (
                 config.KeyBinds,
                 config.HotBars,
-                config.SkillMacros?.Select<Model.SkillMacro, SkillMacro>(macro => macro!).ToList(),
-                config.Wardrobes?.Select<Model.Wardrobe, Wardrobe>(wardrobe => wardrobe!).ToList(),
+                config.SkillMacros?.Select<Model.SkillMacro, SkillMacro>(macro => macro).ToList(),
+                config.Wardrobes?.Select<Model.Wardrobe, Wardrobe>(wardrobe => wardrobe).ToList(),
                 config.StatAllocation,
                 skillBook
             );
@@ -210,8 +210,8 @@ public partial class GameStorage {
 
             config.KeyBinds = keyBinds;
             config.HotBars = hotBars;
-            config.SkillMacros = skillMacros.Select<SkillMacro, Model.SkillMacro>(macro => macro!).ToList();
-            config.Wardrobes = wardrobes.Select<Wardrobe, Model.Wardrobe>(wardrobe => wardrobe!).ToList();
+            config.SkillMacros = skillMacros.Select<SkillMacro, Model.SkillMacro>(macro => macro).ToList();
+            config.Wardrobes = wardrobes.Select<Wardrobe, Model.Wardrobe>(wardrobe => wardrobe).ToList();
             config.StatAllocation = allocation.Attributes.ToDictionary(
                 attribute => attribute,
                 attribute => allocation[attribute]);
@@ -222,7 +222,7 @@ public partial class GameStorage {
             Context.CharacterConfig.Update(config);
 
             foreach (SkillTab skillTab in skillBook.SkillTabs) {
-                Model.SkillTab model = skillTab!;
+                Model.SkillTab model = skillTab;
                 model.CharacterId = characterId;
                 Context.SkillTab.Update(model);
             }
@@ -232,7 +232,7 @@ public partial class GameStorage {
 
         #region Create
         public Account? CreateAccount(Account account) {
-            Model.Account model = account!;
+            Model.Account model = account;
             model.Id = 0;
 #if DEBUG
             model.Currency = new AccountCurrency {Meret = 99999};
@@ -253,7 +253,7 @@ public partial class GameStorage {
         }
 
         public Character? CreateCharacter(Character character) {
-            Model.Character model = character!;
+            Model.Character model = character;
             model.Id = 0;
 #if DEBUG
             model.Currency = new CharacterCurrency {Meso = 999999999};
@@ -263,7 +263,7 @@ public partial class GameStorage {
         }
 
         public bool InitNewCharacter(long characterId, Unlock unlock) {
-            CharacterUnlock model = unlock!;
+            CharacterUnlock model = unlock;
             model.CharacterId = characterId;
             Context.CharacterUnlock.Add(model);
 
@@ -285,7 +285,7 @@ public partial class GameStorage {
         }
 
         public SkillTab? CreateSkillTab(long characterId, SkillTab skillTab) {
-            Model.SkillTab model = skillTab!;
+            Model.SkillTab model = skillTab;
             model.CharacterId = characterId;
             Context.SkillTab.Add(model);
             return Context.TrySaveChanges() ? model : null;

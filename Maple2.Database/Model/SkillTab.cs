@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Maple2.Database.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -15,6 +16,7 @@ internal class SkillTab {
 
     public DateTime CreationTime { get; set; }
 
+    [return:NotNullIfNotNull("other")]
     public static implicit operator SkillTab?(Maple2.Model.Game.SkillTab? other) {
         return other == null ? null : new SkillTab {
             Id = other.Id,
@@ -23,6 +25,7 @@ internal class SkillTab {
         };
     }
 
+    [return:NotNullIfNotNull("other")]
     public static implicit operator Maple2.Model.Game.SkillTab?(SkillTab? other) {
         if (other == null) {
             return null;
