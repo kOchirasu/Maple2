@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
@@ -28,6 +29,7 @@ internal class Home {
 
     public DateTime LastModified { get; set; }
 
+    [return:NotNullIfNotNull("other")]
     public static implicit operator Home?(Maple2.Model.Game.Home? other) {
         return other == null ? null : new Home {
             AccountId = other.AccountId,
@@ -45,6 +47,7 @@ internal class Home {
         };
     }
 
+    [return:NotNullIfNotNull("other")]
     public static implicit operator Maple2.Model.Game.Home?(Home? other) {
         if (other == null) {
             return null;

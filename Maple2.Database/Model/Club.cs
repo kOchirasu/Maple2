@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Maple2.Database.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -16,6 +17,7 @@ internal class Club {
     public long LeaderId { get; set; }
     public List<ClubMember> Members { get; set; }
 
+    [return:NotNullIfNotNull("other")]
     public static implicit operator Club?(Maple2.Model.Game.Club? other) {
         return other == null ? null : new Club {
             // CreationTime set by DB
@@ -26,6 +28,7 @@ internal class Club {
         };
     }
 
+    [return:NotNullIfNotNull("other")]
     public static implicit operator Maple2.Model.Game.Club?(Club? other) {
         return other == null ? null : new Maple2.Model.Game.Club {
             LastModified = other.LastModified,
@@ -60,6 +63,7 @@ internal class ClubMember {
     public long CharacterId { get; set; }
     public Character Character { get; set; }
 
+    [return:NotNullIfNotNull("other")]
     public static implicit operator ClubMember?(Maple2.Model.Game.ClubMember? other) {
         return other == null ? null : new ClubMember {
             // CreationTime set by DB

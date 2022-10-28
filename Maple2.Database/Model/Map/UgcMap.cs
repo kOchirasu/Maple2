@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using Maple2.Database.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -21,6 +22,7 @@ internal class UgcMap {
     public DateTime ExpiryTime { get; set; }
     public DateTime LastModified { get; set; }
 
+    [return:NotNullIfNotNull("other")]
     public static implicit operator UgcMap?(Maple2.Model.Game.PlotInfo? other) {
         return other == null ? null : new UgcMap {
             Id = other.Id,
