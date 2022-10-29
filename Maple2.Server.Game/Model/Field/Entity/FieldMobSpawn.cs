@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using Maple2.Database.Storage;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Packets;
@@ -18,12 +20,14 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
     private const int PET_SPAWN_RATE_TOTAL = 10000;
 
     private readonly WeightedSet<NpcMetadata> npcs;
+    private readonly WeightedSet<ItemMetadata> pets;
     private readonly List<int> spawnedMobs;
     private readonly List<int> spawnedPets;
     private int spawnTick;
 
-    public FieldMobSpawn(FieldManager field, int objectId, MapMetadataSpawn metadata, WeightedSet<NpcMetadata> npcs) : base(field, objectId, metadata) {
+    public FieldMobSpawn(FieldManager field, int objectId, MapMetadataSpawn metadata, WeightedSet<NpcMetadata> npcs, WeightedSet<ItemMetadata> pets) : base(field, objectId, metadata) {
         this.npcs = npcs;
+        this.pets = pets;
         spawnedMobs = new List<int>(metadata.Population);
         spawnedPets = new List<int>(metadata.PetPopulation);
         if (Value.Cooldown <= 0) {
@@ -65,24 +69,39 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
 
         spawnTick = int.MaxValue;
         for (int i = spawnedMobs.Count; i < Value.Population; i++) {
-            NpcMetadata npc = npcs.Get();
-            int spawnX = Random.Shared.Next((int) Position.X - PET_SPAWN_RADIUS, (int) Position.X + PET_SPAWN_RADIUS);
-            int spawnY = Random.Shared.Next((int) Position.Y - PET_SPAWN_RADIUS, (int) Position.Y + PET_SPAWN_RADIUS);
-            var spawnPosition = new Vector3(spawnX, spawnY, Position.Z);
-            FieldNpc fieldNpc = Field.SpawnNpc(npc, spawnPosition, Rotation, this);
+            FieldNpc fieldNpc = Field.SpawnNpc(npcs.Get(), GetRandomSpawn(), Rotation, owner: this);
             spawnedMobs.Add(fieldNpc.ObjectId);
 
             Field.Broadcast(FieldPacket.AddNpc(fieldNpc));
             Field.Broadcast(ProxyObjectPacket.AddNpc(fieldNpc));
         }
 
-        if (Value.PetSpawnRate <= 0 || spawnedPets.Count < Value.PetPopulation) {
+        if (Value.PetSpawnRate <= 0 || spawnedPets.Count >= Value.PetPopulation) {
             return;
         }
 
         if (Random.Shared.Next(PET_SPAWN_RATE_TOTAL) < Value.PetSpawnRate) {
-            int petId = Value.PetIds[Random.Shared.Next(Value.PetIds.Length)];
-            Log.Logger.Information("TODO: Spawning pet:{PetId}", petId);
+            using GameStorage.Request db = Field.GameStorage.Context();
+            Item? pet = db.CreateItem(0, new Item(pets.Get()));
+            if (pet == null) {
+                return;
+            }
+
+            FieldPet? fieldPet = Field.SpawnPet(pet, GetRandomSpawn(), Rotation, owner: this);
+            if (fieldPet == null) {
+                return;
+            }
+
+            spawnedPets.Add(fieldPet.ObjectId);
+
+            Field.Broadcast(FieldPacket.AddPet(fieldPet));
+            Field.Broadcast(ProxyObjectPacket.AddPet(fieldPet));
         }
+    }
+
+    private Vector3 GetRandomSpawn() {
+        int spawnX = Random.Shared.Next((int) Position.X - PET_SPAWN_RADIUS, (int) Position.X + PET_SPAWN_RADIUS);
+        int spawnY = Random.Shared.Next((int) Position.Y - PET_SPAWN_RADIUS, (int) Position.Y + PET_SPAWN_RADIUS);
+        return new Vector3(spawnX, spawnY, Position.Z);
     }
 }

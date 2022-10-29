@@ -147,6 +147,7 @@ public sealed partial class GameSession : Core.Network.Session {
         // UserEnv
         // Fishing
         Pet?.Load();
+        Send(PetPacket.LoadCollection(Player.Value.Unlock.Pets));
         // LegionBattle
         // CharacterAbility
         Config.LoadKeyTable();

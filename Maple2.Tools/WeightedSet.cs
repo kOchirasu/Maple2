@@ -1,11 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
 namespace Maple2.Tools;
 
-public class WeightedSet<T> {
+public class WeightedSet<T> : IEnumerable<(T, int)> {
     private readonly Random rng;
     private readonly HashSet<(T, int)> set;
     private int totalWeight;
@@ -32,5 +33,13 @@ public class WeightedSet<T> {
         }
 
         return set.First().Item1;
+    }
+
+    public IEnumerator<(T, int)> GetEnumerator() {
+        return set.GetEnumerator();
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() {
+        return GetEnumerator();
     }
 }

@@ -6,6 +6,7 @@ using System.Threading;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Field;
+using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Tools.Collision;
 using Maple2.Tools.Scheduler;
@@ -46,6 +47,7 @@ public abstract class ActorBase<T> : IActor<T> {
     }
 
     public virtual void ApplyEffect(IActor caster, SkillEffectMetadata effect) { }
+    public virtual void ApplyDamage(IActor caster, DamageRecord damage, SkillMetadataAttack attack) { }
     public virtual void AddBuff(IActor caster, int id, short level, bool notifyField = true) { }
 
     public virtual void Sync() { }
@@ -69,6 +71,29 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
 
         foreach (SkillEffectMetadata.Skill skill in effect.Skills) {
             AddBuff(caster, skill.Id, skill.Level);
+        }
+    }
+
+    public override void ApplyDamage(IActor caster, DamageRecord damage, SkillMetadataAttack attack) {
+        if (attack.Damage.Count > 0) {
+            var targetRecord = new DamageRecordTarget {
+                ObjectId = ObjectId,
+                Position = caster.Position,
+                Direction = caster.Rotation, // Idk why this is wrong
+            };
+
+            long damageAmount = 0;
+            for (int i = 0; i < attack.Damage.Count; i++) {
+                targetRecord.AddDamage(DamageType.Normal, -2000);
+                damageAmount -= 2000;
+            }
+
+            if (damageAmount != 0) {
+                Stats[StatAttribute.Health].Add(damageAmount);
+                Field.Broadcast(StatsPacket.Update(this, StatAttribute.Health));
+            }
+
+            damage.Targets.Add(targetRecord);
         }
     }
 

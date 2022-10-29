@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Maple2.Tools.Extensions;
@@ -16,6 +17,7 @@ internal class CharacterUnlock {
     public ISet<int> Titles { get; set; }
     public ISet<int> Emotes { get; set; }
     public ISet<int> Stamps { get; set; }
+    public IDictionary<int, short> Pets { get; set; }
     public InventoryExpand Expand { get; set; }
     public DateTime LastModified { get; init; }
 
@@ -45,6 +47,7 @@ internal class CharacterUnlock {
             Titles = other.Titles,
             Emotes = other.Emotes,
             Stamps = other.Stamps,
+            Pets = other.Pets,
         };
     }
 
@@ -81,6 +84,14 @@ internal class CharacterUnlock {
         unlock.Emotes.UnionWith(other.Emotes);
         unlock.Stamps.UnionWith(other.Stamps);
 
+        foreach ((int petId, short rarity) in other.Pets) {
+            if (unlock.Pets.TryGetValue(petId, out short existingRarity)) {
+                unlock.Pets[petId] = Math.Max(existingRarity, rarity);
+            } else {
+                unlock.Pets[petId] = rarity;
+            }
+        }
+
         return unlock;
     }
 
@@ -95,6 +106,7 @@ internal class CharacterUnlock {
         builder.Property(unlock => unlock.Titles).HasJsonConversion().IsRequired();
         builder.Property(unlock => unlock.Emotes).HasJsonConversion().IsRequired();
         builder.Property(unlock => unlock.Stamps).HasJsonConversion().IsRequired();
+        builder.Property(unlock => unlock.Pets).HasJsonConversion().IsRequired();
 
         builder.Property(unlock => unlock.LastModified).IsRowVersion();
     }
