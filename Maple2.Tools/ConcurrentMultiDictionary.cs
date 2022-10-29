@@ -42,7 +42,20 @@ public class ConcurrentMultiDictionary<TK1, TK2, TV> where TK1 : notnull where T
         return data.TryGetValue(key, out value);
     }
 
+    public bool TryGetKey1(TK1 key, [NotNullWhen(true)] out TV? value) {
+        return data.TryGetValue(key, out value);
+    }
+
     public bool TryGet(TK2 key2, [NotNullWhen(true)] out TV? value) {
+        if (mapping.TryGetValue(key2, out TK1? key1)) {
+            return data.TryGetValue(key1, out value);
+        }
+
+        value = default(TV);
+        return false;
+    }
+
+    public bool TryGetKey2(TK2 key2, [NotNullWhen(true)] out TV? value) {
         if (mapping.TryGetValue(key2, out TK1? key1)) {
             return data.TryGetValue(key1, out value);
         }

@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Database.Context;
 using Maple2.Model.Metadata;
+using Maple2.Tools;
 using Microsoft.EntityFrameworkCore;
 
 namespace Maple2.Database.Storage;
@@ -13,9 +14,14 @@ public class ItemMetadataStorage : MetadataStorage<int, ItemMetadata>, ISearchab
     private const int CACHE_SIZE = 40000; // ~34k total items
 
     private readonly ConcurrentDictionary<int, ItemMetadata> petToItem = new();
+    private readonly ConcurrentMultiDictionary<int, int, PetMetadata> petLookup = new();
 
     public ItemMetadataStorage(MetadataContext context) : base(context, CACHE_SIZE) {
         IndexPets();
+
+        foreach (PetMetadata metadata in Context.PetMetadata) {
+            petLookup.TryAdd(metadata.Id, metadata.NpcId, metadata);
+        }
     }
 
     public bool TryGet(int id, [NotNullWhen(true)] out ItemMetadata? item) {
@@ -43,6 +49,14 @@ public class ItemMetadataStorage : MetadataStorage<int, ItemMetadata>, ISearchab
 
     public bool TryGetPet(int petId, [NotNullWhen(true)] out ItemMetadata? item) {
         return petToItem.TryGetValue(petId, out item);
+    }
+
+    public bool TryGetPet(int petId, [NotNullWhen(true)] out PetMetadata? pet) {
+        return petLookup.TryGetKey1(petId, out pet);
+    }
+
+    public bool TryGetPetByNpcId(int npcId, [NotNullWhen(true)] out PetMetadata? pet) {
+        return petLookup.TryGetKey2(npcId, out pet);
     }
 
     public override void InvalidateCache() {

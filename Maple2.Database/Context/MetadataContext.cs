@@ -14,6 +14,7 @@ public sealed class MetadataContext : DbContext {
     public DbSet<NpcMetadata> NpcMetadata { get; set; } = null!;
     public DbSet<MapMetadata> MapMetadata { get; set; } = null!;
     public DbSet<MapEntity> MapEntity { get; set; } = null!;
+    public DbSet<PetMetadata> PetMetadata { get; set; } = null!;
     public DbSet<QuestMetadata> QuestMetadata { get; set; } = null!;
     public DbSet<RideMetadata> RideMetadata { get; set; } = null!;
     public DbSet<StoredSkillMetadata> SkillMetadata { get; set; } = null!;
@@ -31,6 +32,7 @@ public sealed class MetadataContext : DbContext {
         modelBuilder.Entity<NpcMetadata>(ConfigureNpcMetadata);
         modelBuilder.Entity<MapMetadata>(ConfigureMapMetadata);
         modelBuilder.Entity<MapEntity>(ConfigureMapEntity);
+        modelBuilder.Entity<PetMetadata>(ConfigurePetMetadata);
         modelBuilder.Entity<QuestMetadata>(ConfigureQuestMetadata);
         modelBuilder.Entity<RideMetadata>(ConfigureRideMetadata);
         modelBuilder.Entity<StoredSkillMetadata>(ConfigureSkillMetadata);
@@ -93,6 +95,16 @@ public sealed class MetadataContext : DbContext {
         builder.ToTable("map-entity");
         builder.HasKey(entity => new {entity.XBlock, Id = entity.Guid});
         builder.Property(entity => entity.Block).HasJsonConversion().IsRequired();
+    }
+
+    private static void ConfigurePetMetadata(EntityTypeBuilder<PetMetadata> builder) {
+        builder.ToTable("pet");
+        builder.HasKey(pet => pet.Id);
+        builder.HasIndex(pet => pet.NpcId);
+        builder.Property(pet => pet.Skill).HasJsonConversion();
+        builder.Property(pet => pet.Effect).HasJsonConversion();
+        builder.Property(pet => pet.Distance).HasJsonConversion();
+        builder.Property(pet => pet.Time).HasJsonConversion();
     }
 
     private static void ConfigureQuestMetadata(EntityTypeBuilder<QuestMetadata> builder) {
