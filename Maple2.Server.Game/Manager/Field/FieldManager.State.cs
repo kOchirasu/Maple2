@@ -8,6 +8,7 @@ using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
@@ -25,6 +26,7 @@ public partial class FieldManager {
     internal readonly ConcurrentDictionary<int, FieldPlayer> Players = new();
     internal readonly ConcurrentDictionary<int, FieldNpc> Npcs = new();
     internal readonly ConcurrentDictionary<int, FieldNpc> Mobs = new();
+    internal readonly ConcurrentDictionary<int, FieldPet> Pets = new();
 
     // Entities
     private readonly ConcurrentDictionary<string, FieldBreakable> fieldBreakables = new();
@@ -89,6 +91,22 @@ public partial class FieldManager {
         }
 
         return fieldNpc;
+    }
+
+    public FieldPet? SpawnPet(Item pet, Vector3 position, Vector3 rotation, FieldPlayer? owner = null) {
+        if (!NpcMetadata.TryGet(pet.Metadata.Property.PetId, out NpcMetadata? npc)) {
+            return null;
+        }
+
+        // We use GlobalId if there is an owner because players can move between maps.
+        int objectId = owner != null ? NextGlobalId() : NextLocalId();
+        var fieldPet = new FieldPet(this, objectId, new Npc(npc), pet, owner) {
+            Position = position,
+            Rotation = rotation,
+        };
+        Pets[fieldPet.ObjectId] = fieldPet;
+
+        return fieldPet;
     }
 
     public FieldPortal SpawnPortal(Portal portal, Vector3 position = default, Vector3 rotation = default) {
@@ -354,6 +372,16 @@ public partial class FieldManager {
         Broadcast(ProxyObjectPacket.RemoveNpc(objectId));
         return true;
     }
+
+    public bool RemovePet(int objectId) {
+        if (!Pets.TryRemove(objectId, out _)) {
+            return false;
+        }
+
+        Broadcast(FieldPacket.RemovePet(objectId));
+        Broadcast(ProxyObjectPacket.RemovePet(objectId));
+        return true;
+    }
     #endregion
 
     #region Events
@@ -374,7 +402,9 @@ public partial class FieldManager {
         foreach (FieldNpc fieldNpc in Npcs.Values.Concat(Mobs.Values)) {
             added.Session.Send(FieldPacket.AddNpc(fieldNpc));
         }
-        // FieldAddPet
+        foreach (FieldPet fieldPet in Pets.Values) {
+            added.Session.Send(FieldPacket.AddPet(fieldPet));
+        }
         foreach (FieldPortal fieldPortal in fieldPortals.Values) {
             added.Session.Send(PortalPacket.Add(fieldPortal));
         }
@@ -384,6 +414,9 @@ public partial class FieldManager {
         }
         foreach (FieldNpc fieldNpc in Npcs.Values.Concat(Mobs.Values)) {
             added.Session.Send(ProxyObjectPacket.AddNpc(fieldNpc));
+        }
+        foreach (FieldPet fieldPet in Pets.Values) {
+            added.Session.Send(ProxyObjectPacket.AddPet(fieldPet));
         }
         foreach (FieldSkill skillSource in fieldSkills.Values) {
             added.Session.Send(RegionSkillPacket.Add(skillSource));

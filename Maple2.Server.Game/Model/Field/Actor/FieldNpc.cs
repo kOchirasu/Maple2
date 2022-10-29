@@ -2,6 +2,7 @@
 using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.PacketLib.Tools;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Packets;
 using Maple2.Tools.Collision;
@@ -43,9 +44,11 @@ public class FieldNpc : Actor<Npc> {
         SequenceId = -1;
         SequenceCounter = 1;
 
-        Scheduler.ScheduleRepeated(() => Field.Broadcast(NpcControlPacket.Control(this)), 1000);
+        Scheduler.ScheduleRepeated(() => Field.Broadcast(Control()), 1000);
         Scheduler.Start();
     }
+
+    protected virtual ByteWriter Control() => NpcControlPacket.Control(this);
 
     public override void Sync() {
         base.Sync();

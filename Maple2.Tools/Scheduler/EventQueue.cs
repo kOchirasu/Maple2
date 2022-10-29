@@ -29,6 +29,13 @@ public class EventQueue {
         Running = false;
     }
 
+    public void Clear() {
+        lock (mutex) {
+            timedEvents.Clear();
+            nextEvents.Clear();
+        }
+    }
+
     /// <summary>
     /// Schedule a task to be run once
     /// </summary>

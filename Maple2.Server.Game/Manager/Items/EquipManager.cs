@@ -183,6 +183,10 @@ public class EquipManager {
             item.Slot = -1;
             session.Field?.Broadcast(EquipPacket.EquipBadge(session.Player, item));
 
+            if (item.Badge.Type == BadgeType.PetSkin) {
+                session.Pet?.BadgeChanged(item.Badge);
+            }
+
             return true;
         }
     }
@@ -203,6 +207,10 @@ public class EquipManager {
 
             if (success) {
                 session.Field?.Broadcast(EquipPacket.UnequipBadge(session.Player, unequipItem.Badge.Type));
+
+                if (unequipItem.Badge.Type == BadgeType.PetSkin) {
+                    session.Pet?.BadgeChanged(null);
+                }
             }
 
             return success;

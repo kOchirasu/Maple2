@@ -1,6 +1,7 @@
 ﻿using Maple2.Model.Game;
 using Maple2.Script.Npc;
 using Maple2.Server.Game.Manager;
+using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Manager.Items;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Model.Skill;
@@ -18,6 +19,7 @@ public partial class GameSession {
     public TradeManager? Trade;
     public StorageManager? Storage;
 
+    public PetManager? Pet;
     public Ride? Ride;
     public FieldInstrument? Instrument;
 
