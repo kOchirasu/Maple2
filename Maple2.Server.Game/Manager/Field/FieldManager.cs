@@ -164,6 +164,7 @@ public sealed partial class FieldManager : IDisposable {
             foreach (FieldPlayer player in Players.Values) player.Sync();
             foreach (FieldNpc npc in Npcs.Values) npc.Sync();
             foreach (FieldNpc mob in Mobs.Values) mob.Sync();
+            foreach (FieldPet pet in Pets.Values) pet.Sync();
             foreach (FieldBreakable breakable in fieldBreakables.Values) breakable.Sync();
             foreach (FieldLiftable liftable in fieldLiftables.Values) liftable.Sync();
             foreach (FieldInteract interact in fieldInteracts.Values) interact.Sync();

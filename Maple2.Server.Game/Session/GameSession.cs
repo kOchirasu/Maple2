@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Sockets;
 using System.Numerics;
@@ -145,7 +146,7 @@ public sealed partial class GameSession : Core.Network.Session {
         // UserMaid
         // UserEnv
         // Fishing
-        // ResponsePet
+        Pet?.Load();
         // LegionBattle
         // CharacterAbility
         Config.LoadKeyTable();
@@ -175,6 +176,7 @@ public sealed partial class GameSession : Core.Network.Session {
         DismantleOpened = false;
         Trade?.Dispose();
         Storage?.Dispose();
+        Pet?.Dispose();
         Instrument = null;
         GuideObject = null;
         HeldCube = null;

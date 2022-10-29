@@ -117,8 +117,9 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
         }
     }
 
-    public void Dispose() {
+    public virtual void Dispose() {
         Scheduler.Stop();
+        GC.SuppressFinalize(this);
     }
 
     protected abstract void OnDeath();
