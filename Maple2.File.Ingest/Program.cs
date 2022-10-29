@@ -45,6 +45,7 @@ UpdateDatabase(metadataContext, new AdditionalEffectMapper(xmlReader));
 UpdateDatabase(metadataContext, new AnimationMapper(xmlReader));
 UpdateDatabase(metadataContext, new ItemMapper(xmlReader));
 UpdateDatabase(metadataContext, new NpcMapper(xmlReader));
+UpdateDatabase(metadataContext, new PetMapper(xmlReader));
 UpdateDatabase(metadataContext, new MapMapper(xmlReader));
 UpdateDatabase(metadataContext, new UgcMapMapper(xmlReader));
 UpdateDatabase(metadataContext, new QuestMapper(xmlReader));
