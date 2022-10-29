@@ -8,7 +8,6 @@ using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
-using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
@@ -93,14 +92,15 @@ public partial class FieldManager {
         return fieldNpc;
     }
 
-    public FieldPet? SpawnPet(Item pet, Vector3 position, Vector3 rotation, FieldPlayer? owner = null) {
+    public FieldPet? SpawnPet(Item pet, Vector3 position, Vector3 rotation, FieldMobSpawn? owner = null, FieldPlayer? player = null) {
         if (!NpcMetadata.TryGet(pet.Metadata.Property.PetId, out NpcMetadata? npc)) {
             return null;
         }
 
         // We use GlobalId if there is an owner because players can move between maps.
-        int objectId = owner != null ? NextGlobalId() : NextLocalId();
-        var fieldPet = new FieldPet(this, objectId, new Npc(npc), pet, owner) {
+        int objectId = player != null ? NextGlobalId() : NextLocalId();
+        var fieldPet = new FieldPet(this, objectId, new Npc(npc), pet, player) {
+            Owner = owner,
             Position = position,
             Rotation = rotation,
         };
@@ -189,12 +189,25 @@ public partial class FieldManager {
             spawnNpcs.Add(npc, spawnWeight);
         }
 
+        var spawnPets = new WeightedSet<ItemMetadata>();
+        foreach ((NpcMetadata npc, int weight) in spawnNpcs) {
+            if (!metadata.PetIds.TryGetValue(npc.Id, out int petId)) {
+                continue;
+            }
+
+            if (!ItemMetadata.TryGetPet(petId, out ItemMetadata? pet)) {
+                continue;
+            }
+
+            spawnPets.Add(pet, weight);
+        }
+
         if (spawnNpcs.Count <= 0) {
             logger.Warning("No valid Npcs found from: {NpcIds}", string.Join(",", npcIds));
             return null;
         }
 
-        var fieldMobSpawn = new FieldMobSpawn(this, NextLocalId(), metadata, spawnNpcs) {
+        var fieldMobSpawn = new FieldMobSpawn(this, NextLocalId(), metadata, spawnNpcs, spawnPets) {
             Position = regionSpawn.Position,
             Rotation = regionSpawn.UseRotAsSpawnDir ? regionSpawn.Rotation : default,
         };
@@ -278,6 +291,8 @@ public partial class FieldManager {
                 return prisms.Filter(Players.Values, limit);
             case SkillEntity.Target:
                 return prisms.Filter(Mobs.Values, limit);
+            case SkillEntity.RegionPet:
+                return prisms.Filter(Pets.Values.Where(pet => pet.OwnerId == 0), limit);
             default:
                 Log.Debug("Unhandled SkillEntity:{Entity}", entity);
                 return Array.Empty<IActor>();

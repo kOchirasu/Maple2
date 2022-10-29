@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Database.Context;
@@ -10,7 +12,11 @@ namespace Maple2.Database.Storage;
 public class ItemMetadataStorage : MetadataStorage<int, ItemMetadata>, ISearchable<ItemMetadata> {
     private const int CACHE_SIZE = 40000; // ~34k total items
 
-    public ItemMetadataStorage(MetadataContext context) : base(context, CACHE_SIZE) { }
+    private readonly ConcurrentDictionary<int, ItemMetadata> petToItem = new();
+
+    public ItemMetadataStorage(MetadataContext context) : base(context, CACHE_SIZE) {
+        IndexPets();
+    }
 
     public bool TryGet(int id, [NotNullWhen(true)] out ItemMetadata? item) {
         if (Cache.TryGet(id, out item)) {
@@ -35,11 +41,32 @@ public class ItemMetadataStorage : MetadataStorage<int, ItemMetadata>, ISearchab
         return true;
     }
 
+    public bool TryGetPet(int petId, [NotNullWhen(true)] out ItemMetadata? item) {
+        return petToItem.TryGetValue(petId, out item);
+    }
+
+    public override void InvalidateCache() {
+        base.InvalidateCache();
+        IndexPets();
+    }
+
     public List<ItemMetadata> Search(string name) {
         lock (Context) {
             return Context.ItemMetadata
                 .Where(item => EF.Functions.Like(item.Name!, $"%{name}%"))
                 .ToList();
+        }
+    }
+
+    private readonly FormattableString petQuery = $"SELECT * FROM `maple-data`.item WHERE JSON_EXTRACT(Property, '$.PetId') > 0";
+    private void IndexPets() {
+        petToItem.Clear();
+
+        lock (Context) {
+            foreach (ItemMetadata item in Context.ItemMetadata.FromSqlInterpolated(petQuery)) {
+                Cache.AddReplace(item.Id, item);
+                petToItem[item.Property.PetId] = item;
+            }
         }
     }
 }

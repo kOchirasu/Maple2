@@ -219,6 +219,15 @@ public static class PetPacket {
         return pWriter;
     }
 
+    public static ByteWriter SyncTaming(int casterId, FieldPet pet) {
+        var pWriter = Packet.Of(SendOp.SyncPetTamingPoint);
+        pWriter.WriteInt(pet.ObjectId);
+        pWriter.WriteInt(casterId);
+        pWriter.WriteInt(pet.TamingPoint);
+
+        return pWriter;
+    }
+
     private static void WritePetItem(this IByteWriter writer, Item pet) {
         writer.WriteBool(true); // Not sure when false
         writer.WriteInt(pet.Id);

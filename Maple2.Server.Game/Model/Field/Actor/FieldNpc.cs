@@ -49,6 +49,7 @@ public class FieldNpc : Actor<Npc> {
     }
 
     protected virtual ByteWriter Control() => NpcControlPacket.Control(this);
+    protected virtual void Remove() => Field.RemoveNpc(ObjectId);
 
     public override void Sync() {
         base.Sync();
@@ -60,8 +61,6 @@ public class FieldNpc : Actor<Npc> {
         }
 
         Owner?.Despawn(ObjectId);
-        Scheduler.Schedule(() => {
-            Field.RemoveNpc(ObjectId);
-        }, (int) (Value.Metadata.Dead.Time * 1000));
+        Scheduler.Schedule(Remove, (int) (Value.Metadata.Dead.Time * 1000));
     }
 }

@@ -16,7 +16,7 @@ public sealed class PetManager : IDisposable {
     private readonly ItemCollection items;
 
     public Item Pet => pet.Pet;
-    private PetConfig config;
+    private readonly PetConfig config;
 
     private ItemPet ItemPet => Pet.Pet!;
     public int OwnerId => session.Player.ObjectId;

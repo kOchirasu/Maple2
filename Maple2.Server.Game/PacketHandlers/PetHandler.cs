@@ -165,7 +165,7 @@ public class PetHandler : PacketHandler<GameSession> {
                 return;
             }
 
-            FieldPet? fieldPet = session.Field.SpawnPet(pet, session.Player.Position, session.Player.Rotation, session.Player);
+            FieldPet? fieldPet = session.Field.SpawnPet(pet, session.Player.Position, session.Player.Rotation, player: session.Player);
             if (fieldPet == null) {
                 return;
             }

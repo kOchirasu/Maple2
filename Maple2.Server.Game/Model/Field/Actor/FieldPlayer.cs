@@ -50,7 +50,7 @@ public class FieldPlayer : Actor<Player> {
         }
     }
 
-    public void TargetAttack(SkillRecord record, int[] targetIds) {
+    public virtual void TargetAttack(SkillRecord record, int[] targetIds) {
         SkillMetadataAttack attack = record.Attack;
         // Clear Targets just in case SkillRecord is being reused.
         record.Targets.Clear();
@@ -66,6 +66,11 @@ public class FieldPlayer : Actor<Player> {
                         record.Targets.Add(player);
                     }
                     continue;
+                case SkillEntity.RegionPet:
+                    if (Field.Pets.TryGetValue(targetId, out FieldPet? pet)) {
+                        record.Targets.Add(pet);
+                    }
+                    continue;
                 default:
                     Logger.Debug("Unhandled Target-SkillEntity:{Entity}", attack.Range.ApplyTarget);
                     continue;
@@ -76,38 +81,22 @@ public class FieldPlayer : Actor<Player> {
             return;
         }
 
-        if (attack.Damage.Count > 0) {
-            var damage = new DamageRecord {
-                TargetUid = record.TargetUid,
-                OwnerId = ObjectId,
-                SkillId = record.SkillId,
-                Level = record.Level,
-                AttackPoint = record.AttackPoint,
-                MotionPoint = record.MotionPoint,
-                Position = record.ImpactPosition,
-                Direction = record.Direction,
-            };
+        var damage = new DamageRecord {
+            TargetUid = record.TargetUid,
+            OwnerId = ObjectId,
+            SkillId = record.SkillId,
+            Level = record.Level,
+            AttackPoint = record.AttackPoint,
+            MotionPoint = record.MotionPoint,
+            Position = record.ImpactPosition,
+            Direction = record.Direction,
+        };
 
-            foreach (IActor target in record.Targets) {
-                var targetRecord = new DamageRecordTarget {
-                    ObjectId = target.ObjectId,
-                };
-                long damageAmount = 0;
-                for (int i = 0; i < attack.Damage.Count; i++) {
-                    targetRecord.AddDamage(DamageType.Normal, -2000);
-                    damageAmount -= 2000;
-                }
-
-                if (damageAmount != 0) {
-                    target.Stats[StatAttribute.Health].Add(damageAmount);
-                    Field.Broadcast(StatsPacket.Update(target, StatAttribute.Health));
-                }
-
-                damage.Targets.Add(targetRecord);
-            }
-
-            Field.Broadcast(SkillDamagePacket.Damage(damage));
+        foreach (IActor target in record.Targets) {
+            target.ApplyDamage(this, damage, attack);
         }
+
+        Field.Broadcast(SkillDamagePacket.Damage(damage));
 
         foreach (SkillEffectMetadata effect in attack.Skills) {
             if (effect.Condition != null) {

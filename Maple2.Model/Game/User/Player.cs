@@ -30,6 +30,7 @@ public class Unlock {
     public readonly ISet<int> Titles = new SortedSet<int>();
     public readonly ISet<int> Emotes = new SortedSet<int>();
     public readonly ISet<int> Stamps = new SortedSet<int>();
+    public readonly IDictionary<int, short> Pets = new SortedDictionary<int, short>();
 }
 
 public class Currency {

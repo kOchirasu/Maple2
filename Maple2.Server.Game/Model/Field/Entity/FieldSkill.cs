@@ -118,39 +118,20 @@ public class FieldSkill : FieldEntity<SkillMetadata> {
                 //     }
                 // }
 
-                if (attack.Damage.Count > 0) {
-                    var damage = new DamageRecord {
-                        CasterId = Caster.ObjectId,
-                        OwnerId = ObjectId,
-                        SkillId = Value.Id,
-                        Level = Value.Level,
-                        MotionPoint = record.MotionPoint,
-                        AttackPoint = record.AttackPoint,
-                    };
+                var damage = new DamageRecord {
+                    CasterId = Caster.ObjectId,
+                    OwnerId = ObjectId,
+                    SkillId = Value.Id,
+                    Level = Value.Level,
+                    MotionPoint = record.MotionPoint,
+                    AttackPoint = record.AttackPoint,
+                };
 
-                    foreach (IActor target in targets) {
-                        var targetRecord = new DamageRecordTarget {
-                            ObjectId = target.ObjectId,
-                            // TODO: These should be from the block that did damage?
-                            Position = target.Position,  // Of block
-                            Direction = target.Rotation, // Of block
-                        };
-                        long damageAmount = 0;
-                        for (int k = 0; k < attack.Damage.Count; k++) {
-                            targetRecord.AddDamage(DamageType.Normal, -10);
-                            damageAmount -= 10;
-                        }
-
-                        if (damageAmount != 0) {
-                            target.Stats[StatAttribute.Health].Add(damageAmount);
-                            Field.Broadcast(StatsPacket.Update(target, StatAttribute.Health));
-                        }
-
-                        damage.Targets.Add(targetRecord);
-                    }
-
-                    Field.Broadcast(SkillDamagePacket.Region(damage));
+                foreach (IActor target in targets) {
+                    target.ApplyDamage(Caster, damage, attack);
                 }
+
+                Field.Broadcast(SkillDamagePacket.Region(damage));
 
                 foreach (SkillEffectMetadata effect in attack.Skills.Where(effect => effect.Condition != null)) {
                     if (effect.Condition == null) {

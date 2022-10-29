@@ -79,7 +79,7 @@ public record MapMetadataSpawn(
     string[] Tags,
     int PetPopulation,
     int PetSpawnRate,
-    int[] PetIds);
+    IReadOnlyDictionary<int, int> PetIds); // NpcId => PetId
 
 public record MapMetadataCashCall(
     bool TaxiDeparture,

@@ -14,7 +14,7 @@ public abstract class MetadataStorage<TK, TV> {
         Cache = new LRUCache<TK, TV>(capacity, (int)(capacity * 0.05));
     }
 
-    public void InvalidateCache() {
+    public virtual void InvalidateCache() {
         Cache.Clear();
     }
 }
