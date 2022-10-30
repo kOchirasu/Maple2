@@ -76,17 +76,12 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
             Field.Broadcast(ProxyObjectPacket.AddNpc(fieldNpc));
         }
 
-        if (Value.PetSpawnRate <= 0 || spawnedPets.Count >= Value.PetPopulation) {
+        if (Value.PetSpawnRate <= 0 || pets.Count <= 0 || spawnedPets.Count >= Value.PetPopulation) {
             return;
         }
 
         if (Random.Shared.Next(PET_SPAWN_RATE_TOTAL) < Value.PetSpawnRate) {
-            using GameStorage.Request db = Field.GameStorage.Context();
-            Item? pet = db.CreateItem(0, new Item(pets.Get()));
-            if (pet == null) {
-                return;
-            }
-
+            var pet = new Item(pets.Get());
             FieldPet? fieldPet = Field.SpawnPet(pet, GetRandomSpawn(), Rotation, owner: this);
             if (fieldPet == null) {
                 return;

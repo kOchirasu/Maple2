@@ -234,7 +234,7 @@ public static class FieldPacket {
         pWriter.WriteLong(pet.Pet.Uid);
         pWriter.WriteByte();
         pWriter.WriteShort(pet.Value.Metadata.Basic.Level);
-        pWriter.WriteShort(pet.TamingPoint); // lua calc_PetTamingRank
+        pWriter.WriteShort(pet.TamingRank);
         pWriter.WriteInt();
         pWriter.WriteUnicodeString(pet.Pet.Pet?.Name ?? "");
 

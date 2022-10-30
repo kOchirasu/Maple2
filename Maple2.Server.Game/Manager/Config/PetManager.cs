@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Database.Storage;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
+using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Manager.Items;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
@@ -25,7 +30,18 @@ public sealed class PetManager : IDisposable {
         this.session = session;
         this.pet = pet;
 
-        items = new ItemCollection(14); // TODO: PetSlotNum from xml
+        short itemSlots = 0;
+        if (session.ItemMetadata.TryGetPet(pet.Value.Id, out PetMetadata? metadata) && metadata.Type == 0) {
+            itemSlots = (short) metadata.ItemSlots;
+        }
+
+        items = new ItemCollection(itemSlots);
+
+        // AddOrUpdate Pet Collection
+        if (!session.Player.Value.Unlock.Pets.TryGetValue(pet.Value.Id, out short rarity) || rarity < Pet.Rarity) {
+            session.Player.Value.Unlock.Pets[pet.Value.Id] = (short) Pet.Rarity;
+            session.Send(PetPacket.AddCollection(pet.Value.Id, (short) Pet.Rarity));
+        }
 
         using GameStorage.Request db = session.GameStorage.Context();
         config = db.GetPetConfig(Pet.Uid);
@@ -40,6 +56,90 @@ public sealed class PetManager : IDisposable {
 
     public void Load() {
         session.Send(PetPacket.Load(OwnerId, ItemPet, config));
+    }
+
+    public void LoadInventory() {
+        lock (session.Item) {
+            session.Send(PetInventoryPacket.Load(items.ToList()));
+        }
+    }
+
+    public void Add(long uid, short slot, int amount) {
+        Console.WriteLine($"Adding {amount}x {uid} to {slot}");
+        lock (session.Item) {
+            Item? deposit = session.Item.Inventory.Get(uid);
+            if (deposit == null || deposit.Amount < amount) {
+                session.Send(NoticePacket.MessageBox(StringCode.s_item_err_invalid_count));
+                return;
+            }
+
+            if (deposit.Pet != null) {
+                session.Send(NoticePacket.MessageBox(StringCode.s_pet_inventory_not_sendin_petitem));
+                return;
+            }
+
+            if (items.OpenSlots == 0) {
+                int remaining = items.GetStackResult(deposit, amount);
+                if (amount == remaining) {
+                    session.Send(NoticePacket.MessageBox(StringCode.s_pet_inventory_not_sendin));
+                    return;
+                }
+
+                // Stack what we can and ignore the rest.
+                amount -= remaining;
+            }
+
+            if (!session.Item.Inventory.Remove(uid, out deposit, amount)) {
+                return;
+            }
+
+            deposit.Slot = slot;
+            IList<(Item, int Added)> result = items.Add(deposit, true);
+
+            foreach ((Item item, int _) in result) {
+                session.Send(deposit.Uid == item.Uid
+                    ? PetInventoryPacket.Add(item)
+                    : PetInventoryPacket.Update(item.Uid, item.Amount));
+            }
+        }
+    }
+
+    public void Remove(long uid, short slot, int amount) {
+        lock (session.Item) {
+            Item? withdraw = items.Get(uid);
+            if (withdraw == null || withdraw.Amount < amount) {
+                session.Send(NoticePacket.MessageBox(StringCode.s_item_err_invalid_count));
+                return;
+            }
+
+            if (!RemoveInternal(uid, amount, out withdraw)) {
+                return;
+            }
+
+            withdraw.Slot = slot;
+            session.Item.Inventory.Add(withdraw, commit: true);
+        }
+    }
+
+    public bool Move(long uid, short dstSlot) {
+        lock (session.Item) {
+            if (dstSlot < 0 || dstSlot >= items.Size) {
+                session.Send(NoticePacket.MessageBox(StringCode.s_item_err_Invalid_slot));
+                return false;
+            }
+
+            if (items.Remove(uid, out Item? srcItem)) {
+                short srcSlot = srcItem.Slot;
+                if (items.RemoveSlot(dstSlot, out Item? removeDst)) {
+                    items[srcSlot] = removeDst;
+                }
+
+                items[dstSlot] = srcItem;
+                session.Send(PetInventoryPacket.Move(removeDst?.Uid ?? 0, srcSlot, uid, dstSlot));
+            }
+
+            return true;
+        }
     }
 
     public void BadgeChanged(ItemBadge? badge) {
@@ -69,11 +169,45 @@ public sealed class PetManager : IDisposable {
         using GameStorage.Request db = session.GameStorage.Context();
         lock (session.Item) {
             db.SavePetConfig(Pet.Uid, config);
-            db.SaveItems(session.AccountId, items.ToArray());
+            db.SaveItems(Pet.Uid, items.ToArray());
         }
 
         session.Field?.RemovePet(pet.ObjectId);
         session.Field?.Broadcast(PetPacket.UnSummon(pet));
         session.Pet = null;
     }
+
+    #region Internal (No Locks)
+    private bool RemoveInternal(long uid, int amount, [NotNullWhen(true)] out Item? removed) {
+        if (amount > 0) {
+            Item? item = items.Get(uid);
+            if (item == null || item.Amount < amount) {
+                session.Send(NoticePacket.MessageBox(StringCode.s_item_err_invalid_count));
+                removed = null;
+                return false;
+            }
+
+            // Otherwise, we would just do a full remove.
+            if (item.Amount > amount) {
+                using GameStorage.Request db = session.GameStorage.Context();
+                removed = db.SplitItem(0, item, amount);
+                if (removed == null) {
+                    return false;
+                }
+                item.Amount -= amount;
+
+                session.Send(PetInventoryPacket.Update(uid, item.Amount));
+                return true;
+            }
+        }
+
+        // Full remove of item
+        if (items.Remove(uid, out removed)) {
+            session.Send(PetInventoryPacket.Remove(uid));
+            return true;
+        }
+
+        return false;
+    }
+    #endregion
 }

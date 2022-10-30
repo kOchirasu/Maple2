@@ -65,14 +65,17 @@ public sealed class StorageManager : IDisposable {
                 return;
             }
 
-            // Update amount to the max that can be deposited.
-            int remaining = items.GetStackResult(deposit, amount);
-            if (items.OpenSlots == 0 && remaining == amount) {
-                session.Send(StorageInventoryPacket.Error(s_item_err_store_full));
-                return;
+            if (items.OpenSlots == 0) {
+                int remaining = items.GetStackResult(deposit, amount);
+                if (amount == remaining) {
+                    session.Send(StorageInventoryPacket.Error(s_item_err_store_full));
+                    return;
+                }
+
+                // Stack what we can and ignore the rest.
+                amount -= remaining;
             }
 
-            amount -= remaining;
             if (!session.Item.Inventory.Remove(uid, out deposit, amount)) {
                 return;
             }
@@ -81,7 +84,7 @@ public sealed class StorageManager : IDisposable {
             IList<(Item, int Added)> result = items.Add(deposit, true);
 
             foreach ((Item item, int _) in result) {
-                session.Send(uid == item.Uid
+                session.Send(deposit.Uid == item.Uid
                     ? StorageInventoryPacket.Add(item)
                     : StorageInventoryPacket.Update(item.Uid, item.Amount));
             }
@@ -106,7 +109,7 @@ public sealed class StorageManager : IDisposable {
             }
 
             withdraw.Slot = slot;
-            session.Item.Inventory.Add(withdraw);
+            session.Item.Inventory.Add(withdraw, commit: true);
         }
     }
 
@@ -210,6 +213,7 @@ public sealed class StorageManager : IDisposable {
         if (amount > 0) {
             Item? item = items.Get(uid);
             if (item == null || item.Amount < amount) {
+                session.Send(StorageInventoryPacket.Error(s_item_err_invalid_count));
                 removed = null;
                 return false;
             }

@@ -1,4 +1,5 @@
 ﻿using System;
+using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -18,12 +19,17 @@ public sealed class FieldPet : FieldNpc {
 
     public readonly float Scale = 1f;
 
-    private IActor? capturer;
-    public short TamingPoint = 0;
+    public short TamingRank; // (0-70=green, 70-95=yellow, 95-100=red)
+    public int TamingPoint = 1000;
 
     public FieldPet(FieldManager field, int objectId, Npc npc, Item pet, FieldPlayer? owner = null) : base(field, objectId, npc) {
         this.owner = owner;
         Pet = pet;
+
+        // Wild pets need a TamingRank.
+        if (owner == null) {
+            TamingRank = (short) (Random.Shared.Next(100) + 1);
+        }
 
         // Use Badge for SkinId if equipped.
         if (owner != null && owner.Session.Item.Equips.Badge.TryGetValue(BadgeType.PetSkin, out Item? value)) {
@@ -41,8 +47,8 @@ public sealed class FieldPet : FieldNpc {
         var targetRecord = new DamageRecordTarget {
             ObjectId = ObjectId,
         };
-        long damageAmount = TamingPoint - Math.Min(TamingPoint + attack.Pet.TamingPoint, Constant.TamingPetMaxPoint);
-        TamingPoint -= (short) damageAmount;
+        int damageAmount = TamingPoint - Math.Min(TamingPoint + attack.Pet.TamingPoint, Constant.TamingPetMaxPoint);
+        TamingPoint -= damageAmount;
         targetRecord.AddDamage(damageAmount == 0 ? DamageType.Miss : DamageType.Normal, damageAmount);
         if (damageAmount != 0) {
             Field.Broadcast(PetPacket.SyncTaming(caster.ObjectId, this));
@@ -50,11 +56,13 @@ public sealed class FieldPet : FieldNpc {
 
         if (attack.Pet.TrapLevel > 0) {
             if (attack.Pet.ForcedTaming) {
-                capturer = caster;
-                Stats[StatAttribute.Health].Current = 0;
+                IsDead = true;
+                OnDeath();
+                DropItem(caster);
             } else if (TamingPoint >= Constant.TamingPetMaxPoint) { // trap has chance to fail
-                capturer = caster;
-                Stats[StatAttribute.Health].Current = 0;
+                IsDead = true;
+                OnDeath();
+                DropItem(caster);
             }
         }
 
@@ -69,12 +77,21 @@ public sealed class FieldPet : FieldNpc {
         SkinId = skinId > 0 ? skinId : Value.Id;
     }
 
-    protected override void OnDeath() {
-        base.OnDeath();
+    private void DropItem(IActor capturer) {
+        // TODO: Determine rarity of pet drop
+        int rarity = TamingRank / 25 + 1;
 
+        using GameStorage.Request db = Field.GameStorage.Context();
+        Item? pet = db.CreateItem(0, Pet.Mutate(Pet.Metadata, rarity));
+        if (pet == null) {
+            return;
+        }
+
+        FieldItem fieldItem = Field.SpawnItem(this, pet);
         if (capturer is FieldPlayer player) {
-            FieldItem fieldItem = Field.SpawnItem(this, Pet);
             player.Session.Send(FieldPacket.DropItem(fieldItem));
+        } else {
+            Field.Broadcast(FieldPacket.DropItem(fieldItem));
         }
     }
 }
