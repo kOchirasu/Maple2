@@ -8,10 +8,10 @@ public static class DateTimeExtensions {
             return DateTime.UnixEpoch.Second;
         }
 
-        return (long) (dateTime - DateTime.UnixEpoch).TotalSeconds;
+        return (long) (dateTime.ToUniversalTime() - DateTime.UnixEpoch).TotalSeconds;
     }
 
     public static DateTime FromEpochSeconds(this long epochSeconds) {
-        return DateTime.UnixEpoch + TimeSpan.FromSeconds(epochSeconds);
+        return DateTimeOffset.FromUnixTimeSeconds(epochSeconds).LocalDateTime;
     }
 }

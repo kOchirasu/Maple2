@@ -18,6 +18,8 @@ public sealed class Ms2Context : DbContext {
     internal DbSet<Buddy> Buddy { get; set; } = null!;
     internal DbSet<UgcMap> UgcMap { get; set; } = null!;
     internal DbSet<UgcMapCube> UgcMapCube { get; set; } = null!;
+    internal DbSet<MesoListing> MesoMarket { get; set; } = null!;
+    internal DbSet<SoldMesoListing> MesoMarketSold { get; set; } = null!;
 
     public Ms2Context(DbContextOptions options) : base(options) { }
 
@@ -37,5 +39,8 @@ public sealed class Ms2Context : DbContext {
         modelBuilder.Entity<Buddy>(Maple2.Database.Model.Buddy.Configure);
         modelBuilder.Entity<UgcMap>(Maple2.Database.Model.UgcMap.Configure);
         modelBuilder.Entity<UgcMapCube>(Maple2.Database.Model.UgcMapCube.Configure);
+
+        modelBuilder.Entity<MesoListing>(MesoListing.Configure);
+        modelBuilder.Entity<SoldMesoListing>(SoldMesoListing.Configure);
     }
 }

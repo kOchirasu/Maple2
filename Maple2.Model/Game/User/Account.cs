@@ -16,4 +16,6 @@ public class Account {
     public long PrestigeExp { get; set; }
     public Trophy Trophy { get; set; }
     public long PremiumTime { get; set; }
+    public int MesoMarketListed { get; set; }
+    public int MesoMarketPurchased { get; set; }
 }
