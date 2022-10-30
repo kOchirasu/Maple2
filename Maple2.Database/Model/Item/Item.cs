@@ -45,7 +45,6 @@ internal class Item {
         }
 
         var item = new Item {
-            LastModified = other.LastModified,
             Id = other.Uid,
             ItemId = other.Id,
             Rarity = other.Rarity,
@@ -90,7 +89,6 @@ internal class Item {
     // Use explicit Convert() here because we need metadata to construct Item.
     public Maple2.Model.Game.Item Convert(ItemMetadata metadata) {
         var item = new Maple2.Model.Game.Item(metadata, Rarity, Amount, false) {
-            LastModified = LastModified,
             Uid = Id,
             Slot = Slot,
             Group = Group,
@@ -151,7 +149,7 @@ internal class Item {
         builder.Property(item => item.Binding).HasJsonConversion();
         builder.Property(item => item.SubType).HasJsonConversion();
 
-        builder.Property(item => item.LastModified).IsRowVersion();
+        builder.Property(item => item.LastModified).ValueGeneratedOnAdd();
         IMutableProperty creationTime = builder.Property(item => item.CreationTime)
             .ValueGeneratedOnAdd().Metadata;
         creationTime.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);

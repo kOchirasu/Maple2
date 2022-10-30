@@ -12,8 +12,6 @@ public class Item : IByteSerializable, IByteDeserializable {
     public readonly ItemMetadata Metadata;
     public readonly InventoryType Inventory;
 
-    public DateTime LastModified { get; init; }
-
     public long Uid { get; init; }
     public int Rarity { get; init; }
     public short Slot = -1;
@@ -88,7 +86,6 @@ public class Item : IByteSerializable, IByteDeserializable {
 
     public Item Mutate(ItemMetadata metadata, int? rarity = null) {
         return new Item(metadata, rarity ?? Rarity, Amount, false) {
-            LastModified = LastModified,
             Uid = Uid,
             CreationTime = CreationTime,
             ExpiryTime = ExpiryTime,

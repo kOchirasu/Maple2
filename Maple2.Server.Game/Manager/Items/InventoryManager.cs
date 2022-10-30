@@ -146,7 +146,7 @@ public class InventoryManager {
         }
     }
 
-    public bool Add(Item add, bool notifyNew = false) {
+    public bool Add(Item add, bool notifyNew = false, bool commit = false) {
         lock (session.Item) {
             if (!tabs.TryGetValue(add.Inventory, out ItemCollection? items)) {
                 session.Send(ItemInventoryPacket.Error(s_item_err_not_active_tab));
@@ -176,7 +176,10 @@ public class InventoryManager {
             }
 
             if (add.Amount == 0) {
-                Discard(add);
+                Discard(add, commit);
+            } else if (commit) {
+                using GameStorage.Request db = session.GameStorage.Context();
+                db.SaveItems(session.CharacterId, add);
             }
 
             foreach ((Item item, int added) in result) {
@@ -321,15 +324,6 @@ public class InventoryManager {
         }
     }
 
-    public void Discard(Item item) {
-        // Only discard items that need to be saved to DB.
-        if (item.Uid == 0) {
-            return;
-        }
-
-        delete.Add(item);
-    }
-
     #region Internal (No Locks)
     private bool RemoveInternal(long uid, int amount, [NotNullWhen(true)] out Item? removed) {
         ItemCollection? items = tabs.Values.FirstOrDefault(collection => collection.Contains(uid));
@@ -369,7 +363,7 @@ public class InventoryManager {
         return false;
     }
 
-    private bool ConsumeInternal(long uid, int amount) {
+    private bool ConsumeInternal(long uid, int amount, bool commit = false) {
         ItemCollection? items = tabs.Values.FirstOrDefault(collection => collection.Contains(uid));
         if (items == null || amount == 0) {
             return false;
@@ -392,7 +386,7 @@ public class InventoryManager {
 
         // Full remove of item
         if (items.Remove(uid, out Item? removed)) {
-            Discard(removed);
+            Discard(removed, commit);
             session.Send(ItemInventoryPacket.Remove(uid));
             return true;
         }
@@ -400,6 +394,22 @@ public class InventoryManager {
         return false;
     }
     #endregion
+
+    public void Discard(Item item, bool commit = false) {
+        // Only discard items that need to be saved to DB.
+        if (item.Uid == 0) {
+            return;
+        }
+
+        if (commit) {
+            lock (session.Item) {
+                using GameStorage.Request db = session.GameStorage.Context();
+                db.SaveItems(0, item);
+            }
+        } else {
+            delete.Add(item);
+        }
+    }
 
     public void Save(GameStorage.Request db) {
         lock (session.Item) {
