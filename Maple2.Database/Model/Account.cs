@@ -19,6 +19,7 @@ internal class Account {
     public Trophy Trophy { get; set; }
     public long PremiumTime { get; set; }
     public AccountCurrency Currency { get; set; }
+    public MarketLimits MarketLimits { get; set; }
 
     public DateTime CreationTime { get; set; }
     public DateTime LastModified { get; set; }
@@ -38,6 +39,10 @@ internal class Account {
             Trophy = other.Trophy,
             PremiumTime = other.PremiumTime,
             Currency = new AccountCurrency(),
+            MarketLimits = new MarketLimits {
+                MesoListed = other.MesoMarketListed,
+                MesoPurchased = other.MesoMarketPurchased,
+            },
         };
     }
 
@@ -57,6 +62,8 @@ internal class Account {
             PrestigeExp = other.PrestigeExp,
             Trophy = other.Trophy,
             PremiumTime = other.PremiumTime,
+            MesoMarketListed = other.MarketLimits.MesoListed,
+            MesoMarketPurchased = other.MarketLimits.MesoPurchased,
         };
     }
 
@@ -70,6 +77,7 @@ internal class Account {
         builder.HasMany(account => account.Characters);
         builder.Property(account => account.Trophy).HasJsonConversion().IsRequired();
         builder.Property(account => account.Currency).HasJsonConversion().IsRequired();
+        builder.Property(account => account.MarketLimits).HasJsonConversion().IsRequired();
 
         builder.Property(account => account.LastModified).IsRowVersion();
         IMutableProperty creationTime = builder.Property(account => account.CreationTime)
@@ -82,4 +90,9 @@ internal class AccountCurrency {
     public long Meret { get; set; }
     public long GameMeret { get; set; }
     public long MesoToken { get; set; }
+}
+
+internal class MarketLimits {
+    public int MesoListed { get; set; }
+    public int MesoPurchased { get; set; }
 }
