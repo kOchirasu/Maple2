@@ -1,4 +1,5 @@
-﻿using Maple2.Model.Enum;
+﻿using System;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -27,30 +28,22 @@ public static class CurrencyPacket {
     }
 
     public static ByteWriter UpdateCurrency(Currency currency, CurrencyType type, long delta, long overflow) {
+        long value = type switch {
+            CurrencyType.ValorToken => currency.ValorToken,
+            CurrencyType.Treva => currency.Treva,
+            CurrencyType.Rue => currency.Rue,
+            CurrencyType.HaviFruit => currency.HaviFruit,
+            CurrencyType.ReverseCoin => currency.ReverseCoin,
+            CurrencyType.MentorToken => currency.MentorToken,
+            CurrencyType.MenteeToken => currency.MenteeToken,
+            CurrencyType.StarPoint => currency.StarPoint,
+            CurrencyType.MesoToken => currency.MesoToken,
+            _ => 0,
+        };
+
         var pWriter = Packet.Of(SendOp.CurrencyToken);
         pWriter.Write<CurrencyType>(type);
-        switch (type) {
-            case CurrencyType.ValorToken:
-                pWriter.WriteLong(currency.ValorToken);
-                break;
-            case CurrencyType.Treva:
-                break;
-            case CurrencyType.Rue:
-                break;
-            case CurrencyType.HaviFruit:
-                break;
-            case CurrencyType.ReverseCoin:
-                break;
-            case CurrencyType.MentorToken:
-                break;
-            case CurrencyType.MenteeToken:
-                break;
-            case CurrencyType.StarPoint:
-                break;
-            case CurrencyType.MesoToken:
-                break;
-        }
-
+        pWriter.WriteLong(value);
         pWriter.WriteLong(delta);
         pWriter.WriteInt(); // Unknown
         pWriter.WriteLong(overflow);

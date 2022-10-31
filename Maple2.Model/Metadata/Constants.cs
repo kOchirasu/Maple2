@@ -31,6 +31,15 @@ public static class Constant {
     public const int HomePasscodeLength = 6;
     public const int PerformanceMapId = 2000064; // Queenstown
     public const int BaseStorageCount = 36;
+    public const float MesoMarketTaxRate = 0.1f;
+    public const float MesoMarketRangeRate = 0.2f;
+    public const int MesoMarketSellEndDay = 2;
+    public const int MesoMarketListLimit = 5;
+    public const int MesoMarketListLimitDay = 5;
+    public const int MesoMarketPurchaseLimitMonth = 30;
+    public const int MesoMarketPageSize = 50;
+    public const int MesoMarketMinToken = 100;
+    public const int MesoMarketMaxToken = 1000;
 
     public const long FurnishingBaseId = 2870000000000000000;
 
