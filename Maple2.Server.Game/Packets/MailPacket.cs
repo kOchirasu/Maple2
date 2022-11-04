@@ -105,12 +105,12 @@ public static class MailPacket {
         return pWriter;
     }
 
-    public static ByteWriter Notify(int unreadCount, int count, bool notify = true) {
+    public static ByteWriter Notify(int count, int unreadCount, bool alert = true) {
         var pWriter = Packet.Of(SendOp.Mail);
         pWriter.Write<Command>(Command.Notify);
-        pWriter.WriteInt(unreadCount);
-        pWriter.WriteBool(notify);
         pWriter.WriteInt(count);
+        pWriter.WriteBool(alert);
+        pWriter.WriteInt(unreadCount);
 
         return pWriter;
     }
