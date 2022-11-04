@@ -85,6 +85,7 @@ public class MesoMarketHandler : PacketHandler<GameSession> {
 
         var listing = new MesoListing(TimeSpan.FromDays(Constant.MesoMarketSellEndDay)) {
             AccountId = session.AccountId,
+            CharacterId = session.CharacterId,
             Price = price,
             Amount = amount,
         };
@@ -145,7 +146,7 @@ public class MesoMarketHandler : PacketHandler<GameSession> {
         }
     }
 
-    private static void HandlePurchase(GameSession session, IByteReader packet) {
+    private void HandlePurchase(GameSession session, IByteReader packet) {
         long listingId = packet.ReadLong();
 
         if (session.Player.Value.Account.MesoMarketPurchased >= Constant.MesoMarketPurchaseLimitMonth) {
@@ -180,11 +181,70 @@ public class MesoMarketHandler : PacketHandler<GameSession> {
             return;
         }
 
-        // TODO: Send mail with merets to lister
         session.Player.Value.Account.MesoMarketPurchased++;
         session.Currency[CurrencyType.MesoToken] -= listing.Price;
-        session.Currency.Meso += listing.Amount;
+
+        SendPurchaseMail(session, db, listing);
+
         session.Send(MesoMarketPacket.Purchase(listing.Id));
         session.Send(MesoMarketPacket.Quota(session.Player.Value.Account.MesoMarketListed, session.Player.Value.Account.MesoMarketPurchased));
+    }
+
+    private void SendPurchaseMail(GameSession session, GameStorage.Request db, MesoListing listing) {
+        var buyerMail = new Mail {
+            ReceiverId = session.CharacterId,
+            Type = 106,
+            ContentArgs = new [] {
+                ("money", $"{listing.Amount}"),
+                ("money", $"{listing.Price}"),
+            },
+            Meso = listing.Amount,
+        };
+        buyerMail.SetSenderName(StringCode.s_mesoMarket_mail_to_sender);
+        buyerMail.SetTitle(StringCode.s_mesoMarket_mail_to_buyer_title);
+        buyerMail.SetContent(StringCode.s_mesoMarket_mail_to_buyer_content);
+
+        int meretFee = (int) (listing.Price * Constant.MesoMarketTaxRate);
+        var sellerMail = new Mail {
+            ReceiverId = listing.CharacterId,
+            Type = 106,
+            ContentArgs = new [] {
+                ("money", $"{listing.Amount}"),
+                ("money", $"{listing.Price}"),
+                ("money", $"{meretFee}"),
+                ("money", $"{(int) (Constant.MesoMarketTaxRate * 100)}"),
+                ("money", $"{listing.Price - meretFee}"),
+            },
+            Meret = listing.Price - meretFee,
+        };
+        sellerMail.SetSenderName(StringCode.s_mesoMarket_mail_to_sender);
+        sellerMail.SetTitle(StringCode.s_mesoMarket_mail_to_seller_title);
+        sellerMail.SetContent(StringCode.s_mesoMarket_mail_to_seller_content);
+
+        buyerMail = db.CreateMail(buyerMail);
+        if (buyerMail == null) {
+            Logger.Error("Listing {Id} purchased but no buyer mail sent...", listing.Id);
+        } else {
+            // Try sending a mail notification to buying player.
+            try {
+                session.World.MailNotification(new MailNotificationRequest {
+                    CharacterId = buyerMail.ReceiverId,
+                    MailId = buyerMail.Id,
+                });
+            } catch { /* ignored */ }
+        }
+
+        sellerMail = db.CreateMail(sellerMail);
+        if (sellerMail == null) {
+            Logger.Error("Listing {Id} purchased but no seller mail sent...", listing.Id);
+        } else {
+            // Try sending a mail notification to selling player.
+            try {
+                session.World.MailNotification(new MailNotificationRequest {
+                    CharacterId = sellerMail.ReceiverId,
+                    MailId = sellerMail.Id,
+                });
+            } catch { /* ignored */ }
+        }
     }
 }

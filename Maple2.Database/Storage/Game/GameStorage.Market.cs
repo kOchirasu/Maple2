@@ -10,7 +10,7 @@ public partial class GameStorage {
     public partial class Request {
         // TODO: Should this filter out your own listings?
         public ICollection<MesoListing> SearchMesoListings(int pageSize, long minAmount = 0, long maxAmount = long.MaxValue) {
-            return Context.MesoMarket.Where(listing => listing.ExpiryTime < DateTime.Now)
+            return Context.MesoMarket.Where(listing => listing.ExpiryTime > DateTime.Now)
                 .Where(listing => listing.Amount >= minAmount)
                 .Where(listing => listing.Amount <= maxAmount)
                 .OrderBy(listing => listing.Price)

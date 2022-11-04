@@ -4,6 +4,7 @@ package maple2.server.world.service;
 
 import "google/protobuf/empty.proto";
 import "common.proto";
+import "notification.proto";
 
 // The world service definition.
 service World {
@@ -19,6 +20,9 @@ service World {
   rpc Buddy(maple2.BuddyRequest) returns (maple2.BuddyResponse);
   // Retrieve player info from online player.
   rpc PlayerInfo(maple2.PlayerInfoRequest) returns (maple2.PlayerInfoResponse);
+
+  // Notify character about new mail.
+  rpc MailNotification(maple2.MailNotificationRequest) returns (maple2.MailNotificationResponse);
 }
 
 enum Server {

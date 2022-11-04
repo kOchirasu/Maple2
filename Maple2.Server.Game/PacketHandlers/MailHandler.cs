@@ -90,7 +90,12 @@ public class MailHandler : PacketHandler<GameSession> {
         }
 
         session.Send(MailPacket.Send(mail.Id));
-        // TODO: notify
+        try {
+            session.World.MailNotification(new MailNotificationRequest {
+                CharacterId = receiverId,
+                MailId = mail.Id,
+            });
+        } catch { /* ignored */ }
     }
 
     private static void HandleRead(GameSession session, IByteReader packet) {

@@ -7,6 +7,7 @@ namespace Maple2.Model.Game;
 public class MesoListing : IByteSerializable {
     public long Id { get; init; }
     public long AccountId { get; init; }
+    public long CharacterId { get; init; }
 
     public long CreationTime;
     public long ExpiryTime;
