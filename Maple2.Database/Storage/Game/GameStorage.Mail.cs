@@ -105,5 +105,11 @@ public partial class GameStorage {
             Context.Mail.Remove(mail);
             return SaveChanges();
         }
+
+        public Mail? UpdateMail(Mail mail) {
+            Model.Mail model = mail;
+            Context.Mail.Update(model);
+            return SaveChanges() ? model : null;
+        }
     }
 }

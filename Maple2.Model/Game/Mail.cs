@@ -60,7 +60,7 @@ public class Mail : IByteSerializable {
     }
 
     public void SetSenderName(StringCode name) {
-        Title = $@"<ms2><v key=""{name.ToString()}"" /></ms2>";
+        SenderName = $@"<ms2><v key=""{name.ToString()}"" /></ms2>";
     }
 
     public void SetTitle(StringCode title) {
@@ -69,6 +69,18 @@ public class Mail : IByteSerializable {
 
     public void SetContent(StringCode content) {
         Content = $@"<ms2><v key=""{content.ToString()}"" /></ms2>";
+    }
+
+    public bool MesoCollected() {
+        return Meso == 0 || MesoCollectTime > 0;
+    }
+
+    public bool MeretCollected() {
+        return Meret == 0 || MeretCollectTime > 0;
+    }
+
+    public bool GameMeretCollected() {
+        return GameMeret == 0 || GameMeretCollectTime > 0;
     }
 
     public void WriteTo(IByteWriter writer) {

@@ -515,6 +515,9 @@ namespace Maple2.Server.World.Migrations
                     b.Property<long>("Amount")
                         .HasColumnType("bigint");
 
+                    b.Property<long>("CharacterId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("CreationTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime(6)");
@@ -533,6 +536,8 @@ namespace Maple2.Server.World.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
+
+                    b.HasIndex("CharacterId");
 
                     b.ToTable("meso-market", (string)null);
                 });
@@ -592,6 +597,9 @@ namespace Maple2.Server.World.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<long>("Amount")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CharacterId")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime>("LastModified")
@@ -824,6 +832,12 @@ namespace Maple2.Server.World.Migrations
                     b.HasOne("Maple2.Database.Model.Account", null)
                         .WithMany()
                         .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Maple2.Database.Model.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

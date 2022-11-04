@@ -10,6 +10,7 @@ namespace Maple2.Database.Model;
 internal class MesoListingBase {
     public long Id { get; set; }
     public long AccountId { get; set; }
+    public long CharacterId { get; set; }
     public long Price { get; set; }
     public long Amount { get; set; }
 
@@ -25,6 +26,7 @@ internal class MesoListing : MesoListingBase {
         return other == null ? null : new MesoListing {
             Id = other.Id,
             AccountId = other.AccountId,
+            CharacterId = other.CharacterId,
             Price = other.Price,
             Amount = other.Amount,
             ExpiryTime = other.ExpiryTime.FromEpochSeconds(),
@@ -36,6 +38,7 @@ internal class MesoListing : MesoListingBase {
         return other == null ? null : new Maple2.Model.Game.MesoListing {
             Id = other.Id,
             AccountId = other.AccountId,
+            CharacterId = other.CharacterId,
             Price = other.Price,
             Amount = other.Amount,
             CreationTime = other.CreationTime.ToEpochSeconds(),
@@ -49,6 +52,10 @@ internal class MesoListing : MesoListingBase {
         builder.HasOne<Account>()
             .WithMany()
             .HasForeignKey(listing => listing.AccountId)
+            .IsRequired();
+        builder.HasOne<Character>()
+            .WithMany()
+            .HasForeignKey(listing => listing.CharacterId)
             .IsRequired();
 
         builder.Property(listing => listing.LastModified).IsRowVersion();
@@ -67,6 +74,7 @@ internal class SoldMesoListing : MesoListingBase {
         return other == null ? null : new SoldMesoListing {
             Id = other.Id,
             AccountId = other.AccountId,
+            CharacterId = other.CharacterId,
             Price = other.Price,
             Amount = other.Amount,
             ListedTime = other.CreationTime,

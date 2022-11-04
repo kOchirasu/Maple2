@@ -151,7 +151,11 @@ public sealed class MailManager {
 
     // Items on input mail will be cleared.
     private MailError CollectInternal(GameStorage.Request db, Mail mail) {
-        // Validate that collect is possible
+        if (mail.MesoCollected() && mail.MeretCollected() && mail.GameMeretCollected() && mail.Items.Count == 0) {
+            return MailError.s_mail_error_already_receive;
+        }
+
+        // Validate that collection is possible
         foreach (IGrouping<InventoryType, Item> group in mail.Items.GroupBy(item => item.Inventory)) {
             int requireSlots = group.Count();
             int freeSlots = session.Item.Inventory.FreeSlots(group.Key);
@@ -161,35 +165,55 @@ public sealed class MailManager {
             }
         }
 
-        // Collection is not possible is mail is already read...
-        MailError error = ReadInternal(db, mail);
-        if (error != MailError.none) {
-            return error;
+        bool collectMeso = false;
+        if (!mail.MesoCollected()) { // Allow mesos to be collected regardless and just overflow.
+            mail.MesoCollectTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            collectMeso = true;
+        }
+        bool collectMeret = false;
+        if (!mail.MeretCollected() && session.Currency.CanAddMeret(mail.Meret) == mail.Meret) {
+            mail.MeretCollectTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            collectMeret = true;
+        }
+        bool collectGameMeret = false;
+        if (!mail.GameMeretCollected() && session.Currency.CanAddGameMeret(mail.GameMeret) == mail.GameMeret) {
+            mail.GameMeretCollectTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            collectGameMeret = true;
         }
 
-        if (mail.MesoCollectTime == 0 && session.Currency.CanAddMeso(mail.Meso) == mail.Meso) {
-            mail.MesoCollectTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        if (collectMeso || collectMeret || collectGameMeret) {
+            Mail? updatedMail = db.UpdateMail(mail);
+            if (updatedMail == null) {
+                return MailError.s_mail_error;
+            }
+        }
+
+        // Collect the mail only after we have fully validated everything.
+        if (collectMeso) {
             session.Currency.Meso += mail.Meso;
         }
-        if (mail.MeretCollectTime == 0 && session.Currency.CanAddMeret(mail.Meret) == mail.Meret) {
-            mail.MeretCollectTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        if (collectMeret) {
             session.Currency.Meret += mail.Meret;
         }
-        if (mail.GameMeretCollectTime == 0 && session.Currency.CanAddGameMeret(mail.GameMeret) == mail.GameMeret) {
-            mail.GameMeretCollectTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        if (collectGameMeret) {
             session.Currency.GameMeret += mail.GameMeret;
         }
 
-        foreach (Item item in mail.Items) {
+        for (int i = mail.Items.Count - 1; i >= 0; i--) {
+            Item item = mail.Items[i];
+            if (item.Amount <= 0) {
+                return MailError.s_mail_error_attachcount;
+            }
+
             if (!session.Item.Inventory.Add(item, notifyNew: true, commit: true)) {
                 throw new InvalidOperationException($"Mail {mail.Id} was collected but items could not be added to inventory.");
             }
 
-            session.Send(MailPacket.Collect(mail.Id));
-            session.Send(MailPacket.CollectRead(mail));
+            mail.Items.RemoveAt(i);
         }
-        mail.Items.Clear();
 
+        session.Send(MailPacket.Collect(mail.Id));
+        session.Send(MailPacket.CollectRead(mail));
         return MailError.none;
     }
     #endregion
