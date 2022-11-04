@@ -53,6 +53,7 @@ public sealed partial class GameSession : Core.Network.Session {
     #endregion
 
     public ConfigManager Config { get; set; }
+    public MailManager Mail { get; set; }
     public BuddyManager Buddy { get; set; }
     public ItemManager Item { get; set; }
     public HousingManager Housing { get; set; }
@@ -95,6 +96,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Currency = new CurrencyManager(this);
         Stats = new StatsManager(this);
         Housing = new HousingManager(this);
+        Mail = new MailManager(this);
 
         Config = new ConfigManager(db, this);
         Buddy = new BuddyManager(db, this);
@@ -163,6 +165,7 @@ public sealed partial class GameSession : Core.Network.Session {
         // Mentor
         // ChatStamp
         // Mail
+        Mail.Notify(true);
         // BypassKey
         // AH
         Config.LoadWardrobe();

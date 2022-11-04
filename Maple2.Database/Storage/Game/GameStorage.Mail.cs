@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using Mail = Maple2.Model.Game.Mail;
 using Item = Maple2.Model.Game.Item;
 
@@ -81,16 +82,21 @@ public partial class GameStorage {
         }
 
         public Mail? MarkMailRead(long mailId, long characterId) {
+            Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
+
             Model.Mail? mail = Context.Mail.Find(characterId, mailId);
             if (mail == null || mail.ReadTime > DateTime.UnixEpoch) {
                 return null;
             }
 
             mail.ReadTime = DateTime.Now;
+            Context.Mail.Update(mail);
             return SaveChanges() ? mail : null;
         }
 
         public bool DeleteMail(long mailId, long characterId) {
+            Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
+
             Model.Mail? mail = Context.Mail.Find(characterId, mailId);
             if (mail == null) {
                 return false;
