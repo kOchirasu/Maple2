@@ -21,8 +21,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             return;
         }
 
-        switch (item.Metadata.Function?.Type)
-        {
+        switch (item.Metadata.Function?.Type) {
             case ItemFunction.StoryBook:
                 HandleStoryBook(session, item);
                 break;
@@ -33,7 +32,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
     }
 
     private static void HandleStoryBook(GameSession session, Item item) {
-        if (!int.TryParse(item.Metadata.Function?.Parameters, out int storyBookId)){
+        if (!int.TryParse(item.Metadata.Function?.Parameters, out int storyBookId)) {
             return;
         }
         
