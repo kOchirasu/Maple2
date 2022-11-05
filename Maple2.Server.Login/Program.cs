@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Globalization;
+using System.IO;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Maple2.Server.Login;
@@ -12,6 +13,9 @@ using Maple2.Server.Core.Network;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Login.Session;
 using Microsoft.Extensions.DependencyInjection;
+
+// Force Globalization to en-US because we use periods instead of commas for decimals
+CultureInfo.CurrentCulture = new("en-US");
 
 IConfigurationRoot configRoot = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
