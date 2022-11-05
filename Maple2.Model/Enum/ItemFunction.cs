@@ -63,4 +63,7 @@ public enum ItemFunction {
     TreasureMap = 59,
     UGCMapPackage = 60,
     VIPCoupon = 61,
+    WeddingExpItem = 62,
+    RecallWedding = 63,
+    WeddingChat = 64
 }
