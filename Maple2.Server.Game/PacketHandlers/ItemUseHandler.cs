@@ -1,4 +1,5 @@
-﻿using Maple2.Model.Game;
+﻿using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
@@ -20,13 +21,13 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             return;
         }
 
-        switch (item.Metadata.Function?.Name)
+        switch (item.Metadata.Function?.Type)
         {
-            case "StoryBook":
+            case ItemFunction.StoryBook:
                 HandleStoryBook(session, item);
                 break;
             default:
-                Logger.Warning("Unhandled item function: {item.Metadata.Function?.Name}", item.Metadata.Function?.Name);
+                Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
                 return;
         }
     }
