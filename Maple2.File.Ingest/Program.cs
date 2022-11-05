@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Globalization;
 using Maple2.Database.Context;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model.Metadata;
@@ -11,6 +12,9 @@ const string locale = "NA";
 const string env = "Live";
 
 Console.OutputEncoding = System.Text.Encoding.UTF8;
+
+// Force Globalization to en-US because we use periods instead of commas for decimals
+CultureInfo.CurrentCulture = new("en-US");
 
 string? ms2Root = Environment.GetEnvironmentVariable("MS2_ROOT");
 if (ms2Root == null) {

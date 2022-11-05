@@ -1,9 +1,8 @@
-﻿using System;
+﻿using System.Globalization;
 using System.IO;
 using System.Net;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using Maple2.Database.Context;
 using Maple2.Database.Storage;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Modules;
@@ -13,12 +12,14 @@ using Maple2.Server.World.Service;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+
+// Force Globalization to en-US because we use periods instead of commas for decimals
+CultureInfo.CurrentCulture = new("en-US");
 
 IConfigurationRoot configRoot = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
