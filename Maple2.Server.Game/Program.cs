@@ -1,5 +1,6 @@
 ﻿using System;
 using System.CommandLine;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Reflection;
@@ -25,6 +26,9 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Serilog;
+
+// Force Globalization to en-US because we use periods instead of commas for decimals
+CultureInfo.CurrentCulture = new("en-US");
 
 IConfigurationRoot configRoot = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
