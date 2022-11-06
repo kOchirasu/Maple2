@@ -50,15 +50,13 @@ public class ItemUseHandler : PacketHandler<GameSession> {
     private static void HandleChatSticker(GameSession session, Item item) {
         Dictionary<string, string> parameters = XmlParseUtil.GetParameters(item.Metadata?.Function?.Parameters);
 
-        if (!parameters.ContainsKey("id")) {
+        if (!parameters.ContainsKey("id") || !int.TryParse(parameters["id"], out int stickerSetId)) {
             session.Send(ChatStickerPacket.Error(ChatStickerError.s_msg_chat_emoticon_add_failed));
             return;
         }
 
-        int stickerSetId = int.Parse(parameters["id"]);
-
         int duration = 0;
-        if (parameters.TryGetValue(parameters["id"], out string? durationString)) {
+        if (parameters.TryGetValue(parameters["durationSec"], out string? durationString)) {
             int.TryParse(durationString, out duration);
         }
         

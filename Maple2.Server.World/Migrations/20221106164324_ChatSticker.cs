@@ -17,7 +17,6 @@ namespace Maple2.Server.World.Migrations
                 name: "FavoriteStickers",
                 table: "character-config",
                 type: "json",
-                defaultValue: "{}",
                 nullable: true)
                 .Annotation("MySql:CharSet", "utf8mb4");
         }

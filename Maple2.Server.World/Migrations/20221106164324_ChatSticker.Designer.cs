@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Maple2.Server.World.Migrations
 {
     [DbContext(typeof(Ms2Context))]
-    [Migration("20221105211352_ChatSticker")]
+    [Migration("20221106164324_ChatSticker")]
     partial class ChatSticker
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -184,7 +184,6 @@ namespace Maple2.Server.World.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("FavoriteStickers")
-                        .IsRequired()
                         .HasColumnType("json");
 
                     b.Property<string>("HotBars")

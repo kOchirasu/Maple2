@@ -19,7 +19,7 @@ public static class ChatStickerPacket {
         Error = 7
     }
 
-    public static ByteWriter Load(List<int> favorites, ICollection<ChatSticker> stickers) {
+    public static ByteWriter Load(ICollection<int> favorites, ICollection<ChatSticker> stickers) {
         var pWriter = Packet.Of(SendOp.ChatStamp);
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteShort((short) favorites.Count);

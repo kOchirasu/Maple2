@@ -182,7 +182,6 @@ namespace Maple2.Server.World.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("FavoriteStickers")
-                        .IsRequired()
                         .HasColumnType("json");
 
                     b.Property<string>("HotBars")

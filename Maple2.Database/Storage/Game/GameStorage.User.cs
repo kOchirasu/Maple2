@@ -280,7 +280,6 @@ public partial class GameStorage {
                     MaxSkillTabs = 1,
                     ActiveSkillTabId = defaultTab.Id,
                 },
-                FavoriteStickers = new SortedSet<int>(),
             };
             Context.CharacterConfig.Add(config);
 
