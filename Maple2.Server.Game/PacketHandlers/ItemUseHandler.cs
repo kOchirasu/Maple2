@@ -86,6 +86,6 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             return;
         }
         
-        session.Send(ChatStickerPacket.Add(item, new(stickerSetId, session.Player.Value.Unlock.StickerSets[stickerSetId])));
+        session.Send(ChatStickerPacket.Add(item, new ChatSticker(stickerSetId, session.Player.Value.Unlock.StickerSets[stickerSetId])));
     }
 }
