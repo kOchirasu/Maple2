@@ -163,7 +163,7 @@ public sealed partial class GameSession : Core.Network.Session {
         // HomeCommand
         // ResponseCube
         // Mentor
-        // ChatStamp
+        Config.LoadChatStickers(Player.Value.Unlock.StickerSets);
         // Mail
         Mail.Notify(true);
         // BypassKey

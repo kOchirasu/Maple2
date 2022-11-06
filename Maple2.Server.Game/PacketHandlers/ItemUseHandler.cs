@@ -1,4 +1,8 @@
-﻿using Maple2.Model.Enum;
+﻿using System;
+using System.Web;
+using System.Xml;
+using Maple2.Database.Extensions;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -25,6 +29,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             case ItemFunction.StoryBook:
                 HandleStoryBook(session, item);
                 break;
+            case ItemFunction.ChatEmoticonAdd:
+                HandleChatSticker(session, item);
+                break;
             default:
                 Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
                 return;
@@ -37,5 +44,34 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         }
         
         session.Send(StoryBookPacket.Load(storyBookId));
+    }
+
+    private static void HandleChatSticker(GameSession session, Item item)
+    {
+        string? htmlParameter = HttpUtility.HtmlDecode(item.Metadata.Function?.Parameters);
+        XmlDocument xmlParameter = new();
+        xmlParameter.LoadXml(htmlParameter);
+        XmlNode? functionNode = xmlParameter.SelectSingleNode("v");
+
+        if (!int.TryParse(functionNode?.Attributes["id"].Value, out int stickerSetId)){
+            return;
+        }
+        
+        int.TryParse(functionNode?.Attributes["durationSec"]?.Value, out int duration);
+
+        if (session.Player.Value.Unlock.StickerSets.ContainsKey(stickerSetId)) {
+            if (session.Player.Value.Unlock.StickerSets[stickerSetId] == long.MaxValue) {
+                return;
+            }
+            session.Player.Value.Unlock.StickerSets[stickerSetId] = Math.Min(session.Player.Value.Unlock.StickerSets[stickerSetId] + duration, long.MaxValue);
+        } else {
+            session.Player.Value.Unlock.StickerSets[stickerSetId] = duration + DateTime.Now.ToEpochSeconds();
+        }
+
+        if (!session.Item.Inventory.Consume(item.Uid, 1)) {
+            return;
+        }
+        
+        session.Send(ChatStickerPacket.Add(item, new(stickerSetId, session.Player.Value.Unlock.StickerSets[stickerSetId])));
     }
 }

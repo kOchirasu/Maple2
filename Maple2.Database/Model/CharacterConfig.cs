@@ -18,7 +18,7 @@ internal class CharacterConfig {
     public IList<Wardrobe>? Wardrobes { get; set; }
     public IDictionary<StatAttribute, int>? StatAllocation { get; set; }
     public SkillBook? SkillBook { get; set; }
-
+    public ISet<int> FavoriteStickers { get; set; }
     public DateTime LastModified { get; set; }
 
     public static void Configure(EntityTypeBuilder<CharacterConfig> builder) {
@@ -40,6 +40,7 @@ internal class CharacterConfig {
             .WithOne()
             .HasPrincipalKey<SkillTab>(skillTab => skillTab.Id)
             .HasForeignKey<SkillBook>(skillBook => skillBook.ActiveSkillTabId);
+        builder.Property(config => config.FavoriteStickers).HasJsonConversion();
 
         builder.Property(unlock => unlock.LastModified).IsRowVersion();
     }

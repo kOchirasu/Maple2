@@ -16,7 +16,7 @@ internal class CharacterUnlock {
     public ISet<int> Taxis { get; set; }
     public ISet<int> Titles { get; set; }
     public ISet<int> Emotes { get; set; }
-    public ISet<int> Stamps { get; set; }
+    public IDictionary<int, long> StickerSets { get; set; }
     public IDictionary<int, short> Pets { get; set; }
     public InventoryExpand Expand { get; set; }
     public DateTime LastModified { get; init; }
@@ -46,7 +46,7 @@ internal class CharacterUnlock {
             Taxis = other.Taxis,
             Titles = other.Titles,
             Emotes = other.Emotes,
-            Stamps = other.Stamps,
+            StickerSets = other.StickerSets,
             Pets = other.Pets,
         };
     }
@@ -82,7 +82,6 @@ internal class CharacterUnlock {
         unlock.Taxis.UnionWith(other.Taxis);
         unlock.Titles.UnionWith(other.Titles);
         unlock.Emotes.UnionWith(other.Emotes);
-        unlock.Stamps.UnionWith(other.Stamps);
 
         foreach ((int petId, short rarity) in other.Pets) {
             if (unlock.Pets.TryGetValue(petId, out short existingRarity)) {
@@ -90,6 +89,10 @@ internal class CharacterUnlock {
             } else {
                 unlock.Pets[petId] = rarity;
             }
+        }
+
+        foreach ((int groupId, long expiration) in other.StickerSets) {
+            unlock.StickerSets[groupId] = expiration;
         }
 
         return unlock;
@@ -105,7 +108,7 @@ internal class CharacterUnlock {
         builder.Property(unlock => unlock.Taxis).HasJsonConversion().IsRequired();
         builder.Property(unlock => unlock.Titles).HasJsonConversion().IsRequired();
         builder.Property(unlock => unlock.Emotes).HasJsonConversion().IsRequired();
-        builder.Property(unlock => unlock.Stamps).HasJsonConversion().IsRequired();
+        builder.Property(unlock => unlock.StickerSets).HasJsonConversion();
         builder.Property(unlock => unlock.Pets).HasJsonConversion().IsRequired();
 
         builder.Property(unlock => unlock.LastModified).IsRowVersion();
