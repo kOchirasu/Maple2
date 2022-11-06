@@ -56,33 +56,34 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         }
 
         int duration = 0;
-        if (parameters.TryGetValue(parameters["durationSec"], out string? durationString)) {
+        if (parameters.TryGetValue("durationSec", out string? durationString)) {
             int.TryParse(durationString, out duration);
         }
         
+        long existingTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         if (session.Player.Value.Unlock.StickerSets.ContainsKey(stickerSetId)) {
-            if (session.Player.Value.Unlock.StickerSets[stickerSetId] == long.MaxValue) {
+            existingTime = session.Player.Value.Unlock.StickerSets[stickerSetId];
+            if (existingTime == long.MaxValue) {
                 session.Send(ChatStickerPacket.Error(ChatStickerError.s_msg_chat_emoticon_add_failed_already_exist));
                 return;
             }
+        }
 
-            // does not expire
-            if (duration == 0) {
-                session.Player.Value.Unlock.StickerSets[stickerSetId] = long.MaxValue;
-            } else {
-                session.Player.Value.Unlock.StickerSets[stickerSetId] = Math.Min(session.Player.Value.Unlock.StickerSets[stickerSetId] + duration, long.MaxValue);
-            }
-        } else {
-            if (duration == 0) {
-                session.Player.Value.Unlock.StickerSets[stickerSetId] = long.MaxValue;
-            } else {
-                session.Player.Value.Unlock.StickerSets[stickerSetId] = duration + DateTime.Now.ToEpochSeconds();
-            }
+        long newTime = existingTime + duration;
+        if (duration == 0) {
+            newTime = long.MaxValue;
+        }
+
+        if (newTime <= existingTime) {
+            session.Send(ChatStickerPacket.Error(ChatStickerError.s_msg_chat_emoticon_add_failed_already_exist));
+            return;
         }
 
         if (!session.Item.Inventory.Consume(item.Uid, 1)) {
             return;
         }
+
+        session.Player.Value.Unlock.StickerSets[stickerSetId] = newTime;
         
         session.Send(ChatStickerPacket.Add(item, new ChatSticker(stickerSetId, session.Player.Value.Unlock.StickerSets[stickerSetId])));
     }
