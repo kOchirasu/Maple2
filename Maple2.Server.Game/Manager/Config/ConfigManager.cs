@@ -84,9 +84,9 @@ public class ConfigManager {
         }
     }
 
-    public void LoadChatStickers(IDictionary<int, long> stickerSets) {
+    public void LoadChatStickers() {
         List<ChatSticker> stickers = new();
-        foreach (KeyValuePair<int, long> set in stickerSets) {
+        foreach (KeyValuePair<int, long> set in session.Player.Value.Unlock.StickerSets) {
             stickers.Add(new(set.Key, set.Value));
         }
         session.Send(ChatStickerPacket.Load(favoriteStickers.ToList(), stickers));
