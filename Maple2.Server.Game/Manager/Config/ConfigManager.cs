@@ -21,6 +21,7 @@ public class ConfigManager {
     private readonly List<HotBar> hotBars;
     private IList<SkillMacro> skillMacros;
     private IList<Wardrobe> wardrobes;
+    private IList<int> favoriteStickers;
     private readonly StatAttributes statAttributes;
 
     public readonly SkillManager Skill;
@@ -36,6 +37,7 @@ public class ConfigManager {
             IList<QuickSlot[]>? HotBars,
             IList<SkillMacro>? Macros,
             IList<Wardrobe>? Wardrobes,
+            IList<int>? FavoriteStickers,
             IDictionary<StatAttribute, int>? Allocation,
             SkillBook? SkillBook
         ) load = db.LoadCharacterConfig(session.CharacterId);
@@ -49,6 +51,7 @@ public class ConfigManager {
         }
         skillMacros = load.Macros ?? new List<SkillMacro>();
         wardrobes = load.Wardrobes ?? new List<Wardrobe>();
+        favoriteStickers = load.FavoriteStickers ?? new List<int>();
 
         statAttributes = new StatAttributes();
         if (load.Allocation != null) {
@@ -79,6 +82,14 @@ public class ConfigManager {
         for (int i = 0; i < wardrobes.Count; i++) {
             session.Send(WardrobePacket.Load(i, wardrobes[i]));
         }
+    }
+
+    public void LoadChatStickers() {
+        List<ChatSticker> stickers = new();
+        foreach (KeyValuePair<int, long> set in session.Player.Value.Unlock.StickerSets) {
+            stickers.Add(new(set.Key, set.Value));
+        }
+        session.Send(ChatStickerPacket.Load(favoriteStickers.ToList(), stickers));
     }
 
     public void LoadStatAttributes() {

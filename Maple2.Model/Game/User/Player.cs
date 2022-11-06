@@ -29,7 +29,7 @@ public class Unlock {
     public readonly ISet<int> Taxis = new SortedSet<int>();
     public readonly ISet<int> Titles = new SortedSet<int>();
     public readonly ISet<int> Emotes = new SortedSet<int>();
-    public readonly ISet<int> Stamps = new SortedSet<int>();
+    public readonly IDictionary<int, long> StickerSets = new Dictionary<int, long>();
     public readonly IDictionary<int, short> Pets = new SortedDictionary<int, short>();
 }
 
