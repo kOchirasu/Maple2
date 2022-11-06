@@ -19,6 +19,7 @@ internal class CharacterConfig {
     public IDictionary<StatAttribute, int>? StatAllocation { get; set; }
     public SkillBook? SkillBook { get; set; }
     public ISet<int> FavoriteStickers { get; set; }
+
     public DateTime LastModified { get; set; }
 
     public static void Configure(EntityTypeBuilder<CharacterConfig> builder) {
