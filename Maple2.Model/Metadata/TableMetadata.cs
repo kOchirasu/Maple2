@@ -32,5 +32,11 @@ public abstract partial record Table([JsonDiscriminator] Table.Discriminator Typ
         MagicPathTable = 4,
         InstrumentTable = 5,
         InteractObjectTable = 6,
+        ItemOptionConstantTable = 7,
+        ItemOptionRandomTable = 8,
+        ItemOptionStaticTable = 9,
+        ItemOptionPickTable = 10,
+        ItemVariationTable = 11,
+        ItemEquipVariationTable = 12,
     }
 }

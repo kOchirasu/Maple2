@@ -37,6 +37,7 @@ DbContextOptions options = new DbContextOptionsBuilder()
 
 using var metadataContext = new MetadataContext(options);
 metadataContext.Database.EnsureCreated();
+metadataContext.Database.ExecuteSqlRaw(@"SET GLOBAL max_allowed_packet=268435456"); // 256MB
 
 // Filter Xml results based on feature settings.
 Filter.Load(xmlReader, locale, env);
