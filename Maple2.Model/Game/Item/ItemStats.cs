@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
@@ -7,9 +8,9 @@ namespace Maple2.Model.Game;
 
 public class ItemStats : IByteSerializable, IByteDeserializable {
     public static readonly ItemStats Default = new ItemStats();
-    
-    private const int TYPE_COUNT = 9;
-    
+
+    public const int TYPE_COUNT = 9;
+
     public enum Type {
         Constant = 0,
         Static = 1,
@@ -22,37 +23,50 @@ public class ItemStats : IByteSerializable, IByteDeserializable {
         Empowerment5= 8,
     }
 
-    private readonly IDictionary<StatAttribute, StatOption>[] statOption;
-    private readonly IDictionary<SpecialAttribute, SpecialOption>[] specialOption;
+    private readonly Dictionary<StatAttribute, StatOption>[] statOption;
+    private readonly Dictionary<SpecialAttribute, SpecialOption>[] specialOption;
 
     public ItemStats() {
-        statOption = new IDictionary<StatAttribute, StatOption>[TYPE_COUNT];
-        specialOption = new IDictionary<SpecialAttribute, SpecialOption>[TYPE_COUNT];
+        statOption = new Dictionary<StatAttribute, StatOption>[TYPE_COUNT];
+        specialOption = new Dictionary<SpecialAttribute, SpecialOption>[TYPE_COUNT];
         for (int i = 0; i < TYPE_COUNT; i++) {
             statOption[i] = new Dictionary<StatAttribute, StatOption>();
             specialOption[i] = new Dictionary<SpecialAttribute, SpecialOption>();
         }
     }
 
-    public ItemStats(IDictionary<StatAttribute, StatOption>[] statOption, IDictionary<SpecialAttribute, SpecialOption>[] specialOption) {
-        this.statOption = statOption;
-        this.specialOption = specialOption;
+    public ItemStats(Dictionary<StatAttribute, StatOption>?[] statOption, Dictionary<SpecialAttribute, SpecialOption>?[] specialOption) {
+        if (statOption.Length != TYPE_COUNT) {
+            Array.Resize(ref statOption, TYPE_COUNT);
+        }
+        if (specialOption.Length != TYPE_COUNT) {
+            Array.Resize(ref specialOption, TYPE_COUNT);
+        }
+
+        // Ensure all entries are set.
+        for (int i = 0; i < TYPE_COUNT; i++) {
+            statOption[i] ??= new Dictionary<StatAttribute, StatOption>();
+            specialOption[i] ??= new Dictionary<SpecialAttribute, SpecialOption>();
+        }
+
+        this.statOption = statOption!;
+        this.specialOption = specialOption!;
     }
 
     public ItemStats(ItemStats other) {
-        statOption = new IDictionary<StatAttribute, StatOption>[TYPE_COUNT];
-        specialOption = new IDictionary<SpecialAttribute, SpecialOption>[TYPE_COUNT];
+        statOption = new Dictionary<StatAttribute, StatOption>[TYPE_COUNT];
+        specialOption = new Dictionary<SpecialAttribute, SpecialOption>[TYPE_COUNT];
         for (int i = 0; i < TYPE_COUNT; i++) {
             statOption[i] = new Dictionary<StatAttribute, StatOption>(other.statOption[i]);
             specialOption[i] = new Dictionary<SpecialAttribute, SpecialOption>(other.specialOption[i]);
         }
     }
 
-    public IDictionary<StatAttribute, StatOption> GetStatOptions(Type type) {
+    public Dictionary<StatAttribute, StatOption> GetStatOptions(Type type) {
         return statOption[(int)type];
     }
-    
-    public IDictionary<SpecialAttribute, SpecialOption> GetSpecialOptions(Type type) {
+
+    public Dictionary<SpecialAttribute, SpecialOption> GetSpecialOptions(Type type) {
         return specialOption[(int)type];
     }
 
@@ -69,7 +83,7 @@ public class ItemStats : IByteSerializable, IByteDeserializable {
                 writer.WriteShort((short)type);
                 writer.Write<SpecialOption>(option);
             }
-            
+
             writer.WriteInt();
         }
     }

@@ -11,6 +11,7 @@ public record ItemMetadata(
     ItemMetadataLimit Limit,
     ItemMetadataSkill? Skill,
     ItemMetadataFunction? Function,
+    ItemMetadataOption? Option,
     ItemMetadataMusic? Music,
     ItemMetadataHousing? Housing) : ISearchResult;
 
@@ -55,6 +56,16 @@ public record ItemMetadataFunction(
     ItemFunction Type,
     string Name,
     string Parameters);
+
+public record ItemMetadataOption(
+    int StaticId,
+    int StaticType,
+    int RandomId,
+    int RandomType,
+    int ConstantId,
+    int ConstantType,
+    int LevelFactor,
+    int PickId);
 
 public record ItemMetadataMusic(
     int PlayCount,

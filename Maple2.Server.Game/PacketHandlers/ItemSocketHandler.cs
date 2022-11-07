@@ -11,6 +11,7 @@ using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Server.Game.Util;
 using static Maple2.Model.Error.ItemSocketError;
 
 namespace Maple2.Server.Game.PacketHandlers;
@@ -34,6 +35,7 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
     // ReSharper disable MemberCanBePrivate.Global
     public ItemMetadataStorage ItemMetadata { get; init; } = null!;
     public TableMetadataStorage TableMetadata { private get; init; } = null!;
+    public ItemStatsCalculator ItemStatsCalc { private get; init; } = null!;
     public Lua.Lua Lua { private get; init; } = null!;
     // ReSharper restore All
     #endregion
@@ -302,7 +304,9 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
                 return;
             }
 
-            var gem = new Item(metadata, rarity: Constant.GemstoneGrade);
+            var gem = new Item(metadata, rarity: Constant.GemstoneGrade) {
+                Stats = ItemStatsCalc.Compute(metadata, Constant.GemstoneGrade),
+            };
             if (!session.Item.Inventory.Add(gem, true)) {
                 return; // Failed to add to inventory
             }

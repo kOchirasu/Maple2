@@ -7,6 +7,7 @@ using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Session;
+using Maple2.Server.Game.Util;
 
 namespace Maple2.Server.Game.Commands;
 
@@ -19,6 +20,12 @@ public class ItemCommand : Command {
 
     private readonly GameSession session;
     private readonly ItemMetadataStorage itemStorage;
+
+    #region Autofac Autowired
+    // ReSharper disable MemberCanBePrivate.Global
+    public ItemStatsCalculator ItemStatsCalc { private get; init; } = null!;
+    // ReSharper restore All
+    #endregion
 
     public ItemCommand(GameSession session, ItemMetadataStorage itemStorage) : base(NAME, DESCRIPTION) {
         this.session = session;
@@ -51,7 +58,9 @@ public class ItemCommand : Command {
             }
             rarity = Math.Clamp(rarity, 1, MAX_RARITY);
 
-            var item = new Item(metadata, rarity, amount);
+            var item = new Item(metadata, rarity, amount) {
+                Stats = ItemStatsCalc.Compute(metadata, rarity),
+            };
             if (item.Inventory is InventoryType.Gear or InventoryType.Outfit) {
                 byte maxSockets = (byte) Math.Clamp(socket.Length >= 1 ? socket[0] : 0, 0, MAX_SOCKET);
                 byte unlockSockets = (byte) Math.Clamp(socket.Length >= 2 ? socket[1] : 0, 0, maxSockets);
