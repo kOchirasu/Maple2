@@ -4,6 +4,7 @@ using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
+using Z.BulkOperations;
 using InteractObject = Maple2.File.Parser.Xml.Table.InteractObject;
 using JobTable = Maple2.Model.Metadata.JobTable;
 using MagicPath = Maple2.Model.Metadata.MagicPath;
@@ -18,6 +19,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
     }
 
     protected override IEnumerable<TableMetadata> Map() {
+        yield return new TableMetadata {Name = "chatemoticon.xml", Table = ParseChatSticker()};
         yield return new TableMetadata {Name = "itembreakingredient.xml", Table = ParseItemBreakIngredient()};
         yield return new TableMetadata {Name = "itemgemstoneupgrade.xml", Table = ParseItemGemstoneUpgrade()};
         yield return new TableMetadata {Name = "job.xml", Table = ParseJobTable()};
@@ -25,6 +27,18 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "instrumentcategoryinfo.xml", Table = ParseInstrument()};
         yield return new TableMetadata {Name = "interactobject.xml", Table = ParseInteractObject(false)};
         yield return new TableMetadata {Name = "interactobject_mastery.xml", Table = ParseInteractObject(true)};
+        yield return new TableMetadata {Name = "masteryreceipe.xml", Table = ParseMasteryRecipe()};
+    }
+    
+    private ChatStickerTable ParseChatSticker() {
+        var results = new Dictionary<int, ChatStickerMetadata>();
+        foreach ((int id, ChatSticker sticker) in parser.ParseChatSticker()) {
+            results[id] = new ChatStickerMetadata(
+                Id: id,
+                GroupId: sticker.group_id);
+        }
+
+        return new ChatStickerTable(results);
     }
 
     private ItemBreakTable ParseItemBreakIngredient() {
@@ -207,5 +221,16 @@ public class TableMapper : TypeMapper<TableMetadata> {
                     new InteractObjectMetadataEffect.InvokeEffect(effect.skillId, effect.level, prop))
                 .ToArray();
         }
+    }
+    
+    private MasteryRecipeTable ParseMasteryRecipe() {
+        var results = new Dictionary<int, MasteryRecipeMetadata>();
+        foreach ((int id, MasteryRecipe recipe) in parser.ParseMasteryRecipe()) {
+            results[id] = new MasteryRecipe(
+                Id: id,
+                GroupId: sticker.group_id);
+        }
+
+        return new ChatStickerTable(results);
     }
 }

@@ -18,7 +18,7 @@ internal class CharacterConfig {
     public IList<Wardrobe>? Wardrobes { get; set; }
     public IDictionary<StatAttribute, int>? StatAllocation { get; set; }
     public SkillBook? SkillBook { get; set; }
-    public ISet<int>? FavoriteStickers { get; set; }
+    public IList<int>? FavoriteStickers { get; set; }
 
     public DateTime LastModified { get; set; }
 

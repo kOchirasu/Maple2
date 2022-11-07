@@ -5,6 +5,7 @@ using Maple2.Model.Metadata;
 namespace Maple2.Database.Storage;
 
 public class TableMetadataStorage {
+    private readonly Lazy<ChatStickerTable> chatStickerTable;
     private readonly Lazy<ItemBreakTable> itemBreakTable;
     private readonly Lazy<GemstoneUpgradeTable> gemstoneUpgradeTable;
     private readonly Lazy<JobTable> jobTable;
@@ -13,6 +14,7 @@ public class TableMetadataStorage {
     private readonly Lazy<InteractObjectTable> interactObjectTable;
     private readonly Lazy<InteractObjectTable> interactMasteryTable;
 
+    public ChatStickerTable ChatStickerTable => chatStickerTable.Value;
     public ItemBreakTable ItemBreakTable => itemBreakTable.Value;
     public GemstoneUpgradeTable GemstoneUpgradeTable => gemstoneUpgradeTable.Value;
     public JobTable JobTable => jobTable.Value;
@@ -22,6 +24,7 @@ public class TableMetadataStorage {
     public InteractObjectTable InteractMasteryTable => interactMasteryTable.Value;
 
     public TableMetadataStorage(MetadataContext context) {
+        chatStickerTable = Retrieve<ChatStickerTable>(context, "chatemoticon.xml");
         itemBreakTable = Retrieve<ItemBreakTable>(context, "itembreakingredient.xml");
         gemstoneUpgradeTable = Retrieve<GemstoneUpgradeTable>(context, "itemgemstoneupgrade.xml");
         jobTable = Retrieve<JobTable>(context, "job.xml");

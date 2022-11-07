@@ -4,6 +4,7 @@ using Maple2.Database.Extensions;
 using Maple2.Model.Common;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -23,6 +24,7 @@ internal class Character {
     public Profile Profile { get; set; }
     public Cooldown Cooldown { get; set; }
     public CharacterCurrency Currency { get; set; }
+    public Mastery Mastery { get; set; }
     public DateTime DeleteTime { get; set; }
     public DateTime CreationTime { get; set; }
     public DateTime LastModified { get; set; }
@@ -55,6 +57,18 @@ internal class Character {
                 Storage = other.StorageCooldown,
             },
             Currency = new CharacterCurrency(),
+            Mastery = new Mastery {
+                Alchemy = other.Mastery.Alchemy,
+                Cooking = other.Mastery.Cooking,
+                Farming = other.Mastery.Farming,
+                Fishing = other.Mastery.Fishing,
+                Foraging = other.Mastery.Foraging,
+                Handicrafts = other.Mastery.Handicrafts,
+                Instrument = other.Mastery.Instrument,
+                Mining = other.Mastery.Mining,
+                PetTaming = other.Mastery.PetTaming,
+                Ranching = other.Mastery.Ranching,
+            },
             DeleteTime = other.DeleteTime.FromEpochSeconds(),
         };
     }
@@ -104,6 +118,7 @@ internal class Character {
         builder.Property(character => character.Profile).HasJsonConversion().IsRequired();
         builder.Property(character => character.Cooldown).HasJsonConversion().IsRequired();
         builder.Property(character => character.Currency).HasJsonConversion().IsRequired();
+        builder.Property(character => character.Mastery).HasJsonConversion().IsRequired();
 
         builder.Property(character => character.LastModified).IsRowVersion();
         IMutableProperty creationTime = builder.Property(character => character.CreationTime)

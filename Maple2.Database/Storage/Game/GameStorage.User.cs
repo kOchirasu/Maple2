@@ -201,6 +201,7 @@ public partial class GameStorage {
                 IList<QuickSlot[]> hotBars,
                 IEnumerable<SkillMacro> skillMacros,
                 IEnumerable<Wardrobe> wardrobes,
+                IList<int> favoriteStickers,
                 StatAttributes.PointAllocation allocation,
                 SkillBook skillBook) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
@@ -214,6 +215,7 @@ public partial class GameStorage {
             config.HotBars = hotBars;
             config.SkillMacros = skillMacros.Select<SkillMacro, Model.SkillMacro>(macro => macro).ToList();
             config.Wardrobes = wardrobes.Select<Wardrobe, Model.Wardrobe>(wardrobe => wardrobe).ToList();
+            config.FavoriteStickers = favoriteStickers;
             config.StatAllocation = allocation.Attributes.ToDictionary(
                 attribute => attribute,
                 attribute => allocation[attribute]);

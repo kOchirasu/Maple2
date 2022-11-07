@@ -182,7 +182,7 @@ public enum RecvOp : ushort {
     Wardrobe = 0x00B6,
     SystemInfo = 0x00B7,
     SidePopup = 0x00B8,
-    Messenger = 0x00B9,
+    ChatSticker = 0x00B9,
     WebScreenshot = 0x00BA,
     FileHash = 0x00BB,
     Wedding = 0x00BC,
