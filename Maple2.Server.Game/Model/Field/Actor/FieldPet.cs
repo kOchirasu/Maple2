@@ -82,7 +82,10 @@ public sealed class FieldPet : FieldNpc {
         int rarity = TamingRank / 25 + 1;
 
         using GameStorage.Request db = Field.GameStorage.Context();
-        Item? pet = db.CreateItem(0, Pet.Mutate(Pet.Metadata, rarity));
+        Item? pet = Pet.Mutate(Pet.Metadata, rarity);
+        pet.Stats = Field.ItemStatsCalc.Compute(pet.Metadata, pet.Rarity);
+
+        pet = db.CreateItem(0, pet);
         if (pet == null) {
             return;
         }

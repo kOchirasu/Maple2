@@ -13,6 +13,15 @@ public class TableMetadataStorage {
     private readonly Lazy<InstrumentTable> instrumentTable;
     private readonly Lazy<InteractObjectTable> interactObjectTable;
     private readonly Lazy<InteractObjectTable> interactMasteryTable;
+    private readonly Lazy<ItemOptionConstantTable> itemOptionConstantTable;
+    private readonly Lazy<ItemOptionRandomTable> itemOptionRandomTable;
+    private readonly Lazy<ItemOptionStaticTable> itemOptionStaticTable;
+    private readonly Lazy<ItemOptionPickTable> itemOptionPickTable;
+    private readonly Lazy<ItemVariationTable> itemVariationTable;
+    private readonly Lazy<ItemEquipVariationTable> accVariationTable;
+    private readonly Lazy<ItemEquipVariationTable> armorVariationTable;
+    private readonly Lazy<ItemEquipVariationTable> petVariationTable;
+    private readonly Lazy<ItemEquipVariationTable> weaponVariationTable;
 
     public ChatStickerTable ChatStickerTable => chatStickerTable.Value;
     public ItemBreakTable ItemBreakTable => itemBreakTable.Value;
@@ -22,6 +31,15 @@ public class TableMetadataStorage {
     public InstrumentTable InstrumentTable => instrumentTable.Value;
     public InteractObjectTable InteractObjectTable => interactObjectTable.Value;
     public InteractObjectTable InteractMasteryTable => interactMasteryTable.Value;
+    public ItemOptionConstantTable ItemOptionConstantTable => itemOptionConstantTable.Value;
+    public ItemOptionRandomTable ItemOptionRandomTable => itemOptionRandomTable.Value;
+    public ItemOptionStaticTable ItemOptionStaticTable => itemOptionStaticTable.Value;
+    public ItemOptionPickTable ItemOptionPickTable => itemOptionPickTable.Value;
+    public ItemVariationTable ItemVariationTable => itemVariationTable.Value;
+    public ItemEquipVariationTable AccessoryVariationTable => accVariationTable.Value;
+    public ItemEquipVariationTable ArmorVariationTable => armorVariationTable.Value;
+    public ItemEquipVariationTable PetVariationTable => petVariationTable.Value;
+    public ItemEquipVariationTable WeaponVariationTable => weaponVariationTable.Value;
 
     public TableMetadataStorage(MetadataContext context) {
         chatStickerTable = Retrieve<ChatStickerTable>(context, "chatemoticon.xml");
@@ -32,6 +50,16 @@ public class TableMetadataStorage {
         instrumentTable = Retrieve<InstrumentTable>(context, "instrumentcategoryinfo.xml");
         interactObjectTable = Retrieve<InteractObjectTable>(context, "interactobject.xml");
         interactMasteryTable = Retrieve<InteractObjectTable>(context, "interactobject_mastery.xml");
+
+        itemOptionConstantTable = Retrieve<ItemOptionConstantTable>(context, "itemoptionconstant.xml");
+        itemOptionRandomTable = Retrieve<ItemOptionRandomTable>(context, "itemoptionrandom.xml");
+        itemOptionStaticTable = Retrieve<ItemOptionStaticTable>(context, "itemoptionstatic.xml");
+        itemOptionPickTable = Retrieve<ItemOptionPickTable>(context, "itemoptionpick.xml");
+        itemVariationTable = Retrieve<ItemVariationTable>(context, "itemoptionvariation.xml");
+        accVariationTable = Retrieve<ItemEquipVariationTable>(context, "itemoptionvariation_acc.xml");
+        armorVariationTable = Retrieve<ItemEquipVariationTable>(context, "itemoptionvariation_armor.xml");
+        petVariationTable = Retrieve<ItemEquipVariationTable>(context, "itemoptionvariation_pet.xml");
+        weaponVariationTable = Retrieve<ItemEquipVariationTable>(context, "itemoptionvariation_weapon.xml");
     }
 
     private static Lazy<T> Retrieve<T>(MetadataContext context, string key) where T : Table {

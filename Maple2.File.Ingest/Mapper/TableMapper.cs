@@ -1,6 +1,8 @@
 ﻿using System.Numerics;
+using Maple2.File.Ingest.Utils;
 using Maple2.File.IO;
 using Maple2.File.Parser;
+using Maple2.File.Parser.Xml;
 using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
@@ -13,9 +15,11 @@ namespace Maple2.File.Ingest.Mapper;
 
 public class TableMapper : TypeMapper<TableMetadata> {
     private readonly TableParser parser;
+    private readonly ItemOptionParser optionParser;
 
     public TableMapper(M2dReader xmlReader) {
         parser = new TableParser(xmlReader);
+        optionParser = new ItemOptionParser(xmlReader);
     }
 
     protected override IEnumerable<TableMetadata> Map() {
@@ -28,6 +32,15 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "interactobject.xml", Table = ParseInteractObject(false)};
         yield return new TableMetadata {Name = "interactobject_mastery.xml", Table = ParseInteractObject(true)};
         yield return new TableMetadata {Name = "masteryreceipe.xml", Table = ParseMasteryRecipe()};
+        // ItemOption
+        yield return new TableMetadata {Name = "itemoptionconstant.xml", Table = ParseItemOptionConstant()};
+        yield return new TableMetadata {Name = "itemoptionrandom.xml", Table = ParseItemOptionRandom()};
+        yield return new TableMetadata {Name = "itemoptionstatic.xml", Table = ParseItemOptionStatic()};
+        yield return new TableMetadata {Name = "itemoptionpick.xml", Table = ParseItemOptionPick()};
+        yield return new TableMetadata {Name = "itemoptionvariation.xml", Table = ParseItemVariation()};
+        foreach ((string type, ItemEquipVariationTable table) in ParseItemEquipVariation()) {
+            yield return new TableMetadata {Name = $"itemoptionvariation_{type}.xml", Table = table};
+        }
     }
     
     private ChatStickerTable ParseChatSticker() {
@@ -86,7 +99,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
     private JobTable ParseJobTable() {
         var results = new Dictionary<JobCode, JobTable.Entry>();
-        foreach (File.Parser.Xml.Table.JobTable data in parser.ParseJobTable()) {
+        foreach (Parser.Xml.Table.JobTable data in parser.ParseJobTable()) {
             var skills = new Dictionary<SkillRank, JobTable.Skill[]> {
                 [SkillRank.Basic] = data.skills.skill
                     .Where(skill => skill.subJobCode <= data.code) // This is not actually correct, but works.
@@ -222,6 +235,187 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 .ToArray();
         }
     }
+
+    private ItemOptionConstantTable ParseItemOptionConstant() {
+        var results = new Dictionary<int, IReadOnlyDictionary<int, ItemOptionConstant>>();
+        foreach (ItemOptionConstantData entry in optionParser.ParseConstant()) {
+            var statValues = new Dictionary<StatAttribute, int>();
+            var statRates = new Dictionary<StatAttribute, float>();
+            foreach (StatAttribute attribute in Enum.GetValues<StatAttribute>()) {
+                int value = entry.StatValue((byte) attribute);
+                if (value != default) {
+                    statValues[attribute] = value;
+                }
+                float rate = entry.StatRate((byte) attribute);
+                if (rate != default) {
+                    statRates[attribute] = rate;
+                }
+            }
+
+            var specialValues = new Dictionary<SpecialAttribute, int>();
+            var specialRates = new Dictionary<SpecialAttribute, float>();
+            foreach (SpecialAttribute attribute in Enum.GetValues<SpecialAttribute>()) {
+                byte index = attribute.OptionIndex();
+                if (index == byte.MaxValue) continue;
+
+                SpecialAttribute fixAttribute = attribute.SgiTarget(entry.sgi_target);
+                int value = entry.SpecialValue(index);
+                if (value != default) {
+                    specialValues[fixAttribute] = value;
+                }
+                float rate = entry.SpecialRate(index);
+                if (rate != default) {
+                    specialRates[fixAttribute] = rate;
+                }
+            }
+
+            if (!results.ContainsKey(entry.code)) {
+                results[entry.code] = new Dictionary<int, ItemOptionConstant>();
+            }
+
+            var option = new ItemOptionConstant(
+                Values: statValues,
+                Rates: statRates,
+                SpecialValues: specialValues,
+                SpecialRates: specialRates);
+            (results[entry.code] as Dictionary<int, ItemOptionConstant>)!.Add(entry.grade, option);
+        }
+
+        return new ItemOptionConstantTable(results);
+    }
+
+    private ItemOptionRandomTable ParseItemOptionRandom() {
+        return new ItemOptionRandomTable(optionParser.ParseRandom().ToDictionary());
+    }
+
+    private ItemOptionStaticTable ParseItemOptionStatic() {
+        return new ItemOptionStaticTable(optionParser.ParseStatic().ToDictionary());
+    }
+
+    private ItemOptionPickTable ParseItemOptionPick() {
+        var results = new Dictionary<int, IReadOnlyDictionary<int, ItemOptionPickTable.Option>>();
+        foreach (ItemOptionPick entry in optionParser.ParsePick()) {
+            var constantValue = new Dictionary<StatAttribute, int>();
+            for (int i = 0; i < entry.constant_value.Length; i += 2) {
+                if (string.IsNullOrWhiteSpace(entry.constant_value[i])) continue;
+                constantValue.Add(entry.constant_value[i].ToStatAttribute(), int.Parse(entry.constant_value[i + 1]));
+            }
+            var constantRate = new Dictionary<StatAttribute, int>();
+            for (int i = 0; i < entry.constant_rate.Length; i += 2) {
+                if (string.IsNullOrWhiteSpace(entry.constant_rate[i])) continue;
+                constantRate.Add(entry.constant_rate[i].ToStatAttribute(), int.Parse(entry.constant_rate[i + 1]));
+            }
+            var staticValue = new Dictionary<StatAttribute, int>();
+            for (int i = 0; i < entry.static_value.Length; i += 2) {
+                if (string.IsNullOrWhiteSpace(entry.static_value[i])) continue;
+                staticValue.Add(entry.static_value[i].ToStatAttribute(), int.Parse(entry.static_value[i + 1]));
+            }
+            var staticRate = new Dictionary<StatAttribute, int>();
+            for (int i = 0; i < entry.static_rate.Length; i += 2) {
+                if (string.IsNullOrWhiteSpace(entry.static_rate[i])) continue;
+                staticRate.Add(entry.static_rate[i].ToStatAttribute(), int.Parse(entry.static_rate[i + 1]));
+            }
+            var randomValue = new Dictionary<StatAttribute, int>();
+            for (int i = 0; i < entry.random_value.Length; i += 2) {
+                if (string.IsNullOrWhiteSpace(entry.random_value[i])) continue;
+                randomValue.Add(entry.random_value[i].ToStatAttribute(), int.Parse(entry.random_value[i + 1]));
+            }
+            var randomRate = new Dictionary<StatAttribute, int>();
+            for (int i = 0; i < entry.random_rate.Length; i += 2) {
+                if (string.IsNullOrWhiteSpace(entry.random_rate[i])) continue;
+                randomRate.Add(entry.random_rate[i].ToStatAttribute(), int.Parse(entry.random_rate[i + 1]));
+            }
+
+            if (!results.ContainsKey(entry.optionPickID)) {
+                results[entry.optionPickID] = new Dictionary<int, ItemOptionPickTable.Option>();
+            }
+
+            var option = new ItemOptionPickTable.Option(constantValue, constantRate, staticValue, staticRate, randomValue, randomRate);
+            (results[entry.optionPickID] as Dictionary<int, ItemOptionPickTable.Option>)!.Add(entry.itemGrade, option);
+        }
+        return new ItemOptionPickTable(results);
+    }
+
+    private ItemVariationTable ParseItemVariation() {
+        var values = new Dictionary<StatAttribute, ItemVariationTable.Range<int>>();
+        var rates = new Dictionary<StatAttribute, ItemVariationTable.Range<float>>();
+        var specialValues = new Dictionary<SpecialAttribute, ItemVariationTable.Range<int>>();
+        var specialRates = new Dictionary<SpecialAttribute, ItemVariationTable.Range<float>>();
+        foreach (ItemOptionVariation.Option option in optionParser.ParseVariation()) {
+            string name = option.OptionName;
+            if (name.StartsWith("sid")) continue; // Don't know what stat this maps to.
+
+            if (option.OptionValueVariation != 0) {
+                var variation = new ItemVariationTable.Range<int>(
+                    Min: option.OptionValueMin,
+                    Max: option.OptionValueMax,
+                    Interval: option.OptionValueVariation);
+                try {
+                    values[name.ToStatAttribute()] = variation;
+                } catch(ArgumentOutOfRangeException) {
+                    specialValues[name.ToSpecialAttribute()] = variation;
+                }
+            } else if (option.OptionRateVariation != 0) {
+                if (name.EndsWith("_rate")) {
+                    name = name[..^"_rate".Length]; // sanitize suffix
+                }
+
+                var variation = new ItemVariationTable.Range<float>(
+                    Min: option.OptionRateMin,
+                    Max: option.OptionRateMax,
+                    Interval: option.OptionRateVariation);
+                try {
+                    rates[name.ToStatAttribute()] = variation;
+                } catch(ArgumentOutOfRangeException) {
+                    specialRates[name.ToSpecialAttribute()] = variation;
+                }
+            }
+        }
+
+        return new ItemVariationTable(values, rates, specialValues, specialRates);
+    }
+
+    private IEnumerable<(string Type, ItemEquipVariationTable Table)> ParseItemEquipVariation() {
+        foreach ((string type, List<ItemOptionVariationEquip.Option> options) in optionParser.ParseVariationEquip()) {
+            var values = new Dictionary<StatAttribute, int[]>();
+            var rates = new Dictionary<StatAttribute, float[]>();
+            var specialValues = new Dictionary<SpecialAttribute, int[]>();
+            var specialRates = new Dictionary<SpecialAttribute, float[]>();
+            foreach (ItemOptionVariationEquip.Option option in options) {
+                string name = option.name.ToLower();
+                if (name.EndsWith("value")) {
+                    int[] entries = new int[18];
+                    for (int i = 0; i < 18; i++) {
+                        entries[i] = (int)option[i];
+                    }
+
+                    name = name[..^"value".Length]; // Remove suffix
+                    try {
+                        values.Add(name.ToStatAttribute(), entries);
+                    } catch(ArgumentOutOfRangeException) {
+                        specialValues.Add(name.ToSpecialAttribute(), entries);
+                    }
+
+                } else if (name.EndsWith("rate")) {
+                    float[] entries = new float[18];
+                    for (int i = 0; i < 18; i++) {
+                        entries[i] = option[i];
+                    }
+
+                    name = name[..^"rate".Length]; // Remove suffix
+                    try {
+                        rates.Add(name.ToStatAttribute(), entries);
+                    } catch(ArgumentOutOfRangeException) {
+                        specialRates.Add(name.ToSpecialAttribute(), entries);
+                    }
+                } else {
+                    throw new ArgumentException($"Invalid option name: {option.name}");
+                }
+            }
+
+            yield return (type, new ItemEquipVariationTable(values, rates, specialValues, specialRates));
+        }
+    }
     
     private MasteryRecipeTable ParseMasteryRecipe() {
         var results = new Dictionary<int, MasteryRecipeMetadata>();
@@ -232,5 +426,5 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
 
         return new ChatStickerTable(results);
-    }
+	}
 }

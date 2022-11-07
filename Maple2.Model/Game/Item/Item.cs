@@ -135,7 +135,7 @@ public class Item : IByteSerializable, IByteDeserializable {
                     result &= TransferFlag.LimitTrade;
                 }
                 return result;
-            case TransferType.Unknown:
+            case TransferType.BlackMarketOnly:
                 if (!zeroTrades || belowRarity) {
                     return TransferFlag.Trade;
                 }

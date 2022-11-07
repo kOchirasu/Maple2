@@ -18,6 +18,6 @@ public enum TransferType {
     BindOnEquip = 3,
     BindOnUse = 4,
     BindOnTrade = 5,
-    Unknown = 6,
+    BlackMarketOnly = 6,
     BindPet = 7,
 }
