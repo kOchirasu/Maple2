@@ -6,8 +6,8 @@ using Maple2.Model.Game;
 
 namespace Maple2.Database.Model;
 
-internal record ItemStats(IDictionary<StatAttribute, StatOption>[] StatOption,
-        IDictionary<SpecialAttribute, SpecialOption>[] SpecialOption) {
+internal record ItemStats(Dictionary<StatAttribute, StatOption>[] StatOption,
+        Dictionary<SpecialAttribute, SpecialOption>[] SpecialOption) {
     [return:NotNullIfNotNull("other")]
     public static implicit operator ItemStats?(Maple2.Model.Game.ItemStats? other) {
         if (other == null) {
@@ -15,8 +15,8 @@ internal record ItemStats(IDictionary<StatAttribute, StatOption>[] StatOption,
         }
 
         Maple2.Model.Game.ItemStats.Type[] values =Enum.GetValues<Maple2.Model.Game.ItemStats.Type>();
-        var statOption = new IDictionary<StatAttribute, StatOption>[values.Length];
-        var specialOption = new IDictionary<SpecialAttribute, SpecialOption>[values.Length];
+        var statOption = new Dictionary<StatAttribute, StatOption>[values.Length];
+        var specialOption = new Dictionary<SpecialAttribute, SpecialOption>[values.Length];
         foreach (Maple2.Model.Game.ItemStats.Type type in values) {
             statOption[(int) type] = other.GetStatOptions(type);
             specialOption[(int) type] = other.GetSpecialOptions(type);

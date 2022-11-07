@@ -81,6 +81,7 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
         }
 
         if (Random.Shared.Next(PET_SPAWN_RATE_TOTAL) < Value.PetSpawnRate) {
+            // Any stats are computed after pet is captured since that's when rarity is determined.
             var pet = new Item(pets.Get());
             FieldPet? fieldPet = Field.SpawnPet(pet, GetRandomSpawn(), Rotation, owner: this);
             if (fieldPet == null) {

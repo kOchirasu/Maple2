@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
 namespace Maple2.Tools.Extensions;
@@ -49,5 +50,15 @@ public static class EnumerableExtensions {
                 yield return value;
             }
         }
+    }
+
+    public static bool TryGetValue<TK1, TK2, TV>(this IReadOnlyDictionary<TK1, IReadOnlyDictionary<TK2, TV>> dictionary,TK1 key1, TK2 key2,
+                                                 [NotNullWhen(true)] out TV? value) {
+        if (!dictionary.TryGetValue(key1, out IReadOnlyDictionary<TK2, TV>? nested)) {
+            value = default(TV);
+            return false;
+        }
+
+        return nested.TryGetValue(key2, out value);
     }
 }

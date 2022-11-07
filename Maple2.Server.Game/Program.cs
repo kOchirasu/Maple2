@@ -17,6 +17,7 @@ using Maple2.Server.Game.Commands;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Service;
 using Maple2.Server.Game.Session;
+using Maple2.Server.Game.Util;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -71,6 +72,9 @@ builder.Host.ConfigureContainer<ContainerBuilder>(autofac => {
         .PropertiesAutowired()
         .AsSelf();
     autofac.RegisterInstance(new Lua(Target.LOCALE));
+    autofac.RegisterType<ItemStatsCalculator>()
+        .PropertiesAutowired()
+        .SingleInstance();
 
     // Database
     autofac.RegisterModule<GameDbModule>();
@@ -90,7 +94,8 @@ builder.Host.ConfigureContainer<ContainerBuilder>(autofac => {
         .PublicOnly()
         .WithAttributeFiltering()
         .Where(type => typeof(Command).IsAssignableFrom(type))
-        .As<Command>();
+        .As<Command>()
+        .PropertiesAutowired();
 
     // Managers
     autofac.RegisterType<FieldManager.Factory>()

@@ -15,6 +15,7 @@ using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Server.Game.Util;
 using Maple2.Tools.Extensions;
 using Serilog;
 
@@ -33,6 +34,7 @@ public sealed partial class FieldManager : IDisposable {
     public NpcMetadataStorage NpcMetadata { get; init; } = null!;
     public SkillMetadataStorage SkillMetadata { get; init; } = null!;
     public TableMetadataStorage TableMetadata { get; init; } = null!;
+    public ItemStatsCalculator ItemStatsCalc { get; init; } = null!;
     public Lua.Lua Lua { private get; init; } = null!;
     // ReSharper restore All
     #endregion

@@ -38,6 +38,21 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                 Type: Enum.Parse<ItemFunction>(data.function.name),
                 Name: data.function.name, // Temp duplicate data makes it easier to read DB
                 Parameters: data.function.parameter);
+
+            bool hasOption = data.option.@static > 0 || data.option.constant > 6 || data.option.random > 0 || data.option.optionID > 0;
+            int levelFactor = (int) data.option.optionLevelFactor;
+            if (FeatureLocaleFilter.FeatureEnabled("HiddenStatAdd01") || FeatureLocaleFilter.FeatureEnabled("HiddenStatAdd03") || FeatureLocaleFilter.FeatureEnabled("HiddenStatAdd04")) {
+                levelFactor = (int) (data.option.globalOptionLevelFactor ?? levelFactor);
+            }
+            ItemMetadataOption? option = !hasOption ? null : new ItemMetadataOption(
+                StaticId: data.option.@static,
+                StaticType: data.option.staticMakeType,
+                RandomId: data.option.random,
+                RandomType: data.option.randomMakeType,
+                ConstantId: data.option.constant,
+                ConstantType: data.option.constantMakeType,
+                LevelFactor: levelFactor,
+                PickId: data.option.optionID);
             ItemMetadataMusic? music = data.property.type != 12 ? null : new ItemMetadataMusic(
                 PlayCount: data.MusicScore.playCount,
                 MasteryValue: data.MusicScore.masteryValue,
@@ -92,6 +107,7 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                 ),
                 Skill: skill,
                 Function: function,
+                Option: option,
                 Music: music,
                 Housing: housing
             );
