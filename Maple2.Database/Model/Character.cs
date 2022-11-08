@@ -24,7 +24,7 @@ internal class Character {
     public Profile Profile { get; set; }
     public Cooldown Cooldown { get; set; }
     public CharacterCurrency Currency { get; set; }
-    public Mastery Mastery { get; set; }
+    public CharacterMastery Mastery { get; set; }
     public DateTime DeleteTime { get; set; }
     public DateTime CreationTime { get; set; }
     public DateTime LastModified { get; set; }
@@ -57,13 +57,14 @@ internal class Character {
                 Storage = other.StorageCooldown,
             },
             Currency = new CharacterCurrency(),
-            Mastery = new Mastery {
+            Mastery = new CharacterMastery() {
                 Alchemy = other.Mastery.Alchemy,
                 Cooking = other.Mastery.Cooking,
                 Farming = other.Mastery.Farming,
                 Fishing = other.Mastery.Fishing,
                 Foraging = other.Mastery.Foraging,
                 Handicrafts = other.Mastery.Handicrafts,
+                Smithing = other.Mastery.Smithing,
                 Instrument = other.Mastery.Instrument,
                 Mining = other.Mastery.Mining,
                 PetTaming = other.Mastery.PetTaming,
@@ -156,4 +157,19 @@ internal class CharacterCurrency {
     public long MentorToken { get; set; }
     public long MenteeToken { get; set; }
     public long StarPoint { get; set; }
+}
+
+internal class CharacterMastery {
+    private int Unknown;
+    public int Fishing { get; set; }
+    public int Instrument { get; set; }
+    public int Mining { get; set; }
+    public int Foraging { get; set; }
+    public int Ranching { get; set; }
+    public int Farming { get; set; }
+    public int Smithing { get; set; }
+    public int Handicrafts { get; set; }
+    public int Alchemy { get; set; }
+    public int Cooking { get; set; }
+    public int PetTaming { get; set; }
 }

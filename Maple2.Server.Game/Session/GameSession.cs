@@ -58,6 +58,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public ItemManager Item { get; set; }
     public HousingManager Housing { get; set; }
     public CurrencyManager Currency { get; set; }
+    public MasteryManager Mastery { get; set; }
     public StatsManager Stats { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
@@ -94,6 +95,7 @@ public sealed partial class GameSession : Core.Network.Session {
         player.Character.Channel = (short) Channel;
         Player = new FieldPlayer(this, player);
         Currency = new CurrencyManager(this);
+        Mastery = new MasteryManager(this);
         Stats = new StatsManager(this);
         Housing = new HousingManager(this);
         Mail = new MailManager(this);
