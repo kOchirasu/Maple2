@@ -4,8 +4,8 @@ using System.Text.Json.Serialization;
 namespace Maple2.Model.Metadata;
 
 public class TableMetadata {
-    public string Name { get; set; }
-    public Table Table { get; set; }
+    public required string Name { get; set; }
+    public required Table Table { get; set; }
 
     protected bool Equals(TableMetadata other) {
         return Name == other.Name && Table.Equals(other.Table);

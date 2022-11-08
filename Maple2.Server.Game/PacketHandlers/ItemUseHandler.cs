@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
@@ -43,12 +42,12 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         if (!int.TryParse(item.Metadata.Function?.Parameters, out int storyBookId)) {
             return;
         }
-        
+
         session.Send(StoryBookPacket.Load(storyBookId));
     }
 
     private static void HandleChatSticker(GameSession session, Item item) {
-        Dictionary<string, string> parameters = XmlParseUtil.GetParameters(item.Metadata?.Function?.Parameters);
+        Dictionary<string, string> parameters = XmlParseUtil.GetParameters(item.Metadata.Function?.Parameters);
 
         if (!parameters.ContainsKey("id") || !int.TryParse(parameters["id"], out int stickerSetId)) {
             session.Send(ChatStickerPacket.Error(ChatStickerError.s_msg_chat_emoticon_add_failed));
@@ -59,7 +58,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         if (parameters.TryGetValue("durationSec", out string? durationString)) {
             int.TryParse(durationString, out duration);
         }
-        
+
         long existingTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         if (session.Player.Value.Unlock.StickerSets.ContainsKey(stickerSetId)) {
             existingTime = session.Player.Value.Unlock.StickerSets[stickerSetId];
@@ -84,7 +83,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         }
 
         session.Player.Value.Unlock.StickerSets[stickerSetId] = newTime;
-        
+
         session.Send(ChatStickerPacket.Add(item, new ChatSticker(stickerSetId, session.Player.Value.Unlock.StickerSets[stickerSetId])));
     }
 }

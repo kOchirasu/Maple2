@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Maple2.Tools.Extensions;
@@ -12,18 +10,25 @@ namespace Maple2.Database.Model;
 
 internal class CharacterUnlock {
     public long CharacterId { get; set; }
-    public ISet<int> Maps { get; set; }
-    public ISet<int> Taxis { get; set; }
-    public ISet<int> Titles { get; set; }
-    public ISet<int> Emotes { get; set; }
-    public IDictionary<int, long> StickerSets { get; set; }
-    public IDictionary<int, short> Pets { get; set; }
-    public InventoryExpand Expand { get; set; }
+    public required ISet<int> Maps { get; set; }
+    public required ISet<int> Taxis { get; set; }
+    public required ISet<int> Titles { get; set; }
+    public required ISet<int> Emotes { get; set; }
+    public required IDictionary<int, long> StickerSets { get; set; }
+    public required IDictionary<int, short> Pets { get; set; }
+    public required InventoryExpand Expand { get; set; }
     public DateTime LastModified { get; init; }
 
-    [return:NotNullIfNotNull("other")]
-    public static implicit operator CharacterUnlock?(Maple2.Model.Game.Unlock? other) {
-        return other == null ? new CharacterUnlock() : new CharacterUnlock {
+    public static implicit operator CharacterUnlock(Maple2.Model.Game.Unlock? other) {
+        return other == null? new CharacterUnlock {
+            Maps = new SortedSet<int>(),
+            Taxis = new SortedSet<int>(),
+            Titles = new SortedSet<int>(),
+            Emotes = new SortedSet<int>(),
+            StickerSets = new Dictionary<int, long>(),
+            Pets = new SortedDictionary<int, short>(),
+            Expand = new InventoryExpand(),
+        } : new CharacterUnlock {
             LastModified = other.LastModified,
             Expand = new InventoryExpand {
                 Gear = other.Expand.GetValueOrDefault(InventoryType.Gear),
@@ -51,8 +56,7 @@ internal class CharacterUnlock {
         };
     }
 
-    [return:NotNullIfNotNull("other")]
-    public static implicit operator Maple2.Model.Game.Unlock?(CharacterUnlock? other) {
+    public static implicit operator Maple2.Model.Game.Unlock(CharacterUnlock? other) {
         if (other == null) {
             return new Maple2.Model.Game.Unlock();
         }

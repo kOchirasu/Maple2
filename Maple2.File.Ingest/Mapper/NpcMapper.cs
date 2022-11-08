@@ -5,7 +5,6 @@ using Maple2.File.IO;
 using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.Npc;
 using Maple2.Model.Enum;
-using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 
 namespace Maple2.File.Ingest.Mapper;

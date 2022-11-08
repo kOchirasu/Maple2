@@ -16,7 +16,7 @@ public class Character {
 
     public long DeleteTime;
 
-    public string Name;
+    public required string Name;
     public Gender Gender;
     public int MapId;
     public Job Job;

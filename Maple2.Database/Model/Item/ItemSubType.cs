@@ -34,7 +34,7 @@ internal record UgcItemLook(string FileName, string Name, long AccountId, long C
     }
 }
 
-internal record ItemBlueprint() {
+internal record ItemBlueprint {
     [return:NotNullIfNotNull("other")]
     public static implicit operator ItemBlueprint?(Maple2.Model.Game.ItemBlueprint? other) {
         return other == null ? null : new ItemBlueprint();

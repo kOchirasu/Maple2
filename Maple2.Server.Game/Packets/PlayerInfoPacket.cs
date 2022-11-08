@@ -51,7 +51,7 @@ public static class PlayerInfoPacket {
             buffer.WriteLong();
             buffer.WriteLong();
             // Outfit2
-            buffer.WriteByte(0);
+            buffer.WriteByte();
 
             pWriter.WriteInt(buffer.Length);
             pWriter.WriteBytes(buffer.Buffer, 0, buffer.Length);

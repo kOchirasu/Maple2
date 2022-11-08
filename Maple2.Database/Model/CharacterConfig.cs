@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
@@ -48,21 +47,22 @@ internal class CharacterConfig {
 }
 
 internal class SkillMacro {
-    public string Name { get; set; }
+    public required string Name { get; set; }
     public long KeyId { get; set; }
-    public IList<int> Skills { get; set; }
+    public required IList<int> Skills { get; set; }
 
-    [return:NotNullIfNotNull("other")]
-    public static implicit operator SkillMacro?(Maple2.Model.Game.SkillMacro? other) {
-        return other == null ? new SkillMacro() : new SkillMacro {
+    public static implicit operator SkillMacro(Maple2.Model.Game.SkillMacro? other) {
+        return other == null ? new SkillMacro {
+            Name = string.Empty,
+            Skills = Array.Empty<int>(),
+        } : new SkillMacro {
             Name = other.Name,
             KeyId = other.KeyId,
             Skills = other.Skills.ToList(),
         };
     }
 
-    [return:NotNullIfNotNull("other")]
-    public static implicit operator Maple2.Model.Game.SkillMacro?(SkillMacro? other) {
+    public static implicit operator Maple2.Model.Game.SkillMacro(SkillMacro? other) {
         return other == null ? new Maple2.Model.Game.SkillMacro(string.Empty, 0) :
             new Maple2.Model.Game.SkillMacro(other.Name, other.KeyId, other.Skills.ToHashSet());
     }
@@ -71,12 +71,14 @@ internal class SkillMacro {
 internal class Wardrobe {
     public int Type { get; set; }
     public int KeyId { get; set; }
-    public string Name { get; set; }
-    public Dictionary<EquipSlot, Equip> Equips { get; set; }
+    public required string Name { get; set; }
+    public required Dictionary<EquipSlot, Equip> Equips { get; set; }
 
-    [return:NotNullIfNotNull("other")]
-    public static implicit operator Wardrobe?(Maple2.Model.Game.Wardrobe? other) {
-        return other == null ? new Wardrobe() : new Wardrobe {
+    public static implicit operator Wardrobe(Maple2.Model.Game.Wardrobe? other) {
+        return other == null ? new Wardrobe {
+            Name = string.Empty,
+            Equips = new Dictionary<EquipSlot, Equip>(),
+        } : new Wardrobe {
             Type = other.Type,
             Name = other.Name,
             KeyId = other.KeyId,
@@ -91,8 +93,7 @@ internal class Wardrobe {
         };
     }
 
-    [return:NotNullIfNotNull("other")]
-    public static implicit operator Maple2.Model.Game.Wardrobe?(Wardrobe? other) {
+    public static implicit operator Maple2.Model.Game.Wardrobe(Wardrobe? other) {
         if (other == null) {
             return new Maple2.Model.Game.Wardrobe(0, string.Empty);
         }

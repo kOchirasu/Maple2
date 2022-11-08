@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model;
 using Maple2.Model.Enum;
@@ -44,8 +43,11 @@ public partial class GameStorage {
             Model.Account? model = Context.Account
                 .Include(account => account.Characters)
                 .FirstOrDefault(account => account.Id == accountId);
+            if (model == null) {
+                return (null, null);
+            }
 
-            return (model, model?.Characters.Select<Model.Character, Character>(c => c).ToList());
+            return (model, model.Characters?.Select<Model.Character, Character>(c => c).ToList());
         }
 
         //  If accountId is specified, only characters for the account will be returned.
@@ -233,7 +235,7 @@ public partial class GameStorage {
         }
 
         #region Create
-        public Account? CreateAccount(Account account) {
+        public Account CreateAccount(Account account) {
             Model.Account model = account;
             model.Id = 0;
 #if DEBUG

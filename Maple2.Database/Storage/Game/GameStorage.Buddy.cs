@@ -90,12 +90,7 @@ public partial class GameStorage {
 
         public bool RemoveBuddy(params Buddy[] buddies) {
             foreach (Buddy buddy in buddies) {
-                Model.Buddy? model = buddy;
-                if (model == null) {
-                    continue;
-                }
-
-                Context.Buddy.Remove(model);
+                Context.Buddy.Remove(buddy);
             }
 
             return Context.TrySaveChanges();

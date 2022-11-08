@@ -14,8 +14,8 @@ public class TrafficOptimizer : GameEvent {
         writer.WriteInt(300);
         writer.WriteInt(300);
         writer.WriteInt(100);
-        writer.WriteInt(0);
-        writer.WriteInt(0);
+        writer.WriteInt();
+        writer.WriteInt();
         writer.WriteInt(300);
         writer.WriteInt(100);
     }

@@ -8,7 +8,7 @@ public class MapEntity {
     public Guid Guid { get; set; }
     public string Name { get; set; }
 
-    public MapBlock Block { get; set; }
+    public required MapBlock Block { get; init; }
 
     public MapEntity(string xBlock, Guid guid, string name) {
         XBlock = xBlock;

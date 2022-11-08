@@ -64,25 +64,22 @@ public sealed class PetManager : IDisposable {
         }
     }
 
-    public void Add(long uid, short slot, int amount) {
+    public StringCode Add(long uid, short slot, int amount) {
         Console.WriteLine($"Adding {amount}x {uid} to {slot}");
         lock (session.Item) {
             Item? deposit = session.Item.Inventory.Get(uid);
             if (deposit == null || deposit.Amount < amount) {
-                session.Send(NoticePacket.MessageBox(StringCode.s_item_err_invalid_count));
-                return;
+                return StringCode.s_item_err_invalid_count;
             }
 
             if (deposit.Pet != null) {
-                session.Send(NoticePacket.MessageBox(StringCode.s_pet_inventory_not_sendin_petitem));
-                return;
+                return StringCode.s_pet_inventory_not_sendin_petitem;
             }
 
             if (items.OpenSlots == 0) {
                 int remaining = items.GetStackResult(deposit, amount);
                 if (amount == remaining) {
-                    session.Send(NoticePacket.MessageBox(StringCode.s_pet_inventory_not_sendin));
-                    return;
+                    return StringCode.s_pet_inventory_not_sendin;
                 }
 
                 // Stack what we can and ignore the rest.
@@ -90,7 +87,7 @@ public sealed class PetManager : IDisposable {
             }
 
             if (!session.Item.Inventory.Remove(uid, out deposit, amount)) {
-                return;
+                return StringCode.s_empty_string;
             }
 
             deposit.Slot = slot;
@@ -101,30 +98,31 @@ public sealed class PetManager : IDisposable {
                     ? PetInventoryPacket.Add(item)
                     : PetInventoryPacket.Update(item.Uid, item.Amount));
             }
+
+            return StringCode.s_empty_string;
         }
     }
 
-    public void Remove(long uid, short slot, int amount) {
+    public StringCode Remove(long uid, short slot, int amount) {
         lock (session.Item) {
             Item? withdraw = items.Get(uid);
             if (withdraw == null || withdraw.Amount < amount) {
-                session.Send(NoticePacket.MessageBox(StringCode.s_item_err_invalid_count));
-                return;
+                return StringCode.s_item_err_invalid_count;
             }
 
             if (!RemoveInternal(uid, amount, out withdraw)) {
-                return;
+                return StringCode.s_empty_string;
             }
 
             withdraw.Slot = slot;
             session.Item.Inventory.Add(withdraw, commit: true);
+            return StringCode.s_empty_string;
         }
     }
 
     public bool Move(long uid, short dstSlot) {
         lock (session.Item) {
             if (dstSlot < 0 || dstSlot >= items.Size) {
-                session.Send(NoticePacket.MessageBox(StringCode.s_item_err_Invalid_slot));
                 return false;
             }
 

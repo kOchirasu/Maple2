@@ -64,13 +64,13 @@ public static class FieldPacket {
             buffer.WriteLong();
             buffer.WriteLong();
             // Outfit2
-            buffer.WriteByte(0);
+            buffer.WriteByte();
 
             pWriter.WriteDeflated(buffer.Buffer, 0, buffer.Length);
         }
 
         using (var buffer = new PoolByteWriter()) {
-            buffer.WriteByte(0); // Unknown
+            buffer.WriteByte(); // Unknown
 
             pWriter.WriteDeflated(buffer.Buffer, 0, buffer.Length);
         }
