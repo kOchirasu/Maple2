@@ -3,7 +3,7 @@ using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
 
-public record JobTable(IReadOnlyDictionary<JobCode, JobTable.Entry> Entries) : Table(Discriminator.JobTable) {
+public record JobTable(IReadOnlyDictionary<JobCode, JobTable.Entry> Entries) : Table {
     public record Entry(
         Tutorial Tutorial, 
         IReadOnlyDictionary<SkillRank, Skill[]> Skills,

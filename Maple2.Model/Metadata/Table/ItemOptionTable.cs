@@ -5,15 +5,15 @@ namespace Maple2.Model.Metadata;
 
 public record ItemOptionConstantTable(
     IReadOnlyDictionary<int, IReadOnlyDictionary<int, ItemOptionConstant>> Options
-) : Table(Discriminator.ItemOptionConstantTable);
+) : Table;
 
 public record ItemOptionRandomTable(
     IReadOnlyDictionary<int, IReadOnlyDictionary<int, ItemOption>> Options
-) : Table(Discriminator.ItemOptionRandomTable);
+) : Table;
 
 public record ItemOptionStaticTable(
     IReadOnlyDictionary<int, IReadOnlyDictionary<int, ItemOption>> Options
-) : Table(Discriminator.ItemOptionStaticTable);
+) : Table;
 
 public record ItemOptionConstant(
     IReadOnlyDictionary<StatAttribute, int> Values,
@@ -36,7 +36,7 @@ public record ItemOption(
 
 public record ItemOptionPickTable(
     IReadOnlyDictionary<int, IReadOnlyDictionary<int, ItemOptionPickTable.Option>> Options
-) : Table(Discriminator.ItemOptionPickTable) {
+) : Table {
     public record Option(
         IReadOnlyDictionary<StatAttribute, int> ConstantValue,
         IReadOnlyDictionary<StatAttribute, int> ConstantRate,
@@ -52,7 +52,7 @@ public record ItemVariationTable(
     IReadOnlyDictionary<StatAttribute, ItemVariationTable.Range<float>> Rates,
     IReadOnlyDictionary<SpecialAttribute, ItemVariationTable.Range<int>> SpecialValues,
     IReadOnlyDictionary<SpecialAttribute, ItemVariationTable.Range<float>> SpecialRates
-) : Table(Discriminator.ItemVariationTable) {
+) : Table {
     public record struct Range<T>(T Min, T Max, T Interval);
 }
 
@@ -61,4 +61,4 @@ public record ItemEquipVariationTable(
     IReadOnlyDictionary<StatAttribute, float[]> Rates,
     IReadOnlyDictionary<SpecialAttribute, int[]> SpecialValues,
     IReadOnlyDictionary<SpecialAttribute, float[]> SpecialRates
-) : Table(Discriminator.ItemEquipVariationTable);
+) : Table;

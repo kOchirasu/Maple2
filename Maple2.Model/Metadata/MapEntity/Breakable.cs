@@ -9,7 +9,7 @@ public record Breakable(
     int ResetTime,
     Vector3 Position,
     Vector3 Rotation)
-: MapBlock(Discriminator.Breakable);
+: MapBlock;
 
 public record BreakableActor(
     bool Visible,
@@ -18,4 +18,4 @@ public record BreakableActor(
     int ResetTime,
     Vector3 Position,
     Vector3 Rotation)
-: MapBlock(Discriminator.BreakableActor);
+: MapBlock;

@@ -15,4 +15,4 @@ public record Portal(
     bool Visible,
     bool MinimapVisible,
     bool Enable
-) : MapBlock(Discriminator.Portal);
+) : MapBlock;

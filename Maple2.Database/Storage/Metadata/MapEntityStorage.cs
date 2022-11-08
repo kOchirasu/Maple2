@@ -48,98 +48,60 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
             var triggerModels = new Dictionary<int, TriggerModel>();
             var triggers = new List<Trigger>();
             foreach (MapEntity entity in Context.MapEntity.Where(entity => entity.XBlock == xblock)) {
-                switch (entity.Block.Class) {
-                    case MapBlock.Discriminator.Breakable:
-                        if (entity.Block is Breakable breakable) {
-                            breakables[entity.Guid] = breakable;
-                        }
+                switch (entity.Block) {
+                    case Breakable breakable:
+                        breakables[entity.Guid] = breakable;
                         break;
-                    case MapBlock.Discriminator.BreakableActor:
-                        if (entity.Block is BreakableActor breakableActor) {
-                            breakableActors[entity.Guid] = breakableActor;
-                        }
+                    case BreakableActor breakableActor:
+                        breakableActors[entity.Guid] = breakableActor;
                         break;
-                    case MapBlock.Discriminator.Liftable:
-                        if (entity.Block is Liftable liftable) {
-                            liftables[entity.Guid] = liftable;
-                        }
+                    case Liftable liftable:
+                        liftables[entity.Guid] = liftable;
                         break;
-                    case MapBlock.Discriminator.ObjectWeapon:
-                        if (entity.Block is ObjectWeapon objectWeapon) {
-                            objectWeapons[objectWeapon.Position] = objectWeapon;
-                        }
+                    case ObjectWeapon objectWeapon:
+                        objectWeapons[objectWeapon.Position] = objectWeapon;
                         break;
-                    case MapBlock.Discriminator.Portal:
-                        if (entity.Block is Portal portal) {
-                            portals[portal.Id] = portal;
-                        }
+                    case Portal portal:
+                        portals[portal.Id] = portal;
                         break;
-                    case MapBlock.Discriminator.Ms2RegionSpawn:
-                        if (entity.Block is Ms2RegionSpawn regionSpawn) {
-                            regionSpawns[regionSpawn.Id] = regionSpawn;
-                        }
+                    case Ms2RegionSpawn regionSpawn:
+                        regionSpawns[regionSpawn.Id] = regionSpawn;
                         break;
-                    case MapBlock.Discriminator.Ms2RegionSkill:
-                        if (entity.Block is Ms2RegionSkill regionSkill) {
-                            regionSkills.Add(regionSkill);
-                        }
+                    case Ms2RegionSkill regionSkill:
+                        regionSkills.Add(regionSkill);
                         break;
-                    case MapBlock.Discriminator.SpawnPointPC:
-                        if (entity.Block is SpawnPointPC playerSpawn) {
-                            playerSpawns[playerSpawn.Id] = playerSpawn;
-                        }
+                    case SpawnPointPC playerSpawn:
+                        playerSpawns[playerSpawn.Id] = playerSpawn;
                         break;
-                    case MapBlock.Discriminator.SpawnPointNPC:
-                        if (entity.Block is SpawnPointNPC npcSpawn) {
+                    case SpawnPointNPC npcSpawn:
+                        if (npcSpawn is EventSpawnPointNPC eventNpcSpawn) {
+                            eventNpcSpawns.Add(eventNpcSpawn.Id, eventNpcSpawn);
+                        } else {
                             npcSpawns.Add(npcSpawn);
                         }
                         break;
-                    case MapBlock.Discriminator.EventSpawnPointNPC:
-                        if (entity.Block is EventSpawnPointNPC eventNpcSpawn) {
-                            eventNpcSpawns.Add(eventNpcSpawn.Id, eventNpcSpawn);
-                        }
+                    case TaxiStation taxiStation:
+                        Debug.Assert(taxi == null, $"Multiple taxi stations found in xblock:{xblock}");
+                        taxi = taxiStation;
                         break;
-                    case MapBlock.Discriminator.TaxiStation:
-                        if (entity.Block is TaxiStation taxiStation) {
-                            Debug.Assert(taxi == null, $"Multiple taxi stations found in xblock:{xblock}");
-                            taxi = taxiStation;
-                        }
+                    case TriggerModel triggerModel:
+                        triggerModels.Add(triggerModel.Id, triggerModel);
                         break;
-                    case MapBlock.Discriminator.TriggerModel:
-                        if (entity.Block is TriggerModel triggerModel) {
-                            triggerModels.Add(triggerModel.Id, triggerModel);
-                        }
-                        break;
-                    case MapBlock.Discriminator.Ms2InteractActor:
-                    case MapBlock.Discriminator.Ms2InteractDisplay:
-                    case MapBlock.Discriminator.Ms2InteractMesh:
-                    case MapBlock.Discriminator.Ms2SimpleUiObject:
-                    case MapBlock.Discriminator.Ms2Telescope:
+                    case Ms2InteractActor or Ms2InteractDisplay or Ms2InteractMesh or Ms2SimpleUiObject or Ms2Telescope:
                         interacts.Add(entity.Guid, (InteractObject) entity.Block);
                         break;
-                    case MapBlock.Discriminator.Ms2TriggerActor:
-                    case MapBlock.Discriminator.Ms2TriggerAgent:
-                    case MapBlock.Discriminator.Ms2TriggerBox:
-                    case MapBlock.Discriminator.Ms2TriggerCamera:
-                    case MapBlock.Discriminator.Ms2TriggerCube:
-                    case MapBlock.Discriminator.Ms2TriggerEffect:
-                    case MapBlock.Discriminator.Ms2TriggerLadder:
-                    case MapBlock.Discriminator.Ms2TriggerMesh:
-                    case MapBlock.Discriminator.Ms2TriggerRope:
-                    case MapBlock.Discriminator.Ms2TriggerSkill:
-                    case MapBlock.Discriminator.Ms2TriggerSound:
+                    case Ms2TriggerActor or Ms2TriggerAgent or Ms2TriggerBox or Ms2TriggerCamera or Ms2TriggerCube or Ms2TriggerEffect or
+                        Ms2TriggerLadder or Ms2TriggerMesh or Ms2TriggerRope or Ms2TriggerSkill or Ms2TriggerSound:
                         triggers.Add((Trigger) entity.Block);
                         break;
-                    case MapBlock.Discriminator.Ms2Bounding:
-                        if (entity.Block is Ms2Bounding mapBounding) {
-                            var box = new BoundingBox(
-                                new Vector2(mapBounding.Position1.X, mapBounding.Position1.Y),
-                                new Vector2(mapBounding.Position2.X, mapBounding.Position2.Y)
-                            );
-                            float baseHeight = Math.Min(mapBounding.Position1.Z, mapBounding.Position2.Z);
-                            float height = Math.Abs(mapBounding.Position2.Z - mapBounding.Position1.Z);
-                            bounding = new Prism(box, baseHeight, height);
-                        }
+                    case Ms2Bounding mapBounding:
+                        var box = new BoundingBox(
+                            new Vector2(mapBounding.Position1.X, mapBounding.Position1.Y),
+                            new Vector2(mapBounding.Position2.X, mapBounding.Position2.Y)
+                        );
+                        float baseHeight = Math.Min(mapBounding.Position1.Z, mapBounding.Position2.Z);
+                        float height = Math.Abs(mapBounding.Position2.Z - mapBounding.Position1.Z);
+                        bounding = new Prism(box, baseHeight, height);
                         break;
                 }
             }
