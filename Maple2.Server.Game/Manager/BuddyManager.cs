@@ -100,7 +100,7 @@ public class BuddyManager {
                 Invite = new BuddyRequest.Types.Invite {SenderId = session.CharacterId},
             });
         } catch (SystemException ex) {
-            logger.Warning(ex, "Invite failed.");
+            logger.Warning(ex, "Invite failed");
             session.Send(BuddyPacket.Invite(error: s_buddy_err_unknown));
         }
     }
@@ -128,7 +128,7 @@ public class BuddyManager {
         long receiverId = self.BuddyInfo.CharacterId;
         Buddy? other = db.GetBuddy(receiverId, session.CharacterId);
         if (other == null) {
-            logger.Warning("Accept without paired entry.");
+            logger.Warning("Accept without paired entry");
             return;
         }
         self.Type = BuddyType.Default;
@@ -152,7 +152,7 @@ public class BuddyManager {
                 session.Send(BuddyPacket.NotifyOnline(self));
             }
         } catch (SystemException ex) {
-            logger.Warning(ex, "Buddy Accept failed.");
+            logger.Warning(ex, "Buddy Accept failed");
         }
     }
 
@@ -181,7 +181,7 @@ public class BuddyManager {
             long receiverId = self.BuddyInfo.CharacterId;
             Buddy? other = db.GetBuddy(receiverId, session.CharacterId);
             if (other == null) {
-                logger.Warning("Decline without paired entry.");
+                logger.Warning("Decline without paired entry");
                 return;
             }
 
@@ -195,7 +195,7 @@ public class BuddyManager {
                 Decline = new BuddyRequest.Types.Decline {EntryId = other.Id},
             });
         } catch (SystemException ex) {
-            logger.Warning(ex, "Decline failed.");
+            logger.Warning(ex, "Decline failed");
         }
     }
 
@@ -263,7 +263,7 @@ public class BuddyManager {
                 });
             }
         } catch (SystemException ex) {
-            logger.Warning(ex, "Block failed.");
+            logger.Warning(ex, "Block failed");
             session.Send(BuddyPacket.Block(error: s_buddy_err_unknown));
         }
     }
@@ -294,7 +294,7 @@ public class BuddyManager {
             session.Send(BuddyPacket.Unblock(self));
             session.Send(BuddyPacket.Remove(self));
         } catch (SystemException ex) {
-            logger.Warning(ex, "Unblock failed.");
+            logger.Warning(ex, "Unblock failed");
         }
     }
 
@@ -309,7 +309,7 @@ public class BuddyManager {
             long receiverId = self.BuddyInfo.CharacterId;
             Buddy? other = db.GetBuddy(receiverId, session.CharacterId);
             if (other == null) {
-                logger.Warning("Delete without paired entry.");
+                logger.Warning("Delete without paired entry");
                 return;
             }
 
@@ -323,7 +323,7 @@ public class BuddyManager {
                 Delete = new BuddyRequest.Types.Delete {EntryId = other.Id},
             });
         } catch (SystemException ex) {
-            logger.Warning(ex, "Delete failed.");
+            logger.Warning(ex, "Delete failed");
         }
     }
 
@@ -356,7 +356,7 @@ public class BuddyManager {
 
             session.Send(BuddyPacket.UpdateBlock(self.Id, self.BuddyInfo.Name, self.Message));
         } catch (SystemException ex) {
-            logger.Warning(ex, "UpdateBlock failed.");
+            logger.Warning(ex, "UpdateBlock failed");
             session.Send(BuddyPacket.UpdateBlock(error: s_buddy_err_unknown));
         }
     }
@@ -372,7 +372,7 @@ public class BuddyManager {
             long receiverId = self.BuddyInfo.CharacterId;
             Buddy? other = db.GetBuddy(receiverId, session.CharacterId);
             if (other == null) {
-                logger.Warning("Cancel without paired entry.");
+                logger.Warning("Cancel without paired entry");
                 return;
             }
 
@@ -386,7 +386,7 @@ public class BuddyManager {
                 Cancel = new BuddyRequest.Types.Cancel {EntryId = other.Id},
             });
         } catch (SystemException ex) {
-            logger.Warning(ex, "Cancel failed.");
+            logger.Warning(ex, "Cancel failed");
         }
     }
 

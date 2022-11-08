@@ -7,7 +7,7 @@ public class Club {
     public DateTime LastModified { get; init; }
 
     public long Id { get; init; }
-    public string Name;
+    public required string Name;
     public ClubMember Leader;
     public long CreationTime;
 

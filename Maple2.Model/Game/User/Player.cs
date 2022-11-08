@@ -9,9 +9,9 @@ public class Player {
     public readonly Character Character;
     public readonly int ObjectId;
 
-    public Home Home { get; set; }
-    public Currency Currency { get; init; }
-    public Unlock Unlock { get; init; }
+    public required Home Home { get; set; }
+    public required Currency Currency { get; init; }
+    public required Unlock Unlock { get; init; }
 
     public Player(Account account, Character character, int objectId) {
         Account = account;

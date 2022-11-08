@@ -106,7 +106,7 @@ public abstract class Session : IDisposable {
     }
 
     public bool Connected() {
-        if (disposed || client?.Client == null) {
+        if (disposed) {
             return false;
         }
 
@@ -241,8 +241,8 @@ public abstract class Session : IDisposable {
 
     private void CloseClient() {
         // Must close socket before network stream to prevent lingering
-        client?.Client?.Close();
-        client?.Close();
+        client.Client.Close();
+        client.Close();
     }
 
     private void LogSend(byte[] packet, int length) {

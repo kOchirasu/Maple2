@@ -11,8 +11,8 @@ namespace Maple2.Database.Model;
 internal class SkillTab {
     public long CharacterId { get; set; }
     public long Id { get; set; }
-    public string Name { get; set; }
-    public IDictionary<int, int> Skills;
+    public required string Name { get; set; }
+    public required IDictionary<int, int> Skills;
 
     public DateTime CreationTime { get; set; }
 

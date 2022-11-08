@@ -7,7 +7,7 @@ namespace Maple2.Database.Model.Metadata;
 [Table("checksum")]
 public class TableChecksum {
 
-    public string TableName { get; set; }
+    public required string TableName { get; set; }
 
     public uint Crc32C { get; set; }
 

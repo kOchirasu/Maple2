@@ -7,7 +7,7 @@ public class Account {
     public DateTime LastModified { get; init; }
     public long Id { get; init; }
 
-    public string Username { get; init; }
+    public required string Username { get; init; }
     public Guid MachineId { get; set; }
     #endregion
 

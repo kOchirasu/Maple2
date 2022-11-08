@@ -61,8 +61,8 @@ public class FieldPropertyLockPlayer : IFieldProperty  {
 public class FieldPropertyUserTagSymbol : IFieldProperty {
     public FieldProperty Type => FieldProperty.UserTagSymbol;
 
-    public string Symbol1 { get; init; }
-    public string Symbol2 { get; init; }
+    public required string Symbol1 { get; init; }
+    public required string Symbol2 { get; init; }
 
     public void WriteTo(IByteWriter writer) {
         writer.Write<FieldProperty>(Type);

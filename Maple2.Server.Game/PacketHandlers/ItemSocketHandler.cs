@@ -183,7 +183,7 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
 
                 Item upgradeGem = gem.Mutate(result.Value.upgrade);
                 if (!session.Item.Inventory.Add(upgradeGem, true)) {
-                    Logger.Fatal("Failed to add upgraded gem {ItemUid} to inventory.", upgradeGem.Uid);
+                    Logger.Fatal("Failed to add upgraded gem {ItemUid} to inventory", upgradeGem.Uid);
                     session.Send(ItemSocketPacket.Error(code: 6, error: s_itemsocketsystem_error_server_default));
                     return;
                 }

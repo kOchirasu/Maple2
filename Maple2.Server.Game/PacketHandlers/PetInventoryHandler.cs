@@ -1,6 +1,8 @@
-﻿using Maple2.PacketLib.Tools;
+﻿using Maple2.Model.Enum;
+using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
+using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.PacketHandlers;
@@ -35,26 +37,46 @@ public class PetInventoryHandler : PacketHandler<GameSession> {
     }
 
     private static void HandleAdd(GameSession session, IByteReader packet) {
+        if (session.Pet == null) {
+            return;
+        }
+
         long itemUid = packet.ReadLong();
         short slot = packet.ReadShort();
         int amount = packet.ReadInt();
 
-        session.Pet?.Add(itemUid, slot, amount);
+        StringCode code = session.Pet.Add(itemUid, slot, amount);
+        if (code != StringCode.s_empty_string) {
+            session.Send(NoticePacket.MessageBox(code));
+        }
     }
 
     private static void HandleRemove(GameSession session, IByteReader packet) {
+        if (session.Pet == null) {
+            return;
+        }
+
         long itemUid = packet.ReadLong();
         short slot = packet.ReadShort();
         int amount = packet.ReadInt();
 
-        session.Pet?.Remove(itemUid, slot, amount);
+        StringCode code = session.Pet.Remove(itemUid, slot, amount);
+        if (code != StringCode.s_empty_string) {
+            session.Send(NoticePacket.MessageBox(code));
+        }
     }
 
     private static void HandleMove(GameSession session, IByteReader packet) {
+        if (session.Pet == null) {
+            return;
+        }
+
         long itemUid = packet.ReadLong();
         short dstSlot = packet.ReadShort();
 
-        session.Pet?.Move(itemUid, dstSlot);
+        if (!session.Pet.Move(itemUid, dstSlot)) {
+            session.Send(NoticePacket.MessageBox(StringCode.s_item_err_Invalid_slot));
+        }
     }
 
     private static void HandleLoad(GameSession session) {

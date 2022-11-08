@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
-using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,9 +9,9 @@ internal class Buddy {
     public long Id { get; set; }
     public long OwnerId { get; set; }
     public long BuddyId { get; set; }
-    public Character BuddyCharacter { get; set; }
+    public Character? BuddyCharacter { get; set; }
     public BuddyType Type { get; set; }
-    public string Message { get; set; }
+    public required string Message { get; set; }
 
     public DateTime LastModified { get; set; }
 

@@ -10,12 +10,12 @@ namespace Maple2.Database.Model;
 
 internal class Club {
     public long Id { get; set; }
-    public string Name { get; set; }
+    public required string Name { get; set; }
     public DateTime CreationTime { get; set; }
     public DateTime LastModified { get; set; }
 
     public long LeaderId { get; set; }
-    public List<ClubMember> Members { get; set; }
+    public List<ClubMember>? Members { get; set; }
 
     [return:NotNullIfNotNull("other")]
     public static implicit operator Club?(Maple2.Model.Game.Club? other) {
@@ -61,7 +61,7 @@ internal class ClubMember {
 
     public long ClubId { get; set; }
     public long CharacterId { get; set; }
-    public Character Character { get; set; }
+    public Character? Character { get; set; }
 
     [return:NotNullIfNotNull("other")]
     public static implicit operator ClubMember?(Maple2.Model.Game.ClubMember? other) {

@@ -13,12 +13,12 @@ public readonly record struct Color(byte Blue, byte Green, byte Red, byte Alpha)
 public readonly struct SkinColor {
     public Color Primary { get; }
     public Color Secondary { get; }
-    
+
     public SkinColor(Color color) {
         Primary = color;
         Secondary = color;
     }
-    
+
     [JsonConstructor]
     public SkinColor(Color primary, Color secondary) {
         Primary = primary;
@@ -36,6 +36,7 @@ public readonly struct EquipColor {
     public Color Tertiary { get; }
     public int Index { get; }
 
+    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
     private readonly int Unknown = 0;
 
     public EquipColor(Color color) {
