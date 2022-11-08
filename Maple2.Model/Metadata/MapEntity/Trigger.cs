@@ -2,61 +2,61 @@
 
 namespace Maple2.Model.Metadata;
 
-public abstract record Trigger(MapBlock.Discriminator Class, int TriggerId, bool Visible) : MapBlock(Class);
+public abstract record Trigger(int TriggerId, bool Visible) : MapBlock;
 
 public record Ms2TriggerActor(
     string InitialSequence,
     int TriggerId,
     bool Visible)
-: Trigger(Discriminator.Ms2TriggerActor, TriggerId, Visible);
+: Trigger(TriggerId, Visible);
 
 public record Ms2TriggerAgent(
     int TriggerId,
     bool Visible)
-: Trigger(Discriminator.Ms2TriggerAgent, TriggerId, Visible);
+: Trigger(TriggerId, Visible);
 
 public record Ms2TriggerBox(
     Vector3 Position,
     Vector3 Dimensions,
     int TriggerId,
     bool Visible)
-: Trigger(Discriminator.Ms2TriggerBox, TriggerId, Visible);
+: Trigger(TriggerId, Visible);
 
 public record Ms2TriggerCamera(
     int TriggerId,
     bool Visible)
-: Trigger(Discriminator.Ms2TriggerCamera, TriggerId, Visible);
+: Trigger(TriggerId, Visible);
 
 public record Ms2TriggerCube(
     int TriggerId,
     bool Visible)
-: Trigger(Discriminator.Ms2TriggerCube, TriggerId, Visible);
+: Trigger(TriggerId, Visible);
 
 public record Ms2TriggerEffect(
     int TriggerId,
     bool Visible)
-: Trigger(Discriminator.Ms2TriggerEffect, TriggerId, Visible);
+: Trigger(TriggerId, Visible);
 
 public record Ms2TriggerLadder(
     int TriggerId,
     bool Visible)
-: Trigger(Discriminator.Ms2TriggerLadder, TriggerId, Visible);
+: Trigger(TriggerId, Visible);
 
 public record Ms2TriggerMesh(
     float Scale,
     int TriggerId,
     bool Visible)
-: Trigger(Discriminator.Ms2TriggerMesh, TriggerId, Visible);
+: Trigger(TriggerId, Visible);
 
 public record Ms2TriggerPortal(
     int TriggerId,
     bool Visible)
-: Trigger(Discriminator.Ms2TriggerPortal, TriggerId, Visible);
+: Trigger(TriggerId, Visible);
 
 public record Ms2TriggerRope(
     int TriggerId,
     bool Visible)
-: Trigger(Discriminator.Ms2TriggerRope, TriggerId, Visible);
+: Trigger(TriggerId, Visible);
 
 public record Ms2TriggerSkill(
     int SkillId,
@@ -65,9 +65,9 @@ public record Ms2TriggerSkill(
     Vector3 Rotation,
     int TriggerId,
     bool Visible)
-: Trigger(Discriminator.Ms2TriggerSkill, TriggerId, Visible);
+: Trigger(TriggerId, Visible);
 
 public record Ms2TriggerSound(
     int TriggerId,
     bool Visible)
-: Trigger(Discriminator.Ms2TriggerSound, TriggerId, Visible);
+: Trigger(TriggerId, Visible);

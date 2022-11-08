@@ -7,4 +7,4 @@ public record TriggerModel(
     string Name,
     Vector3 Position,
     Vector3 Rotation)
-: MapBlock(Discriminator.TriggerModel);
+: MapBlock;

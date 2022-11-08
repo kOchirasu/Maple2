@@ -175,6 +175,9 @@ public sealed partial class GameSession : Core.Network.Session {
         // AH
         Config.LoadWardrobe();
 
+        // Online Notifications
+
+
         return true;
     }
 

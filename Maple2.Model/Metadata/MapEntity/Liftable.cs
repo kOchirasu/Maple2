@@ -14,4 +14,4 @@ public record Liftable(
     string EffectQuestState,
     Vector3 Position,
     Vector3 Rotation)
-: MapBlock(Discriminator.Liftable);
+: MapBlock;

@@ -1,14 +1,16 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 
 namespace Maple2.Database.Model;
 
-internal abstract partial record ItemSubType([JsonDiscriminator] ItemSubType.Discriminator Type) {
-    public enum Discriminator { Ugc = 1, Pet = 2, Music = 3, Badge = 4 }
-}
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "!")]
+[JsonDerivedType(typeof(ItemUgc), typeDiscriminator: "ugc")]
+[JsonDerivedType(typeof(ItemPet), typeDiscriminator: "pet")]
+[JsonDerivedType(typeof(ItemCustomMusicScore), typeDiscriminator: "music")]
+[JsonDerivedType(typeof(ItemBadge), typeDiscriminator: "badge")]
+internal abstract record ItemSubType;
 
-internal record ItemUgc(UgcItemLook Template, ItemBlueprint Blueprint) : ItemSubType(Discriminator.Ugc);
+internal record ItemUgc(UgcItemLook Template, ItemBlueprint Blueprint) : ItemSubType;
 
 internal record UgcItemLook(string FileName, string Name, long AccountId, long CharacterId, string Author,
         long CreationTime, string Url) {
@@ -44,7 +46,7 @@ internal record ItemBlueprint() {
     }
 }
 
-internal record ItemPet(string Name, long Exp, int EvolvePoints, short Level, short RenameRemaining) : ItemSubType(Discriminator.Pet) {
+internal record ItemPet(string Name, long Exp, int EvolvePoints, short Level, short RenameRemaining) : ItemSubType {
     [return:NotNullIfNotNull("other")]
     public static implicit operator ItemPet?(Maple2.Model.Game.ItemPet? other) {
         return other == null ? null : new ItemPet(other.Name, other.Exp, other.EvolvePoints, other.Level, other.RenameRemaining);
@@ -63,7 +65,7 @@ internal record ItemPet(string Name, long Exp, int EvolvePoints, short Level, sh
 }
 
 internal record ItemCustomMusicScore(int Length, int Instrument, string Title, string Author, long AuthorId,
-        bool IsLocked, string Mml) : ItemSubType(Discriminator.Music) {
+        bool IsLocked, string Mml) : ItemSubType {
     [return:NotNullIfNotNull("other")]
     public static implicit operator ItemCustomMusicScore?(Maple2.Model.Game.ItemCustomMusicScore? other) {
         return other == null ? null : new ItemCustomMusicScore(other.Length, other.Instrument, other.Title,
@@ -84,7 +86,7 @@ internal record ItemCustomMusicScore(int Length, int Instrument, string Title, s
     }
 }
 
-internal record ItemBadge(int Id, bool[] Transparency, int PetSkinId) : ItemSubType(Discriminator.Badge) {
+internal record ItemBadge(int Id, bool[] Transparency, int PetSkinId) : ItemSubType {
     [return:NotNullIfNotNull("other")]
     public static implicit operator ItemBadge?(Maple2.Model.Game.ItemBadge? other) {
         return other == null ? null : new ItemBadge(other.Id, other.Transparency, other.PetSkinId);

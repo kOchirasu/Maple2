@@ -12,4 +12,4 @@ public record ObjectWeapon(
     int SpawnNpcCount = 0,
     float SpawnNpcRate = 0,
     int SpawnNpcLifeTick = 0)
-: MapBlock(Discriminator.ObjectWeapon);
+: MapBlock;
