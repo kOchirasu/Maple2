@@ -1,7 +1,6 @@
 ﻿using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
-using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -13,11 +12,12 @@ public class CharacterInfoHandler : PacketHandler<GameSession> {
     public override void Handle(GameSession session, IByteReader packet) {
         long characterId = packet.ReadLong();
 
-        if (session.Field?.TryGetPlayerById(characterId, out FieldPlayer? player) is true) {
-            session.Send(PlayerInfoPacket.Load(player.Session));
+        if (session.FindSession(characterId, out GameSession? other)) {
+            session.Send(PlayerInfoPacket.Load(other));
             return;
         }
 
+        // TODO: If player is on another channel, we should read from db.
         session.Send(PlayerInfoPacket.NotFound(characterId));
     }
 }

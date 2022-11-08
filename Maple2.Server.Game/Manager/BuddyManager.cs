@@ -140,15 +140,15 @@ public class BuddyManager {
                 return;
             }
 
-            session.Send(BuddyPacket.Accept(self));
-            session.Send(BuddyPacket.UpdateInfo(self));
-
             BuddyResponse response = session.World.Buddy(new BuddyRequest {
                 ReceiverId = receiverId,
                 Accept = new BuddyRequest.Types.Accept {EntryId = other.Id},
             });
-            if (response.Online) {
-                self.BuddyInfo.Character.Online = true;
+            self.BuddyInfo.Character.Online = response.Online;
+
+            session.Send(BuddyPacket.Accept(self));
+            session.Send(BuddyPacket.UpdateInfo(self));
+            if (self.BuddyInfo.Character.Online) {
                 session.Send(BuddyPacket.NotifyOnline(self));
             }
         } catch (SystemException ex) {
@@ -164,6 +164,7 @@ public class BuddyManager {
 
         // DB written by sender as single transaction.
         self.Type = BuddyType.Default;
+        self.BuddyInfo.Character.Online = true;
         session.Send(BuddyPacket.UpdateInfo(self));
         session.Send(BuddyPacket.NotifyAccept(self));
         session.Send(BuddyPacket.NotifyOnline(self));
