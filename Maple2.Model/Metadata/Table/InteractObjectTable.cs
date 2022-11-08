@@ -3,7 +3,7 @@ using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
 
-public record InteractObjectTable(IReadOnlyDictionary<int, InteractObjectMetadata> Entries) : Table(Discriminator.InteractObjectTable);
+public record InteractObjectTable(IReadOnlyDictionary<int, InteractObjectMetadata> Entries) : Table;
 
 public record InteractObjectMetadata(
     int Id,

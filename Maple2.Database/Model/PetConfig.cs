@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using Maple2.Database.Extensions;
 using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
@@ -10,7 +9,7 @@ namespace Maple2.Database.Model;
 internal class PetConfig {
     public long ItemUid { get; set; }
 
-    public PetPotionConfig[] PotionConfigs { get; set; }
+    public required PetPotionConfig[] PotionConfigs { get; set; }
     public PetLootConfig LootConfig { get; set; }
 
     [return:NotNullIfNotNull("other")]

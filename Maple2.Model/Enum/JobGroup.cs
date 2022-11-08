@@ -1,4 +1,6 @@
-﻿namespace Maple2.Model.Enum;
+﻿// ReSharper disable InconsistentNaming, IdentifierTypo
+
+namespace Maple2.Model.Enum;
 
 // table/jobgroup.xml
 public enum JobCode : short {

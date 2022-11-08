@@ -11,20 +11,20 @@ namespace Maple2.Database.Model;
 
 internal class Account {
     public long Id { get; set; }
-    public string Username { get; set; }
+    public required string Username { get; set; }
     public Guid MachineId { get; set; }
     public int MaxCharacters { get; set; }
     public int PrestigeLevel { get; set; }
     public long PrestigeExp { get; set; }
     public Trophy Trophy { get; set; }
     public long PremiumTime { get; set; }
-    public AccountCurrency Currency { get; set; }
-    public MarketLimits MarketLimits { get; set; }
+    public required AccountCurrency Currency { get; set; }
+    public required MarketLimits MarketLimits { get; set; }
 
     public DateTime CreationTime { get; set; }
     public DateTime LastModified { get; set; }
 
-    public ICollection<Character> Characters { get; set; }
+    public ICollection<Character>? Characters { get; set; }
 
     [return:NotNullIfNotNull("other")]
     public static implicit operator Account?(Maple2.Model.Game.Account? other) {

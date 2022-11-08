@@ -4,8 +4,8 @@ using System.Text.Json.Serialization;
 namespace Maple2.Model.Metadata;
 
 public class TableMetadata {
-    public string Name { get; set; }
-    public Table Table { get; set; }
+    public required string Name { get; set; }
+    public required Table Table { get; set; }
 
     protected bool Equals(TableMetadata other) {
         return Name == other.Name && Table.Equals(other.Table);
@@ -24,21 +24,19 @@ public class TableMetadata {
     }
 }
 
-public abstract partial record Table([JsonDiscriminator] Table.Discriminator Type) {
-    public enum Discriminator : uint {
-        JobTable = 1,
-        ItemBreakTable = 2,
-        GemstoneUpgradeTable = 3,
-        MagicPathTable = 4,
-        InstrumentTable = 5,
-        InteractObjectTable = 6,
-        ItemOptionConstantTable = 7,
-        ItemOptionRandomTable = 8,
-        ItemOptionStaticTable = 9,
-        ItemOptionPickTable = 10,
-        ItemVariationTable = 11,
-        ItemEquipVariationTable = 12,
-		ChatStickerTable = 13,
-        MasteryRecipeTable = 14,
-    }
-}
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "!")]
+[JsonDerivedType(typeof(JobTable), typeDiscriminator: "job")]
+[JsonDerivedType(typeof(ItemBreakTable), typeDiscriminator: "itembreak")]
+[JsonDerivedType(typeof(GemstoneUpgradeTable), typeDiscriminator: "gemstoneupgrade")]
+[JsonDerivedType(typeof(MagicPathTable), typeDiscriminator: "magicpath")]
+[JsonDerivedType(typeof(InstrumentTable), typeDiscriminator: "instrument")]
+[JsonDerivedType(typeof(InteractObjectTable), typeDiscriminator: "interactobject")]
+[JsonDerivedType(typeof(ItemOptionConstantTable), typeDiscriminator: "itemoptionconstant")]
+[JsonDerivedType(typeof(ItemOptionRandomTable), typeDiscriminator: "itemoptionrandom")]
+[JsonDerivedType(typeof(ItemOptionStaticTable), typeDiscriminator: "itemoptionstatic")]
+[JsonDerivedType(typeof(ItemOptionPickTable), typeDiscriminator: "itemoptionpick")]
+[JsonDerivedType(typeof(ItemVariationTable), typeDiscriminator: "itemvariation")]
+[JsonDerivedType(typeof(ItemEquipVariationTable), typeDiscriminator: "itemequipvariation")]
+[JsonDerivedType(typeof(ChatStickerTable), typeDiscriminator: "chatsticker")]
+[JsonDerivedType(typeof(MasteryRecipeTable), typeDiscriminator: "masteryrecipe")]
+public abstract record Table;

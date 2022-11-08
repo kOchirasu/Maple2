@@ -6,7 +6,7 @@ namespace Maple2.File.Ingest.Utils;
 internal enum ScriptType { None = 0, Str, Int, Float, IntList, StrList, StateList, Vector3, Bool, State }
 
 internal record Parameter(ScriptType Type, string Name) {
-    public string? Value = null;
+    public string? Value;
 
     public Parameter(ScriptType type, string name, string? value) : this(type, name) {
         Value = value;
@@ -23,7 +23,7 @@ internal record Parameter(ScriptType Type, string Name) {
             ScriptType.Vector3 => "List[float]",
             ScriptType.Bool => "bool",
             ScriptType.State => "'Trigger'",
-            _ => throw new ArgumentException($"Invalid parameter type: {Type}")
+            _ => throw new ArgumentException($"Invalid parameter type: {Type}"),
         };
     }
 

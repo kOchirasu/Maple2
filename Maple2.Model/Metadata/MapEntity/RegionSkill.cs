@@ -7,4 +7,5 @@ public record Ms2RegionSkill(
     short Level,
     int Interval,
     Vector3 Position,
-    Vector3 Rotation) : MapBlock(Discriminator.Ms2RegionSkill);
+    Vector3 Rotation
+) : MapBlock;

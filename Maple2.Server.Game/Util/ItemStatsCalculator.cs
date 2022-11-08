@@ -24,10 +24,7 @@ public sealed class ItemStatsCalculator {
             return null;
         }
 
-        if (!TableMetadata.ItemOptionPickTable.Options.TryGetValue(item.Option.PickId, rarity, out ItemOptionPickTable.Option? pick)) {
-            return null;
-        }
-
+        ItemOptionPickTable.Option? pick = TableMetadata.ItemOptionPickTable.Options.GetValueOrDefault(item.Option.PickId, rarity);
         int itemType = (item.Id / 100000) - 100;
         int job = (int) item.Limit.Jobs.FirstOrDefault(JobCode.Newbie);
         int levelFactor = item.Option.LevelFactor;
@@ -39,6 +36,9 @@ public sealed class ItemStatsCalculator {
             var type = (ItemStats.Type) i;
             switch (type) {
                 case ItemStats.Type.Constant: {
+                    if (pick == null) {
+                        continue;
+                    }
                     var result = new Dictionary<StatAttribute, StatOption>();
                     foreach ((StatAttribute attribute, int deviation) in pick.ConstantValue) {
                         result[attribute] = new StatOption(ConstValue(attribute, deviation, itemType, job, levelFactor, rarity, level));
@@ -47,6 +47,9 @@ public sealed class ItemStatsCalculator {
                     break;
                 }
                 case ItemStats.Type.Static: {
+                    if (pick == null) {
+                        continue;
+                    }
                     var result = new Dictionary<StatAttribute, StatOption>();
                     foreach ((StatAttribute attribute, int deviation) in pick.StaticValue) {
                         result[attribute] = new StatOption(StaticValue(attribute, deviation, itemType, job, levelFactor, rarity, level));

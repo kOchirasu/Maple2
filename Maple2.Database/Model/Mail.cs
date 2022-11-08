@@ -21,7 +21,7 @@ internal class Mail {
     public IList<string> TitleArgs { get; set; } = Array.Empty<string>();
     public IList<string> ContentArgs { get; set; } = Array.Empty<string>();
 
-    public MailCurrency Currency { get; set; }
+    public required MailCurrency Currency { get; set; }
 
     public DateTime ReadTime { get; set; }
     public DateTime ExpiryTime { get; set; }

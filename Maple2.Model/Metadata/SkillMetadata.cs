@@ -38,7 +38,7 @@ public record SkillMetadataProperty(
     int SkillGroup,
     short MaxLevel);
 
-public record SkillMetadataState();
+public record SkillMetadataState;
 
 public record SkillMetadataLevel(
     BeginCondition Condition,

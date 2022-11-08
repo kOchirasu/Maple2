@@ -34,6 +34,6 @@ public partial class ChannelService {
             throw new RpcException(new Status(StatusCode.NotFound, $"Unable to whisper: {request.Whisper.RecipientName}"));
         }
 
-        session.Send(ChatPacket.Whisper(request.AccountId, request.CharacterId, request.Name, request.Message));
+        session.Send(ChatPacket.Whisper(request.AccountId, request.CharacterId, request.Name, request.Message, request.Name));
     }
 }

@@ -212,8 +212,10 @@ public partial class GameStorage {
                 ExpiryTime = ugcMap.ExpiryTime.ToEpochSeconds(),
             };
 
-            foreach (PlotCube? cube in ugcMap.Cubes) {
-                plot.Cubes.Add(cube!.Position, cube);
+            if (ugcMap.Cubes != null) {
+                foreach (PlotCube? cube in ugcMap.Cubes) {
+                    plot.Cubes.Add(cube!.Position, cube);
+                }
             }
 
             return plot;

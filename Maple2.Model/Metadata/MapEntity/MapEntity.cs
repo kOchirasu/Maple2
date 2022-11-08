@@ -8,7 +8,7 @@ public class MapEntity {
     public Guid Guid { get; set; }
     public string Name { get; set; }
 
-    public MapBlock Block { get; set; }
+    public required MapBlock Block { get; init; }
 
     public MapEntity(string xBlock, Guid guid, string name) {
         XBlock = xBlock;
@@ -17,50 +17,41 @@ public class MapEntity {
     }
 }
 
-public abstract partial record MapBlock([JsonDiscriminator] MapBlock.Discriminator Class) {
-    public enum Discriminator : uint {
-        Portal = 19716277,
-        TaxiStation = 2234881030,
-        Liftable = 52914141,
-        Breakable = 3551547141,
-        Ms2RegionSpawn = 2625779056,
-        ObjectWeapon = 3638470414,
-        BreakableActor = 2510283231,
-
-
-        // BASE: Ms2InteractObject = 1928632421,
-        Ms2InteractActor = 3797506670,
-        Ms2InteractDisplay = 2294285972,
-        Ms2InteractMesh = 1638661275,
-        // Ms2InteractWebActor = 2262431957,
-        // Ms2InteractWebMesh = 131882917,
-        Ms2SimpleUiObject = 2211554062,
-        Ms2Telescope = 1660396588,
-
-        // BASE: SpawnPoint = 2593567611,
-        SpawnPointPC = 476587788,
-        SpawnPointNPC = 2354491253,
-        EventSpawnPointNPC = 4186340407,
-
-        Ms2RegionSkill = 821242714,
-
-        // BASE: Ms2TriggerObject = 244177309,
-        Ms2TriggerActor = 1192557034,
-        Ms2TriggerAgent = 3789099171,
-        // Ms2TriggerBlock = 4034923737,
-        Ms2TriggerBox = 1606545175,
-        Ms2TriggerCamera = 1697877699,
-        Ms2TriggerCube = 2031712866,
-        Ms2TriggerEffect = 1728709847,
-        Ms2TriggerLadder = 3330340952,
-        Ms2TriggerMesh = 1957913511,
-        Ms2TriggerPortal = 1960805826,
-        Ms2TriggerRope = 2325100735,
-        Ms2TriggerSkill = 737806629,
-        Ms2TriggerSound = 558345729,
-
-        TriggerModel = 3583829728,
-
-        Ms2Bounding = 1539875768,
-    }
-}
+[JsonPolymorphic(TypeDiscriminatorPropertyName = "!")]
+[JsonDerivedType(typeof(Portal), 19716277)]
+[JsonDerivedType(typeof(TaxiStation), 87397383)]
+[JsonDerivedType(typeof(Liftable), 52914141)]
+[JsonDerivedType(typeof(Breakable), 1404063494)]
+[JsonDerivedType(typeof(Ms2RegionSpawn), 478295409)]
+[JsonDerivedType(typeof(ObjectWeapon), 1490986767)]
+[JsonDerivedType(typeof(BreakableActor), 362799584)]
+// [JsonDerivedType(typeof(Ms2InteractObject), 1928632421)]
+[JsonDerivedType(typeof(Ms2InteractActor), 1650023023)]
+[JsonDerivedType(typeof(Ms2InteractDisplay), 146802325)]
+[JsonDerivedType(typeof(Ms2InteractMesh), 1638661275)]
+// [JsonDerivedType(typeof(Ms2InteractWebActor), 114948310)]
+// [JsonDerivedType(typeof(Ms2InteractWebMesh), 131882917)]
+[JsonDerivedType(typeof(Ms2SimpleUiObject), 64070415)]
+[JsonDerivedType(typeof(Ms2Telescope), 1660396588)]
+// [JsonDerivedType(typeof(SpawnPoint), 446083964)]
+[JsonDerivedType(typeof(SpawnPointPC), 476587788)]
+[JsonDerivedType(typeof(SpawnPointNPC), 207007606)]
+[JsonDerivedType(typeof(EventSpawnPointNPC), 2038856760)]
+[JsonDerivedType(typeof(Ms2RegionSkill), 821242714)]
+// [JsonDerivedType(typeof(Ms2TriggerObject), 244177309)]
+[JsonDerivedType(typeof(Ms2TriggerActor), 1192557034)]
+[JsonDerivedType(typeof(Ms2TriggerAgent), 1641615524)]
+// [JsonDerivedType(typeof(Ms2TriggerBlock), 1887440090)]
+[JsonDerivedType(typeof(Ms2TriggerBox), 1606545175)]
+[JsonDerivedType(typeof(Ms2TriggerCamera), 1697877699)]
+[JsonDerivedType(typeof(Ms2TriggerCube), 2031712866)]
+[JsonDerivedType(typeof(Ms2TriggerEffect), 1728709847)]
+[JsonDerivedType(typeof(Ms2TriggerLadder), 1182857305)]
+[JsonDerivedType(typeof(Ms2TriggerMesh), 1957913511)]
+[JsonDerivedType(typeof(Ms2TriggerPortal), 1960805826)]
+[JsonDerivedType(typeof(Ms2TriggerRope), 177617088)]
+[JsonDerivedType(typeof(Ms2TriggerSkill), 737806629)]
+[JsonDerivedType(typeof(Ms2TriggerSound), 558345729)]
+[JsonDerivedType(typeof(TriggerModel), 1436346081)]
+[JsonDerivedType(typeof(Ms2Bounding), 1539875768)]
+public abstract record MapBlock;

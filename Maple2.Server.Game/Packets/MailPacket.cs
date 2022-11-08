@@ -72,7 +72,7 @@ public static class MailPacket {
         pWriter.WriteLong(mailId);
         pWriter.WriteBool(success);
         if (success) {
-            pWriter.WriteByte(0); // assert(<= 4)
+            pWriter.WriteByte(); // assert(<= 4)
             pWriter.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds()); // Collection time
         }
 

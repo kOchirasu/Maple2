@@ -14,17 +14,16 @@ namespace Maple2.Database.Model;
 internal class Character {
     public long AccountId { get; set; }
     public long Id { get; set; }
-    public string Name { get; set; }
+    public required string Name { get; set; }
     public Gender Gender { get; set; }
     public Job Job { get; set; }
     public short Level { get; set; }
     public SkinColor SkinColor { get; set; }
     public int MapId { get; set; }
-    public Experience Experience { get; set; }
-    public Profile Profile { get; set; }
-    public Cooldown Cooldown { get; set; }
-    public CharacterCurrency Currency { get; set; }
-    public Mastery Mastery { get; set; }
+    public required Experience Experience { get; set; }
+    public required Profile Profile { get; set; }
+    public required Cooldown Cooldown { get; set; }
+    public required CharacterCurrency Currency { get; set; }
     public DateTime DeleteTime { get; set; }
     public DateTime CreationTime { get; set; }
     public DateTime LastModified { get; set; }
@@ -133,8 +132,8 @@ internal class Experience {
 }
 
 internal class Profile {
-    public string Motto { get; set; }
-    public string Picture { get; set; }
+    public required string Motto { get; set; }
+    public required string Picture { get; set; }
     public int Title { get; set; }
     public short Insignia { get; set; }
 }

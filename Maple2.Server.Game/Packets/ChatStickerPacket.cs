@@ -16,7 +16,7 @@ public static class ChatStickerPacket {
         GroupChat = 4,
         Favorite = 5,
         Unfavorite = 6,
-        Error = 7
+        Error = 7,
     }
 
     public static ByteWriter Load(ICollection<int> favorites, ICollection<ChatSticker> stickers) {
@@ -33,7 +33,7 @@ public static class ChatStickerPacket {
 
         return pWriter;
     }
-    
+
     public static ByteWriter Add(Item item, ChatSticker sticker) {
         var pWriter = Packet.Of(SendOp.ChatStamp);
         pWriter.Write<Command>(Command.Add);

@@ -87,7 +87,7 @@ public static class SkillPacket {
 
     public static ByteWriter Cooldown() {
         var pWriter = Packet.Of(SendOp.SkillCooldown);
-        pWriter.WriteByte(0); // Count
+        pWriter.WriteByte(); // Count
         // [4] SkillId
         // [4] EndTick
         // [4] CooldownUnk

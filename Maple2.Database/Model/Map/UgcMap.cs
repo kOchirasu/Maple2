@@ -17,7 +17,8 @@ internal class UgcMap {
     public int Number { get; set; }
     public int ApartmentNumber { get; set; }
 
-    public ICollection<UgcMapCube> Cubes;
+    // Referenced by UgcMapCube
+    public ICollection<UgcMapCube>? Cubes;
 
     public DateTime ExpiryTime { get; set; }
     public DateTime LastModified { get; set; }
