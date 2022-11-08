@@ -15,10 +15,10 @@ public record MasteryRecipeTable(IReadOnlyDictionary<int, MasteryRecipeTable.Ent
                         int HighPropLimitCount,
                         int NormalPropLimitCount,
                         IReadOnlyList<Ingredient> RequiredItems,
-                        int HabitatMapId,
+                        IReadOnlyList<int> HabitatMapId,
                         IReadOnlyList<Ingredient> RewardItems);
 
-    public record Ingredient(int ItemId, int Rarity, int Amount);
+    public record Ingredient(int ItemId, short Rarity, int Amount, string Tag);
 
 }
 

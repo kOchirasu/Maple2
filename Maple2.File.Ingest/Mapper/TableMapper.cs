@@ -42,7 +42,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
             yield return new TableMetadata {Name = $"itemoptionvariation_{type}.xml", Table = table};
         }
     }
-    
+
     private ChatStickerTable ParseChatSticker() {
         var results = new Dictionary<int, ChatStickerMetadata>();
         foreach ((int id, ChatSticker sticker) in parser.ParseChatSticker()) {
@@ -220,7 +220,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
             }
 
             return additionalEffect.id.Zip(additionalEffect.level, (effectId, level) =>
-                    new InteractObjectMetadataEffect.ConditionEffect(effectId, level)).ToArray();
+                new InteractObjectMetadataEffect.ConditionEffect(effectId, level)).ToArray();
         }
 
         InteractObjectMetadataEffect.InvokeEffect[] ParseInvoke(InteractObject.AdditionalEffect additionalEffect) {
@@ -352,7 +352,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
                     Interval: option.OptionValueVariation);
                 try {
                     values[name.ToStatAttribute()] = variation;
-                } catch(ArgumentOutOfRangeException) {
+                } catch (ArgumentOutOfRangeException) {
                     specialValues[name.ToSpecialAttribute()] = variation;
                 }
             } else if (option.OptionRateVariation != 0) {
@@ -366,7 +366,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
                     Interval: option.OptionRateVariation);
                 try {
                     rates[name.ToStatAttribute()] = variation;
-                } catch(ArgumentOutOfRangeException) {
+                } catch (ArgumentOutOfRangeException) {
                     specialRates[name.ToSpecialAttribute()] = variation;
                 }
             }
@@ -386,13 +386,13 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 if (name.EndsWith("value")) {
                     int[] entries = new int[18];
                     for (int i = 0; i < 18; i++) {
-                        entries[i] = (int)option[i];
+                        entries[i] = (int) option[i];
                     }
 
                     name = name[..^"value".Length]; // Remove suffix
                     try {
                         values.Add(name.ToStatAttribute(), entries);
-                    } catch(ArgumentOutOfRangeException) {
+                    } catch (ArgumentOutOfRangeException) {
                         specialValues.Add(name.ToSpecialAttribute(), entries);
                     }
 
@@ -405,7 +405,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
                     name = name[..^"rate".Length]; // Remove suffix
                     try {
                         rates.Add(name.ToStatAttribute(), entries);
-                    } catch(ArgumentOutOfRangeException) {
+                    } catch (ArgumentOutOfRangeException) {
                         specialRates.Add(name.ToSpecialAttribute(), entries);
                     }
                 } else {
@@ -416,15 +416,86 @@ public class TableMapper : TypeMapper<TableMetadata> {
             yield return (type, new ItemEquipVariationTable(values, rates, specialValues, specialRates));
         }
     }
-    
+
     private MasteryRecipeTable ParseMasteryRecipe() {
-        var results = new Dictionary<int, MasteryRecipeMetadata>();
-        foreach ((int id, MasteryRecipe recipe) in parser.ParseMasteryRecipe()) {
-            results[id] = new MasteryRecipe(
-                Id: id,
-                GroupId: sticker.group_id);
+        var results = new Dictionary<int, MasteryRecipeTable.Entry>();
+        foreach ((long id, MasteryRecipe recipe) in parser.ParseMasteryRecipe()) {
+            var requiredItems = new List<MasteryRecipeTable.Ingredient>();
+            MasteryRecipeTable.Ingredient? requiredItem1 = ParseMasteryIngredient(recipe.requireItem1);
+            if (requiredItem1 != null) requiredItems.Add(requiredItem1);
+            MasteryRecipeTable.Ingredient? requiredItem2 = ParseMasteryIngredient(recipe.requireItem2);
+            if (requiredItem2 != null) requiredItems.Add(requiredItem2);
+            MasteryRecipeTable.Ingredient? requiredItem3 = ParseMasteryIngredient(recipe.requireItem3);
+            if (requiredItem3 != null) requiredItems.Add(requiredItem3);
+            MasteryRecipeTable.Ingredient? requiredItem4 = ParseMasteryIngredient(recipe.requireItem4);
+            if (requiredItem4 != null) requiredItems.Add(requiredItem4);
+            MasteryRecipeTable.Ingredient? requiredItem5 = ParseMasteryIngredient(recipe.requireItem5);
+            if (requiredItem5 != null) requiredItems.Add(requiredItem5);
+
+            var rewardItems = new List<MasteryRecipeTable.Ingredient>();
+            MasteryRecipeTable.Ingredient? rewardItem1 = ParseMasteryIngredient(recipe.rewardItem1);
+            if (rewardItem1 != null) rewardItems.Add(rewardItem1);
+            MasteryRecipeTable.Ingredient? rewardItem2 = ParseMasteryIngredient(recipe.rewardItem2);
+            if (rewardItem2 != null) rewardItems.Add(rewardItem2);
+            MasteryRecipeTable.Ingredient? rewardItem3 = ParseMasteryIngredient(recipe.rewardItem3);
+            if (rewardItem3 != null) rewardItems.Add(rewardItem3);
+            MasteryRecipeTable.Ingredient? rewardItem4 = ParseMasteryIngredient(recipe.rewardItem4);
+            if (rewardItem4 != null) rewardItems.Add(rewardItem4);
+            MasteryRecipeTable.Ingredient? rewardItem5 = ParseMasteryIngredient(recipe.rewardItem5);
+            if (rewardItem5 != null) rewardItems.Add(rewardItem5);
+
+            MasteryRecipeTable.Entry entry = new MasteryRecipeTable.Entry(
+                Id: (int) id,
+                Type: (MasteryType) recipe.masteryType,
+                NoRewardExp: recipe.exceptRewardExp,
+                RequiredMastery: recipe.requireMastery,
+                RequiredMeso: recipe.requireMeso,
+                RequiredQuests: recipe.requireQuest,
+                RewardExp: recipe.rewardExp,
+                RewardMastery: recipe.rewardMastery,
+                HighPropLimitCount: recipe.highPropLimitCount,
+                NormalPropLimitCount: recipe.normalPropLimitCount,
+                RequiredItems: requiredItems,
+                HabitatMapId: recipe.habitatMapId,
+                RewardItems: rewardItems);
+
+            results.Add((int) id, entry);
         }
 
-        return new ChatStickerTable(results);
-	}
+        return new MasteryRecipeTable(results);
+    }
+
+    private static MasteryRecipeTable.Ingredient? ParseMasteryIngredient(IReadOnlyList<string> ingredientArray) {
+        if (ingredientArray.Count == 0 || ingredientArray[0] == "0") {
+            return null;
+        }
+
+        string[] idAndTag = ingredientArray[0].Split(":");
+        int id = int.Parse(idAndTag[0]);
+        string tag = idAndTag.Length > 1 ? idAndTag[1] : string.Empty;
+        if (short.TryParse(ingredientArray[1], out short rarity)) {
+            rarity = 1;
+        }
+        if (int.TryParse(ingredientArray[2], out int amount)) {
+            amount = 1;
+        }
+
+        return new MasteryRecipeTable.Ingredient(
+            ItemId: id,
+            Rarity: rarity,
+            Amount: amount,
+            Tag: tag);
+    }
+
+    private static MasteryRecipeTable.Ingredient? ParseMasteryIngredient(IReadOnlyList<int> ingredientArray) {
+        if (ingredientArray.Count == 0 || ingredientArray[0] == 0) {
+            return null;
+        }
+
+        return new MasteryRecipeTable.Ingredient(
+            ItemId: ingredientArray[0],
+            Rarity: (short) ingredientArray[1],
+            Amount: ingredientArray[2],
+            Tag: string.Empty);
+    }
 }

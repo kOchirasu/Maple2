@@ -5,6 +5,7 @@ namespace Maple2.Model.Game;
 [StructLayout(LayoutKind.Sequential, Pack = 4, Size = 48)]
 public struct Mastery {
     private int Unknown;
+    
     public int Fishing { get; set; }
     public int Instrument { get; set; }
     public int Mining { get; set; }

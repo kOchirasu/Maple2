@@ -10,6 +10,7 @@ public class TableMetadataStorage {
     private readonly Lazy<GemstoneUpgradeTable> gemstoneUpgradeTable;
     private readonly Lazy<JobTable> jobTable;
     private readonly Lazy<MagicPathTable> magicPathTable;
+    private readonly Lazy<MasteryRecipeTable> masteryRecipeTable;
     private readonly Lazy<InstrumentTable> instrumentTable;
     private readonly Lazy<InteractObjectTable> interactObjectTable;
     private readonly Lazy<InteractObjectTable> interactMasteryTable;
@@ -28,6 +29,7 @@ public class TableMetadataStorage {
     public GemstoneUpgradeTable GemstoneUpgradeTable => gemstoneUpgradeTable.Value;
     public JobTable JobTable => jobTable.Value;
     public MagicPathTable MagicPathTable => magicPathTable.Value;
+    public MasteryRecipeTable MasteryRecipeTable => masteryRecipeTable.Value;
     public InstrumentTable InstrumentTable => instrumentTable.Value;
     public InteractObjectTable InteractObjectTable => interactObjectTable.Value;
     public InteractObjectTable InteractMasteryTable => interactMasteryTable.Value;
