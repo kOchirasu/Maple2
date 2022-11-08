@@ -9,7 +9,7 @@ namespace Maple2.Database.Storage;
 public partial class GameStorage {
     public partial class Request {
         public IList<Buddy> ListBuddies(long ownerId) {
-            return (from buddy in Context.Buddy where buddy.Id == ownerId
+            return (from buddy in Context.Buddy where buddy.OwnerId == ownerId
                     join account in Context.Account on buddy.BuddyCharacter.AccountId equals account.Id
                     join indoor in Context.UgcMap on
                         new {OwnerId=buddy.BuddyCharacter.AccountId, Indoor=true} equals new {indoor.OwnerId, indoor.Indoor}
@@ -43,7 +43,7 @@ public partial class GameStorage {
         }
 
         public Buddy? GetBuddy(long ownerId, long buddyId) {
-            return (from buddy in Context.Buddy where buddy.Id == buddyId && buddy.OwnerId == ownerId
+            return (from buddy in Context.Buddy where buddy.BuddyId == buddyId && buddy.OwnerId == ownerId
                     join account in Context.Account on buddy.BuddyCharacter.AccountId equals account.Id
                     join indoor in Context.UgcMap on
                         new {OwnerId=buddy.BuddyCharacter.AccountId, Indoor=true} equals new {indoor.OwnerId, indoor.Indoor}

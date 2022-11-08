@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Sockets;
 using System.Numerics;
@@ -70,6 +71,10 @@ public sealed partial class GameSession : Core.Network.Session {
         Scheduler.ScheduleRepeated(() => Send(TimeSyncPacket.Request()), 1000);
 
         OnLoop += Scheduler.InvokeAll;
+    }
+
+    public bool FindSession(long characterId, [NotNullWhen(true)] out GameSession? other) {
+        return server.GetSession(characterId, out other);
     }
 
     public bool EnterServer(long accountId, long characterId, Guid machineId) {
