@@ -24,7 +24,7 @@ internal class Character {
     public Profile Profile { get; set; }
     public Cooldown Cooldown { get; set; }
     public CharacterCurrency Currency { get; set; }
-    public CharacterMastery Mastery { get; set; }
+    public Mastery Mastery { get; set; }
     public DateTime DeleteTime { get; set; }
     public DateTime CreationTime { get; set; }
     public DateTime LastModified { get; set; }
@@ -44,7 +44,6 @@ internal class Character {
             Experience = new Experience {
                 Exp = other.Exp,
                 RestExp = other.RestExp,
-                Mastery = other.Mastery,
             },
             Profile = new Profile {
                 Motto = other.Motto,
@@ -57,7 +56,7 @@ internal class Character {
                 Storage = other.StorageCooldown,
             },
             Currency = new CharacterCurrency(),
-            Mastery = new CharacterMastery() {
+            Mastery = new Mastery() {
                 Alchemy = other.Mastery.Alchemy,
                 Cooking = other.Mastery.Cooking,
                 Farming = other.Mastery.Farming,
@@ -89,11 +88,11 @@ internal class Character {
             Exp = other.Experience.Exp,
             RestExp = other.Experience.RestExp,
             MapId = other.MapId,
+            Mastery = other.Mastery,
             Motto = other.Profile.Motto,
             Picture = other.Profile.Picture,
             Title = other.Profile.Title,
             Insignia = other.Profile.Insignia,
-            Mastery = other.Experience.Mastery,
             DoctorCooldown = other.Cooldown.Doctor,
             StorageCooldown = other.Cooldown.Storage,
             DeleteTime = other.DeleteTime.ToEpochSeconds(),
@@ -131,7 +130,6 @@ internal class Character {
 internal class Experience {
     public long Exp { get; set; }
     public long RestExp { get; set; }
-    public Mastery Mastery { get; set; }
 }
 
 internal class Profile {
@@ -157,19 +155,4 @@ internal class CharacterCurrency {
     public long MentorToken { get; set; }
     public long MenteeToken { get; set; }
     public long StarPoint { get; set; }
-}
-
-internal class CharacterMastery {
-    private int Unknown;
-    public int Fishing { get; set; }
-    public int Instrument { get; set; }
-    public int Mining { get; set; }
-    public int Foraging { get; set; }
-    public int Ranching { get; set; }
-    public int Farming { get; set; }
-    public int Smithing { get; set; }
-    public int Handicrafts { get; set; }
-    public int Alchemy { get; set; }
-    public int Cooking { get; set; }
-    public int PetTaming { get; set; }
 }

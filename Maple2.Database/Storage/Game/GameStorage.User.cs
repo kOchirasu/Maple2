@@ -261,7 +261,6 @@ public partial class GameStorage {
             model.Id = 0;
 #if DEBUG
             model.Currency = new CharacterCurrency {Meso = 999999999};
-            model.Mastery = new CharacterMastery();
 #endif
             Context.Character.Add(model);
             return Context.TrySaveChanges() ? model : null;

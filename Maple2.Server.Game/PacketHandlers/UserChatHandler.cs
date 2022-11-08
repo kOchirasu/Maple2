@@ -66,8 +66,6 @@ public class UserChatHandler : PacketHandler<GameSession> {
 
     private static void HandleNormal(GameSession session, string message) {
         session.Field?.Broadcast(ChatPacket.Message(session.Player.Value, ChatType.Normal, message));
-        session.Mastery[MasteryType.Alchemist] += 1;
-        session.Currency[CurrencyType.Rue] += 1;
     }
 
     private void HandleWhisper(GameSession session, string message, string recipient) {
