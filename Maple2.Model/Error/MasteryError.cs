@@ -13,6 +13,10 @@ public enum MasteryError : short {
     s_mastery_error_lack_quest = 3,
     [Description("Not enough items.")]
     s_mastery_error_lack_item = 4,
+    [Description("System error")]
+    s_mastery_error_unknown = 5,
     [Description("Insufficient level.")]
     s_mastery_error_invalid_level = 7,
+    [Description("The game will not run due to fatigue time.")]
+    s_anti_addiction_cannot_receive = 12,
 }

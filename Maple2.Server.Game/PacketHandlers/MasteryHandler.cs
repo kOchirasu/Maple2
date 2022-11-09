@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
@@ -55,21 +56,70 @@ public class MasteryHandler : PacketHandler<GameSession> {
             return;
         }
 
-        var itemDictionary = new Dictionary<int, IEnumerable<Item>>();
-        foreach (MasteryRecipeTable.Ingredient ingredient in entry.RequiredItems) {
-            IEnumerable<Item> foundItems = ingredient.Tag != ItemTag.None ? session.Item.Inventory.Filter(item => item.Metadata.Property.Tag == ingredient.Tag) :
-                session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList();
-            int totalCount = foundItems.Sum(item => item.Amount);
-            if (totalCount < ingredient.Amount) {
-                session.Send(MasteryPacket.Error(MasteryError.s_mastery_error_lack_item));
-                return;
-            }
-            itemDictionary.Add(ingredient.ItemId, foundItems);
-        }
+        Dictionary<int, List<Item>> materialsById = entry.RequiredItems.ToDictionary(
+            ingredient => ingredient.ItemId,
+            ingredient => session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList()
+        );
+        Dictionary<ItemTag, IList<Item>> materialsByTag = entry.RequiredItems.ToDictionary(
+            ingredient => ingredient.Tag,
+            ingredient => session.Item.Inventory.Filter(item => item.Metadata.Property.Tag == ingredient.Tag)
+        );
 
-        if (entry.RequiredItems.Any(ingredient => session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList().Count < ingredient.Amount)) {
-            session.Send(MasteryPacket.Error(MasteryError.s_mastery_error_lack_item));
-            return;
+        lock (session.Item) {
+            foreach (MasteryRecipeTable.Ingredient ingredient in entry.RequiredItems) {
+                int remaining = ingredient.Amount;
+                if (ingredient.Tag != ItemTag.None) {
+                    foreach (Item material in materialsByTag[ingredient.Tag]) {
+                        remaining -= material.Amount;
+                        if (remaining <= 0) {
+                            break;
+                        }
+                    }
+                } else {
+                    foreach (Item material in materialsById[ingredient.ItemId]) {
+                        remaining -= material.Amount;
+                        if (remaining <= 0) {
+                            break;
+                        }
+                    }
+                }
+
+                if (remaining > 0) {
+                    session.Send(MasteryPacket.Error(MasteryError.s_mastery_error_lack_item));
+                    return;
+                }
+            }
+
+            foreach (MasteryRecipeTable.Ingredient ingredient in entry.RequiredItems) {
+                int remaining = ingredient.Amount;
+                if (ingredient.Tag != ItemTag.None) {
+                    foreach (Item material in materialsByTag[ingredient.Tag]) {
+                        int consume = Math.Min(remaining, material.Amount);
+                        if (!session.Item.Inventory.Consume(material.Uid, consume)) {
+                            Logger.Fatal("Failed to consume item {ItemUid}", material.Uid);
+                            throw new InvalidOperationException($"Fatal: Consuming item: {material.Uid}");
+                        }
+
+                        remaining -= consume;
+                        if (remaining <= 0) {
+                            break;
+                        }
+                    }
+                } else {
+                    foreach (Item material in materialsById[ingredient.ItemId]) {
+                        int consume = Math.Min(remaining, material.Amount);
+                        if (!session.Item.Inventory.Consume(material.Uid, consume)) {
+                            Logger.Fatal("Failed to consume item {ItemUid}", material.Uid);
+                            throw new InvalidOperationException($"Fatal: Consuming item: {material.Uid}");
+                        }
+
+                        remaining -= consume;
+                        if (remaining <= 0) {
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         session.Currency.Meso -= entry.RequiredMeso;
@@ -77,23 +127,6 @@ public class MasteryHandler : PacketHandler<GameSession> {
         if (!entry.NoRewardExp) {
             session.Mastery[entry.Type] += entry.RewardMastery;
             session.Send(MasteryPacket.UpdateMastery(entry.Type, session.Mastery[entry.Type]));
-        }
-
-        foreach (MasteryRecipeTable.Ingredient ingredient in entry.RequiredItems) {
-            IEnumerable<Item> itemList = itemDictionary[ingredient.ItemId];
-            int amountToConsume = ingredient.Amount;
-            foreach (Item item in itemList) {
-                if (amountToConsume == 0) {
-                    break;
-                }
-                if (item.Amount >= amountToConsume) {
-                    session.Item.Inventory.Consume(item.Uid, amountToConsume);
-                    break;
-                }
-
-                session.Item.Inventory.Consume(item.Uid, item.Amount);
-                amountToConsume -= item.Amount;
-            }
         }
 
         foreach (MasteryRecipeTable.Ingredient rewardItem in entry.RewardItems) {
@@ -106,7 +139,8 @@ public class MasteryHandler : PacketHandler<GameSession> {
                 continue;
             }
             session.Item.Inventory.Add(item, true);
-            session.Send(MasteryPacket.GetCraftedItem(entry.Type, rewardItem));
         }
+        session.Send(MasteryPacket.GetCraftedItem(entry.Type, (ICollection<MasteryRecipeTable.Ingredient>) entry.RewardItems));
+
     }
 }

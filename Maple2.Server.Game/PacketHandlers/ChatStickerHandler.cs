@@ -79,6 +79,6 @@ public class ChatStickerHandler : PacketHandler<GameSession> {
             return false;
         }
 
-        return unlock.StickerSets.ContainsKey(metadata.GroupId) && unlock.StickerSets[metadata.GroupId] >= DateTime.Now.ToEpochSeconds();
+        return unlock.StickerSets.ContainsKey(metadata.GroupId) && unlock.StickerSets[metadata.GroupId] >= DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }
 }
