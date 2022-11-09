@@ -1,6 +1,9 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Autofac.Core.Activators.Reflection;
+using Maple2.Database.Extensions;
 using Maple2.Database.Storage;
 using Maple2.Model;
 using Maple2.Model.Enum;
@@ -78,5 +81,15 @@ public class ChatStickerHandler : PacketHandler<GameSession> {
         session.Send(ChatStickerPacket.Unfavorite(stickerId));
     }
 
-    private bool TryUseSticker(Unlock unlock, int stickerId) => TableMetadata.ChatStickerTable.Entries.TryGetValue(stickerId, out ChatStickerMetadata? metadata) && unlock.StickerSets.ContainsKey(metadata.GroupId);
+    private bool TryUseSticker(Unlock unlock, int stickerId)
+    {
+        if (!TableMetadata.ChatStickerTable.Entries.TryGetValue(stickerId, out ChatStickerMetadata? metadata))
+        {
+            return false;
+        }
+        
+        return unlock.StickerSets.ContainsKey(metadata.GroupId) && unlock.StickerSets[metadata.GroupId] >= DateTime.Now.ToEpochSeconds();
+    }
+
+
 }

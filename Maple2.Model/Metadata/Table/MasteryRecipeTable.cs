@@ -3,7 +3,7 @@ using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
 
-public record MasteryRecipeTable(IReadOnlyDictionary<int, MasteryRecipeTable.Entry> Entries) : Table(Discriminator.MasteryRecipeTable) {
+public record MasteryRecipeTable(IReadOnlyDictionary<int, MasteryRecipeTable.Entry> Entries) : Table {
     public record Entry(int Id,
                         MasteryType Type,
                         bool NoRewardExp,
