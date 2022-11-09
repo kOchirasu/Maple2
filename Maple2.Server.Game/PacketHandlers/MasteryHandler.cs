@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Storage;
+using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -56,7 +57,8 @@ public class MasteryHandler : PacketHandler<GameSession> {
 
         var itemDictionary = new Dictionary<int, IEnumerable<Item>>();
         foreach (MasteryRecipeTable.Ingredient ingredient in entry.RequiredItems) {
-            IEnumerable<Item> foundItems = session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList();
+            IEnumerable<Item> foundItems = ingredient.Tag != ItemTag.None ? session.Item.Inventory.Filter(item => item.Metadata.Property.Tag == ingredient.Tag) :
+                session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList();
             int totalCount = foundItems.Sum(item => item.Amount);
             if (totalCount < ingredient.Amount) {
                 session.Send(MasteryPacket.Error(MasteryError.s_mastery_error_lack_item));

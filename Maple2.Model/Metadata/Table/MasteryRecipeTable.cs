@@ -18,7 +18,7 @@ public record MasteryRecipeTable(IReadOnlyDictionary<int, MasteryRecipeTable.Ent
                         IReadOnlyList<int> HabitatMapId,
                         IReadOnlyList<Ingredient> RewardItems);
 
-    public record Ingredient(int ItemId, short Rarity, int Amount, string Tag);
+    public record Ingredient(int ItemId, short Rarity, int Amount, ItemTag Tag);
 
 }
 

@@ -483,7 +483,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
             ItemId: id,
             Rarity: rarity,
             Amount: amount,
-            Tag: tag);
+            Tag: string.IsNullOrWhiteSpace(tag) ? ItemTag.None : Enum.Parse<ItemTag>(tag));
     }
 
     private static MasteryRecipeTable.Ingredient? ParseMasteryIngredient(IReadOnlyList<int> ingredientArray) {
@@ -495,6 +495,6 @@ public class TableMapper : TypeMapper<TableMetadata> {
             ItemId: ingredientArray[0],
             Rarity: (short) ingredientArray[1],
             Amount: ingredientArray[2],
-            Tag: string.Empty);
+            Tag: ItemTag.None);
     }
 }
