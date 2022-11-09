@@ -1,18 +1,11 @@
 ﻿using System;
-using System.Diagnostics.CodeAnalysis;
-using System.Numerics;
-using System.Runtime.InteropServices;
-using Autofac.Core.Activators.Reflection;
 using Maple2.Database.Extensions;
 using Maple2.Database.Storage;
-using Maple2.Model;
-using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
-using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -28,7 +21,7 @@ public class ChatStickerHandler : PacketHandler<GameSession> {
         Favorite = 5,
         Unfavorite = 6,
     }
-    
+
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
     public TableMetadataStorage TableMetadata { private get; init; } = null!;
@@ -57,7 +50,7 @@ public class ChatStickerHandler : PacketHandler<GameSession> {
         if (!TryUseSticker(session.Player.Value.Unlock, stickerId)) {
             return;
         }
-        
+
         session.Send(ChatStickerPacket.Use(stickerId, html));
     }
 
@@ -67,26 +60,25 @@ public class ChatStickerHandler : PacketHandler<GameSession> {
         if (!session.Config.TryFavoriteChatSticker(stickerId)) {
             return;
         }
-        
+
         session.Send(ChatStickerPacket.Favorite(stickerId));
     }
 
     private void HandleUnfavorite(GameSession session, IByteReader packet) {
         int stickerId = packet.ReadInt();
-        
+
         if (!session.Config.TryUnfavoriteChatSticker(stickerId)) {
             return;
         }
-        
+
         session.Send(ChatStickerPacket.Unfavorite(stickerId));
     }
 
     private bool TryUseSticker(Unlock unlock, int stickerId) {
-        if (!TableMetadata.ChatStickerTable.Entries.TryGetValue(stickerId, out ChatStickerMetadata? metadata))
-        {
+        if (!TableMetadata.ChatStickerTable.Entries.TryGetValue(stickerId, out ChatStickerMetadata? metadata)) {
             return false;
         }
-        
+
         return unlock.StickerSets.ContainsKey(metadata.GroupId) && unlock.StickerSets[metadata.GroupId] >= DateTime.Now.ToEpochSeconds();
     }
 }
