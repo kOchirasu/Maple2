@@ -24,6 +24,7 @@ internal class Character {
     public required Profile Profile { get; set; }
     public required Cooldown Cooldown { get; set; }
     public required CharacterCurrency Currency { get; set; }
+    public Mastery Mastery { get; set; }
     public DateTime DeleteTime { get; set; }
     public DateTime CreationTime { get; set; }
     public DateTime LastModified { get; set; }

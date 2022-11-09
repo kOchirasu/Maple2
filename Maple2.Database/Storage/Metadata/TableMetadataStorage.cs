@@ -49,10 +49,10 @@ public class TableMetadataStorage {
         gemstoneUpgradeTable = Retrieve<GemstoneUpgradeTable>(context, "itemgemstoneupgrade.xml");
         jobTable = Retrieve<JobTable>(context, "job.xml");
         magicPathTable = Retrieve<MagicPathTable>(context, "magicpath.xml");
+        masteryRecipeTable = Retrieve<MasteryRecipeTable>(context, "masteryreceipe.xml");
         instrumentTable = Retrieve<InstrumentTable>(context, "instrumentcategoryinfo.xml");
         interactObjectTable = Retrieve<InteractObjectTable>(context, "interactobject.xml");
         interactMasteryTable = Retrieve<InteractObjectTable>(context, "interactobject_mastery.xml");
-
         itemOptionConstantTable = Retrieve<ItemOptionConstantTable>(context, "itemoptionconstant.xml");
         itemOptionRandomTable = Retrieve<ItemOptionRandomTable>(context, "itemoptionrandom.xml");
         itemOptionStaticTable = Retrieve<ItemOptionStaticTable>(context, "itemoptionstatic.xml");

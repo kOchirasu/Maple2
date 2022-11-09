@@ -2,7 +2,7 @@
 
 namespace Maple2.Model.Enum;
 
-public enum MasteryType {
+public enum MasteryType : byte {
     Unknown = 0,
     Fishing = 1,
     Music = 2,

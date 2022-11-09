@@ -1,6 +1,7 @@
 ﻿using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
@@ -36,13 +37,13 @@ public static class MasteryPacket {
         return pWriter;
     }
     
-    public static ByteWriter GetCraftedItem(MasteryType type, Item item) {
+    public static ByteWriter GetCraftedItem(MasteryType type, MasteryRecipeTable.Ingredient item) {
         var pWriter = Packet.Of(SendOp.Mastery);
         pWriter.Write<Command>(Command.GetCraftedItem);
         pWriter.WriteShort((short) type);
         pWriter.WriteInt(item.Amount);
-        pWriter.WriteInt(item.Id);
-        pWriter.WriteShort((short) item.Rarity);
+        pWriter.WriteInt(item.ItemId);
+        pWriter.WriteShort(item.Rarity);
 
         return pWriter;
     }
