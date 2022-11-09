@@ -66,16 +66,16 @@ public class TableMapper : TypeMapper<TableMetadata> {
         foreach ((int itemId, ItemGemstoneUpgrade upgrade) in parser.ParseItemGemstoneUpgrade()) {
             var ingredients = new List<GemstoneUpgradeTable.Ingredient>();
             if (upgrade.IngredientCount1 > 0 && upgrade.IngredientItemID1?.Length > 1) {
-                ingredients.Add(new GemstoneUpgradeTable.Ingredient(upgrade.IngredientItemID1[1], upgrade.IngredientCount1));
+                ingredients.Add(new GemstoneUpgradeTable.Ingredient(Enum.Parse<ItemTag>(upgrade.IngredientItemID1[1]), upgrade.IngredientCount1));
             }
             if (upgrade.IngredientCount2 > 0 && upgrade.IngredientItemID2?.Length > 1) {
-                ingredients.Add(new GemstoneUpgradeTable.Ingredient(upgrade.IngredientItemID2[1], upgrade.IngredientCount2));
+                ingredients.Add(new GemstoneUpgradeTable.Ingredient(Enum.Parse<ItemTag>(upgrade.IngredientItemID2[1]), upgrade.IngredientCount2));
             }
             if (upgrade.IngredientCount3 > 0 && upgrade.IngredientItemID3?.Length > 1) {
-                ingredients.Add(new GemstoneUpgradeTable.Ingredient(upgrade.IngredientItemID3[1], upgrade.IngredientCount3));
+                ingredients.Add(new GemstoneUpgradeTable.Ingredient(Enum.Parse<ItemTag>(upgrade.IngredientItemID3[1]), upgrade.IngredientCount3));
             }
             if (upgrade.IngredientCount4 > 0 && upgrade.IngredientItemID4?.Length > 1) {
-                ingredients.Add(new GemstoneUpgradeTable.Ingredient(upgrade.IngredientItemID4[1], upgrade.IngredientCount4));
+                ingredients.Add(new GemstoneUpgradeTable.Ingredient(Enum.Parse<ItemTag>(upgrade.IngredientItemID4[1]), upgrade.IngredientCount4));
             }
 
             results.Add(itemId, new GemstoneUpgradeTable.Entry(upgrade.GemLevel, upgrade.NextItemID, ingredients));
