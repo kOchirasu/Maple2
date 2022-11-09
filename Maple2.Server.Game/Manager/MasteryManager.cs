@@ -31,43 +31,39 @@ public class MasteryManager {
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Invalid mastery type.")
         };
         set {
-            if (value < 0) {
-                throw new ArgumentException($"Invalid amount");
-            }
-
             switch (type) {
                 case MasteryType.Fishing:
-                    Mastery.Fishing = Math.Min(value, Constant.FishingMasteryMax);
+                    Mastery.Fishing = Math.Clamp(value, Mastery.Fishing, Constant.FishingMasteryMax);
                     break;
                 case MasteryType.Music: 
-                    Mastery.Instrument = Math.Min(value, Constant.PerformanceMasteryMax);
+                    Mastery.Instrument = Math.Clamp(value, Mastery.Instrument, Constant.PerformanceMasteryMax);
                     break;
                 case MasteryType.Mining:
-                    session.Player.Value.Character.Mastery.Mining = Math.Min(value, Constant.MiningMasteryMax);
+                    Mastery.Mining = Math.Clamp(value, Mastery.Mining, Constant.MiningMasteryMax);
                     break;
                 case MasteryType.Gathering:
-                    Mastery.Foraging = Math.Min(value, Constant.ForagingMasteryMax);
+                    Mastery.Foraging = Math.Clamp(value, Mastery.Foraging, Constant.ForagingMasteryMax);
                     break;
                 case MasteryType.Breeding:
-                    Mastery.Ranching = Math.Min(value, Constant.RanchingMasteryMax);
+                    Mastery.Ranching = Math.Clamp(value, Mastery.Ranching, Constant.RanchingMasteryMax);
                     break;
                 case MasteryType.Farming:
-                    Mastery.Farming = Math.Min(value, Constant.FarmingMasteryMax);
+                    Mastery.Farming = Math.Clamp(value, Mastery.Farming, Constant.FarmingMasteryMax);
                     break;
                 case MasteryType.Blacksmithing:
-                    Mastery.Smithing = Math.Min(value, Constant.SmithingMasteryMax);
+                    Mastery.Smithing = Math.Clamp(value, Mastery.Smithing, Constant.SmithingMasteryMax);
                     break;
                 case MasteryType.Engraving:
-                    Mastery.Handicrafts = Math.Min(value, Constant.HandicraftsMasteryMax);
+                    Mastery.Handicrafts = Math.Clamp(value, Mastery.Handicrafts, Constant.HandicraftsMasteryMax);
                     break;
                 case MasteryType.Alchemist:
-                    Mastery.Alchemy = Math.Min(value, Constant.AlchemyMasteryMax);
+                    Mastery.Alchemy = Math.Clamp(value, Mastery.Alchemy, Constant.AlchemyMasteryMax);
                     break;
                 case MasteryType.Cooking:
-                    Mastery.Cooking = Math.Min(value, Constant.CookingMasteryMax);
+                    Mastery.Cooking = Math.Clamp(value, Mastery.Cooking, Constant.CookingMasteryMax);
                     break;
                 case MasteryType.PetTaming:
-                    Mastery.PetTaming = Math.Min(value, Constant.PetTamingMasteryMax);
+                    Mastery.PetTaming = Math.Clamp(value, Mastery.PetTaming, Constant.PetTamingMasteryMax);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, "Invalid mastery type.");

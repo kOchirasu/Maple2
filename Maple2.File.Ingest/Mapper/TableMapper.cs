@@ -6,7 +6,6 @@ using Maple2.File.Parser.Xml;
 using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
-using Z.BulkOperations;
 using InteractObject = Maple2.File.Parser.Xml.Table.InteractObject;
 using JobTable = Maple2.Model.Metadata.JobTable;
 using MagicPath = Maple2.Model.Metadata.MagicPath;
@@ -453,8 +452,8 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 RequiredQuests: recipe.requireQuest,
                 RewardExp: recipe.rewardExp,
                 RewardMastery: recipe.rewardMastery,
-                HighPropLimitCount: recipe.highPropLimitCount,
-                NormalPropLimitCount: recipe.normalPropLimitCount,
+                HighRateLimitCount: recipe.highPropLimitCount,
+                NormalRateLimitCount: recipe.normalPropLimitCount,
                 RequiredItems: requiredItems,
                 HabitatMapId: recipe.habitatMapId,
                 RewardItems: rewardItems);

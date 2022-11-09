@@ -55,9 +55,9 @@ public class MasteryHandler : PacketHandler<GameSession> {
             return;
         }
 
-        Dictionary<int, IEnumerable<Item>> itemDictionary = new Dictionary<int, IEnumerable<Item>>();
+        var itemDictionary = new Dictionary<int, IEnumerable<Item>>();
         foreach (MasteryRecipeTable.Ingredient ingredient in entry.RequiredItems) {
-            IEnumerable<Item>? foundItems = session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList();
+            IEnumerable<Item> foundItems = session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList();
             int totalCount = foundItems.Sum(item => item.Amount);
             if (totalCount < ingredient.Amount) {
                 session.Send(MasteryPacket.Error(MasteryError.s_mastery_error_lack_item));

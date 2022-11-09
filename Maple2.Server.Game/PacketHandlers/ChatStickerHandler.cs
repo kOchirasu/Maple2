@@ -81,8 +81,7 @@ public class ChatStickerHandler : PacketHandler<GameSession> {
         session.Send(ChatStickerPacket.Unfavorite(stickerId));
     }
 
-    private bool TryUseSticker(Unlock unlock, int stickerId)
-    {
+    private bool TryUseSticker(Unlock unlock, int stickerId) {
         if (!TableMetadata.ChatStickerTable.Entries.TryGetValue(stickerId, out ChatStickerMetadata? metadata))
         {
             return false;
@@ -90,6 +89,4 @@ public class ChatStickerHandler : PacketHandler<GameSession> {
         
         return unlock.StickerSets.ContainsKey(metadata.GroupId) && unlock.StickerSets[metadata.GroupId] >= DateTime.Now.ToEpochSeconds();
     }
-
-
 }

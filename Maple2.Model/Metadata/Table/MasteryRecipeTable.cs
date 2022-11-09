@@ -12,8 +12,8 @@ public record MasteryRecipeTable(IReadOnlyDictionary<int, MasteryRecipeTable.Ent
                         IReadOnlyList<int> RequiredQuests,
                         long RewardExp,
                         int RewardMastery,
-                        int HighPropLimitCount,
-                        int NormalPropLimitCount,
+                        int HighRateLimitCount,
+                        int NormalRateLimitCount,
                         IReadOnlyList<Ingredient> RequiredItems,
                         IReadOnlyList<int> HabitatMapId,
                         IReadOnlyList<Ingredient> RewardItems);

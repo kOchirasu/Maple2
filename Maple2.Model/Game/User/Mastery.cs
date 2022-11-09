@@ -7,8 +7,6 @@ namespace Maple2.Model.Game;
 
 //[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 48)]
 public class Mastery : IByteSerializable {
-    private int Unknown;
-    
     public int Fishing { get; set; }
     public int Instrument { get; set; }
     public int Mining { get; set; }
@@ -23,7 +21,7 @@ public class Mastery : IByteSerializable {
     
     
     public void WriteTo(IByteWriter writer) {
-        writer.WriteInt(Unknown);
+        writer.WriteInt();
         writer.WriteInt(Fishing);
         writer.WriteInt(Instrument);
         writer.WriteInt(Mining);
