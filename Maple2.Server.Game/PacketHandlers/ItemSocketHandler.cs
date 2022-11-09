@@ -118,7 +118,8 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
             (int _, string tag, int amount) =
                 Lua.CalcItemSocketUnlockIngredient(0, equip.Rarity, (ushort) equip.Metadata.Limit.Level, 0, equip.Metadata.Property.SkinType);
 
-            if (!ConsumeIngredients(session, new []{(tag, amount)})) {
+            var ingredient = new IngredientInfo(Enum.Parse<ItemTag>(tag), amount);
+            if (!ConsumeIngredients(session, ingredient)) {
                 session.Send(ItemSocketPacket.Error(error: s_itemsocketsystem_error_lack_price));
                 return false;
             }
@@ -194,8 +195,7 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
 
         #region Local Function
         bool ConsumeGemstoneUpgradeIngredients(GemstoneUpgradeTable.Entry entry) {
-            (string ItemTag, int Amount)[] ingredients =
-                entry.Ingredients.Select(ingredient => (ingredient.ItemTag, ingredient.Amount)).ToArray();
+            IngredientInfo[] ingredients = entry.Ingredients.Select(ingredient => new IngredientInfo(ingredient.ItemTag, ingredient.Amount)).ToArray();
             if (!ConsumeIngredients(session, ingredients)) {
                 session.Send(ItemSocketPacket.Error(error: s_itemsocketsystem_error_invalid_target_ingredient_count));
                 return false;
@@ -322,9 +322,9 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
                 return false;
             }
 
-            (string tag, int amount) =
-                Lua.CalcGetGemStonePutOffPrice(Constant.GemstoneGrade, (ushort) entry.Level, 0);
-            if (!ConsumeIngredients(session, new []{(tag, amount)})) {
+            (string tag, int amount) = Lua.CalcGetGemStonePutOffPrice(Constant.GemstoneGrade, (ushort) entry.Level, 0);
+            var ingredient = new IngredientInfo(Enum.Parse<ItemTag>(tag), amount);
+            if (!ConsumeIngredients(session, ingredient)) {
                 session.Send(ItemSocketPacket.Error(error: s_itemsocketsystem_error_lack_price));
                 return false;
             }
@@ -386,17 +386,17 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
         return (entry, upgrade);
     }
 
-    private bool ConsumeIngredients(GameSession session, params (string Tag, int Amount)[] ingredients) {
+    private bool ConsumeIngredients(GameSession session, params IngredientInfo[] ingredients) {
         // Build this index so we don't need to find materials twice.
-        Dictionary<string, IList<Item>> materialsByTag = ingredients.ToDictionary(
+        Dictionary<ItemTag, IList<Item>> materialsByTag = ingredients.ToDictionary(
             entry => entry.Tag,
             entry => session.Item.Inventory.Filter(item => item.Metadata.Property.Tag == entry.Tag)
         );
 
         lock (session.Item) {
-            foreach ((string tag, int amount) in ingredients) {
-                int remaining = amount;
-                foreach (Item material in materialsByTag[tag]) {
+            foreach (IngredientInfo ingredient in ingredients) {
+                int remaining = ingredient.Amount;
+                foreach (Item material in materialsByTag[ingredient.Tag]) {
                     remaining -= material.Amount;
                     if (remaining <= 0) {
                         break;
@@ -408,9 +408,9 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
                 }
             }
 
-            foreach ((string tag, int amount) in ingredients) {
-                int remaining = amount;
-                foreach (Item material in materialsByTag[tag]) {
+            foreach (IngredientInfo ingredient in ingredients) {
+                int remaining = ingredient.Amount;
+                foreach (Item material in materialsByTag[ingredient.Tag]) {
                     int consume = Math.Min(remaining, material.Amount);
                     if (!session.Item.Inventory.Consume(material.Uid, consume)) {
                         Logger.Fatal("Failed to consume item {ItemUid}", material.Uid);
