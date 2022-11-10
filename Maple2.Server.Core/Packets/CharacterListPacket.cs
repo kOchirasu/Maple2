@@ -10,6 +10,7 @@ using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets.Helper;
+using Maple2.Tools.Extensions;
 using Equips = System.Collections.Generic.IDictionary<Maple2.Model.Enum.ItemGroup,
     System.Collections.Generic.List<Maple2.Model.Game.Item>>;
 
@@ -159,7 +160,7 @@ public static class CharacterListPacket {
         writer.WriteUnicodeString(character.Picture);
         writer.WriteByte(); // Club Count
         writer.WriteByte(); // PCBang related?
-        writer.Write<Mastery>(character.Mastery);
+        writer.WriteClass<Mastery>(character.Mastery);
         #region Unknown
         writer.WriteUnicodeString();
         writer.WriteLong();

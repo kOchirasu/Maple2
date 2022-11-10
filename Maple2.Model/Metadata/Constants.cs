@@ -40,6 +40,18 @@ public static class Constant {
     public const int MesoMarketPageSize = 50;
     public const int MesoMarketMinToken = 100;
     public const int MesoMarketMaxToken = 1000;
+    public const int FishingMasteryMax = 2990;
+    public const int PerformanceMasteryMax = 10800;
+    public const int MiningMasteryMax = 81440;
+    public const int ForagingMasteryMax = 81440;
+    public const int RanchingMasteryMax = 81440;
+    public const int FarmingMasteryMax = 81440;
+    public const int SmithingMasteryMax = 81440;
+    public const int HandicraftsMasteryMax = 81440;
+    public const int AlchemyMasteryMax = 81440;
+    public const int CookingMasteryMax = 81440;
+    public const int PetTamingMasteryMax = 100000;
+    
 
     public const long FurnishingBaseId = 2870000000000000000;
 
