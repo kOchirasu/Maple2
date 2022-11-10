@@ -32,7 +32,7 @@ internal record ItemStats(Dictionary<StatAttribute, StatOption>[] StatOption,
 }
 
 internal record ItemEnchant(int Enchants, int EnchantExp, byte EnchantCharges, bool CanRepack, int Charges,
-        IDictionary<StatAttribute, StatOption> StatOptions) {
+        Dictionary<StatAttribute, StatOption> StatOptions) {
     [return:NotNullIfNotNull("other")]
     public static implicit operator ItemEnchant?(Maple2.Model.Game.ItemEnchant? other) {
         return other == null ? null : new ItemEnchant(other.Enchants, other.EnchantExp, other.EnchantCharges,

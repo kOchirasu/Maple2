@@ -10,6 +10,7 @@ namespace Maple2.Model.Game;
 public class Item : IByteSerializable, IByteDeserializable {
     public readonly ItemMetadata Metadata;
     public readonly InventoryType Inventory;
+    public readonly ItemType Type;
 
     public long Uid { get; init; }
     public int Rarity { get; init; }
@@ -51,6 +52,7 @@ public class Item : IByteSerializable, IByteDeserializable {
         Rarity = rarity;
         Amount = amount;
         Inventory = Metadata.Inventory();
+        Type = new ItemType(metadata.Id);
 
         // Skip initialization of fields, this is done if we will initialize separately.
         if (!initialize) {
