@@ -7,6 +7,7 @@ namespace Maple2.Database.Storage;
 public class TableMetadataStorage {
     private readonly Lazy<ChatStickerTable> chatStickerTable;
     private readonly Lazy<ItemBreakTable> itemBreakTable;
+    private readonly Lazy<ItemExtractionTable> itemExtractionTable;
     private readonly Lazy<GemstoneUpgradeTable> gemstoneUpgradeTable;
     private readonly Lazy<JobTable> jobTable;
     private readonly Lazy<MagicPathTable> magicPathTable;
@@ -26,6 +27,7 @@ public class TableMetadataStorage {
 
     public ChatStickerTable ChatStickerTable => chatStickerTable.Value;
     public ItemBreakTable ItemBreakTable => itemBreakTable.Value;
+    public ItemExtractionTable ItemExtractionTable => itemExtractionTable.Value;
     public GemstoneUpgradeTable GemstoneUpgradeTable => gemstoneUpgradeTable.Value;
     public JobTable JobTable => jobTable.Value;
     public MagicPathTable MagicPathTable => magicPathTable.Value;
@@ -46,6 +48,7 @@ public class TableMetadataStorage {
     public TableMetadataStorage(MetadataContext context) {
         chatStickerTable = Retrieve<ChatStickerTable>(context, "chatemoticon.xml");
         itemBreakTable = Retrieve<ItemBreakTable>(context, "itembreakingredient.xml");
+        itemExtractionTable = Retrieve<ItemExtractionTable>(context, "itemextraction.xml");
         gemstoneUpgradeTable = Retrieve<GemstoneUpgradeTable>(context, "itemgemstoneupgrade.xml");
         jobTable = Retrieve<JobTable>(context, "job.xml");
         magicPathTable = Retrieve<MagicPathTable>(context, "magicpath.xml");

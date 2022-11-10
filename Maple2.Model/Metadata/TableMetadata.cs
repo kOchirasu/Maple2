@@ -27,6 +27,7 @@ public class TableMetadata {
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "!")]
 [JsonDerivedType(typeof(JobTable), typeDiscriminator: "job")]
 [JsonDerivedType(typeof(ItemBreakTable), typeDiscriminator: "itembreak")]
+[JsonDerivedType(typeof(ItemExtractionTable), typeDiscriminator: "itemextraction")]
 [JsonDerivedType(typeof(GemstoneUpgradeTable), typeDiscriminator: "gemstoneupgrade")]
 [JsonDerivedType(typeof(MagicPathTable), typeDiscriminator: "magicpath")]
 [JsonDerivedType(typeof(InstrumentTable), typeDiscriminator: "instrument")]
