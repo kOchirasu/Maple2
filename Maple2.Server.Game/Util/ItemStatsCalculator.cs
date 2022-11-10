@@ -25,7 +25,7 @@ public sealed class ItemStatsCalculator {
         }
 
         ItemOptionPickTable.Option? pick = TableMetadata.ItemOptionPickTable.Options.GetValueOrDefault(item.Option.PickId, rarity);
-        int itemType = (item.Id / 100000) - 100;
+        var itemType = new ItemType(item.Id);
         int job = (int) item.Limit.Jobs.FirstOrDefault(JobCode.Newbie);
         int levelFactor = item.Option.LevelFactor;
         ushort level = (ushort) item.Limit.Level;
@@ -41,7 +41,7 @@ public sealed class ItemStatsCalculator {
                     }
                     var result = new Dictionary<StatAttribute, StatOption>();
                     foreach ((StatAttribute attribute, int deviation) in pick.ConstantValue) {
-                        result[attribute] = new StatOption(ConstValue(attribute, deviation, itemType, job, levelFactor, rarity, level));
+                        result[attribute] = new StatOption(ConstValue(attribute, deviation, itemType.Type, job, levelFactor, rarity, level));
                     }
                     statOption[i] = result;
                     break;
@@ -52,10 +52,10 @@ public sealed class ItemStatsCalculator {
                     }
                     var result = new Dictionary<StatAttribute, StatOption>();
                     foreach ((StatAttribute attribute, int deviation) in pick.StaticValue) {
-                        result[attribute] = new StatOption(StaticValue(attribute, deviation, itemType, job, levelFactor, rarity, level));
+                        result[attribute] = new StatOption(StaticValue(attribute, deviation, itemType.Type, job, levelFactor, rarity, level));
                     }
                     foreach ((StatAttribute attribute, int deviation) in pick.StaticRate) {
-                        result[attribute] = new StatOption(StaticRate(attribute, deviation, itemType, job, levelFactor, rarity, level));
+                        result[attribute] = new StatOption(StaticRate(attribute, deviation, itemType.Type, job, levelFactor, rarity, level));
                     }
                     statOption[i] = result;
                     break;
@@ -74,17 +74,17 @@ public sealed class ItemStatsCalculator {
         return new ItemStats(statOption, specialOption);
     }
 
-    private ItemEquipVariationTable? GetVariationTable(ItemMetadata item) {
-        if (item.IsAccessory()) {
+    private ItemEquipVariationTable? GetVariationTable(ItemType type) {
+        if (type.IsAccessory) {
             return TableMetadata.AccessoryVariationTable;
         }
-        if (item.IsArmor()) {
+        if (type.IsArmor) {
             return TableMetadata.ArmorVariationTable;
         }
-        if (item.IsWeapon()) {
+        if (type.IsWeapon) {
             return TableMetadata.WeaponVariationTable;
         }
-        if (item.IsPet()) {
+        if (type.IsCombatPet) { // StoragePet cannot have variations
             return TableMetadata.PetVariationTable;
         }
 

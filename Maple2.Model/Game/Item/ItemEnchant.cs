@@ -8,17 +8,17 @@ namespace Maple2.Model.Game;
 public class ItemEnchant : IByteSerializable, IByteDeserializable {
     public static readonly ItemEnchant Default = new ItemEnchant();
 
-    public int Enchants { get; private set; }
-    public int EnchantExp { get; private set; }
+    public int Enchants { get; set; }
+    public int EnchantExp { get; set; }
     // Enchant based peachy charges, otherwise always require 10 charges
-    public byte EnchantCharges { get; private set; }
+    public byte EnchantCharges { get; set; }
     public bool CanRepack { get; private set; }
-    public int Charges { get; private set; }
+    public int Charges { get; set; }
 
-    public readonly IDictionary<StatAttribute, StatOption> StatOptions;
+    public readonly Dictionary<StatAttribute, StatOption> StatOptions;
 
     public ItemEnchant(int enchants = 0, int enchantExp = 0, byte enchantCharges = 1, bool canRepack = true,
-            int charges = 0, IDictionary<StatAttribute, StatOption>? statOptions = null) {
+            int charges = 0, Dictionary<StatAttribute, StatOption>? statOptions = null) {
         Enchants = enchants;
         EnchantExp = enchantExp;
         EnchantCharges = enchantCharges;

@@ -14,4 +14,8 @@ public readonly struct IngredientInfo {
         Tag = tag;
         Amount = amount;
     }
+
+    public static IngredientInfo operator *(in IngredientInfo self, float ratio) {
+        return new IngredientInfo(self.Tag, (int) (self.Amount * ratio));
+    }
 }
