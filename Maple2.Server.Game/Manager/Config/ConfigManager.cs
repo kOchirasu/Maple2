@@ -84,6 +84,7 @@ public class ConfigManager {
         }
     }
 
+    #region ChatStickers
     public void LoadChatStickers() {
         List<ChatSticker> stickers = new();
         foreach (KeyValuePair<int, long> set in session.Player.Value.Unlock.StickerSets) {
@@ -91,6 +92,25 @@ public class ConfigManager {
         }
         session.Send(ChatStickerPacket.Load(favoriteStickers.ToList(), stickers));
     }
+
+    public bool TryFavoriteChatSticker(int stickerId) {
+        if (favoriteStickers.Contains(stickerId)) {
+            return false;
+        }
+        
+        favoriteStickers.Add(stickerId);
+        return true;
+    }
+    
+    public bool TryUnfavoriteChatSticker(int stickerId) {
+        if (!favoriteStickers.Contains(stickerId)) {
+            return false;
+        }
+        
+        favoriteStickers.Remove(stickerId);
+        return true;
+    }
+    #endregion
 
     public void LoadStatAttributes() {
         session.Send(AttributePointPacket.Sources(statAttributes));
@@ -216,6 +236,7 @@ public class ConfigManager {
             hotBars.Select(hotBar => hotBar.Slots).ToList(),
             skillMacros,
             wardrobes,
+            favoriteStickers,
             statAttributes.Allocation,
             Skill.SkillBook
         );

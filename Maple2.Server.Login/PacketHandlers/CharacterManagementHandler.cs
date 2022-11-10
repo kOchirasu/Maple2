@@ -142,6 +142,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
             Name = name,
             SkinColor = skinColor,
             MapId = entry.Tutorial.StartField,
+            Mastery = new Mastery(),
         };
 
         session.CreateCharacter(character, outfits);

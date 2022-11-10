@@ -5,10 +5,12 @@ using Maple2.Model.Metadata;
 namespace Maple2.Database.Storage;
 
 public class TableMetadataStorage {
+    private readonly Lazy<ChatStickerTable> chatStickerTable;
     private readonly Lazy<ItemBreakTable> itemBreakTable;
     private readonly Lazy<GemstoneUpgradeTable> gemstoneUpgradeTable;
     private readonly Lazy<JobTable> jobTable;
     private readonly Lazy<MagicPathTable> magicPathTable;
+    private readonly Lazy<MasteryRecipeTable> masteryRecipeTable;
     private readonly Lazy<InstrumentTable> instrumentTable;
     private readonly Lazy<InteractObjectTable> interactObjectTable;
     private readonly Lazy<InteractObjectTable> interactMasteryTable;
@@ -22,10 +24,12 @@ public class TableMetadataStorage {
     private readonly Lazy<ItemEquipVariationTable> petVariationTable;
     private readonly Lazy<ItemEquipVariationTable> weaponVariationTable;
 
+    public ChatStickerTable ChatStickerTable => chatStickerTable.Value;
     public ItemBreakTable ItemBreakTable => itemBreakTable.Value;
     public GemstoneUpgradeTable GemstoneUpgradeTable => gemstoneUpgradeTable.Value;
     public JobTable JobTable => jobTable.Value;
     public MagicPathTable MagicPathTable => magicPathTable.Value;
+    public MasteryRecipeTable MasteryRecipeTable => masteryRecipeTable.Value;
     public InstrumentTable InstrumentTable => instrumentTable.Value;
     public InteractObjectTable InteractObjectTable => interactObjectTable.Value;
     public InteractObjectTable InteractMasteryTable => interactMasteryTable.Value;
@@ -40,14 +44,15 @@ public class TableMetadataStorage {
     public ItemEquipVariationTable WeaponVariationTable => weaponVariationTable.Value;
 
     public TableMetadataStorage(MetadataContext context) {
+        chatStickerTable = Retrieve<ChatStickerTable>(context, "chatemoticon.xml");
         itemBreakTable = Retrieve<ItemBreakTable>(context, "itembreakingredient.xml");
         gemstoneUpgradeTable = Retrieve<GemstoneUpgradeTable>(context, "itemgemstoneupgrade.xml");
         jobTable = Retrieve<JobTable>(context, "job.xml");
         magicPathTable = Retrieve<MagicPathTable>(context, "magicpath.xml");
+        masteryRecipeTable = Retrieve<MasteryRecipeTable>(context, "masteryreceipe.xml");
         instrumentTable = Retrieve<InstrumentTable>(context, "instrumentcategoryinfo.xml");
         interactObjectTable = Retrieve<InteractObjectTable>(context, "interactobject.xml");
         interactMasteryTable = Retrieve<InteractObjectTable>(context, "interactobject_mastery.xml");
-
         itemOptionConstantTable = Retrieve<ItemOptionConstantTable>(context, "itemoptionconstant.xml");
         itemOptionRandomTable = Retrieve<ItemOptionRandomTable>(context, "itemoptionrandom.xml");
         itemOptionStaticTable = Retrieve<ItemOptionStaticTable>(context, "itemoptionstatic.xml");

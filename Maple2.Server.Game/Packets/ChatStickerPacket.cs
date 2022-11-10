@@ -43,6 +43,32 @@ public static class ChatStickerPacket {
 
         return pWriter;
     }
+    
+    public static ByteWriter Use(int stickerId, string html) {
+        var pWriter = Packet.Of(SendOp.ChatStamp);
+        pWriter.Write<Command>(Command.Use);
+        pWriter.WriteInt(stickerId);
+        pWriter.WriteUnicodeString(html);
+        pWriter.WriteByte(); // unk
+
+        return pWriter;
+    }
+    
+    public static ByteWriter Favorite(int stickerId) {
+        var pWriter = Packet.Of(SendOp.ChatStamp);
+        pWriter.Write<Command>(Command.Favorite);
+        pWriter.WriteInt(stickerId);
+
+        return pWriter;
+    }
+    
+    public static ByteWriter Unfavorite(int stickerId) {
+        var pWriter = Packet.Of(SendOp.ChatStamp);
+        pWriter.Write<Command>(Command.Unfavorite);
+        pWriter.WriteInt(stickerId);
+
+        return pWriter;
+    }
 
     public static ByteWriter Error(ChatStickerError error) {
         var pWriter = Packet.Of(SendOp.ChatStamp);

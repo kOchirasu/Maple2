@@ -27,7 +27,7 @@ public class GameServer : Server<GameSession> {
         this.fieldFactory = fieldFactory;
         connectingSessions = new HashSet<GameSession>();
         sessions = new Dictionary<long, GameSession>();
-        gameEvents = new List<GameEvent> {new TrafficOptimizer()};
+        gameEvents = new List<GameEvent> {new TrafficOptimizer(300, 300, 300, 300)};
     }
 
     public override void OnConnected(GameSession session) {

@@ -4,6 +4,7 @@ using Maple2.Database.Extensions;
 using Maple2.Model.Common;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -23,6 +24,7 @@ internal class Character {
     public required Profile Profile { get; set; }
     public required Cooldown Cooldown { get; set; }
     public required CharacterCurrency Currency { get; set; }
+    public Mastery Mastery { get; set; }
     public DateTime DeleteTime { get; set; }
     public DateTime CreationTime { get; set; }
     public DateTime LastModified { get; set; }
@@ -42,7 +44,6 @@ internal class Character {
             Experience = new Experience {
                 Exp = other.Exp,
                 RestExp = other.RestExp,
-                Mastery = other.Mastery,
             },
             Profile = new Profile {
                 Motto = other.Motto,
@@ -55,6 +56,19 @@ internal class Character {
                 Storage = other.StorageCooldown,
             },
             Currency = new CharacterCurrency(),
+            Mastery = new Mastery() {
+                Alchemy = other.Mastery.Alchemy,
+                Cooking = other.Mastery.Cooking,
+                Farming = other.Mastery.Farming,
+                Fishing = other.Mastery.Fishing,
+                Foraging = other.Mastery.Foraging,
+                Handicrafts = other.Mastery.Handicrafts,
+                Smithing = other.Mastery.Smithing,
+                Instrument = other.Mastery.Instrument,
+                Mining = other.Mastery.Mining,
+                PetTaming = other.Mastery.PetTaming,
+                Ranching = other.Mastery.Ranching,
+            },
             DeleteTime = other.DeleteTime.FromEpochSeconds(),
         };
     }
@@ -74,11 +88,11 @@ internal class Character {
             Exp = other.Experience.Exp,
             RestExp = other.Experience.RestExp,
             MapId = other.MapId,
+            Mastery = other.Mastery,
             Motto = other.Profile.Motto,
             Picture = other.Profile.Picture,
             Title = other.Profile.Title,
             Insignia = other.Profile.Insignia,
-            Mastery = other.Experience.Mastery,
             DoctorCooldown = other.Cooldown.Doctor,
             StorageCooldown = other.Cooldown.Storage,
             DeleteTime = other.DeleteTime.ToEpochSeconds(),
@@ -104,6 +118,7 @@ internal class Character {
         builder.Property(character => character.Profile).HasJsonConversion().IsRequired();
         builder.Property(character => character.Cooldown).HasJsonConversion().IsRequired();
         builder.Property(character => character.Currency).HasJsonConversion().IsRequired();
+        builder.Property(character => character.Mastery).HasJsonConversion().IsRequired();
 
         builder.Property(character => character.LastModified).IsRowVersion();
         IMutableProperty creationTime = builder.Property(character => character.CreationTime)
@@ -115,7 +130,6 @@ internal class Character {
 internal class Experience {
     public long Exp { get; set; }
     public long RestExp { get; set; }
-    public Mastery Mastery { get; set; }
 }
 
 internal class Profile {

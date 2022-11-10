@@ -283,9 +283,9 @@ public static class FieldPacket {
         writer.WriteUnicodeString(character.Picture);
         writer.WriteByte(); // Club Count
         writer.WriteByte(); // PCBang related?
-        writer.Write<Mastery>(character.Mastery);
+        writer.WriteClass<Mastery>(character.Mastery);
         #region Unknown
-        writer.WriteUnicodeString();
+        writer.WriteUnicodeString(); // Login username
         writer.WriteLong();
         writer.WriteLong();
         writer.WriteLong();
