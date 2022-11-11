@@ -15,16 +15,14 @@ public static class UserEnvPacket {
         LifeSkillCount = 8,
     }
 
-    public static ByteWriter AddTitle(int titleId)
-    {
+    public static ByteWriter AddTitle(int titleId) {
         var pWriter = Packet.Of(SendOp.UserEnv);
         pWriter.Write<Command>(Command.AddTitle);
         pWriter.WriteInt(titleId);
         return pWriter;
     }
 
-    public static ByteWriter UpdateTitle(int objectId, int titleId)
-    {
+    public static ByteWriter UpdateTitle(int objectId, int titleId) {
         var pWriter = Packet.Of(SendOp.UserEnv);
         pWriter.Write<Command>(Command.UpdateTitles);
         pWriter.WriteInt(objectId);
@@ -32,8 +30,7 @@ public static class UserEnvPacket {
         return pWriter;
     }
 
-    public static ByteWriter LoadTitles(ISet<int> titles)
-    {
+    public static ByteWriter LoadTitles(ISet<int> titles) {
         var pWriter = Packet.Of(SendOp.UserEnv);
         pWriter.Write<Command>(Command.LoadTitles);
         pWriter.WriteInt(titles.Count);

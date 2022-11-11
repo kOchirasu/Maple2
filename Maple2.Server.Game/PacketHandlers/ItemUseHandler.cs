@@ -92,18 +92,18 @@ public class ItemUseHandler : PacketHandler<GameSession> {
     }
 
     private static void HandleTitleScroll(GameSession session, Item item) {
-        if (!int.TryParse(item.Metadata?.Function?.Parameters, out int titleId)) {
+        if (!int.TryParse(item.Metadata.Function?.Parameters, out int titleId)) {
             return;
         }
 
         if (session.Player.Value.Unlock.Titles.Contains(titleId)) {
-            session.Send(NoticePacket.Message("s_title_scroll_duplicate_err"));
+            session.Send(ChatPacket.Alert(StringCode.s_title_scroll_duplicate_err));
             return;
         }
 
         session.Player.Value.Unlock.Titles.Add(titleId);
-        session.Item.Inventory.Consume(item.Uid, 1);
-
-        session.Send(UserEnvPacket.AddTitle(titleId));
+        if (session.Item.Inventory.Consume(item.Uid, 1)) {
+            session.Send(UserEnvPacket.AddTitle(titleId));
+        }
     }
 }

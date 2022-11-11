@@ -25,7 +25,7 @@ public class UserEnvHandler : PacketHandler<GameSession> {
     private void HandleChangeTitle(GameSession session, IByteReader packet) {
         int titleId = packet.ReadInt();
 
-        if (titleId < 0 || !session.Player.Value.Unlock.Titles.Contains(titleId) && titleId != 0) {
+        if (!session.Player.Value.Unlock.Titles.Contains(titleId) && titleId != 0) {
             return;
         }
 
