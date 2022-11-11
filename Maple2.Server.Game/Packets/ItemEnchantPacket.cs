@@ -129,9 +129,9 @@ public static class ItemEnchantPacket {
         pWriter.WriteLong(item.Uid);
         pWriter.WriteClass<Item>(item);
 
-        pWriter.WriteInt(10);
-        pWriter.WriteInt(20);
-        pWriter.WriteLong(30);
+        pWriter.WriteInt();
+        pWriter.WriteInt();
+        pWriter.WriteLong();
         pWriter.WriteInt(addCharges);
 
         return pWriter;
