@@ -1,4 +1,5 @@
-﻿using Maple2.Database.Storage;
+﻿using System;
+using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -53,6 +54,10 @@ public class ItemExtractionHandler : PacketHandler<GameSession> {
 
             using GameStorage.Request db = session.GameStorage.Context();
             Item? resultItem = db.CreateItem(0, new Item(resultItemMetadata));
+            if (resultItem == null) {
+                throw new InvalidOperationException($"Failed to create result item: {resultItemMetadata.Id}");
+            }
+
             session.Item.Inventory.Add(resultItem, true);
             sourceItem.GlamorForges--;
 
