@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Maple2.Database.Storage;
+﻿using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -39,6 +36,10 @@ public class ItemExtractionHandler : PacketHandler<GameSession> {
                 return;
             }
 
+            if (!ItemMetadata.TryGet(entry.ResultItemId, out ItemMetadata? resultItemMetadata)) {
+                return;
+            }
+
             if (session.Item.Inventory.FreeSlots(InventoryType.Gear) <= 0) {
                 session.Send(ItemExtractionPacket.FullInventory());
                 return;
@@ -50,18 +51,11 @@ public class ItemExtractionHandler : PacketHandler<GameSession> {
                 return;
             }
 
-            if (!ItemMetadata.TryGet(entry.ResultItemId, out ItemMetadata? resultItemMetadata)) {
-                return;
-            }
-
-            var resultItem = new Item(resultItemMetadata);
-
             using GameStorage.Request db = session.GameStorage.Context();
-            resultItem = db.CreateItem(0, resultItem);
+            Item? resultItem = db.CreateItem(0, new Item(resultItemMetadata));
             session.Item.Inventory.Add(resultItem, true);
             sourceItem.GlamorForges--;
 
-            int remaining = entry.ScrollCount;
             session.Send(ItemExtractionPacket.Extract(sourceItem.Uid, resultItem));
         }
     }
