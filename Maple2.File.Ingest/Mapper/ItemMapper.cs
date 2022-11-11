@@ -18,14 +18,14 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
         tableParser = new TableParser(xmlReader);
     }
 
-    protected override IEnumerable<ItemMetadata> Map()
-    {
+    protected override IEnumerable<ItemMetadata> Map() {
         IEnumerable<(int Id, ItemExtraction Extraction)> itemExtractionData = tableParser.ParseItemExtraction();
-        foreach ((int id, string name, ItemData data) in parser.Parse())
-        {
-            ItemExtraction? extractionDump = itemExtractionData.FirstOrDefault(x => x.Id == id).Extraction;
-            int glamorForgeCount = extractionDump?.TargetItemID ?? 0;
+        Dictionary<int, ItemExtraction> itemExtractionDictionary = new Dictionary<int, ItemExtraction>();
+        foreach ((int extractionId, ItemExtraction extraction) in itemExtractionData) {
+            itemExtractionDictionary.Add(extractionId, extraction);
+        }
 
+        foreach ((int id, string name, ItemData data) in parser.Parse()) {
             int transferType = data.limit.transferType;
             int tradableCount = data.property.tradableCount;
             int tradableCountDeduction = data.property.tradableCountDeduction;
@@ -84,7 +84,7 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     .Select(slot => Enum.Parse<EquipSlot>(slot.name, true))
                     .ToArray(),
                 Mesh: data.ucc.mesh,
-                GlamorForgeCount: glamorForgeCount,
+                GlamorForgeCount: itemExtractionDictionary.GetValueOrDefault(id)?.TryCount ?? 0,
                 Property: new ItemMetadataProperty(
                     IsSkin: data.property.skin,
                     SkinType: data.property.skinType,
