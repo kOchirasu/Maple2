@@ -6,6 +6,7 @@ using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
+using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Server.Game.Util;
@@ -31,6 +32,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
                 break;
             case ItemFunction.ChatEmoticonAdd:
                 HandleChatSticker(session, item);
+                break;
+            case ItemFunction.TitleScroll:
+                HandleTitleScroll(session, item);
                 break;
             default:
                 Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
@@ -85,5 +89,21 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         session.Player.Value.Unlock.StickerSets[stickerSetId] = newTime;
 
         session.Send(ChatStickerPacket.Add(item, new ChatSticker(stickerSetId, session.Player.Value.Unlock.StickerSets[stickerSetId])));
+    }
+
+    private static void HandleTitleScroll(GameSession session, Item item) {
+        if (!int.TryParse(item.Metadata?.Function?.Parameters, out int titleId)) {
+            return;
+        }
+
+        if (session.Player.Value.Unlock.Titles.Contains(titleId)) {
+            session.Send(NoticePacket.Message("s_title_scroll_duplicate_err"));
+            return;
+        }
+
+        session.Player.Value.Unlock.Titles.Add(titleId);
+        session.Item.Inventory.Consume(item.Uid, 1);
+
+        session.Send(UserEnvPacket.AddTitle(titleId));
     }
 }

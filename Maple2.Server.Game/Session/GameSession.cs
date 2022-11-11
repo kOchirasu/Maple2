@@ -156,6 +156,7 @@ public sealed partial class GameSession : Core.Network.Session {
         // MaidCraftItem
         // UserMaid
         // UserEnv
+        Send(UserEnvPacket.LoadTitles(Player.Value.Unlock.Titles));
         // Fishing
         Pet?.Load();
         Send(PetPacket.LoadCollection(Player.Value.Unlock.Pets));
