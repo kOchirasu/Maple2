@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -7,10 +6,6 @@ using Maple2.Model.Metadata;
 namespace Maple2.Model;
 
 public static class ModelExtensions {
-    private static readonly EquipSlot[] AccessorySlots = {Enum.EquipSlot.MT, Enum.EquipSlot.EA, Enum.EquipSlot.PD, Enum.EquipSlot.RI, Enum.EquipSlot.BE};
-    private static readonly EquipSlot[] ArmorSlots = {Enum.EquipSlot.CP, Enum.EquipSlot.CL, Enum.EquipSlot.PA, Enum.EquipSlot.GL, Enum.EquipSlot.SH};
-    private static readonly EquipSlot[] WeaponSlots = {Enum.EquipSlot.LH, Enum.EquipSlot.RH, Enum.EquipSlot.OH};
-
     public static JobCode Code(this Job job) {
         return (JobCode) ((int) job / 10);
     }
@@ -57,10 +52,6 @@ public static class ModelExtensions {
     public static bool IsExp(this Item item) => item.Id is 90000008;
     public static bool IsSpirit(this Item item) => item.Id is 90000009;
     public static bool IsStamina(this Item item) => item.Id is 90000010;
-    public static bool IsAccessory(this ItemMetadata metadata) => metadata.SlotNames.Intersect(AccessorySlots).Any();
-    public static bool IsArmor(this ItemMetadata metadata) => metadata.SlotNames.Intersect(ArmorSlots).Any();
-    public static bool IsWeapon(this ItemMetadata metadata) => metadata.SlotNames.Intersect(WeaponSlots).Any();
-    public static bool IsPet(this ItemMetadata metadata) => metadata.Property.Type == 11;
     public static bool IsEmote(this Item item) => item.Metadata.Property.Type == 2 && item.Metadata.Property.SubType == 14;
     public static bool IsExpired(this Item item) => item.ExpiryTime > 0 && DateTimeOffset.UtcNow.ToUnixTimeSeconds() > item.ExpiryTime;
 

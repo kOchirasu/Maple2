@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices;
+﻿using System;
+using System.Runtime.InteropServices;
 using Maple2.Model.Enum;
 
 namespace Maple2.Model.Game;
@@ -13,5 +14,9 @@ public readonly struct IngredientInfo {
         Unknown = 0;
         Tag = tag;
         Amount = amount;
+    }
+
+    public static IngredientInfo operator *(in IngredientInfo self, double ratio) {
+        return new IngredientInfo(self.Tag, (int) Math.Round(self.Amount * ratio));
     }
 }

@@ -218,6 +218,50 @@ public class InventoryManager {
         }
     }
 
+    public bool Consume(ICollection<IngredientInfo> ingredients) {
+        lock (session.Item) {
+            // Build this index so we don't need to find materials twice.
+            Dictionary<ItemTag, IList<Item>> ingredientsByTag = ingredients.ToDictionary(
+                entry => entry.Tag,
+                entry => Filter(item => item.Metadata.Property.Tag == entry.Tag)
+            );
+
+            // Validate
+            foreach (IngredientInfo info in ingredients) {
+                int remaining = info.Amount;
+                foreach (Item ingredient in ingredientsByTag[info.Tag]) {
+                    remaining -= ingredient.Amount;
+                    if (remaining <= 0) {
+                        break;
+                    }
+                }
+
+                if (remaining > 0) {
+                    return false;
+                }
+            }
+
+            // Consume
+            foreach (IngredientInfo info in ingredients) {
+                int remaining = info.Amount;
+                foreach (Item ingredient in ingredientsByTag[info.Tag]) {
+                    int consume = Math.Min(remaining, ingredient.Amount);
+                    if (!Consume(ingredient.Uid, consume)) {
+                        Log.Fatal("Failed to consume ingredient {ItemUid}", ingredient.Uid);
+                        throw new InvalidOperationException($"Fatal: Consuming ingredient: {ingredient.Uid}");
+                    }
+
+                    remaining -= consume;
+                    if (remaining <= 0) {
+                        break;
+                    }
+                }
+            }
+
+            return true;
+        }
+    }
+
     public void Sort(InventoryType type, bool removeExpired = false) {
         lock (session.Item) {
             if (!tabs.TryGetValue(type, out ItemCollection? items)) {

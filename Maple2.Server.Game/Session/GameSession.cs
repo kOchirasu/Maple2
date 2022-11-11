@@ -50,6 +50,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public TableMetadataStorage TableMetadata { get; init; } = null!;
     public MapMetadataStorage MapMetadata { get; init; } = null!;
     public FieldManager.Factory FieldFactory { private get; init; } = null!;
+    public Lua.Lua Lua { private get; init; } = null!;
     // ReSharper restore All
     #endregion
 
@@ -61,6 +62,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public CurrencyManager Currency { get; set; }
     public MasteryManager Mastery { get; set; }
     public StatsManager Stats { get; set; }
+    public ItemEnchantManager ItemEnchant { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
 
@@ -104,6 +106,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Stats = new StatsManager(this);
         Housing = new HousingManager(this);
         Mail = new MailManager(this);
+        ItemEnchant = new ItemEnchantManager(this, Lua);
 
         Config = new ConfigManager(db, this);
         Buddy = new BuddyManager(db, this);
