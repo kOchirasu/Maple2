@@ -7,7 +7,6 @@ public record ItemMetadata(
     string? Name,
     EquipSlot[] SlotNames,
     string Mesh,
-    int GlamorForgeCount,
     ItemMetadataProperty Property,
     ItemMetadataLimit Limit,
     ItemMetadataSkill? Skill,
@@ -45,6 +44,7 @@ public record ItemMetadataLimit(
     bool EnableSocketTransfer,
     bool RequireVip,
     bool RequireWedding,
+    int GlamorForgeCount,
     JobCode[] Jobs);
 
 public record ItemMetadataSkill(

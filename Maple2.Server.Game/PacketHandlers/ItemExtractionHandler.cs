@@ -18,7 +18,7 @@ public class ItemExtractionHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public ItemMetadataStorage ItemMetadata { get; init; } = null!;
+    public ItemMetadataStorage ItemMetadata { private get; init; } = null!;
     public TableMetadataStorage TableMetadata { private get; init; } = null!;
     // ReSharper restore All
     #endregion
@@ -27,50 +27,42 @@ public class ItemExtractionHandler : PacketHandler<GameSession> {
         long anvilItemUid = packet.ReadLong();
         long sourceItemUid = packet.ReadLong();
 
-        Item? anvil = session.Item.Inventory.Get(anvilItemUid);
-        Item? sourceItem = session.Item.Inventory.Get(sourceItemUid);
+        lock (session.Item) {
+            Item? anvil = session.Item.Inventory.Get(anvilItemUid);
+            Item? sourceItem = session.Item.Inventory.Get(sourceItemUid);
 
-        if (anvil == null || sourceItem is not {GlamorForges: > 0}) {
-            return;
-        }
-
-        if (!TableMetadata.ItemExtractionTable.Entries.TryGetValue(sourceItem.Id, out ItemExtractionTable.Entry? entry)) {
-            return;
-        }
-
-        IEnumerable<Item> anvils = session.Item.Inventory.Filter(item => item.Metadata.Function?.Type == ItemFunction.ItemExtraction);
-        if (anvils.Sum(item => item.Amount) < entry.ScrollCount) {
-            session.Send(ItemExtractionPacket.InsufficientAnvils());
-            return;
-        }
-
-        if (!ItemMetadata.TryGet(entry.ResultItemId, out ItemMetadata? resultItemMetadata)) {
-            return;
-        }
-
-        Item? resultItem = new(resultItemMetadata);
-
-        if (!session.Item.Inventory.CanAdd(resultItem)) {
-            session.Send(ItemExtractionPacket.FullInventory());
-            return;
-        }
-
-        resultItem = session.GameStorage.Context().CreateItem(0, resultItem);
-        session.Item.Inventory.Add(resultItem, true);
-        sourceItem.GlamorForges--;
-
-        int remaining = entry.ScrollCount;
-        foreach (Item item in anvils) {
-            int consume = Math.Min(remaining, item.Amount);
-            if (!session.Item.Inventory.Consume(item.Uid, consume)) {
-                Logger.Fatal("Failed to consume item {ItemUid}", item.Uid);
-                throw new InvalidOperationException($"Fatal: Consuming item: {item.Uid}");
+            if (anvil == null || sourceItem is not {GlamorForges: > 0}) {
+                return;
             }
-            if (remaining <= 0) {
-                break;
-            }
-        }
 
-        session.Send(ItemExtractionPacket.Extract(sourceItem.Uid, resultItem));
+            if (!TableMetadata.ItemExtractionTable.Entries.TryGetValue(sourceItem.Id, out ItemExtractionTable.Entry? entry)) {
+                return;
+            }
+
+            if (session.Item.Inventory.FreeSlots(InventoryType.Gear) <= 0) {
+                session.Send(ItemExtractionPacket.FullInventory());
+                return;
+            }
+
+            var anvils = new IngredientInfo(ItemTag.ItemExtraction, entry.ScrollCount);
+            if (!session.Item.Inventory.Consume(new []{anvils})) {
+                session.Send(ItemExtractionPacket.InsufficientAnvils());
+                return;
+            }
+
+            if (!ItemMetadata.TryGet(entry.ResultItemId, out ItemMetadata? resultItemMetadata)) {
+                return;
+            }
+
+            var resultItem = new Item(resultItemMetadata);
+
+            using GameStorage.Request db = session.GameStorage.Context();
+            resultItem = db.CreateItem(0, resultItem);
+            session.Item.Inventory.Add(resultItem, true);
+            sourceItem.GlamorForges--;
+
+            int remaining = entry.ScrollCount;
+            session.Send(ItemExtractionPacket.Extract(sourceItem.Uid, resultItem));
+        }
     }
 }

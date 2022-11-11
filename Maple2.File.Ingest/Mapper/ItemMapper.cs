@@ -20,10 +20,8 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
 
     protected override IEnumerable<ItemMetadata> Map() {
         IEnumerable<(int Id, ItemExtraction Extraction)> itemExtractionData = tableParser.ParseItemExtraction();
-        Dictionary<int, ItemExtraction> itemExtractionDictionary = new Dictionary<int, ItemExtraction>();
-        foreach ((int extractionId, ItemExtraction extraction) in itemExtractionData) {
-            itemExtractionDictionary.Add(extractionId, extraction);
-        }
+        Dictionary<int, int> itemExtractionTryCount = tableParser.ParseItemExtraction()
+            .ToDictionary(entry => entry.Id, entry => entry.Extraction.TryCount);
 
         foreach ((int id, string name, ItemData data) in parser.Parse()) {
             int transferType = data.limit.transferType;
@@ -84,7 +82,6 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     .Select(slot => Enum.Parse<EquipSlot>(slot.name, true))
                     .ToArray(),
                 Mesh: data.ucc.mesh,
-                GlamorForgeCount: itemExtractionDictionary.GetValueOrDefault(id)?.TryCount ?? 0,
                 Property: new ItemMetadataProperty(
                     IsSkin: data.property.skin,
                     SkinType: data.property.skinType,
@@ -114,6 +111,7 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     EnableSocketTransfer: data.limit.enableSocketTransfer,
                     RequireVip: data.limit.vip,
                     RequireWedding: data.limit.wedding,
+                    GlamorForgeCount: itemExtractionTryCount.GetValueOrDefault(id),
                     Jobs: data.limit.jobLimit.Select(job => (JobCode) job).ToArray()
                 ),
                 Skill: skill,
