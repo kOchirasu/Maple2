@@ -25,6 +25,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "chatemoticon.xml", Table = ParseChatSticker()};
         yield return new TableMetadata {Name = "itembreakingredient.xml", Table = ParseItemBreakIngredient()};
         yield return new TableMetadata {Name = "itemgemstoneupgrade.xml", Table = ParseItemGemstoneUpgrade()};
+        yield return new TableMetadata {Name = "itemextraction.xml", Table = ParseItemExtraction()};
         yield return new TableMetadata {Name = "job.xml", Table = ParseJobTable()};
         yield return new TableMetadata {Name = "magicpath.xml", Table = ParseMagicPath()};
         yield return new TableMetadata {Name = "instrumentcategoryinfo.xml", Table = ParseInstrument()};
@@ -94,6 +95,15 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
 
         return new GemstoneUpgradeTable(results);
+    }
+
+    private ItemExtractionTable ParseItemExtraction() {
+        var results = new Dictionary<int, ItemExtractionTable.Entry>();
+        foreach ((int targetItemId, ItemExtraction item) in parser.ParseItemExtraction()) {
+            results.Add(targetItemId, new ItemExtractionTable.Entry(item.TargetItemID, item.TryCount, item.ScrollCount, item.ResultItemID));
+        }
+
+        return new ItemExtractionTable(results);
     }
 
     private JobTable ParseJobTable() {

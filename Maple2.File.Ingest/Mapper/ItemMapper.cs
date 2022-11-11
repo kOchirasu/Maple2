@@ -2,19 +2,27 @@
 using Maple2.File.IO;
 using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.Item;
+using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.File.Ingest.Mapper;
 
 public class ItemMapper : TypeMapper<ItemMetadata> {
     private readonly ItemParser parser;
+    private readonly TableParser tableParser;
 
     public ItemMapper(M2dReader xmlReader) {
         parser = new ItemParser(xmlReader);
+        tableParser = new TableParser(xmlReader);
     }
 
     protected override IEnumerable<ItemMetadata> Map() {
+        IEnumerable<(int Id, ItemExtraction Extraction)> itemExtractionData = tableParser.ParseItemExtraction();
+        Dictionary<int, int> itemExtractionTryCount = tableParser.ParseItemExtraction()
+            .ToDictionary(entry => entry.Id, entry => entry.Extraction.TryCount);
+
         foreach ((int id, string name, ItemData data) in parser.Parse()) {
             int transferType = data.limit.transferType;
             int tradableCount = data.property.tradableCount;
@@ -103,6 +111,7 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     EnableSocketTransfer: data.limit.enableSocketTransfer,
                     RequireVip: data.limit.vip,
                     RequireWedding: data.limit.wedding,
+                    GlamorForgeCount: itemExtractionTryCount.GetValueOrDefault(id),
                     Jobs: data.limit.jobLimit.Select(job => (JobCode) job).ToArray()
                 ),
                 Skill: skill,

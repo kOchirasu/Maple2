@@ -44,6 +44,7 @@ public record ItemMetadataLimit(
     bool EnableSocketTransfer,
     bool RequireVip,
     bool RequireWedding,
+    int GlamorForgeCount,
     JobCode[] Jobs);
 
 public record ItemMetadataSkill(
