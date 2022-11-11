@@ -34,8 +34,7 @@ public static class UserEnvPacket {
         var pWriter = Packet.Of(SendOp.UserEnv);
         pWriter.Write<Command>(Command.LoadTitles);
         pWriter.WriteInt(titles.Count);
-        foreach (int title in titles)
-        {
+        foreach (int title in titles) {
             pWriter.WriteInt(title);
         }
 

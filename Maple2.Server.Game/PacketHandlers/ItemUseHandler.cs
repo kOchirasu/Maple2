@@ -101,9 +101,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             return;
         }
 
-        session.Player.Value.Unlock.Titles.Add(titleId);
         if (session.Item.Inventory.Consume(item.Uid, 1)) {
             session.Send(UserEnvPacket.AddTitle(titleId));
+            session.Player.Value.Unlock.Titles.Add(titleId);
         }
     }
 }
