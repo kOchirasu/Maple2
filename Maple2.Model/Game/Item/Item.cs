@@ -57,6 +57,7 @@ public class Item : IByteSerializable, IByteDeserializable {
             return;
         }
 
+        GlamorForges = (short) Metadata.GlamorForgeCount;
         Appearance = Metadata.SlotNames.FirstOrDefault(EquipSlot.Unknown) switch {
             EquipSlot.HR => new HairAppearance(default),
             EquipSlot.FD => new DecalAppearance(default),

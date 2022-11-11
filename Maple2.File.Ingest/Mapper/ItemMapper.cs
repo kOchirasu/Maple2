@@ -2,20 +2,30 @@
 using Maple2.File.IO;
 using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.Item;
+using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.File.Ingest.Mapper;
 
 public class ItemMapper : TypeMapper<ItemMetadata> {
     private readonly ItemParser parser;
+    private readonly TableParser tableParser;
 
     public ItemMapper(M2dReader xmlReader) {
         parser = new ItemParser(xmlReader);
+        tableParser = new TableParser(xmlReader);
     }
 
-    protected override IEnumerable<ItemMetadata> Map() {
-        foreach ((int id, string name, ItemData data) in parser.Parse()) {
+    protected override IEnumerable<ItemMetadata> Map()
+    {
+        IEnumerable<(int Id, ItemExtraction Extraction)> itemExtractionData = tableParser.ParseItemExtraction();
+        foreach ((int id, string name, ItemData data) in parser.Parse())
+        {
+            ItemExtraction? extractionDump = itemExtractionData.FirstOrDefault(x => x.Id == id).Extraction;
+            int glamorForgeCount = extractionDump?.TargetItemID ?? 0;
+
             int transferType = data.limit.transferType;
             int tradableCount = data.property.tradableCount;
             int tradableCountDeduction = data.property.tradableCountDeduction;
@@ -74,6 +84,7 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     .Select(slot => Enum.Parse<EquipSlot>(slot.name, true))
                     .ToArray(),
                 Mesh: data.ucc.mesh,
+                GlamorForgeCount: glamorForgeCount,
                 Property: new ItemMetadataProperty(
                     IsSkin: data.property.skin,
                     SkinType: data.property.skinType,

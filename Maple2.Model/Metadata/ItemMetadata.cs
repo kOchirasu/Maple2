@@ -7,6 +7,7 @@ public record ItemMetadata(
     string? Name,
     EquipSlot[] SlotNames,
     string Mesh,
+    int GlamorForgeCount,
     ItemMetadataProperty Property,
     ItemMetadataLimit Limit,
     ItemMetadataSkill? Skill,
