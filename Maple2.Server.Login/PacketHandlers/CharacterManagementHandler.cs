@@ -104,6 +104,23 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
         var jobCode = packet.Read<JobCode>();
         var job = (Job) ((int)jobCode * 10);
         string name = packet.ReadUnicodeString();
+        
+        if (name.Length < Constant.CharacterNameLengthMin) {
+            session.Send(CharacterListPacket.CreateError(s_char_err_name));
+            return;
+        }
+        
+        if (name.Length > Constant.CharacterNameLengthMax) {
+            session.Send(CharacterListPacket.CreateError(s_char_err_system));
+            return;
+        }
+
+        using GameStorage.Request db = GameStorage.Context();
+        long existingId = db.GetCharacterId(name);
+        if (existingId != default) {
+            session.Send(CharacterListPacket.CreateError(s_char_err_already_taken));
+            return;
+        }
 
         var skinColor = packet.Read<SkinColor>();
         packet.Skip(2); // Unknown

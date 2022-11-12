@@ -70,6 +70,7 @@ public static class Constant {
     public const int WeddingPromiseLimitDay = 7;
     public const int WeddingHallModifyLimitHour = 3;
     public const int WeddingDivorceRequireMarriageDay = 30;
+    public const int CharacterNameLengthMin = 2;
     #endregion
 
     #region table/constants.xml
