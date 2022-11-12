@@ -3,11 +3,11 @@ using Maple2.Model.Common;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
-namespace Maple2.Model.Game; 
+namespace Maple2.Model.Game;
 
 public class ItemAppearance : IByteSerializable, IByteDeserializable {
     public static readonly ItemAppearance Default = new ItemAppearance(default);
-    
+
     public EquipColor Color;
 
     public ItemAppearance(EquipColor color) {
@@ -15,7 +15,7 @@ public class ItemAppearance : IByteSerializable, IByteDeserializable {
     }
 
     public virtual ItemAppearance Clone() {
-        return (ItemAppearance) this.MemberwiseClone();
+        return (ItemAppearance) MemberwiseClone();
     }
 
     public virtual void WriteTo(IByteWriter writer) {
@@ -27,7 +27,7 @@ public class ItemAppearance : IByteSerializable, IByteDeserializable {
     }
 }
 
-public class HairAppearance : ItemAppearance {
+public sealed class HairAppearance : ItemAppearance {
     public float BackLength { get; private set; }
     public Vector3 BackPosition1 { get; private set; }
     public Vector3 BackPosition2 { get; private set; }
@@ -44,6 +44,10 @@ public class HairAppearance : ItemAppearance {
         FrontLength = frontLength;
         FrontPosition1 = frontPosition1;
         FrontPosition2 = frontPosition2;
+    }
+
+    public override HairAppearance Clone() {
+        return (HairAppearance) MemberwiseClone();
     }
 
     public override void WriteTo(IByteWriter writer) {
@@ -67,7 +71,7 @@ public class HairAppearance : ItemAppearance {
     }
 }
 
-public class DecalAppearance : ItemAppearance {
+public sealed class DecalAppearance : ItemAppearance {
     public float Position1 { get; private set; }
     public float Position2 { get; private set; }
     public float Position3 { get; private set; }
@@ -79,6 +83,10 @@ public class DecalAppearance : ItemAppearance {
         Position2 = position2;
         Position3 = position3;
         Position4 = position4;
+    }
+
+    public override DecalAppearance Clone() {
+        return (DecalAppearance) MemberwiseClone();
     }
 
     public override void WriteTo(IByteWriter writer) {
@@ -98,7 +106,7 @@ public class DecalAppearance : ItemAppearance {
     }
 }
 
-public class CapAppearance : ItemAppearance {
+public sealed class CapAppearance : ItemAppearance {
     public Vector3 Position1 { get; private set; }
     public Vector3 Position2 { get; private set; }
     public Vector3 Position3 { get; private set; }
@@ -112,6 +120,10 @@ public class CapAppearance : ItemAppearance {
         Position3 = position3;
         Position4 = position4;
         Unknown = unknown;
+    }
+
+    public override CapAppearance Clone() {
+        return (CapAppearance) MemberwiseClone();
     }
 
     public override void WriteTo(IByteWriter writer) {

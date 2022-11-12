@@ -5,7 +5,7 @@ using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
-public class ItemSocket : IByteSerializable, IByteDeserializable {
+public sealed class ItemSocket : IByteSerializable, IByteDeserializable {
     public static readonly ItemSocket Default = new ItemSocket(0, 0);
 
     public byte MaxSlots;
@@ -18,12 +18,21 @@ public class ItemSocket : IByteSerializable, IByteDeserializable {
 
     public ItemSocket(byte maxSlots, byte unlocked) {
         MaxSlots = maxSlots;
-        Sockets = new ItemGemstone[unlocked];
+        Sockets = new ItemGemstone?[unlocked];
     }
 
-    public ItemSocket(byte maxSlots, ItemGemstone[] sockets) {
+    public ItemSocket(byte maxSlots, ItemGemstone?[] sockets) {
         MaxSlots = maxSlots;
         Sockets = sockets;
+    }
+
+    public ItemSocket Clone() {
+        var sockets = new ItemGemstone?[Sockets.Length];
+        for (int i = 0; i < Sockets.Length; i++) {
+            sockets[i] = Sockets[i]?.Clone();
+        }
+
+        return new ItemSocket(MaxSlots, sockets);
     }
 
     public void WriteTo(IByteWriter writer) {
@@ -61,6 +70,10 @@ public class ItemGemstone : IByteSerializable, IByteDeserializable {
         Binding = binding;
         IsLocked = isLocked;
         UnlockTime = unlockTime;
+    }
+
+    public ItemGemstone Clone() {
+        return new ItemGemstone(ItemId, Binding?.Clone(), IsLocked, UnlockTime);
     }
 
     public void WriteTo(IByteWriter writer) {

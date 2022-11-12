@@ -3,7 +3,7 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game;
 
-public class ItemPet : IByteSerializable, IByteDeserializable {
+public sealed class ItemPet : IByteSerializable, IByteDeserializable {
     public string Name;
     public long Exp;
     public int EvolvePoints;
@@ -16,6 +16,10 @@ public class ItemPet : IByteSerializable, IByteDeserializable {
         Name = string.Empty;
         Level = 1;
         RenameRemaining = 1;
+    }
+
+    public ItemPet Clone() {
+        return (ItemPet) MemberwiseClone();
     }
 
     public void WriteTo(IByteWriter writer) {

@@ -4,7 +4,7 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game;
 
-public class ItemBadge : IByteSerializable, IByteDeserializable {
+public sealed class ItemBadge : IByteSerializable, IByteDeserializable {
     private const int TRANSPARENCY_COUNT = 10;
 
     public readonly int Id;
@@ -36,6 +36,16 @@ public class ItemBadge : IByteSerializable, IByteDeserializable {
         } else {
             Transparency = transparency;
         }
+    }
+
+    public ItemBadge Clone() {
+        bool[] transparency = new bool[TRANSPARENCY_COUNT];
+        for (int i = 0; i < TRANSPARENCY_COUNT; i++) {
+            transparency[i] = Transparency[i];
+        }
+        return new ItemBadge(Id, transparency) {
+            PetSkinId = PetSkinId,
+        };
     }
 
     public void WriteTo(IByteWriter writer) {

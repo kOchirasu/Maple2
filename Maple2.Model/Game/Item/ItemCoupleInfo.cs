@@ -1,17 +1,21 @@
 ﻿using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
-namespace Maple2.Model.Game; 
+namespace Maple2.Model.Game;
 
-public class ItemCoupleInfo : IByteSerializable, IByteDeserializable {
+public sealed class ItemCoupleInfo : IByteSerializable, IByteDeserializable {
     public static readonly ItemCoupleInfo Default = new ItemCoupleInfo();
-    
+
     public long CharacterId { get; private set; }
     public string Name { get; private set; }
 
     public ItemCoupleInfo(long characterId = 0, string name = "") {
         CharacterId = characterId;
         Name = name;
+    }
+
+    public ItemCoupleInfo Clone() {
+        return (ItemCoupleInfo) MemberwiseClone();
     }
 
     public void WriteTo(IByteWriter writer) {

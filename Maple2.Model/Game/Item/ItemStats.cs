@@ -62,6 +62,10 @@ public class ItemStats : IByteSerializable, IByteDeserializable {
         }
     }
 
+    public ItemStats Clone() {
+        return new ItemStats(this);
+    }
+
     public Dictionary<StatAttribute, StatOption> GetStatOptions(Type type) {
         return statOption[(int)type];
     }

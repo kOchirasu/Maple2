@@ -86,6 +86,32 @@ public class Item : IByteSerializable, IByteDeserializable {
         }
     }
 
+    public Item Clone() {
+        return new Item(Metadata, Rarity, Amount, false) {
+            Uid = Uid,
+            CreationTime = CreationTime,
+            ExpiryTime = ExpiryTime,
+            TimeChangedOption = TimeChangedOption,
+            RemainUses = RemainUses,
+            IsLocked = IsLocked,
+            UnlockTime = UnlockTime,
+            GlamorForges = GlamorForges,
+            Appearance = Appearance?.Clone(),
+            Stats = Stats?.Clone(),
+            Enchant = Enchant?.Clone(),
+            LimitBreak = LimitBreak?.Clone(),
+            Transfer = Transfer?.Clone(),
+            Socket = Socket?.Clone(),
+            CoupleInfo = CoupleInfo?.Clone(),
+            Binding = Binding?.Clone(),
+            Template = Template?.Clone(),
+            Blueprint = Blueprint?.Clone(),
+            Pet = Pet?.Clone(),
+            Music = Music?.Clone(),
+            Badge = Badge?.Clone(),
+        };
+    }
+
     public Item Mutate(ItemMetadata metadata, int? rarity = null) {
         return new Item(metadata, rarity ?? Rarity, Amount, false) {
             Uid = Uid,
