@@ -14,7 +14,6 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Login.Session;
 using Maple2.Server.World.Service;
-using Microsoft.VisualBasic;
 using static Maple2.Model.Enum.EquipSlot;
 using static Maple2.Model.Error.CharacterCreateError;
 using static Maple2.Model.Error.CharacterDeleteError;
