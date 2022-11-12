@@ -14,6 +14,7 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Login.Session;
 using Maple2.Server.World.Service;
+using Microsoft.VisualBasic;
 using static Maple2.Model.Enum.EquipSlot;
 using static Maple2.Model.Error.CharacterCreateError;
 using static Maple2.Model.Error.CharacterDeleteError;
@@ -105,12 +106,13 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
         var job = (Job) ((int)jobCode * 10);
         string name = packet.ReadUnicodeString();
         
-        if (name.Length < 2) {
+        if (name.Length < Constant.CharacterNameLengthMin) {
             session.Send(CharacterListPacket.CreateError(s_char_err_name));
             return;
         }
         
-        if (name.Length > 12) {
+        if (name.Length > Constant.CharacterNameLengthMax) {
+            session.Send(CharacterListPacket.CreateError(s_char_err_system));
             return;
         }
 
