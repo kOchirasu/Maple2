@@ -6,7 +6,7 @@ using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
-public class ItemTransfer : IByteSerializable, IByteDeserializable {
+public sealed class ItemTransfer : IByteSerializable, IByteDeserializable {
     public static readonly ItemTransfer Default = new ItemTransfer();
 
     public TransferFlag Flag { get; set; }
@@ -20,6 +20,10 @@ public class ItemTransfer : IByteSerializable, IByteDeserializable {
         RemainTrades = remainTrades;
         RemainRepackage = remainRepackage;
         Binding = binding;
+    }
+
+    public ItemTransfer Clone() {
+        return new ItemTransfer(Flag, RemainTrades, RemainRepackage, Binding?.Clone());
     }
 
     public bool Bind(Character character) {

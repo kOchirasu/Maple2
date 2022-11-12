@@ -3,7 +3,11 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game;
 
-public class ItemBlueprint : IByteSerializable, IByteDeserializable {
+public sealed class ItemBlueprint : IByteSerializable, IByteDeserializable {
+    public ItemBlueprint Clone() {
+        return (ItemBlueprint) MemberwiseClone();
+    }
+
     public void WriteTo(IByteWriter writer) {
         writer.WriteLong();
         writer.WriteInt();

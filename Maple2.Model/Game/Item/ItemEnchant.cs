@@ -5,7 +5,7 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game;
 
-public class ItemEnchant : IByteSerializable, IByteDeserializable {
+public sealed class ItemEnchant : IByteSerializable, IByteDeserializable {
     public static readonly ItemEnchant Default = new ItemEnchant();
 
     public int Enchants { get; set; }
@@ -25,6 +25,10 @@ public class ItemEnchant : IByteSerializable, IByteDeserializable {
         CanRepack = canRepack;
         Charges = charges;
         StatOptions = statOptions ?? new Dictionary<StatAttribute, StatOption>();
+    }
+
+    public ItemEnchant Clone() {
+        return new ItemEnchant(Enchants, EnchantExp, EnchantCharges, CanRepack, Charges, new Dictionary<StatAttribute, StatOption>(StatOptions));
     }
 
     public void WriteTo(IByteWriter writer) {

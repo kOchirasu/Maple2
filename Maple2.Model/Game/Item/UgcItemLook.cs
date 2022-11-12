@@ -3,7 +3,7 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game;
 
-public class UgcItemLook : IByteSerializable, IByteDeserializable {
+public sealed class UgcItemLook : IByteSerializable, IByteDeserializable {
     public static readonly UgcItemLook Default = new UgcItemLook();
 
     public string FileName;
@@ -21,14 +21,8 @@ public class UgcItemLook : IByteSerializable, IByteDeserializable {
         Url = string.Empty;
     }
 
-    public UgcItemLook(UgcItemLook other) {
-        FileName = other.FileName;
-        Name = other.Name;
-        AccountId = other.AccountId;
-        CharacterId = other.CharacterId;
-        Author = other.Author;
-        CreationTime = other.CreationTime;
-        Url = other.Url;
+    public UgcItemLook Clone() {
+        return (UgcItemLook) MemberwiseClone();
     }
 
     public void WriteTo(IByteWriter writer) {

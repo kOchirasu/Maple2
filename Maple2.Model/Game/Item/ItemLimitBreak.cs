@@ -5,7 +5,7 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game;
 
-public class ItemLimitBreak : IByteSerializable, IByteDeserializable {
+public sealed class ItemLimitBreak : IByteSerializable, IByteDeserializable {
     public static readonly ItemLimitBreak Default = new ItemLimitBreak();
 
     public int Level { get; private set; }
@@ -15,6 +15,10 @@ public class ItemLimitBreak : IByteSerializable, IByteDeserializable {
     public ItemLimitBreak() {
         StatOptions = new Dictionary<StatAttribute, StatOption>();
         SpecialOptions = new Dictionary<SpecialAttribute, SpecialOption>();
+    }
+
+    public ItemLimitBreak Clone() {
+        return new ItemLimitBreak(Level, StatOptions, SpecialOptions);
     }
 
     public ItemLimitBreak(int level, IDictionary<StatAttribute, StatOption> statOptions,

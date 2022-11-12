@@ -3,7 +3,7 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game;
 
-public class ItemCustomMusicScore : IByteSerializable, IByteDeserializable {
+public sealed class ItemCustomMusicScore : IByteSerializable, IByteDeserializable {
     public int Length;
     public int Instrument;
     public string Title;
@@ -16,6 +16,10 @@ public class ItemCustomMusicScore : IByteSerializable, IByteDeserializable {
         Title = string.Empty;
         Author = string.Empty;
         Mml = string.Empty;
+    }
+
+    public ItemCustomMusicScore Clone() {
+        return (ItemCustomMusicScore) MemberwiseClone();
     }
 
     public void WriteTo(IByteWriter writer) {
