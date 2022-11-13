@@ -31,12 +31,19 @@ public class BuddyBadgeHandler : PacketHandler<GameSession> {
 
     private static void HandleStart(GameSession session, IByteReader packet) {
         long characterId = packet.ReadLong();
+        if (characterId != session.CharacterId) {
+            return;
+        }
 
         if (session.Field == null) {
             return;
         }
 
-        if (!session.Field.TryGetPlayerById(characterId, out FieldPlayer? partner)) {
+        if (!session.Item.Equips.Badge.TryGetValue(BadgeType.Buddy, out Item? buddyBadge) || buddyBadge.CoupleInfo == null) {
+            return;
+        }
+
+        if (!session.Field.TryGetPlayerById(buddyBadge.CoupleInfo.CharacterId, out FieldPlayer? partner)) {
             return;
         }
 
@@ -59,10 +66,8 @@ public class BuddyBadgeHandler : PacketHandler<GameSession> {
             return false;
         }
 
-        return receiverBadge.Id != senderBadge.Id ||
-               receiverBadge.CoupleInfo?.Name != receiver.Player.Value.Character.Name ||
-               receiverBadge.CoupleInfo?.CharacterId != receiver.Player.Value.Character.Id ||
-               senderBadge.CoupleInfo?.Name != sender.Player.Value.Character.Name ||
-               receiverBadge.CoupleInfo?.CharacterId != sender.Player.Value.Character.Id;
+        return receiverBadge.Id == senderBadge.Id &&
+               receiverBadge.CoupleInfo?.CharacterId == sender.CharacterId &&
+               senderBadge.CoupleInfo?.CharacterId == receiver.CharacterId;
     }
 }

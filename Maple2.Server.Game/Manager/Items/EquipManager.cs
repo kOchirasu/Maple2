@@ -180,13 +180,14 @@ public class EquipManager {
 
             item.Group = ItemGroup.Badge;
             item.Slot = -1;
+            Badge[item.Badge.Type] = item;
             session.Field?.Broadcast(EquipPacket.EquipBadge(session.Player, item));
 
             if (item.Badge.Type == BadgeType.PetSkin) {
                 session.Pet?.BadgeChanged(item.Badge);
             }
 
-            return Badge.TryAdd(item.Badge.Type, item);
+            return true;
         }
     }
 
