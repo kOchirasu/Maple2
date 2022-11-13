@@ -147,7 +147,8 @@ public class Mail : IByteSerializable {
         writer.WriteLong(ReadTime);
         writer.WriteLong(ExpiryTime);
         writer.WriteLong(SendTime);
-        writer.WriteUnicodeString();
+        writer.WriteUnicodeString(); // wedding invite information. example:
+        // <ms2><wedding groom="{reservation.GroomName}" bride="{reservation.BrideName}" date="{reservation.CeremonyTime}" package="{reservation.PackageId}" hall="{reservation.HallId}"/></ms2> //
     }
 
     private static string FormatArgs(ICollection<(string Key, string Value)> args) {
