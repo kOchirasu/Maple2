@@ -28,9 +28,6 @@ public class BuddyBadgeHandler : PacketHandler<GameSession> {
             case Command.Stop:
                 HandleStop(session, packet);
                 return;
-            default:
-                Console.WriteLine($"Debugging this... wtf. Function is {function}");
-                break;
         }
     }
 

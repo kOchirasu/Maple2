@@ -178,10 +178,6 @@ public class EquipManager {
                 session.Item.Bind(item);
             }
 
-            if (item.CoupleInfo == null) {
-                item.CoupleInfo = new ItemCoupleInfo(200000012, "Creative");
-            }
-
             item.Group = ItemGroup.Badge;
             item.Slot = -1;
             session.Field?.Broadcast(EquipPacket.EquipBadge(session.Player, item));
