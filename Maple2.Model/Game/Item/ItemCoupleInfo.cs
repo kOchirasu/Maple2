@@ -8,10 +8,12 @@ public sealed class ItemCoupleInfo : IByteSerializable, IByteDeserializable {
 
     public long CharacterId { get; private set; }
     public string Name { get; private set; }
+    public bool IsCreator { get; private set; }
 
-    public ItemCoupleInfo(long characterId = 0, string name = "") {
+    public ItemCoupleInfo(long characterId = 0, string name = "", bool isCreator = false) {
         CharacterId = characterId;
         Name = name;
+        IsCreator = isCreator;
     }
 
     public ItemCoupleInfo Clone() {
@@ -22,6 +24,7 @@ public sealed class ItemCoupleInfo : IByteSerializable, IByteDeserializable {
         writer.WriteLong(CharacterId);
         if (CharacterId != 0) {
             writer.WriteUnicodeString(Name);
+            writer.WriteBool(IsCreator);
         }
     }
 

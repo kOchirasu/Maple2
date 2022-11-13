@@ -115,7 +115,7 @@ public class EquipManager {
                 }
             }
 
-            if (item.Metadata.Limit.TransferType == TransferType.BindOnEquip) {
+            if (item.Metadata.Limit.TransferType == TransferType.BindOnEquip || item.Metadata.Limit.TransferType == TransferType.BindOnLoot) {
                 session.Item.Bind(item);
             }
 
@@ -174,12 +174,13 @@ public class EquipManager {
                 return false;
             }
 
-            if (item.Metadata.Limit.TransferType == TransferType.BindOnEquip) {
+            if (item.Metadata.Limit.TransferType == TransferType.BindOnEquip || item.Metadata.Limit.TransferType == TransferType.BindOnLoot) {
                 session.Item.Bind(item);
             }
 
-            item.Group = ItemGroup.Default;
+            item.Group = ItemGroup.Badge;
             item.Slot = -1;
+            Badge[item.Badge.Type] = item;
             session.Field?.Broadcast(EquipPacket.EquipBadge(session.Player, item));
 
             if (item.Badge.Type == BadgeType.PetSkin) {

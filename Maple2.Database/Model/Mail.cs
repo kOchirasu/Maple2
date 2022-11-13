@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Database.Extensions;
+using Maple2.Model.Enum;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,7 +12,7 @@ namespace Maple2.Database.Model;
 internal class Mail {
     public long ReceiverId { get; set; }
     public long Id { get; set; }
-    public byte Type { get; set; }
+    public MailType Type { get; set; }
     public long SenderId { get; set; }
     public string SenderName { get; set; } = string.Empty;
     public string Title { get; set; } = string.Empty;

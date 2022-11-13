@@ -17,15 +17,15 @@ internal record ItemTransfer(TransferFlag Flag, int RemainTrades, int RemainRepa
     }
 }
 
-internal record ItemCoupleInfo(long CharacterId, string Name) {
+internal record ItemCoupleInfo(long CharacterId, string Name, bool IsCreator) {
     [return:NotNullIfNotNull("other")]
     public static implicit operator ItemCoupleInfo?(Maple2.Model.Game.ItemCoupleInfo? other) {
-        return other == null ? null : new ItemCoupleInfo(other.CharacterId, other.Name);
+        return other == null ? null : new ItemCoupleInfo(other.CharacterId, other.Name, other.IsCreator);
     }
 
     [return:NotNullIfNotNull("other")]
     public static implicit operator Maple2.Model.Game.ItemCoupleInfo?(ItemCoupleInfo? other) {
-        return other == null ? null : new Maple2.Model.Game.ItemCoupleInfo(other.CharacterId, other.Name);
+        return other == null ? null : new Maple2.Model.Game.ItemCoupleInfo(other.CharacterId, other.Name, other.IsCreator);
     }
 }
 
