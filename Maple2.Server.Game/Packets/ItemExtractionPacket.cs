@@ -20,7 +20,7 @@ public static class ItemExtractionPacket {
         pWriter.WriteLong(sourceUid);
         pWriter.WriteLong(item.Uid);
         pWriter.WriteShort();
-        pWriter.Write<EquipColor>(item.Appearance.Color);
+        pWriter.Write<EquipColor>(item.Appearance?.Color ?? default);
         pWriter.WriteClass<ItemTransfer>(item.Transfer ?? ItemTransfer.Default);
 
         return pWriter;

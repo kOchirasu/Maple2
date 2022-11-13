@@ -223,7 +223,7 @@ public class InventoryManager {
             // Build this index so we don't need to find materials twice.
             Dictionary<ItemTag, IList<Item>> ingredientsByTag = ingredients.ToDictionary(
                 entry => entry.Tag,
-                entry => Filter(item => item.Metadata.Property.Tag == entry.Tag)
+                entry => Filter(item => item.Metadata.Property.Tag == entry.Tag && !item.IsExpired())
             );
 
             // Validate
@@ -246,7 +246,7 @@ public class InventoryManager {
                 int remaining = info.Amount;
                 foreach (Item ingredient in ingredientsByTag[info.Tag]) {
                     int consume = Math.Min(remaining, ingredient.Amount);
-                    if (!Consume(ingredient.Uid, consume)) {
+                    if (!ConsumeInternal(ingredient.Uid, consume)) {
                         Log.Fatal("Failed to consume ingredient {ItemUid}", ingredient.Uid);
                         throw new InvalidOperationException($"Fatal: Consuming ingredient: {ingredient.Uid}");
                     }
@@ -415,7 +415,7 @@ public class InventoryManager {
 
         if (amount > 0) {
             Item? item = items.Get(uid);
-            if (item == null || item.Amount < amount) {
+            if (item == null || item.IsExpired() || item.Amount < amount) {
                 return false;
             }
 

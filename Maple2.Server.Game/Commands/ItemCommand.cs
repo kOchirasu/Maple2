@@ -58,9 +58,8 @@ public class ItemCommand : Command {
             }
             rarity = Math.Clamp(rarity, 1, MAX_RARITY);
 
-            var item = new Item(metadata, rarity, amount) {
-                Stats = ItemStatsCalc.Compute(metadata, rarity),
-            };
+            var item = new Item(metadata, rarity, amount);
+            item.Stats = ItemStatsCalc.Compute(item);
             if (item.Inventory is InventoryType.Gear or InventoryType.Outfit) {
                 byte maxSockets = (byte) Math.Clamp(socket.Length >= 1 ? socket[0] : 0, 0, MAX_SOCKET);
                 byte unlockSockets = (byte) Math.Clamp(socket.Length >= 2 ? socket[1] : 0, 0, maxSockets);

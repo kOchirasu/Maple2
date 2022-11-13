@@ -1,12 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Text;
 using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
-public class ItemStats : IByteSerializable, IByteDeserializable {
+public sealed class ItemStats : IByteSerializable, IByteDeserializable {
     public static readonly ItemStats Default = new ItemStats();
 
     public const int TYPE_COUNT = 9;
@@ -23,69 +24,53 @@ public class ItemStats : IByteSerializable, IByteDeserializable {
         Empowerment5= 8,
     }
 
-    private readonly Dictionary<StatAttribute, StatOption>[] statOption;
-    private readonly Dictionary<SpecialAttribute, SpecialOption>[] specialOption;
+    private readonly Option[] options;
 
     public ItemStats() {
-        statOption = new Dictionary<StatAttribute, StatOption>[TYPE_COUNT];
-        specialOption = new Dictionary<SpecialAttribute, SpecialOption>[TYPE_COUNT];
+        options = new Option[TYPE_COUNT];
         for (int i = 0; i < TYPE_COUNT; i++) {
-            statOption[i] = new Dictionary<StatAttribute, StatOption>();
-            specialOption[i] = new Dictionary<SpecialAttribute, SpecialOption>();
+            options[i] = new Option();
         }
     }
 
-    public ItemStats(Dictionary<StatAttribute, StatOption>?[] statOption, Dictionary<SpecialAttribute, SpecialOption>?[] specialOption) {
-        if (statOption.Length != TYPE_COUNT) {
-            Array.Resize(ref statOption, TYPE_COUNT);
-        }
-        if (specialOption.Length != TYPE_COUNT) {
-            Array.Resize(ref specialOption, TYPE_COUNT);
-        }
-
+    public ItemStats(Dictionary<StatAttribute, StatOption>[] statOption, Dictionary<SpecialAttribute, SpecialOption>[] specialOption) {
         // Ensure all entries are set.
+        options = new Option[TYPE_COUNT];
         for (int i = 0; i < TYPE_COUNT; i++) {
-            statOption[i] ??= new Dictionary<StatAttribute, StatOption>();
-            specialOption[i] ??= new Dictionary<SpecialAttribute, SpecialOption>();
-        }
-
-        this.statOption = statOption!;
-        this.specialOption = specialOption!;
-    }
-
-    public ItemStats(ItemStats other) {
-        statOption = new Dictionary<StatAttribute, StatOption>[TYPE_COUNT];
-        specialOption = new Dictionary<SpecialAttribute, SpecialOption>[TYPE_COUNT];
-        for (int i = 0; i < TYPE_COUNT; i++) {
-            statOption[i] = new Dictionary<StatAttribute, StatOption>(other.statOption[i]);
-            specialOption[i] = new Dictionary<SpecialAttribute, SpecialOption>(other.specialOption[i]);
+            options[i] = new Option(
+                statOption.ElementAtOrDefault(i, () => new Dictionary<StatAttribute, StatOption>()),
+                specialOption.ElementAtOrDefault(i, () => new Dictionary<SpecialAttribute, SpecialOption>()));
         }
     }
 
     public ItemStats Clone() {
-        return new ItemStats(this);
+        var stats = new ItemStats();
+        for (int i = 0; i < TYPE_COUNT; i++) {
+            stats.options[i] = new Option(
+                new Dictionary<StatAttribute, StatOption>(options[i].Basic),
+                new Dictionary<SpecialAttribute, SpecialOption>(options[i].Special));
+        }
+        return stats;
     }
 
-    public Dictionary<StatAttribute, StatOption> GetStatOptions(Type type) {
-        return statOption[(int)type];
-    }
-
-    public Dictionary<SpecialAttribute, SpecialOption> GetSpecialOptions(Type type) {
-        return specialOption[(int)type];
+    public Option this[Type type] {
+        get => options[(int) type];
+        set => options[(int) type] = value;
     }
 
     public void WriteTo(IByteWriter writer) {
         writer.WriteByte();
         for (int i = 0; i < TYPE_COUNT; i++) {
-            writer.WriteShort((short) statOption[i].Count);
-            foreach ((StatAttribute type, StatOption option) in statOption[i]) {
+            Option option = options[i];
+            writer.WriteShort((short) option.Basic.Count);
+            foreach ((StatAttribute type, StatOption statOption) in option.Basic) {
                 writer.WriteShort((short)type);
-                writer.Write<StatOption>(option);
+                writer.Write<StatOption>(statOption);
             }
-            writer.WriteShort((short) specialOption[i].Count);
-            foreach ((SpecialAttribute type, SpecialOption option) in specialOption[i]) {
+            writer.WriteShort((short) option.Special.Count);
+            foreach ((SpecialAttribute type, SpecialOption specialOption) in option.Special) {
                 writer.WriteShort((short)type);
-                writer.Write<SpecialOption>(option);
+                writer.Write<SpecialOption>(specialOption);
             }
 
             writer.WriteInt();
@@ -95,18 +80,44 @@ public class ItemStats : IByteSerializable, IByteDeserializable {
     public void ReadFrom(IByteReader reader) {
         reader.ReadByte();
         for (int i = 0; i < TYPE_COUNT; i++) {
+            Option option = options[i];
             short statCount = reader.ReadShort();
             for (int j = 0; j < statCount; j++) {
                 var type = (StatAttribute)reader.ReadShort();
-                statOption[i][type] = reader.Read<StatOption>();
+                option.Basic[type] = reader.Read<StatOption>();
             }
             short specialCount = reader.ReadShort();
             for (int j = 0; j < specialCount; j++) {
                 var type = (SpecialAttribute)reader.ReadShort();
-                specialOption[i][type] = reader.Read<SpecialOption>();
+                option.Special[type] = reader.Read<SpecialOption>();
             }
 
             reader.ReadInt();
+        }
+    }
+
+    public class Option {
+        public readonly Dictionary<StatAttribute, StatOption> Basic;
+        public readonly Dictionary<SpecialAttribute, SpecialOption> Special;
+
+        public int Count => Basic.Count + Special.Count;
+
+        public Option(Dictionary<StatAttribute, StatOption>? statOption = null, Dictionary<SpecialAttribute, SpecialOption>? specialOption = null) {
+            Basic = statOption ?? new Dictionary<StatAttribute, StatOption>();
+            Special = specialOption ?? new Dictionary<SpecialAttribute, SpecialOption>();
+        }
+
+        public override string ToString() {
+            var builder = new StringBuilder();
+            builder.AppendLine("StatOption:");
+            foreach ((StatAttribute attribute, StatOption option) in Basic) {
+                builder.AppendLine($"- {attribute}={option}");
+            }
+            builder.AppendLine("SpecialOption:");
+            foreach ((SpecialAttribute attribute, SpecialOption option) in Special) {
+                builder.AppendLine($"- {attribute}={option}");
+            }
+            return builder.ToString();
         }
     }
 }

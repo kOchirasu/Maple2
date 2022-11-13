@@ -33,6 +33,18 @@ public static class EnumerableExtensions {
         return fallback;
     }
 
+    public static T ElementAtOrDefault<T>(this IList<T> list, int index, Func<T> fallback) {
+        if (list == null) {
+            throw new ArgumentNullException(nameof(list));
+        }
+
+        if (index >= 0 && index < list.Count) {
+            return list[index];
+        }
+
+        return fallback();
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T AsType<TE, T>(this IEnumerable<TE> enumerable, Func<IEnumerable<TE>, T> function) {
         return function.Invoke(enumerable);
