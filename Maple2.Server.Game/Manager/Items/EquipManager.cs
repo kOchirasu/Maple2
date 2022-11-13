@@ -115,7 +115,7 @@ public class EquipManager {
                 }
             }
 
-            if (item.Metadata.Limit.TransferType == TransferType.BindOnEquip) {
+            if (item.Metadata.Limit.TransferType == TransferType.BindOnEquip || item.Metadata.Limit.TransferType == TransferType.BindOnLoot) {
                 session.Item.Bind(item);
             }
 
@@ -174,11 +174,15 @@ public class EquipManager {
                 return false;
             }
 
-            if (item.Metadata.Limit.TransferType == TransferType.BindOnEquip) {
+            if (item.Metadata.Limit.TransferType == TransferType.BindOnEquip || item.Metadata.Limit.TransferType == TransferType.BindOnLoot) {
                 session.Item.Bind(item);
             }
 
-            item.Group = ItemGroup.Default;
+            if (item.CoupleInfo == null) {
+                item.CoupleInfo = new ItemCoupleInfo(200000012, "Creative");
+            }
+
+            item.Group = ItemGroup.Badge;
             item.Slot = -1;
             session.Field?.Broadcast(EquipPacket.EquipBadge(session.Player, item));
 
@@ -186,7 +190,7 @@ public class EquipManager {
                 session.Pet?.BadgeChanged(item.Badge);
             }
 
-            return true;
+            return Badge.TryAdd(item.Badge.Type, item);
         }
     }
 

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
@@ -18,7 +21,6 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
     public override void Handle(GameSession session, IByteReader packet) {
         long itemUid = packet.ReadLong();
-        string unknown = packet.ReadUnicodeString();
 
         Item? item = session.Item.Inventory.Get(itemUid);
         if (item == null) {
@@ -36,11 +38,20 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             case ItemFunction.TitleScroll:
                 HandleTitleScroll(session, item);
                 break;
+            case ItemFunction.OpenCoupleEffectBox:
+                HandleBuddyBadgeBox(session, packet, item);
+                break;
             default:
                 Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
                 return;
         }
     }
+
+    #region Autofac Autowired
+    // ReSharper disable MemberCanBePrivate.Global
+    public ItemMetadataStorage ItemMetadata { get; init; } = null!;
+    // ReSharper restore All
+    #endregion
 
     private static void HandleStoryBook(GameSession session, Item item) {
         if (!int.TryParse(item.Metadata.Function?.Parameters, out int storyBookId)) {
@@ -105,5 +116,92 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             session.Send(UserEnvPacket.AddTitle(titleId));
             session.Player.Value.Unlock.Titles.Add(titleId);
         }
+    }
+
+    private void HandleBuddyBadgeBox(GameSession session, IByteReader packet, Item item) {
+        string targetUser = packet.ReadUnicodeString();
+
+        if (targetUser == session.Player.Value.Character.Name) {
+            session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_error_openbox_myself_char)));
+            return;
+        }
+
+        using GameStorage.Request db = session.GameStorage.Context();
+        CharacterInfo? receiverCharacterInfo = db.GetCharacterInfo(targetUser);
+        if (receiverCharacterInfo == default) {
+            session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_error_openbox_charname)));
+            return;
+        }
+
+        if (receiverCharacterInfo.AccountId == session.Player.Value.Character.AccountId) {
+            session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_error_openbox_myself_account)));
+            return;
+        }
+
+        int[] buddyBadgeBoxParams = item.Metadata.Function?.Parameters.Split(',').Select(int.Parse).ToArray() ?? Array.Empty<int>();
+        if (buddyBadgeBoxParams.Length != 2) {
+            session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_error_openbox_unknown)));
+            Logger.Error("Invalid buddy badge box parameters: {Parameters}", item.Metadata.Function?.Parameters);
+            return;
+        }
+
+        if (!ItemMetadata.TryGet(buddyBadgeBoxParams[0], out ItemMetadata? itemMetadata)) {
+            session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_error_openbox_unknown)));
+            Logger.Error("Unknown buddy badge box item Id: {Parameters}", buddyBadgeBoxParams[0]);
+            return;
+        }
+
+        var selfBadge = new Item(itemMetadata, buddyBadgeBoxParams[1]) {
+            CoupleInfo = new ItemCoupleInfo(receiverCharacterInfo.CharacterId, receiverCharacterInfo.Name, true),
+        };
+
+        if (!session.Item.Inventory.CanAdd(selfBadge)) {
+            session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_gem_error_inventory_full)));
+            return;
+        }
+
+        if (!session.Item.Inventory.Consume(item.Uid, 1)) {
+            Logger.Error("Failed to use buddy badge box: {ItemUid}", item.Uid);
+            return;
+        }
+
+        var receiverMail = new Mail() {
+            ReceiverId = receiverCharacterInfo.CharacterId,
+            Type = MailType.System,
+            ContentArgs = new[] {
+                ("str", $"{session.Player.Value.Character.Name}"),
+            },
+        };
+
+        receiverMail.SetTitle(StringCode.s_couple_effect_mail_title_receiver);
+        receiverMail.SetContent(StringCode.s_couple_effect_mail_content_receiver);
+        receiverMail.SetSenderName(StringCode.s_couple_effect_mail_sender);
+
+        receiverMail = db.CreateMail(receiverMail);
+        if (receiverMail == null) {
+            session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_error_openbox_unknown)));
+            return;
+        }
+
+        using GameStorage.Request itemDb = session.GameStorage.Context();
+        Item? receiverItem = db.CreateItem(receiverMail.Id,
+            new(itemMetadata, buddyBadgeBoxParams[1]) {
+                CoupleInfo = new ItemCoupleInfo(session.Player.Value.Character.Id, session.Player.Value.Character.Name),
+            });
+        if (receiverItem == null) {
+            throw new InvalidOperationException($"Failed to create buddy badge: {receiverItem.Id}");
+        }
+
+        receiverMail.Items.Add(receiverItem);
+
+        try {
+            session.World.MailNotification(new MailNotificationRequest {
+                CharacterId = receiverCharacterInfo.CharacterId,
+                MailId = receiverMail.Id,
+            });
+        } catch { /* ignored */ }
+
+        session.Item.Inventory.Add(selfBadge, true);
+        session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_mail_send_partner, receiverCharacterInfo.Name)));
     }
 }
