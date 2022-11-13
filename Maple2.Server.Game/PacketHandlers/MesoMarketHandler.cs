@@ -193,7 +193,7 @@ public class MesoMarketHandler : PacketHandler<GameSession> {
     private void SendPurchaseMail(GameSession session, GameStorage.Request db, MesoListing listing) {
         var buyerMail = new Mail {
             ReceiverId = session.CharacterId,
-            Type = 106,
+            Type = MailType.MesoMarket,
             ContentArgs = new [] {
                 ("money", $"{listing.Amount}"),
                 ("money", $"{listing.Price}"),
@@ -207,7 +207,7 @@ public class MesoMarketHandler : PacketHandler<GameSession> {
         int meretFee = (int) (listing.Price * Constant.MesoMarketTaxRate);
         var sellerMail = new Mail {
             ReceiverId = listing.CharacterId,
-            Type = 106,
+            Type = MailType.MesoMarket,
             ContentArgs = new [] {
                 ("money", $"{listing.Amount}"),
                 ("money", $"{listing.Price}"),

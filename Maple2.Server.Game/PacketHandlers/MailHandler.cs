@@ -1,4 +1,5 @@
 ﻿using Maple2.Database.Storage;
+using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
@@ -77,7 +78,7 @@ public class MailHandler : PacketHandler<GameSession> {
         var mail = new Mail {
             SenderId = session.CharacterId,
             ReceiverId = receiverId,
-            Type = 1,
+            Type = MailType.Player,
             SenderName = session.Player.Value.Character.Name,
             Title = title,     // TODO: xml escaping?
             Content = content, // TODO: xml escaping?

@@ -14,7 +14,7 @@ public class Mail : IByteSerializable {
     public long SenderId { get; init; }
     public long ReceiverId { get; init; }
 
-    public byte Type = 1; // 1 = Regular Mail, 101+? = Special Mail, 200 = Ad
+    public MailType Type;
 
     public string SenderName = string.Empty;
     public string Title = string.Empty;
@@ -84,7 +84,7 @@ public class Mail : IByteSerializable {
     }
 
     public void WriteTo(IByteWriter writer) {
-        writer.WriteByte(Type);
+        writer.Write<MailType>(Type);
         writer.WriteLong(Id);
         writer.WriteLong(SenderId);
         writer.WriteUnicodeString(SenderName);
@@ -93,7 +93,7 @@ public class Mail : IByteSerializable {
         writer.WriteUnicodeString(FormatArgs(TitleArgs));
         writer.WriteUnicodeString(FormatArgs(ContentArgs));
 
-        if (Type == 200) { // MailAdItem
+        if (Type == MailType.Ad) { // MailAdItem
             byte count = 0;
             writer.WriteByte(count);
             for (byte i = 0; i < count; i++) {
@@ -147,7 +147,8 @@ public class Mail : IByteSerializable {
         writer.WriteLong(ReadTime);
         writer.WriteLong(ExpiryTime);
         writer.WriteLong(SendTime);
-        writer.WriteUnicodeString();
+        writer.WriteUnicodeString(); // wedding invite information. example:
+        // <ms2><wedding groom="{reservation.GroomName}" bride="{reservation.BrideName}" date="{reservation.CeremonyTime}" package="{reservation.PackageId}" hall="{reservation.HallId}"/></ms2> //
     }
 
     private static string FormatArgs(ICollection<(string Key, string Value)> args) {
