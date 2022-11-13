@@ -51,7 +51,10 @@ public static class Constant {
     public const int AlchemyMasteryMax = 81440;
     public const int CookingMasteryMax = 81440;
     public const int PetTamingMasteryMax = 100000;
-    
+    public const int ChangeAttributesMinLevel = 50;
+    public const int ChangeAttributesMinRarity = 4;
+    public const int ChangeAttributesMaxRarity = 6;
+
 
     public const long FurnishingBaseId = 2870000000000000000;
 

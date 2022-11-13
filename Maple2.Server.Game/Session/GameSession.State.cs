@@ -16,6 +16,8 @@ public partial class GameSession {
     public bool DismantleOpened = false;
     public readonly (long Uid, int Amount)[] DismantleStaging = new (long, int)[DISMANTLE_MAX_STAGED_ITEMS];
 
+    public Item? ChangeAttributesItem = null;
+
     public TradeManager? Trade;
     public StorageManager? Storage;
 

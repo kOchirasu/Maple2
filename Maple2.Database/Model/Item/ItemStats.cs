@@ -18,8 +18,8 @@ internal record ItemStats(Dictionary<StatAttribute, StatOption>[] StatOption,
         var statOption = new Dictionary<StatAttribute, StatOption>[values.Length];
         var specialOption = new Dictionary<SpecialAttribute, SpecialOption>[values.Length];
         foreach (Maple2.Model.Game.ItemStats.Type type in values) {
-            statOption[(int) type] = other.GetStatOptions(type);
-            specialOption[(int) type] = other.GetSpecialOptions(type);
+            statOption[(int) type] = other[type].Basic;
+            specialOption[(int) type] = other[type].Special;
         }
 
         return new ItemStats(statOption, specialOption);
