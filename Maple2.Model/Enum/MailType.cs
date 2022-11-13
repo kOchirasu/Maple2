@@ -6,5 +6,7 @@ public enum MailType : byte {
     BlackMarketSale = 102,
     BlackMarketListingCancel = 104,
     MesoMarket = 106,
+    WeddingSystem = 111,
+    WeddingInvite = 112,
     Ad = 200,
 }
