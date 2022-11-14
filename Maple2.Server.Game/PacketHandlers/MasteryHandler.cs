@@ -11,6 +11,7 @@ using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -51,30 +52,29 @@ public class MasteryHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (!TableMetadata.MasteryRewardTable.Entries.TryGetValue(type, out MasteryRewardTable.Entry? entry) || !entry.Levels.TryGetValue(level, out MasteryRewardTable.Level? levelMetadata)) {
+        if (!TableMetadata.MasteryRewardTable.Entries.TryGetValue(type, level, out MasteryRewardTable.Entry? entry)) {
             return;
         }
 
-        if (session.Mastery[type] < levelMetadata.Value) {
+        if (session.Mastery[type] < entry.Value) {
             session.Send(MasteryPacket.Error(MasteryError.s_mastery_error_invalid_level));
             return;
         }
 
-        if (!ItemMetadata.TryGet(levelMetadata.ItemId, out ItemMetadata? itemMetadata)) {
+        if (!ItemMetadata.TryGet(entry.ItemId, out ItemMetadata? itemMetadata)) {
             return;
         }
 
-        var rewardItem = new Item(itemMetadata, levelMetadata.ItemRarity, levelMetadata.ItemAmount);
+        var rewardItem = new Item(itemMetadata, entry.ItemRarity, entry.ItemAmount);
 
-        if (!session.Item.Inventory.CanAdd(rewardItem)) {
+        if (!session.Item.Inventory.Add(rewardItem, true)) {
             session.Send(ChatPacket.Alert(StringCode.s_err_inventory));
             return;
         }
 
         session.Player.Value.Unlock.MasteryRewardsClaimed.Add(rewardBoxDetails, true);
-        session.Item.Inventory.Add(rewardItem, true);
         session.Send(MasteryPacket.ClaimReward(rewardBoxDetails, new List<MasteryRecipeTable.Ingredient>() {
-            new(levelMetadata.ItemId, (short) levelMetadata.ItemRarity, levelMetadata.ItemRarity, ItemTag.None),
+            new(entry.ItemId, (short) entry.ItemRarity, entry.ItemRarity, ItemTag.None),
         }));
     }
 

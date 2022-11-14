@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using Maple2.Model.Error;
-using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
@@ -46,9 +44,9 @@ public static class UserEnvPacket {
         var pWriter = Packet.Of(SendOp.UserEnv);
         pWriter.Write<Command>(Command.MasteryRewardsClaimed);
         pWriter.WriteInt(claimedRewards.Count);
-        foreach (KeyValuePair<int, bool> reward in claimedRewards) {
-            pWriter.WriteInt(reward.Key);
-            pWriter.WriteBool(reward.Value);
+        foreach ((int rewardId, bool isClaimed) in claimedRewards) {
+            pWriter.WriteInt(rewardId);
+            pWriter.WriteBool(isClaimed);
         };
 
         return pWriter;

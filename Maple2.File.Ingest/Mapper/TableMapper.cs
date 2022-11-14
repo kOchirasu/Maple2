@@ -538,19 +538,17 @@ public class TableMapper : TypeMapper<TableMetadata> {
     }
 
     private MasteryRewardTable ParseMasteryReward() {
-        var results = new Dictionary<MasteryType, MasteryRewardTable.Entry>();
-        foreach ((Parser.Enum.MasteryType Type, MasteryReward Reward) in parser.ParseMasteryReward()) {
-            var masteryLevelDictionary = new Dictionary<int, MasteryRewardTable.Level>();
-            foreach (MasteryLevel level in Reward.v) {
-                masteryLevelDictionary.Add(level.grade, new MasteryRewardTable.Level(
+        var results = new Dictionary<MasteryType, IReadOnlyDictionary<int, MasteryRewardTable.Entry>>();
+        foreach ((Parser.Enum.MasteryType type, MasteryReward reward) in parser.ParseMasteryReward()) {
+            var masteryLevelDictionary = new Dictionary<int, MasteryRewardTable.Entry>();
+            foreach (MasteryLevel level in reward.v) {
+                masteryLevelDictionary.Add(level.grade, new MasteryRewardTable.Entry(
                     Value: level.value,
                     ItemId: level.rewardJobItemID,
                     ItemRarity: level.rewardJobItemRank,
                     ItemAmount: level.rewardJobItemCount));
             }
-            results.Add((MasteryType) Type, new MasteryRewardTable.Entry(
-                Type: (MasteryType) Type,
-                Levels: masteryLevelDictionary));
+            results.Add((MasteryType) type, masteryLevelDictionary);
         }
         return new MasteryRewardTable(results);
     }
