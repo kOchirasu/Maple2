@@ -37,7 +37,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "interactobject_mastery.xml", Table = ParseInteractObject(true)};
         yield return new TableMetadata {Name = "itemsocket.xml", Table = ParseItemSocketTable()};
         yield return new TableMetadata {Name = "masteryreceipe.xml", Table = ParseMasteryRecipe()};
-		yield return new TableMetadata {Name = "mastery.xml", Table = ParseMasteryReward()};
+        yield return new TableMetadata {Name = "mastery.xml", Table = ParseMasteryReward()};
         // Scroll
         yield return new TableMetadata {Name = "enchantscroll.xml", Table = ParseEnchantScrollTable()};
         yield return new TableMetadata {Name = "itemremakescroll.xml", Table = ParseItemRemakeScrollTable()};
@@ -536,8 +536,8 @@ public class TableMapper : TypeMapper<TableMetadata> {
             Amount: ingredientArray[2],
             Tag: ItemTag.None);
     }
-	
-	    private MasteryRewardTable ParseMasteryReward() {
+
+    private MasteryRewardTable ParseMasteryReward() {
         var results = new Dictionary<MasteryType, MasteryRewardTable.Entry>();
         foreach ((Parser.Enum.MasteryType Type, MasteryReward Reward) in parser.ParseMasteryReward()) {
             var masteryLevelDictionary = new Dictionary<int, MasteryRewardTable.Level>();

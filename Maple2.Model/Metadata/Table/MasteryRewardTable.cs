@@ -8,5 +8,4 @@ public record MasteryRewardTable(IReadOnlyDictionary<MasteryType, MasteryRewardT
                         IReadOnlyDictionary<int, Level> Levels);
 
     public record Level(int Value, int ItemId, int ItemRarity, int ItemAmount);
-
 }
