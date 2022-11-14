@@ -20,7 +20,7 @@ public static class StatsPacket {
         pWriter.Write<Command>(Command.Update);
         pWriter.WriteByte(Stats.TOTAL);
         for (int i = 0; i < Stats.TOTAL; i++) {
-            var attribute = (StatAttribute) i;
+            var attribute = (BasicAttribute) i;
             pWriter.WriteAttribute(attribute, stats[attribute]);
         }
 
@@ -43,13 +43,13 @@ public static class StatsPacket {
         return pWriter;
     }
 
-    public static ByteWriter Update(IActor entity, params StatAttribute[] attributes) {
+    public static ByteWriter Update(IActor entity, params BasicAttribute[] attributes) {
         var pWriter = Packet.Of(SendOp.Stat);
         pWriter.WriteInt(entity.ObjectId);
         pWriter.Write<Command>(Command.Update);
         pWriter.WriteByte((byte) attributes.Length);
-        foreach (StatAttribute attribute in attributes) {
-            pWriter.Write<StatAttribute>(attribute);
+        foreach (BasicAttribute attribute in attributes) {
+            pWriter.Write<BasicAttribute>(attribute);
             pWriter.WriteAttribute(attribute, entity.Stats[attribute]);
         }
 
@@ -57,12 +57,12 @@ public static class StatsPacket {
     }
 
     // Note: this is a copy of above to reduce array allocations.
-    public static ByteWriter Update(IActor entity, StatAttribute attribute) {
+    public static ByteWriter Update(IActor entity, BasicAttribute attribute) {
         var pWriter = Packet.Of(SendOp.Stat);
         pWriter.WriteInt(entity.ObjectId);
         pWriter.Write<Command>(Command.Update);
         pWriter.WriteByte(1);
-        pWriter.Write<StatAttribute>(attribute);
+        pWriter.Write<BasicAttribute>(attribute);
         pWriter.WriteAttribute(attribute, entity.Stats[attribute]);
 
         return pWriter;
@@ -72,25 +72,25 @@ public static class StatsPacket {
     public static void WritePlayerStats(this IByteWriter pWriter, Stats stats) {
         pWriter.WriteByte(Stats.TOTAL);
         for (int i = 0; i < Stat.TOTAL; i++) {
-            pWriter.WriteLong(stats[StatAttribute.Health][i]);
-            pWriter.WriteInt((int) stats[StatAttribute.AttackSpeed][i]);
-            pWriter.WriteInt((int) stats[StatAttribute.MovementSpeed][i]);
-            pWriter.WriteInt((int) stats[StatAttribute.JumpHeight][i]);
-            pWriter.WriteInt((int) stats[StatAttribute.MountSpeed][i]);
+            pWriter.WriteLong(stats[BasicAttribute.Health][i]);
+            pWriter.WriteInt((int) stats[BasicAttribute.AttackSpeed][i]);
+            pWriter.WriteInt((int) stats[BasicAttribute.MovementSpeed][i]);
+            pWriter.WriteInt((int) stats[BasicAttribute.JumpHeight][i]);
+            pWriter.WriteInt((int) stats[BasicAttribute.MountSpeed][i]);
         }
     }
 
     public static void WriteNpcStats(this IByteWriter pWriter, Stats stats) {
         pWriter.WriteByte(Stats.TOTAL);
         for (int i = 0; i < Stat.TOTAL; i++) {
-            pWriter.WriteLong(stats[StatAttribute.Health][i]);
-            pWriter.WriteInt((int) stats[StatAttribute.AttackSpeed][i]);
+            pWriter.WriteLong(stats[BasicAttribute.Health][i]);
+            pWriter.WriteInt((int) stats[BasicAttribute.AttackSpeed][i]);
         }
     }
 
-    private static void WriteAttribute(this IByteWriter pWriter, StatAttribute attribute, Stat stat) {
+    private static void WriteAttribute(this IByteWriter pWriter, BasicAttribute attribute, Stat stat) {
         for (int i = 0; i < Stat.TOTAL; i++) {
-            if (attribute == StatAttribute.Health) {
+            if (attribute == BasicAttribute.Health) {
                 pWriter.WriteLong(stat[i]);
             } else {
                 pWriter.WriteInt((int) stat[i]);

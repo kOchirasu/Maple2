@@ -15,7 +15,7 @@ internal class Buddy {
 
     public DateTime LastModified { get; set; }
 
-    [return:NotNullIfNotNull("other")]
+    [return:NotNullIfNotNull(nameof(other))]
     public static implicit operator Buddy?(Maple2.Model.Game.Buddy? other) {
         return other == null ? null : new Buddy {
             Id = other.Id,

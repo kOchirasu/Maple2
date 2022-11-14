@@ -38,7 +38,7 @@ public class ConfigManager {
             IList<SkillMacro>? Macros,
             IList<Wardrobe>? Wardrobes,
             IList<int>? FavoriteStickers,
-            IDictionary<StatAttribute, int>? Allocation,
+            IDictionary<BasicAttribute, int>? Allocation,
             SkillBook? SkillBook
         ) load = db.LoadCharacterConfig(session.CharacterId);
         if (load.KeyBinds != null) {
@@ -55,7 +55,7 @@ public class ConfigManager {
 
         statAttributes = new StatAttributes();
         if (load.Allocation != null) {
-            foreach ((StatAttribute attribute, int amount) in load.Allocation) {
+            foreach ((BasicAttribute attribute, int amount) in load.Allocation) {
                 statAttributes.Allocation[attribute] = amount;
                 UpdateStatAttribute(attribute, amount, false);
             }
@@ -174,7 +174,7 @@ public class ConfigManager {
     #endregion
 
     #region StatPoints
-    public void AllocateStatPoint(StatAttribute type) {
+    public void AllocateStatPoint(BasicAttribute type) {
         // Invalid stat type.
         if (StatAttributes.PointAllocation.StatLimit(type) <= 0) {
             return;
@@ -197,7 +197,7 @@ public class ConfigManager {
     }
 
     public void ResetStatPoints() {
-        foreach (StatAttribute type in session.Config.statAttributes.Allocation.Attributes) {
+        foreach (BasicAttribute type in session.Config.statAttributes.Allocation.Attributes) {
             int points = session.Config.statAttributes.Allocation[type];
             session.Config.statAttributes.Allocation[type] = 0;
             UpdateStatAttribute(type, -points);
@@ -207,19 +207,19 @@ public class ConfigManager {
         session.Send(NoticePacket.Message("s_char_info_reset_stat_pointsuccess_msg"));
     }
 
-    private void UpdateStatAttribute(StatAttribute type, int points, bool send = true) {
+    private void UpdateStatAttribute(BasicAttribute type, int points, bool send = true) {
         switch (type) {
-            case StatAttribute.Strength:
-            case StatAttribute.Dexterity:
-            case StatAttribute.Intelligence:
-            case StatAttribute.Luck:
+            case BasicAttribute.Strength:
+            case BasicAttribute.Dexterity:
+            case BasicAttribute.Intelligence:
+            case BasicAttribute.Luck:
                 session.Player.Stats[type].AddTotal(1 * points);
                 break;
-            case StatAttribute.Health:
-                session.Player.Stats[StatAttribute.Health].AddTotal(10 * points);
+            case BasicAttribute.Health:
+                session.Player.Stats[BasicAttribute.Health].AddTotal(10 * points);
                 break;
-            case StatAttribute.CriticalRate:
-                session.Player.Stats[StatAttribute.CriticalRate].AddTotal(3 * points);
+            case BasicAttribute.CriticalRate:
+                session.Player.Stats[BasicAttribute.CriticalRate].AddTotal(3 * points);
                 break;
         }
 

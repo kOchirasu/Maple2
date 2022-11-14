@@ -11,9 +11,9 @@ using ItemOption = Maple2.Model.Metadata.ItemOption;
 namespace Maple2.File.Ingest;
 
 public static class MapperExtensions {
-    public static Dictionary<StatAttribute, long> ToDictionary(this StatValue values) {
-        var result = new Dictionary<StatAttribute, long>();
-        foreach (StatAttribute attribute in Enum.GetValues<StatAttribute>()) {
+    public static Dictionary<BasicAttribute, long> ToDictionary(this StatValue values) {
+        var result = new Dictionary<BasicAttribute, long>();
+        foreach (BasicAttribute attribute in Enum.GetValues<BasicAttribute>()) {
             long value = values[(byte) attribute];
             if (value != default) {
                 result[attribute] = value;
@@ -23,9 +23,9 @@ public static class MapperExtensions {
         return result;
     }
 
-    public static Dictionary<StatAttribute, float> ToDictionary(this StatRate rates) {
-        var result = new Dictionary<StatAttribute, float>();
-        foreach (StatAttribute attribute in Enum.GetValues<StatAttribute>()) {
+    public static Dictionary<BasicAttribute, float> ToDictionary(this StatRate rates) {
+        var result = new Dictionary<BasicAttribute, float>();
+        foreach (BasicAttribute attribute in Enum.GetValues<BasicAttribute>()) {
             float rate = rates[(byte) attribute];
             if (rate != default) {
                 result[attribute] = rate;
@@ -337,18 +337,18 @@ public static class MapperExtensions {
         var results = new Dictionary<int, IReadOnlyDictionary<int, ItemOption>>();
         foreach (ItemOptionData entry in entries) {
             var optionEntries = new List<ItemOption.Entry>();
-            foreach (StatAttribute attribute in Enum.GetValues<StatAttribute>()) {
+            foreach (BasicAttribute attribute in Enum.GetValues<BasicAttribute>()) {
                 int[] value = entry.StatValue((byte) attribute);
                 if (value.Length > 0) {
                     Debug.Assert(value.Length is 1 or 2);
                     var valueRange = new ItemOption.Range<int>(value[0], value.Length > 1 ? value[1] : value[0]);
-                    optionEntries.Add(new ItemOption.Entry(StatAttribute: attribute, Values: valueRange));
+                    optionEntries.Add(new ItemOption.Entry(BasicAttribute: attribute, Values: valueRange));
                 }
                 float[] rate = entry.StatRate((byte) attribute);
                 if (rate.Length > 0) {
                     Debug.Assert(rate.Length is 1 or 2);
                     var rateRange = new ItemOption.Range<float>(rate[0], rate.Length > 1 ? rate[1] : rate[0]);
-                    optionEntries.Add(new ItemOption.Entry(StatAttribute: attribute, Rates: rateRange));
+                    optionEntries.Add(new ItemOption.Entry(BasicAttribute: attribute, Rates: rateRange));
                 }
             }
 

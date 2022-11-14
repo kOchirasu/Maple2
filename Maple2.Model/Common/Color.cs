@@ -37,7 +37,7 @@ public readonly struct EquipColor {
     public int Index { get; }
 
     // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
-    private readonly int Unknown = 0;
+    private readonly int Unknown;
 
     public EquipColor(Color color) {
         this.Primary = color;

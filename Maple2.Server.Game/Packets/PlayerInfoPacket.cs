@@ -86,7 +86,7 @@ public static class PlayerInfoPacket {
         #region Stats
         for (int i = 0; i < Stat.TOTAL; i++) {
             for (int j = 0; j < Stats.TOTAL; j++) {
-                buffer.WriteLong(fieldPlayer.Stats[(StatAttribute) j][i]);
+                buffer.WriteLong(fieldPlayer.Stats[(BasicAttribute) j][i]);
             }
         }
         for (int i = 0; i < Stats.TOTAL; i++) {

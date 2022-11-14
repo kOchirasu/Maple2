@@ -1,6 +1,6 @@
 ﻿namespace Maple2.Model.Enum; 
 
-public enum StatAttribute : byte {
+public enum BasicAttribute : byte {
     Strength = 0,
     Dexterity = 1,
     Intelligence = 2,

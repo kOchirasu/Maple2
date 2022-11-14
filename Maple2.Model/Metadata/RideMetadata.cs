@@ -8,7 +8,7 @@ public record RideMetadata(
     string Model,
     RideMetadataBasic Basic,
     RideMetadataSpeed Speed,
-    IReadOnlyDictionary<StatAttribute, long> Stats);
+    IReadOnlyDictionary<BasicAttribute, long> Stats);
 
 public record RideMetadataBasic(
     int Type,

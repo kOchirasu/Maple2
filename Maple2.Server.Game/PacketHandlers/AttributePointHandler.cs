@@ -27,7 +27,7 @@ public class AttributePointHandler : PacketHandler<GameSession> {
     }
 
     private void HandleIncrement(GameSession session, IByteReader packet) {
-        var type = packet.Read<StatAttribute>();
+        var type = packet.Read<BasicAttribute>();
         session.Config.AllocateStatPoint(type);
     }
 

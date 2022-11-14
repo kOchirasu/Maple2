@@ -26,7 +26,7 @@ internal class Account {
 
     public ICollection<Character>? Characters { get; set; }
 
-    [return:NotNullIfNotNull("other")]
+    [return:NotNullIfNotNull(nameof(other))]
     public static implicit operator Account?(Maple2.Model.Game.Account? other) {
         return other == null ? null : new Account {
             LastModified = other.LastModified,
@@ -46,7 +46,7 @@ internal class Account {
         };
     }
 
-    [return:NotNullIfNotNull("other")]
+    [return:NotNullIfNotNull(nameof(other))]
     public static implicit operator Maple2.Model.Game.Account?(Account? other) {
         if (other == null) {
             return null;

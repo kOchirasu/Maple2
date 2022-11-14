@@ -259,9 +259,9 @@ public class TableMapper : TypeMapper<TableMetadata> {
     private ItemOptionConstantTable ParseItemOptionConstant() {
         var results = new Dictionary<int, IReadOnlyDictionary<int, ItemOptionConstant>>();
         foreach (ItemOptionConstantData entry in optionParser.ParseConstant()) {
-            var statValues = new Dictionary<StatAttribute, int>();
-            var statRates = new Dictionary<StatAttribute, float>();
-            foreach (StatAttribute attribute in Enum.GetValues<StatAttribute>()) {
+            var statValues = new Dictionary<BasicAttribute, int>();
+            var statRates = new Dictionary<BasicAttribute, float>();
+            foreach (BasicAttribute attribute in Enum.GetValues<BasicAttribute>()) {
                 int value = entry.StatValue((byte) attribute);
                 if (value != default) {
                     statValues[attribute] = value;
@@ -315,35 +315,35 @@ public class TableMapper : TypeMapper<TableMetadata> {
     private ItemOptionPickTable ParseItemOptionPick() {
         var results = new Dictionary<int, IReadOnlyDictionary<int, ItemOptionPickTable.Option>>();
         foreach (ItemOptionPick entry in optionParser.ParsePick()) {
-            var constantValue = new Dictionary<StatAttribute, int>();
+            var constantValue = new Dictionary<BasicAttribute, int>();
             for (int i = 0; i < entry.constant_value.Length; i += 2) {
                 if (string.IsNullOrWhiteSpace(entry.constant_value[i])) continue;
-                constantValue.Add(entry.constant_value[i].ToStatAttribute(), int.Parse(entry.constant_value[i + 1]));
+                constantValue.Add(entry.constant_value[i].ToBasicAttribute(), int.Parse(entry.constant_value[i + 1]));
             }
-            var constantRate = new Dictionary<StatAttribute, int>();
+            var constantRate = new Dictionary<BasicAttribute, int>();
             for (int i = 0; i < entry.constant_rate.Length; i += 2) {
                 if (string.IsNullOrWhiteSpace(entry.constant_rate[i])) continue;
-                constantRate.Add(entry.constant_rate[i].ToStatAttribute(), int.Parse(entry.constant_rate[i + 1]));
+                constantRate.Add(entry.constant_rate[i].ToBasicAttribute(), int.Parse(entry.constant_rate[i + 1]));
             }
-            var staticValue = new Dictionary<StatAttribute, int>();
+            var staticValue = new Dictionary<BasicAttribute, int>();
             for (int i = 0; i < entry.static_value.Length; i += 2) {
                 if (string.IsNullOrWhiteSpace(entry.static_value[i])) continue;
-                staticValue.Add(entry.static_value[i].ToStatAttribute(), int.Parse(entry.static_value[i + 1]));
+                staticValue.Add(entry.static_value[i].ToBasicAttribute(), int.Parse(entry.static_value[i + 1]));
             }
-            var staticRate = new Dictionary<StatAttribute, int>();
+            var staticRate = new Dictionary<BasicAttribute, int>();
             for (int i = 0; i < entry.static_rate.Length; i += 2) {
                 if (string.IsNullOrWhiteSpace(entry.static_rate[i])) continue;
-                staticRate.Add(entry.static_rate[i].ToStatAttribute(), int.Parse(entry.static_rate[i + 1]));
+                staticRate.Add(entry.static_rate[i].ToBasicAttribute(), int.Parse(entry.static_rate[i + 1]));
             }
-            var randomValue = new Dictionary<StatAttribute, int>();
+            var randomValue = new Dictionary<BasicAttribute, int>();
             for (int i = 0; i < entry.random_value.Length; i += 2) {
                 if (string.IsNullOrWhiteSpace(entry.random_value[i])) continue;
-                randomValue.Add(entry.random_value[i].ToStatAttribute(), int.Parse(entry.random_value[i + 1]));
+                randomValue.Add(entry.random_value[i].ToBasicAttribute(), int.Parse(entry.random_value[i + 1]));
             }
-            var randomRate = new Dictionary<StatAttribute, int>();
+            var randomRate = new Dictionary<BasicAttribute, int>();
             for (int i = 0; i < entry.random_rate.Length; i += 2) {
                 if (string.IsNullOrWhiteSpace(entry.random_rate[i])) continue;
-                randomRate.Add(entry.random_rate[i].ToStatAttribute(), int.Parse(entry.random_rate[i + 1]));
+                randomRate.Add(entry.random_rate[i].ToBasicAttribute(), int.Parse(entry.random_rate[i + 1]));
             }
 
             if (!results.ContainsKey(entry.optionPickID)) {
@@ -357,8 +357,8 @@ public class TableMapper : TypeMapper<TableMetadata> {
     }
 
     private ItemVariationTable ParseItemVariation() {
-        var values = new Dictionary<StatAttribute, ItemVariationTable.Range<int>>();
-        var rates = new Dictionary<StatAttribute, ItemVariationTable.Range<float>>();
+        var values = new Dictionary<BasicAttribute, ItemVariationTable.Range<int>>();
+        var rates = new Dictionary<BasicAttribute, ItemVariationTable.Range<float>>();
         var specialValues = new Dictionary<SpecialAttribute, ItemVariationTable.Range<int>>();
         var specialRates = new Dictionary<SpecialAttribute, ItemVariationTable.Range<float>>();
         foreach (ItemOptionVariation.Option option in optionParser.ParseVariation()) {
@@ -371,7 +371,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
                     Max: option.OptionValueMax,
                     Interval: option.OptionValueVariation);
                 try {
-                    values[name.ToStatAttribute()] = variation;
+                    values[name.ToBasicAttribute()] = variation;
                 } catch (ArgumentOutOfRangeException) {
                     specialValues[name.ToSpecialAttribute()] = variation;
                 }
@@ -385,7 +385,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
                     Max: option.OptionRateMax,
                     Interval: option.OptionRateVariation);
                 try {
-                    rates[name.ToStatAttribute()] = variation;
+                    rates[name.ToBasicAttribute()] = variation;
                 } catch (ArgumentOutOfRangeException) {
                     specialRates[name.ToSpecialAttribute()] = variation;
                 }
@@ -397,8 +397,8 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
     private IEnumerable<(string Type, ItemEquipVariationTable Table)> ParseItemEquipVariation() {
         foreach ((string type, List<ItemOptionVariationEquip.Option> options) in optionParser.ParseVariationEquip()) {
-            var values = new Dictionary<StatAttribute, int[]>();
-            var rates = new Dictionary<StatAttribute, float[]>();
+            var values = new Dictionary<BasicAttribute, int[]>();
+            var rates = new Dictionary<BasicAttribute, float[]>();
             var specialValues = new Dictionary<SpecialAttribute, int[]>();
             var specialRates = new Dictionary<SpecialAttribute, float[]>();
             foreach (ItemOptionVariationEquip.Option option in options) {
@@ -411,7 +411,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
                     name = name[..^"value".Length]; // Remove suffix
                     try {
-                        values.Add(name.ToStatAttribute(), entries);
+                        values.Add(name.ToBasicAttribute(), entries);
                     } catch (ArgumentOutOfRangeException) {
                         specialValues.Add(name.ToSpecialAttribute(), entries);
                     }
@@ -424,7 +424,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
                     name = name[..^"rate".Length]; // Remove suffix
                     try {
-                        rates.Add(name.ToStatAttribute(), entries);
+                        rates.Add(name.ToBasicAttribute(), entries);
                     } catch (ArgumentOutOfRangeException) {
                         specialRates.Add(name.ToSpecialAttribute(), entries);
                     }
@@ -482,7 +482,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
             MasteryRecipeTable.Ingredient? rewardItem5 = ParseMasteryIngredient(recipe.rewardItem5);
             if (rewardItem5 != null) rewardItems.Add(rewardItem5);
 
-            MasteryRecipeTable.Entry entry = new MasteryRecipeTable.Entry(
+            var entry = new MasteryRecipeTable.Entry(
                 Id: (int) id,
                 Type: (MasteryType) recipe.masteryType,
                 NoRewardExp: recipe.exceptRewardExp,

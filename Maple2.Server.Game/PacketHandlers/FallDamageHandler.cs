@@ -16,7 +16,7 @@ public class FallDamageHandler : PacketHandler<GameSession> {
 
     public override void Handle(GameSession session, IByteReader packet) {
         float distance = packet.ReadFloat();
-        int damage = CalcFallDamage(session.Player.Stats[StatAttribute.Health].Total, distance);
+        int damage = CalcFallDamage(session.Player.Stats[BasicAttribute.Health].Total, distance);
 
         if (damage > 0) {
             // TODO: Reduce HP

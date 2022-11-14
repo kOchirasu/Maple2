@@ -26,14 +26,12 @@ public static class ClassSerializationExtensions {
         return reader.ReadCollection<T>();
     }
 
-    public static TCollection DeserializeCollection<TCollection, T>(this byte[] bytes)
-        where TCollection : ICollection<T>, new() where T : struct {
+    public static TCollection DeserializeCollection<TCollection, T>(this byte[] bytes) where TCollection : ICollection<T>, new() where T : struct {
         var reader = new ByteReader(bytes);
         return reader.ReadCollection<TCollection, T>();
     }
 
-    public static byte[] SerializeDictionary<TK, TV>(this IDictionary<TK, TV> dictionary)
-        where TK : struct where TV : struct {
+    public static byte[] SerializeDictionary<TK, TV>(this IDictionary<TK, TV> dictionary) where TK : struct where TV : struct {
         using var writer = new PoolByteWriter();
         writer.WriteInt(dictionary.Count);
         foreach ((TK key, TV value) in dictionary) {
@@ -43,8 +41,7 @@ public static class ClassSerializationExtensions {
         return writer.ToArray();
     }
 
-    public static IDictionary<TK, TV> DeserializeDictionary<TK, TV>(this byte[] bytes)
-        where TK : struct where TV : struct {
+    public static IDictionary<TK, TV> DeserializeDictionary<TK, TV>(this byte[] bytes) where TK : struct where TV : struct {
         var reader = new ByteReader(bytes);
         Dictionary<TK, TV> dictionary = new Dictionary<TK, TV>();
         int count = reader.ReadInt();

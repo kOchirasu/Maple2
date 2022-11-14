@@ -79,7 +79,7 @@ public class ItemEnchantManager {
     private Item? upgradeItem;
     private readonly List<IngredientInfo> catalysts;
     private readonly Dictionary<long, Item> fodders;
-    private readonly Dictionary<StatAttribute, StatOption> statDeltas;
+    private readonly Dictionary<BasicAttribute, BasicOption> attributeDeltas;
     private readonly EnchantRates rates;
     private int fodderWeight;
     private int useCharges;
@@ -90,7 +90,7 @@ public class ItemEnchantManager {
 
         catalysts = new List<IngredientInfo>();
         fodders = new Dictionary<long, Item>();
-        statDeltas = new Dictionary<StatAttribute, StatOption>();
+        attributeDeltas = new Dictionary<BasicAttribute, BasicOption>();
         rates = new EnchantRates();
     }
 
@@ -99,7 +99,7 @@ public class ItemEnchantManager {
         upgradeItem = null;
         catalysts.Clear();
         fodders.Clear();
-        statDeltas.Clear();
+        attributeDeltas.Clear();
         rates.Clear();
         fodderWeight = 0;
         useCharges = 0;
@@ -128,11 +128,11 @@ public class ItemEnchantManager {
         foreach (IngredientInfo ingredient in GetRequiredCatalysts()) {
             catalysts.Add(ingredient);
         }
-        foreach ((StatAttribute attribute, StatOption option) in GetStatOptions()) {
-            if (upgradeItem.Enchant.StatOptions.TryGetValue(attribute, out StatOption existing)) {
-                statDeltas[attribute] = option - existing;
+        foreach ((BasicAttribute attribute, BasicOption option) in GetBasicOptions()) {
+            if (upgradeItem.Enchant.BasicOptions.TryGetValue(attribute, out BasicOption existing)) {
+                attributeDeltas[attribute] = option - existing;
             } else {
-                statDeltas[attribute] = option;
+                attributeDeltas[attribute] = option;
             }
         }
 
@@ -145,7 +145,7 @@ public class ItemEnchantManager {
                 break;
         }
 
-        session.Send(ItemEnchantPacket.StageItem(Type, upgradeItem, catalysts, statDeltas, rates, minFodder));
+        session.Send(ItemEnchantPacket.StageItem(Type, upgradeItem, catalysts, attributeDeltas, rates, minFodder));
         return true;
     }
 
@@ -239,14 +239,14 @@ public class ItemEnchantManager {
                 logger.Debug("Enchant result: {Roll} / {Total} = {Result}", roll, totalRate, success);
 
                 if (success) {
-                    // GetStatOptions() again to ensure rates match those in table.
+                    // GetBasicOptions() again to ensure rates match those in table.
                     // This *MUST* be called before incrementing Enchants.
-                    foreach ((StatAttribute attribute, StatOption option) in GetStatOptions()) {
-                        upgradeItem.Enchant.StatOptions[attribute] = option;
+                    foreach ((BasicAttribute attribute, BasicOption option) in GetBasicOptions()) {
+                        upgradeItem.Enchant.BasicOptions[attribute] = option;
                     }
                     upgradeItem.Enchant.Enchants++;
 
-                    session.Send(ItemEnchantPacket.Success(upgradeItem, statDeltas));
+                    session.Send(ItemEnchantPacket.Success(upgradeItem, attributeDeltas));
                 } else {
                     upgradeItem.Enchant.Charges += FailCharge[enchants];
                     session.Send(ItemEnchantPacket.Failure(upgradeItem, FailCharge[enchants]));
@@ -258,14 +258,14 @@ public class ItemEnchantManager {
                 upgradeItem.Enchant.EnchantExp += GainExp[enchants];
                 if (upgradeItem.Enchant.EnchantExp >= MAX_EXP) {
                     upgradeItem.Enchant.EnchantExp = 0;
-                    // GetStatOptions() again to ensure rates match those in table.
+                    // GetBasicOptions() again to ensure rates match those in table.
                     // This *MUST* be called before incrementing Enchants.
-                    foreach ((StatAttribute attribute, StatOption option) in GetStatOptions()) {
-                        upgradeItem.Enchant.StatOptions[attribute] = option;
+                    foreach ((BasicAttribute attribute, BasicOption option) in GetBasicOptions()) {
+                        upgradeItem.Enchant.BasicOptions[attribute] = option;
                     }
                     upgradeItem.Enchant.Enchants++;
 
-                    session.Send(ItemEnchantPacket.Success(upgradeItem, statDeltas));
+                    session.Send(ItemEnchantPacket.Success(upgradeItem, attributeDeltas));
                     session.Send(ItemEnchantPacket.UpdateExp(itemUid, 0));
                     Reset();
                 } else {
@@ -355,18 +355,18 @@ public class ItemEnchantManager {
         }
     }
 
-    // TODO: Dynamic stat options
-    private IEnumerable<(StatAttribute, StatOption)> GetStatOptions() {
+    // TODO: Dynamic attribute options
+    private IEnumerable<(BasicAttribute, BasicOption)> GetBasicOptions() {
         if (upgradeItem == null) {
             yield break;
         }
 
         int enchants = upgradeItem.Enchant?.Enchants ?? 0;
         if (upgradeItem.Type.IsWeapon) {
-            yield return (StatAttribute.MinWeaponAtk, new StatOption(StatBonusRate[enchants]));
-            yield return (StatAttribute.MaxWeaponAtk, new StatOption(StatBonusRate[enchants]));
+            yield return (BasicAttribute.MinWeaponAtk, new BasicOption(StatBonusRate[enchants]));
+            yield return (BasicAttribute.MaxWeaponAtk, new BasicOption(StatBonusRate[enchants]));
         } else if (upgradeItem.Type.IsArmor) {
-            yield return (StatAttribute.Defense, new StatOption(StatBonusRate[enchants]));
+            yield return (BasicAttribute.Defense, new BasicOption(StatBonusRate[enchants]));
         }
     }
 

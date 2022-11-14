@@ -91,28 +91,28 @@ public class NpcMapper : TypeMapper<NpcMetadata> {
         }
     }
 
-    private static IReadOnlyDictionary<StatAttribute, long> MapStats(Stat stat) {
-        Dictionary<StatAttribute, long> stats = stat.ToDictionary();
+    private static IReadOnlyDictionary<BasicAttribute, long> MapStats(Stat stat) {
+        Dictionary<BasicAttribute, long> stats = stat.ToDictionary();
 
         if (FeatureLocaleFilter.FeatureEnabled("HiddenStatAdd01")) {
-            stats[StatAttribute.Health] = stats.GetValueOrDefault(StatAttribute.Health) + stat.hiddenhpadd;
-            stats[StatAttribute.Defense] = stats.GetValueOrDefault(StatAttribute.Defense) + stat.hiddennddadd;
+            stats[BasicAttribute.Health] = stats.GetValueOrDefault(BasicAttribute.Health) + stat.hiddenhpadd;
+            stats[BasicAttribute.Defense] = stats.GetValueOrDefault(BasicAttribute.Defense) + stat.hiddennddadd;
         }
         if (FeatureLocaleFilter.FeatureEnabled("HiddenStatAdd02")) {
-            stats[StatAttribute.PhysicalAtk] = stats.GetValueOrDefault(StatAttribute.PhysicalAtk) + stat.hiddenwapadd;
-            stats[StatAttribute.MagicalAtk] = stats.GetValueOrDefault(StatAttribute.MagicalAtk) + stat.hiddenwapadd;
+            stats[BasicAttribute.PhysicalAtk] = stats.GetValueOrDefault(BasicAttribute.PhysicalAtk) + stat.hiddenwapadd;
+            stats[BasicAttribute.MagicalAtk] = stats.GetValueOrDefault(BasicAttribute.MagicalAtk) + stat.hiddenwapadd;
         }
         if (FeatureLocaleFilter.FeatureEnabled("HiddenStatAdd03")) {
-            stats[StatAttribute.Health] = stats.GetValueOrDefault(StatAttribute.Health) + stat.hiddenhpadd03;
-            stats[StatAttribute.Defense] = stats.GetValueOrDefault(StatAttribute.Defense) + stat.hiddennddadd03;
-            stats[StatAttribute.PhysicalAtk] = stats.GetValueOrDefault(StatAttribute.PhysicalAtk) + stat.hiddenwapadd03;
-            stats[StatAttribute.MagicalAtk] = stats.GetValueOrDefault(StatAttribute.MagicalAtk) + stat.hiddenwapadd03;
+            stats[BasicAttribute.Health] = stats.GetValueOrDefault(BasicAttribute.Health) + stat.hiddenhpadd03;
+            stats[BasicAttribute.Defense] = stats.GetValueOrDefault(BasicAttribute.Defense) + stat.hiddennddadd03;
+            stats[BasicAttribute.PhysicalAtk] = stats.GetValueOrDefault(BasicAttribute.PhysicalAtk) + stat.hiddenwapadd03;
+            stats[BasicAttribute.MagicalAtk] = stats.GetValueOrDefault(BasicAttribute.MagicalAtk) + stat.hiddenwapadd03;
         }
         if (FeatureLocaleFilter.FeatureEnabled("HiddenStatAdd04")) {
-            stats[StatAttribute.Health] = stats.GetValueOrDefault(StatAttribute.Health) + stat.hiddenhpadd04;
-            stats[StatAttribute.Defense] = stats.GetValueOrDefault(StatAttribute.Defense) + stat.hiddennddadd04;
-            stats[StatAttribute.PhysicalAtk] = stats.GetValueOrDefault(StatAttribute.PhysicalAtk) + stat.hiddenwapadd04;
-            stats[StatAttribute.MagicalAtk] = stats.GetValueOrDefault(StatAttribute.MagicalAtk) + stat.hiddenwapadd04;
+            stats[BasicAttribute.Health] = stats.GetValueOrDefault(BasicAttribute.Health) + stat.hiddenhpadd04;
+            stats[BasicAttribute.Defense] = stats.GetValueOrDefault(BasicAttribute.Defense) + stat.hiddennddadd04;
+            stats[BasicAttribute.PhysicalAtk] = stats.GetValueOrDefault(BasicAttribute.PhysicalAtk) + stat.hiddenwapadd04;
+            stats[BasicAttribute.MagicalAtk] = stats.GetValueOrDefault(BasicAttribute.MagicalAtk) + stat.hiddenwapadd04;
         }
 
         return stats;

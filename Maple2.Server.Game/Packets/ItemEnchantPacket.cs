@@ -23,7 +23,7 @@ public static class ItemEnchantPacket {
         Unknown16 = 16,
     }
 
-    public static ByteWriter StageItem(EnchantType type, Item item, ICollection<IngredientInfo> catalysts, IDictionary<StatAttribute, StatOption> statDeltas, in EnchantRates rates, int requiredCount) {
+    public static ByteWriter StageItem(EnchantType type, Item item, ICollection<IngredientInfo> catalysts, IDictionary<BasicAttribute, BasicOption> statDeltas, in EnchantRates rates, int requiredCount) {
         var pWriter = Packet.Of(SendOp.ItemEnchant);
         pWriter.Write<Command>(Command.StageItem);
         pWriter.WriteShort((short) type);
@@ -37,9 +37,9 @@ public static class ItemEnchantPacket {
         pWriter.WriteShort();
 
         pWriter.WriteInt(statDeltas.Count);
-        foreach ((StatAttribute attribute, StatOption delta) in statDeltas) {
+        foreach ((BasicAttribute attribute, BasicOption delta) in statDeltas) {
             pWriter.WriteShort((short) attribute);
-            pWriter.Write<StatOption>(delta);
+            pWriter.Write<BasicOption>(delta);
         }
 
         if (type is EnchantType.Ophelia) {
@@ -108,16 +108,16 @@ public static class ItemEnchantPacket {
         return pWriter;
     }
 
-    public static ByteWriter Success(Item item, IDictionary<StatAttribute, StatOption> statDeltas) {
+    public static ByteWriter Success(Item item, IDictionary<BasicAttribute, BasicOption> statDeltas) {
         var pWriter = Packet.Of(SendOp.ItemEnchant);
         pWriter.Write<Command>(Command.Success);
         pWriter.WriteLong(item.Uid);
         pWriter.WriteClass<Item>(item);
 
         pWriter.WriteInt(statDeltas.Count);
-        foreach ((StatAttribute attribute, StatOption delta) in statDeltas) {
+        foreach ((BasicAttribute attribute, BasicOption delta) in statDeltas) {
             pWriter.WriteShort((short) attribute);
-            pWriter.Write<StatOption>(delta);
+            pWriter.Write<BasicOption>(delta);
         }
 
         return pWriter;

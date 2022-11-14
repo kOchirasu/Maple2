@@ -9,32 +9,32 @@ public sealed class ItemLimitBreak : IByteSerializable, IByteDeserializable {
     public static readonly ItemLimitBreak Default = new ItemLimitBreak();
 
     public int Level { get; private set; }
-    public readonly IDictionary<StatAttribute, StatOption> StatOptions;
+    public readonly IDictionary<BasicAttribute, BasicOption> BasicOptions;
     public readonly IDictionary<SpecialAttribute, SpecialOption> SpecialOptions;
 
     public ItemLimitBreak() {
-        StatOptions = new Dictionary<StatAttribute, StatOption>();
+        BasicOptions = new Dictionary<BasicAttribute, BasicOption>();
         SpecialOptions = new Dictionary<SpecialAttribute, SpecialOption>();
     }
 
     public ItemLimitBreak Clone() {
-        return new ItemLimitBreak(Level, StatOptions, SpecialOptions);
+        return new ItemLimitBreak(Level, BasicOptions, SpecialOptions);
     }
 
-    public ItemLimitBreak(int level, IDictionary<StatAttribute, StatOption> statOptions,
+    public ItemLimitBreak(int level, IDictionary<BasicAttribute, BasicOption> basicOptions,
             IDictionary<SpecialAttribute, SpecialOption> specialOptions) {
         Level = level;
-        StatOptions = statOptions;
+        BasicOptions = basicOptions;
         SpecialOptions = specialOptions;
     }
 
     public void WriteTo(IByteWriter writer) {
         writer.WriteInt(Level);
 
-        writer.WriteInt(StatOptions.Count);
-        foreach ((StatAttribute type, StatOption option) in StatOptions) {
+        writer.WriteInt(BasicOptions.Count);
+        foreach ((BasicAttribute type, BasicOption option) in BasicOptions) {
             writer.WriteShort((short)type);
-            writer.Write<StatOption>(option);
+            writer.Write<BasicOption>(option);
         }
         writer.WriteInt(SpecialOptions.Count);
         foreach ((SpecialAttribute type, SpecialOption option) in SpecialOptions) {
@@ -48,8 +48,8 @@ public sealed class ItemLimitBreak : IByteSerializable, IByteDeserializable {
 
         int statCount = reader.ReadInt();
         for (int i = 0; i < statCount; i++) {
-            var type = (StatAttribute)reader.ReadShort();
-            StatOptions[type] = reader.Read<StatOption>();
+            var type = (BasicAttribute)reader.ReadShort();
+            BasicOptions[type] = reader.Read<BasicOption>();
         }
         int specialCount = reader.ReadInt();
         for (int i = 0; i < specialCount; i++) {

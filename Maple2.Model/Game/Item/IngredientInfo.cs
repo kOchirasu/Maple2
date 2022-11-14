@@ -11,7 +11,6 @@ public readonly struct IngredientInfo {
     public readonly int Amount;
 
     public IngredientInfo(ItemTag tag, int amount) {
-        Unknown = 0;
         Tag = tag;
         Amount = amount;
     }

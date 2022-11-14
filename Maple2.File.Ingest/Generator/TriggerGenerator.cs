@@ -25,14 +25,14 @@ public class TriggerGenerator {
 
         XmlDocument checkUserCountDocument = reader.GetXmlDocument(reader.Files.First(entry =>
             entry.Name.StartsWith("trigger/dungeon_common/checkusercount.xml")));
-        foreach (XmlNode stateNode in checkUserCountDocument.SelectNodes("ms2/state")) {
+        foreach (XmlNode stateNode in checkUserCountDocument.SelectNodes("ms2/state")!) {
             string stateName = stateNode.Attributes["name"].Value;
             checkUserCountStates.Add(stateName, stateName);
         }
 
         XmlDocument guildCheckUserDocument = reader.GetXmlDocument(reader.Files.First(entry =>
             entry.Name.StartsWith("trigger/dungeon_common/checkuser10_guildraid.xml")));
-        foreach (XmlNode stateNode in guildCheckUserDocument.SelectNodes("ms2/state")) {
+        foreach (XmlNode stateNode in guildCheckUserDocument.SelectNodes("ms2/state")!) {
             string stateName = stateNode.Attributes["name"].Value;
             checkUser10States.Add(stateName, stateName);
         }
@@ -132,7 +132,7 @@ public class TriggerGenerator {
         // IndexStrings(name, isState: true);
 
         var onEnter = new List<TriggerScript.Action>();
-        foreach (XmlNode actionNode in node.SelectNodes("onEnter/action")) {
+        foreach (XmlNode actionNode in node.SelectNodes("onEnter/action")!) {
             TriggerScript.Action action = ParseAction(actionNode, stateIndex);
             if (actionNode.NextSibling is XmlComment comment) {
                 action.LineComment = comment.Value;
@@ -141,7 +141,7 @@ public class TriggerGenerator {
         }
 
         var conditions = new List<TriggerScript.Condition>();
-        foreach (XmlNode conditionNode in node.SelectNodes("condition")) {
+        foreach (XmlNode conditionNode in node.SelectNodes("condition")!) {
             TriggerScript.Condition condition = ParseCondition(conditionNode, stateIndex, filePath);
             if (conditionNode.NextSibling is XmlComment comment) {
                 condition.LineComment = comment.Value;
@@ -150,7 +150,7 @@ public class TriggerGenerator {
         }
 
         var onExit = new List<TriggerScript.Action>();
-        foreach (XmlNode actionNode in node.SelectNodes("onExit/action")) {
+        foreach (XmlNode actionNode in node.SelectNodes("onExit/action")!) {
             TriggerScript.Action action = ParseAction(actionNode, stateIndex);
             if (actionNode.NextSibling is XmlComment comment) {
                 action.LineComment = comment.Value;
@@ -262,7 +262,7 @@ public class TriggerGenerator {
         }
 
         var actions = new List<TriggerScript.Action>();
-        foreach (XmlNode action in node.SelectNodes("action")) {
+        foreach (XmlNode action in node.SelectNodes("action")!) {
             actions.Add(ParseAction(action, stateIndex));
         }
 
@@ -296,7 +296,7 @@ public class TriggerGenerator {
         {"6th", "Sixth"},
         {"7th", "Seventh"},
     };
-    [return: NotNullIfNotNull("name")]
+    [return: NotNullIfNotNull(nameof(name))]
     private static string? FixClassName(string? name) {
         if (name == null) {
             return null;
@@ -333,7 +333,7 @@ public class TriggerGenerator {
         return !IsLetter(name[^1]) ? $"{name}_{prefix}" : $"{name}{prefix}";
     }
 
-    [return: NotNullIfNotNull("name")]
+    [return: NotNullIfNotNull(nameof(name))]
     private static string? Translate(string? name, Func<string, string> translator) {
         if (name == null) {
             return null;
