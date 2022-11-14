@@ -15,6 +15,7 @@ internal class CharacterUnlock {
     public required ISet<int> Titles { get; set; }
     public required ISet<int> Emotes { get; set; }
     public required IDictionary<int, long> StickerSets { get; set; }
+    public required IDictionary<int, bool> MasteryRewardsClaimed { get; set; }
     public required IDictionary<int, short> Pets { get; set; }
     public required InventoryExpand Expand { get; set; }
     public DateTime LastModified { get; init; }
@@ -26,6 +27,7 @@ internal class CharacterUnlock {
             Titles = new SortedSet<int>(),
             Emotes = new SortedSet<int>(),
             StickerSets = new Dictionary<int, long>(),
+            MasteryRewardsClaimed = new Dictionary<int, bool>(),
             Pets = new SortedDictionary<int, short>(),
             Expand = new InventoryExpand(),
         } : new CharacterUnlock {
@@ -52,6 +54,7 @@ internal class CharacterUnlock {
             Titles = other.Titles,
             Emotes = other.Emotes,
             StickerSets = other.StickerSets,
+            MasteryRewardsClaimed = other.MasteryRewardsClaimed,
             Pets = other.Pets,
         };
     }
@@ -99,6 +102,10 @@ internal class CharacterUnlock {
             unlock.StickerSets[groupId] = expiration;
         }
 
+        foreach ((int rewardId, bool isClaimed) in other.MasteryRewardsClaimed) {
+            unlock.MasteryRewardsClaimed[rewardId] = isClaimed;
+        }
+
         return unlock;
     }
 
@@ -113,6 +120,7 @@ internal class CharacterUnlock {
         builder.Property(unlock => unlock.Titles).HasJsonConversion().IsRequired();
         builder.Property(unlock => unlock.Emotes).HasJsonConversion().IsRequired();
         builder.Property(unlock => unlock.StickerSets).HasJsonConversion();
+        builder.Property(unlock => unlock.MasteryRewardsClaimed).HasJsonConversion();
         builder.Property(unlock => unlock.Pets).HasJsonConversion().IsRequired();
 
         builder.Property(unlock => unlock.LastModified).IsRowVersion();

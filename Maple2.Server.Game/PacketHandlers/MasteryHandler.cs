@@ -11,6 +11,7 @@ using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -32,10 +33,49 @@ public class MasteryHandler : PacketHandler<GameSession> {
     public override void Handle(GameSession session, IByteReader packet) {
         var command = packet.Read<Command>();
         switch (command) {
+            case Command.Reward:
+                HandleReward(session, packet);
+                break;
             case Command.Craft:
                 HandleCraft(session, packet);
                 break;
         }
+    }
+
+    private void HandleReward(GameSession session, IByteReader packet) {
+        int rewardBoxDetails = packet.ReadInt();
+        var type = (MasteryType) (rewardBoxDetails / 1000);
+        int level = rewardBoxDetails % 100;
+
+        if (session.Player.Value.Unlock.MasteryRewardsClaimed.TryGetValue(rewardBoxDetails, out bool isClaimed) && isClaimed) {
+            session.Send(MasteryPacket.Error(MasteryError.s_mastery_error_unknown));
+            return;
+        }
+
+        if (!TableMetadata.MasteryRewardTable.Entries.TryGetValue(type, level, out MasteryRewardTable.Entry? entry)) {
+            return;
+        }
+
+        if (session.Mastery[type] < entry.Value) {
+            session.Send(MasteryPacket.Error(MasteryError.s_mastery_error_invalid_level));
+            return;
+        }
+
+        if (!ItemMetadata.TryGet(entry.ItemId, out ItemMetadata? itemMetadata)) {
+            return;
+        }
+
+        var rewardItem = new Item(itemMetadata, entry.ItemRarity, entry.ItemAmount);
+
+        if (!session.Item.Inventory.Add(rewardItem, true)) {
+            session.Send(ChatPacket.Alert(StringCode.s_err_inventory));
+            return;
+        }
+
+        session.Player.Value.Unlock.MasteryRewardsClaimed.Add(rewardBoxDetails, true);
+        session.Send(MasteryPacket.ClaimReward(rewardBoxDetails, new List<MasteryRecipeTable.Ingredient>() {
+            new(entry.ItemId, (short) entry.ItemRarity, entry.ItemRarity, ItemTag.None),
+        }));
     }
 
     private void HandleCraft(GameSession session, IByteReader packet) {
