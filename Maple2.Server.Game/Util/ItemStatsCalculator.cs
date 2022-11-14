@@ -20,7 +20,7 @@ public sealed class ItemStatsCalculator {
     // ReSharper restore All
     #endregion
 
-    public ItemStats? Compute(Item item) {
+    public ItemStats? GetStats(Item item) {
         if (item.Metadata.Option == null) {
             return null;
         }
@@ -63,6 +63,28 @@ public sealed class ItemStatsCalculator {
         }
 
         return stats;
+    }
+
+    public ItemSocket? GetSockets(Item item) {
+        // Only Earring, Necklace, and Ring have sockets.
+        if (!item.Type.IsAccessory || !item.Type.IsEarring && !item.Type.IsNecklace && !item.Type.IsRing) {
+            return null;
+        }
+
+        int socketId = item.Metadata.Property.SocketId;
+        if (item.Metadata.Property.SocketId != 0) {
+            if (!TableMetadata.ItemSocketTable.Entries.TryGetValue(socketId, item.Rarity, out ItemSocketMetadata? metadata)) {
+                // Fallback to rarity 0 which means any rarity.
+                if (!TableMetadata.ItemSocketTable.Entries.TryGetValue(socketId, 0, out metadata)) {
+                    return null;
+                }
+            }
+
+            return new ItemSocket(metadata.MaxCount, metadata.OpenCount);
+        }
+
+        // Just a random guess...
+        return item.Rarity > 2 ? new ItemSocket(3, 0) : null;
     }
 
     public bool UpdateRandomOption(ref Item item, params LockOption[] presets) {

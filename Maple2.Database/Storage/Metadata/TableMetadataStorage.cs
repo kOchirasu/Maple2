@@ -15,6 +15,13 @@ public class TableMetadataStorage {
     private readonly Lazy<InstrumentTable> instrumentTable;
     private readonly Lazy<InteractObjectTable> interactObjectTable;
     private readonly Lazy<InteractObjectTable> interactMasteryTable;
+    private readonly Lazy<ItemSocketTable> itemSocketTable;
+
+    private readonly Lazy<EnchantScrollTable> enchantScrollTable;
+    private readonly Lazy<ItemRemakeScrollTable> itemRemakeScrollTable;
+    private readonly Lazy<ItemRepackingScrollTable> itemRepackingScrollTable;
+    private readonly Lazy<ItemSocketScrollTable> itemSocketScrollTable;
+
     private readonly Lazy<ItemOptionConstantTable> itemOptionConstantTable;
     private readonly Lazy<ItemOptionRandomTable> itemOptionRandomTable;
     private readonly Lazy<ItemOptionStaticTable> itemOptionStaticTable;
@@ -35,6 +42,13 @@ public class TableMetadataStorage {
     public InstrumentTable InstrumentTable => instrumentTable.Value;
     public InteractObjectTable InteractObjectTable => interactObjectTable.Value;
     public InteractObjectTable InteractMasteryTable => interactMasteryTable.Value;
+    public ItemSocketTable ItemSocketTable => itemSocketTable.Value;
+
+    public EnchantScrollTable EnchantScrollTable => enchantScrollTable.Value;
+    public ItemRemakeScrollTable ItemRemakeScrollTable => itemRemakeScrollTable.Value;
+    public ItemRepackingScrollTable ItemRepackingScrollTable => itemRepackingScrollTable.Value;
+    public ItemSocketScrollTable ItemSocketScrollTable => itemSocketScrollTable.Value;
+
     public ItemOptionConstantTable ItemOptionConstantTable => itemOptionConstantTable.Value;
     public ItemOptionRandomTable ItemOptionRandomTable => itemOptionRandomTable.Value;
     public ItemOptionStaticTable ItemOptionStaticTable => itemOptionStaticTable.Value;
@@ -56,6 +70,11 @@ public class TableMetadataStorage {
         instrumentTable = Retrieve<InstrumentTable>(context, "instrumentcategoryinfo.xml");
         interactObjectTable = Retrieve<InteractObjectTable>(context, "interactobject.xml");
         interactMasteryTable = Retrieve<InteractObjectTable>(context, "interactobject_mastery.xml");
+        itemSocketTable = Retrieve<ItemSocketTable>(context, "itemsocket.xml");
+        enchantScrollTable = Retrieve<EnchantScrollTable>(context, "enchantscroll.xml");
+        itemRemakeScrollTable = Retrieve<ItemRemakeScrollTable>(context, "itemremakescroll.xml");
+        itemRepackingScrollTable = Retrieve<ItemRepackingScrollTable>(context, "itemrepackingscroll.xml");
+        itemSocketScrollTable = Retrieve<ItemSocketScrollTable>(context, "itemsocketscroll.xml");
         itemOptionConstantTable = Retrieve<ItemOptionConstantTable>(context, "itemoptionconstant.xml");
         itemOptionRandomTable = Retrieve<ItemOptionRandomTable>(context, "itemoptionrandom.xml");
         itemOptionStaticTable = Retrieve<ItemOptionStaticTable>(context, "itemoptionstatic.xml");

@@ -8,6 +8,7 @@ using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Extensions;
@@ -65,7 +66,7 @@ public class InventoryManager {
         };
     }
 
-    private static short MaxSize(InventoryType type) {
+    private static short MaxExpandSize(InventoryType type) {
         return type switch {
             InventoryType.Gear => Constant.BagSlotTabGameCountMax,
             InventoryType.Outfit => Constant.BagSlotTabSkinCountMax,
@@ -295,8 +296,10 @@ public class InventoryManager {
                 return;
             }
 
-            short newSize = (short) (items.Size + Constant.InventoryExpandRowCount);
-            if (newSize > MaxSize(type)) {
+            short newExpand = (short) (session.Player.Value.Unlock.Expand[type] + Constant.InventoryExpandRowCount);
+            if (newExpand > MaxExpandSize(type)) {
+                // There is client side validation for this, but if the server side limits mismatch, use this error.
+                session.Send(NoticePacket.MessageBox(StringCode.s_inventory_err_expand_max));
                 return;
             }
 
@@ -305,18 +308,18 @@ public class InventoryManager {
                 return;
             }
 
-            if (!items.Expand(newSize)) {
+            if (!items.Expand((short) (BaseSize(type) + newExpand))) {
                 return;
             }
 
             session.Currency.Meret -= Constant.InventoryExpandPrice1Row;
             if (session.Player.Value.Unlock.Expand.ContainsKey(type)) {
-                session.Player.Value.Unlock.Expand[type] += Constant.InventoryExpandRowCount;
+                session.Player.Value.Unlock.Expand[type] = newExpand;
             } else {
                 session.Player.Value.Unlock.Expand[type] = Constant.InventoryExpandRowCount;
             }
 
-            session.Send(ItemInventoryPacket.ExpandCount(type, items.Size - BaseSize(type)));
+            session.Send(ItemInventoryPacket.ExpandCount(type, newExpand));
             session.Send(ItemInventoryPacket.ExpandComplete());
         }
     }

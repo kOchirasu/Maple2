@@ -61,7 +61,7 @@ public class TutorialCommand : Command {
                             }
 
                             var item = new Item(metadata, rewardItem.Rarity, rewardItem.Count);
-                            item.Stats = itemStatsCalc.Compute(item);
+                            item.Stats = itemStatsCalc.GetStats(item);
                             item = db.CreateItem(player.Character.Id, item);
                             if (item == null) {
                                 ctx.Console.Error.WriteLine($"Failed to create item: {rewardItem.Id}");

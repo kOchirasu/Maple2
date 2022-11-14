@@ -97,7 +97,8 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     TradableCount: tradableCount,
                     TradableCountDeduction: tradableCountDeduction,
                     RepackCount: data.property.rePackingLimitCount,
-                    DisableDrop: data.property.disableDrop
+                    DisableDrop: data.property.disableDrop,
+                    SocketId: data.property.socketDataId
                 ),
                 Limit: new ItemMetadataLimit(
                     Gender: (Gender) data.limit.genderLimit,
