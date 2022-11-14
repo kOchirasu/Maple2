@@ -23,7 +23,7 @@ public class TutorialCommand : Command {
     #endregion
 
     public TutorialCommand(GameSession session) : base(NAME, DESCRIPTION) {
-        Add(new RewardCommand(session, ItemStatsCalc));
+        Add(new RewardCommand(session, this));
     }
 
     private class RewardCommand : Command {
@@ -34,11 +34,13 @@ public class TutorialCommand : Command {
         }
 
         private readonly GameSession session;
-        private readonly ItemStatsCalculator itemStatsCalc;
+        private readonly TutorialCommand parent;
 
-        public RewardCommand(GameSession session, ItemStatsCalculator itemStatsCalc) : base("reward", "Receive tutorial reward.") {
+        private ItemStatsCalculator ItemStatsCalc => parent.ItemStatsCalc;
+
+        public RewardCommand(GameSession session, TutorialCommand parent) : base("reward", "Receive tutorial reward.") {
             this.session = session;
-            this.itemStatsCalc = itemStatsCalc;
+            this.parent = parent;
 
             var type = new Argument<Type>("type", "Type of tutorial reward.");
 
@@ -61,7 +63,7 @@ public class TutorialCommand : Command {
                             }
 
                             var item = new Item(metadata, rewardItem.Rarity, rewardItem.Count);
-                            item.Stats = itemStatsCalc.GetStats(item);
+                            item.Stats = ItemStatsCalc.GetStats(item);
                             item = db.CreateItem(player.Character.Id, item);
                             if (item == null) {
                                 ctx.Console.Error.WriteLine($"Failed to create item: {rewardItem.Id}");
@@ -69,7 +71,7 @@ public class TutorialCommand : Command {
                                 return;
                             }
 
-                            session.Item.Inventory.Add(item);
+                            session.Item.Inventory.Add(item, true);
                         }
                         break;
                     }

@@ -31,7 +31,8 @@ public record ItemMetadataProperty(
     int TradableCountDeduction,
     int RepackCount,
     bool DisableDrop,
-    int SocketId);
+    int SocketId,
+    bool IsFragment);
 
 public record ItemMetadataLimit(
     Gender Gender,

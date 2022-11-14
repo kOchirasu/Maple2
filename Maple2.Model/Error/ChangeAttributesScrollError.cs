@@ -5,6 +5,7 @@ using System.ComponentModel;
 namespace Maple2.Model.Error;
 
 public enum ChangeAttributesScrollError {
+    none = 0,
     [Description("This item is not eligible.")]
     s_itemremake_scroll_error_invalid_target = 1,
     [Description("The selected items are no longer valid.")]

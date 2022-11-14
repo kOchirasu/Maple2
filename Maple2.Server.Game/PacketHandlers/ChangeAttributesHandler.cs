@@ -96,7 +96,7 @@ public class ChangeAttributesHandler : PacketHandler<GameSession> {
 
                 lockItem = GetLockConsumeItem(session, item);
                 if (lockItem == null) {
-                    session.Send(ChangeAttributesPacket.Error(s_itemremake_error_server_fail_lack_lock_consume_item));
+                    session.Send(ChangeAttributesPacket.Error(s_itemremake_error_server_default));
                     return;
                 }
             }
@@ -182,6 +182,7 @@ public class ChangeAttributesHandler : PacketHandler<GameSession> {
             }
 
             item.Stats[ItemStats.Type.Random] = session.ChangeAttributesItem.Stats[ItemStats.Type.Random];
+            session.ChangeAttributesItem = null;
             session.Send(ChangeAttributesPacket.SelectItem(item));
         }
     }

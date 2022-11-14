@@ -3,9 +3,10 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using Maple2.Database.Storage;
-using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.Server.Game.Model;
+using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Server.Game.Util;
 
@@ -34,14 +35,16 @@ public class ItemCommand : Command {
         var id = new Argument<int>("id", "Id of item to spawn.");
         var amount = new Option<int>(new[] {"--amount", "-a"}, () => 1, "Amount of the item.");
         var rarity = new Option<int>(new[] {"--rarity", "-r"}, () => 1, "Rarity of the item.");
+        var drop = new Option<bool>(new[] {"--drop"}, "Drop item instead of adding to inventory");
 
         AddArgument(id);
         AddOption(amount);
         AddOption(rarity);
-        this.SetHandler<InvocationContext, int, int, int>(Handle, id, amount, rarity);
+        AddOption(drop);
+        this.SetHandler<InvocationContext, int, int, int, bool>(Handle, id, amount, rarity, drop);
     }
 
-    private void Handle(InvocationContext ctx, int itemId, int amount, int rarity) {
+    private void Handle(InvocationContext ctx, int itemId, int amount, int rarity, bool drop) {
         try {
             if (!itemStorage.TryGet(itemId, out ItemMetadata? metadata)) {
                 ctx.Console.Error.WriteLine($"Invalid Item: {itemId}");
@@ -69,7 +72,10 @@ public class ItemCommand : Command {
                 }
             }
 
-            if (!session.Item.Inventory.Add(item, true)) {
+            if (drop && session.Field != null) {
+                FieldItem fieldItem = session.Field.SpawnItem(session.Player, item);
+                session.Field.Broadcast(FieldPacket.DropItem(fieldItem));
+            } else if (!session.Item.Inventory.Add(item, true)) {
                 session.Item.Inventory.Discard(item);
                 ctx.Console.Error.WriteLine($"Failed to add item:{item.Id} to inventory");
                 ctx.ExitCode = 1;
