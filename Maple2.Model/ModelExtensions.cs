@@ -15,6 +15,9 @@ public static class ModelExtensions {
     }
 
     public static InventoryType Inventory(this ItemMetadata metadata) {
+        if (metadata.Property.IsFragment) {
+            return InventoryType.Fragment;
+        }
         return metadata.Property.Type switch {
             0 => metadata.Property.SubType == 2 ? InventoryType.Consumable : InventoryType.Misc, // Unknown
             1 => metadata.Property.IsSkin ? InventoryType.Outfit : InventoryType.Gear,

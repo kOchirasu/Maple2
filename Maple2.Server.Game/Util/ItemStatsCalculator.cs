@@ -127,7 +127,7 @@ public sealed class ItemStatsCalculator {
     }
 
     // TODO: These should technically be weighted towards the lower end.
-    private bool RandomizeValues(in ItemType type, ref ItemStats.Option option) {
+    public bool RandomizeValues(in ItemType type, ref ItemStats.Option option) {
         ItemEquipVariationTable? table = GetVariationTable(type);
         if (table == null) {
             return false;

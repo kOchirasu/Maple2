@@ -41,6 +41,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             case ItemFunction.ChatEmoticonAdd:
                 HandleChatSticker(session, item);
                 break;
+            case ItemFunction.ItemRemakeScroll:
+                HandleItemRemakeScroll(session, item);
+                break;
             case ItemFunction.TitleScroll:
                 HandleTitleScroll(session, item);
                 break;
@@ -100,6 +103,10 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         session.Player.Value.Unlock.StickerSets[stickerSetId] = newTime;
 
         session.Send(ChatStickerPacket.Add(item, new ChatSticker(stickerSetId, session.Player.Value.Unlock.StickerSets[stickerSetId])));
+    }
+
+    private static void HandleItemRemakeScroll(GameSession session, Item item) {
+        session.Send(ChangeAttributesScrollPacket.UseScroll(item));
     }
 
     private static void HandleTitleScroll(GameSession session, Item item) {
