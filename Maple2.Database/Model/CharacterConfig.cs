@@ -15,7 +15,7 @@ internal class CharacterConfig {
     public IList<QuickSlot[]>? HotBars { get; set; }
     public IList<SkillMacro>? SkillMacros { get; set; }
     public IList<Wardrobe>? Wardrobes { get; set; }
-    public IDictionary<StatAttribute, int>? StatAllocation { get; set; }
+    public IDictionary<BasicAttribute, int>? StatAllocation { get; set; }
     public SkillBook? SkillBook { get; set; }
     public IList<int>? FavoriteStickers { get; set; }
 

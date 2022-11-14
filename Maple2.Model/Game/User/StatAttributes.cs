@@ -55,12 +55,12 @@ public class StatAttributes : IByteSerializable {
     }
 
     public class PointAllocation : IByteSerializable {
-        private readonly Dictionary<StatAttribute, int> points;
+        private readonly Dictionary<BasicAttribute, int> points;
 
-        public StatAttribute[] Attributes => points.Keys.ToArray();
+        public BasicAttribute[] Attributes => points.Keys.ToArray();
         public int Count => points.Values.Sum();
 
-        public int this[StatAttribute type] {
+        public int this[BasicAttribute type] {
             get => points.GetValueOrDefault(type);
             set {
                 if (value < 0 || value > StatLimit(type)) {
@@ -76,25 +76,25 @@ public class StatAttributes : IByteSerializable {
         }
 
         public PointAllocation() {
-            points = new Dictionary<StatAttribute, int>();
+            points = new Dictionary<BasicAttribute, int>();
         }
 
-        public static int StatLimit(StatAttribute type) {
+        public static int StatLimit(BasicAttribute type) {
             return type switch {
-                StatAttribute.Strength => Constant.StatPointLimit_str,
-                StatAttribute.Dexterity => Constant.StatPointLimit_dex,
-                StatAttribute.Intelligence => Constant.StatPointLimit_int,
-                StatAttribute.Luck => Constant.StatPointLimit_luk,
-                StatAttribute.Health => Constant.StatPointLimit_hp,
-                StatAttribute.CriticalRate => Constant.StatPointLimit_cap,
+                BasicAttribute.Strength => Constant.StatPointLimit_str,
+                BasicAttribute.Dexterity => Constant.StatPointLimit_dex,
+                BasicAttribute.Intelligence => Constant.StatPointLimit_int,
+                BasicAttribute.Luck => Constant.StatPointLimit_luk,
+                BasicAttribute.Health => Constant.StatPointLimit_hp,
+                BasicAttribute.CriticalRate => Constant.StatPointLimit_cap,
                 _ => 0,
             };
         }
 
         public void WriteTo(IByteWriter writer) {
             writer.WriteInt(points.Count);
-            foreach ((StatAttribute type, int value) in points) {
-                writer.Write<StatAttribute>(type);
+            foreach ((BasicAttribute type, int value) in points) {
+                writer.Write<BasicAttribute>(type);
                 writer.WriteInt(value);
             }
         }

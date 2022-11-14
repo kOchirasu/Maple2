@@ -32,29 +32,29 @@ public sealed class ItemStatsCalculator {
 
         ItemOptionPickTable.Option? pick = TableMetadata.ItemOptionPickTable.Options.GetValueOrDefault(item.Metadata.Option.PickId, item.Rarity);
         if (pick != null) {
-            var constantResult = new Dictionary<StatAttribute, StatOption>();
-            foreach ((StatAttribute attribute, int deviation) in pick.ConstantValue) {
+            var constantResult = new Dictionary<BasicAttribute, BasicOption>();
+            foreach ((BasicAttribute attribute, int deviation) in pick.ConstantValue) {
                 int value = ConstValue(attribute, deviation, item.Type.Type, job, levelFactor, item.Rarity, level);
                 if (value > 0) {
-                    constantResult[attribute] = new StatOption(value);
+                    constantResult[attribute] = new BasicOption(value);
                 }
             }
-            stats[ItemStats.Type.Constant] = new ItemStats.Option(statOption: constantResult);
+            stats[ItemStats.Type.Constant] = new ItemStats.Option(basicOption: constantResult);
 
-            var staticResult = new Dictionary<StatAttribute, StatOption>();
-            foreach ((StatAttribute attribute, int deviation) in pick.StaticValue) {
+            var staticResult = new Dictionary<BasicAttribute, BasicOption>();
+            foreach ((BasicAttribute attribute, int deviation) in pick.StaticValue) {
                 int value = StaticValue(attribute, deviation, item.Type.Type, job, levelFactor, item.Rarity, level);
                 if (value > 0) {
-                    staticResult[attribute] = new StatOption(value);
+                    staticResult[attribute] = new BasicOption(value);
                 }
             }
-            foreach ((StatAttribute attribute, int deviation) in pick.StaticRate) {
+            foreach ((BasicAttribute attribute, int deviation) in pick.StaticRate) {
                 float rate = StaticRate(attribute, deviation, item.Type.Type, job, levelFactor, item.Rarity, level);
                 if (rate > 0) {
-                    staticResult[attribute] = new StatOption(rate);
+                    staticResult[attribute] = new BasicOption(rate);
                 }
             }
-            stats[ItemStats.Type.Static] = new ItemStats.Option(statOption: staticResult);
+            stats[ItemStats.Type.Static] = new ItemStats.Option(basicOption: staticResult);
         }
 
         if (GetRandomOption(item, out ItemStats.Option? option)) {
@@ -108,7 +108,7 @@ public sealed class ItemStatsCalculator {
 
         // Restore locked values.
         foreach (LockOption lockOption in presets) {
-            if (lockOption.TryGet(out StatAttribute basic, out bool lockBasicValue)) {
+            if (lockOption.TryGet(out BasicAttribute basic, out bool lockBasicValue)) {
                 if (lockBasicValue) {
                     Debug.Assert(randomOption.Basic.ContainsKey(basic), "Missing basic attribute after using lock.");
                     randomOption.Basic[basic] = option.Basic[basic];
@@ -133,14 +133,14 @@ public sealed class ItemStatsCalculator {
             return false;
         }
 
-        foreach (StatAttribute attribute in option.Basic.Keys) {
+        foreach (BasicAttribute attribute in option.Basic.Keys) {
             int index = Random.Shared.Next(2, 18);
             if (table.Values.TryGetValue(attribute, out int[]? values)) {
                 int value = values.ElementAtOrDefault(index);
-                option.Basic[attribute] = new StatOption(value);
+                option.Basic[attribute] = new BasicOption(value);
             } else if (table.Rates.TryGetValue(attribute, out float[]? rates)) {
                 float rate = rates.ElementAtOrDefault(index);
-                option.Basic[attribute] = new StatOption(rate);
+                option.Basic[attribute] = new BasicOption(rate);
             }
         }
         foreach (SpecialAttribute attribute in option.Special.Keys) {
@@ -191,7 +191,7 @@ public sealed class ItemStatsCalculator {
     }
 
     private static ItemStats.Option RandomItemOption(ItemOption option, int count = -1, params LockOption[] presets) {
-        var statResult = new Dictionary<StatAttribute, StatOption>();
+        var statResult = new Dictionary<BasicAttribute, BasicOption>();
         var specialResult = new Dictionary<SpecialAttribute, SpecialOption>();
 
         int total = count < 0 ? Random.Shared.Next(option.NumPick.Min, option.NumPick.Max + 1) : count;
@@ -203,8 +203,8 @@ public sealed class ItemStatsCalculator {
 
         // Compute locked options first.
         foreach (LockOption preset in presets) {
-            if (preset.TryGet(out StatAttribute basic, out bool _)) {
-                ItemOption.Entry entry = option.Entries.FirstOrDefault(e => e.StatAttribute == basic);
+            if (preset.TryGet(out BasicAttribute basic, out bool _)) {
+                ItemOption.Entry entry = option.Entries.FirstOrDefault(e => e.BasicAttribute == basic);
                 // Ignore any invalid presets, they will get populated with valid data below.
                 AddResult(entry, statResult, specialResult);
             } else if (preset.TryGet(out SpecialAttribute special, out bool _)) {
@@ -225,20 +225,20 @@ public sealed class ItemStatsCalculator {
         return new ItemStats.Option(statResult, specialResult);
 
         // Helper function
-        bool AddResult(ItemOption.Entry entry, IDictionary<StatAttribute, StatOption> statDict, IDictionary<SpecialAttribute, SpecialOption> specialDict) {
-            if (entry.StatAttribute == null && entry.SpecialAttribute == null || entry.Values == null && entry.Rates == null) {
+        bool AddResult(ItemOption.Entry entry, IDictionary<BasicAttribute, BasicOption> statDict, IDictionary<SpecialAttribute, SpecialOption> specialDict) {
+            if (entry.BasicAttribute == null && entry.SpecialAttribute == null || entry.Values == null && entry.Rates == null) {
                 return false;
             }
 
-            if (entry.StatAttribute != null) {
-                var attribute = (StatAttribute) entry.StatAttribute;
+            if (entry.BasicAttribute != null) {
+                var attribute = (BasicAttribute) entry.BasicAttribute;
                 if (statDict.ContainsKey(attribute)) return true; // Cannot add duplicate values, retry.
 
                 if (entry.Values != null) {
-                    statDict.Add(attribute, new StatOption(Random.Shared.Next(entry.Values.Value.Min, entry.Values.Value.Max + 1)));
+                    statDict.Add(attribute, new BasicOption(Random.Shared.Next(entry.Values.Value.Min, entry.Values.Value.Max + 1)));
                 } else if (entry.Rates != null) {
                     float delta = entry.Rates.Value.Max - entry.Rates.Value.Min;
-                    statDict.Add(attribute, new StatOption(Random.Shared.NextSingle() * delta + entry.Rates.Value.Min));
+                    statDict.Add(attribute, new BasicOption(Random.Shared.NextSingle() * delta + entry.Rates.Value.Min));
                 }
                 return true;
             }
@@ -258,42 +258,42 @@ public sealed class ItemStatsCalculator {
         }
     }
 
-    private int ConstValue(StatAttribute attribute, int deviation, int type, int job, int levelFactor, int rarity, ushort level) {
+    private int ConstValue(BasicAttribute attribute, int deviation, int type, int job, int levelFactor, int rarity, ushort level) {
         (float, float) range = attribute switch {
-            StatAttribute.Strength => Lua.ConstantValueStr(0, deviation, type, job, levelFactor, rarity, level),
-            StatAttribute.Dexterity => Lua.ConstantValueDex(0, deviation, type, job, levelFactor, rarity, level),
-            StatAttribute.Intelligence => Lua.ConstantValueInt(0, deviation, type, job, levelFactor, rarity, level, 1), // TODO: handle a7
-            StatAttribute.Luck => Lua.ConstantValueLuk(0, deviation, type, job, levelFactor, rarity, level),
-            StatAttribute.Health => Lua.ConstantValueHp(0, deviation, type, job, levelFactor, rarity, level),
-            StatAttribute.CriticalRate => Lua.ConstantValueCap(0, deviation, type, job, levelFactor, rarity, level),
-            StatAttribute.Defense => Lua.ConstantValueNdd(0, deviation, type, job, levelFactor, rarity, level),
-            StatAttribute.MagicalAtk => Lua.ConstantValueMap(0, deviation, type, job, levelFactor, rarity, level),
-            StatAttribute.PhysicalRes => Lua.ConstantValuePar(0, deviation, type, job, levelFactor, rarity, level),
-            StatAttribute.MagicalRes => Lua.ConstantValueMar(0, deviation, type, job, levelFactor, rarity, level),
-            StatAttribute.MinWeaponAtk => Lua.ConstantValueWapMin(0, deviation, type, job, levelFactor, rarity, level),
-            StatAttribute.MaxWeaponAtk => Lua.ConstantValueWapMax(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.Strength => Lua.ConstantValueStr(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.Dexterity => Lua.ConstantValueDex(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.Intelligence => Lua.ConstantValueInt(0, deviation, type, job, levelFactor, rarity, level, 1), // TODO: handle a7
+            BasicAttribute.Luck => Lua.ConstantValueLuk(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.Health => Lua.ConstantValueHp(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.CriticalRate => Lua.ConstantValueCap(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.Defense => Lua.ConstantValueNdd(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.MagicalAtk => Lua.ConstantValueMap(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.PhysicalRes => Lua.ConstantValuePar(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.MagicalRes => Lua.ConstantValueMar(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.MinWeaponAtk => Lua.ConstantValueWapMin(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.MaxWeaponAtk => Lua.ConstantValueWapMax(0, deviation, type, job, levelFactor, rarity, level),
             _ => (0, 0),
         };
         return (int) Math.Max(range.Item1, range.Item2);
     }
 
-    private int StaticValue(StatAttribute attribute, int deviation, int type, int job, int levelFactor, int rarity, ushort level) {
+    private int StaticValue(BasicAttribute attribute, int deviation, int type, int job, int levelFactor, int rarity, ushort level) {
         (float, float) range = attribute switch {
-            StatAttribute.Health => Lua.StaticValueHp(0, deviation, type, job, levelFactor, rarity, level),
-            StatAttribute.Defense => Lua.StaticValueNdd(0, deviation, type, job, levelFactor, rarity, level),
-            StatAttribute.PhysicalAtk => Lua.StaticValuePap(0, deviation, type, job, levelFactor, rarity, level),
-            StatAttribute.MagicalAtk => Lua.StaticValueMap(0, deviation, type, job, levelFactor, rarity, level),
-            StatAttribute.PhysicalRes => Lua.StaticValuePar(0, deviation, type, job, levelFactor, rarity, level),
-            StatAttribute.MagicalRes => Lua.StaticValueMar(0, deviation, type, job, levelFactor, rarity, level),
-            StatAttribute.MaxWeaponAtk => Lua.StaticValueWapMax(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.Health => Lua.StaticValueHp(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.Defense => Lua.StaticValueNdd(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.PhysicalAtk => Lua.StaticValuePap(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.MagicalAtk => Lua.StaticValueMap(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.PhysicalRes => Lua.StaticValuePar(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.MagicalRes => Lua.StaticValueMar(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.MaxWeaponAtk => Lua.StaticValueWapMax(0, deviation, type, job, levelFactor, rarity, level),
             _ => (0, 0),
         };
         return Random.Shared.Next((int) range.Item1, (int) range.Item2 + 1);
     }
 
-    private float StaticRate(StatAttribute attribute, int deviation, int type, int job, int levelFactor, int rarity, ushort level) {
+    private float StaticRate(BasicAttribute attribute, int deviation, int type, int job, int levelFactor, int rarity, ushort level) {
         (float, float) range = attribute switch {
-            StatAttribute.PerfectGuard => Lua.StaticRateAbp(0, deviation, type, job, levelFactor, rarity, level),
+            BasicAttribute.PerfectGuard => Lua.StaticRateAbp(0, deviation, type, job, levelFactor, rarity, level),
             _ => (0, 0),
         };
         return Random.Shared.NextSingle() * (range.Item2 - range.Item1) + range.Item1;

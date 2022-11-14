@@ -86,7 +86,7 @@ public class ChangeAttributesScrollHandler : PacketHandler<GameSession> {
                         return;
                     }
                 } else {
-                    if (!itemOption.Basic.ContainsKey((StatAttribute) attribute)) {
+                    if (!itemOption.Basic.ContainsKey((BasicAttribute) attribute)) {
                         session.Send(ChangeAttributesScrollPacket.Error(s_itemremake_scroll_error_impossible_property));
                         return;
                     }
@@ -119,7 +119,7 @@ public class ChangeAttributesScrollHandler : PacketHandler<GameSession> {
                     var specialAttribute = (SpecialAttribute) attribute;
                     changeOption.Special[specialAttribute] = option.Special[specialAttribute];
                 } else {
-                    var basicAttribute = (StatAttribute) attribute;
+                    var basicAttribute = (BasicAttribute) attribute;
                     changeOption.Basic[basicAttribute] = option.Basic[basicAttribute];
                 }
             }

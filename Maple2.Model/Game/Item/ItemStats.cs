@@ -33,12 +33,12 @@ public sealed class ItemStats : IByteSerializable, IByteDeserializable {
         }
     }
 
-    public ItemStats(Dictionary<StatAttribute, StatOption>[] statOption, Dictionary<SpecialAttribute, SpecialOption>[] specialOption) {
+    public ItemStats(Dictionary<BasicAttribute, BasicOption>[] basicOption, Dictionary<SpecialAttribute, SpecialOption>[] specialOption) {
         // Ensure all entries are set.
         options = new Option[TYPE_COUNT];
         for (int i = 0; i < TYPE_COUNT; i++) {
             options[i] = new Option(
-                statOption.ElementAtOrDefault(i, () => new Dictionary<StatAttribute, StatOption>()),
+                basicOption.ElementAtOrDefault(i, () => new Dictionary<BasicAttribute, BasicOption>()),
                 specialOption.ElementAtOrDefault(i, () => new Dictionary<SpecialAttribute, SpecialOption>()));
         }
     }
@@ -47,7 +47,7 @@ public sealed class ItemStats : IByteSerializable, IByteDeserializable {
         var stats = new ItemStats();
         for (int i = 0; i < TYPE_COUNT; i++) {
             stats.options[i] = new Option(
-                new Dictionary<StatAttribute, StatOption>(options[i].Basic),
+                new Dictionary<BasicAttribute, BasicOption>(options[i].Basic),
                 new Dictionary<SpecialAttribute, SpecialOption>(options[i].Special));
         }
         return stats;
@@ -63,9 +63,9 @@ public sealed class ItemStats : IByteSerializable, IByteDeserializable {
         for (int i = 0; i < TYPE_COUNT; i++) {
             Option option = options[i];
             writer.WriteShort((short) option.Basic.Count);
-            foreach ((StatAttribute type, StatOption statOption) in option.Basic) {
+            foreach ((BasicAttribute type, BasicOption basicOption) in option.Basic) {
                 writer.WriteShort((short)type);
-                writer.Write<StatOption>(statOption);
+                writer.Write<BasicOption>(basicOption);
             }
             writer.WriteShort((short) option.Special.Count);
             foreach ((SpecialAttribute type, SpecialOption specialOption) in option.Special) {
@@ -81,10 +81,10 @@ public sealed class ItemStats : IByteSerializable, IByteDeserializable {
         reader.ReadByte();
         for (int i = 0; i < TYPE_COUNT; i++) {
             Option option = options[i];
-            short statCount = reader.ReadShort();
-            for (int j = 0; j < statCount; j++) {
-                var type = (StatAttribute)reader.ReadShort();
-                option.Basic[type] = reader.Read<StatOption>();
+            short basicCount = reader.ReadShort();
+            for (int j = 0; j < basicCount; j++) {
+                var type = (BasicAttribute)reader.ReadShort();
+                option.Basic[type] = reader.Read<BasicOption>();
             }
             short specialCount = reader.ReadShort();
             for (int j = 0; j < specialCount; j++) {
@@ -97,20 +97,20 @@ public sealed class ItemStats : IByteSerializable, IByteDeserializable {
     }
 
     public class Option {
-        public readonly Dictionary<StatAttribute, StatOption> Basic;
+        public readonly Dictionary<BasicAttribute, BasicOption> Basic;
         public readonly Dictionary<SpecialAttribute, SpecialOption> Special;
 
         public int Count => Basic.Count + Special.Count;
 
-        public Option(Dictionary<StatAttribute, StatOption>? statOption = null, Dictionary<SpecialAttribute, SpecialOption>? specialOption = null) {
-            Basic = statOption ?? new Dictionary<StatAttribute, StatOption>();
+        public Option(Dictionary<BasicAttribute, BasicOption>? basicOption = null, Dictionary<SpecialAttribute, SpecialOption>? specialOption = null) {
+            Basic = basicOption ?? new Dictionary<BasicAttribute, BasicOption>();
             Special = specialOption ?? new Dictionary<SpecialAttribute, SpecialOption>();
         }
 
         public override string ToString() {
             var builder = new StringBuilder();
-            builder.AppendLine("StatOption:");
-            foreach ((StatAttribute attribute, StatOption option) in Basic) {
+            builder.AppendLine("BasicOption:");
+            foreach ((BasicAttribute attribute, BasicOption option) in Basic) {
                 builder.AppendLine($"- {attribute}={option}");
             }
             builder.AppendLine("SpecialOption:");

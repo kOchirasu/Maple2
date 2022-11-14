@@ -60,15 +60,15 @@ public class Mail : IByteSerializable {
     }
 
     public void SetSenderName(StringCode name) {
-        SenderName = $@"<ms2><v key=""{name.ToString()}"" /></ms2>";
+        SenderName = $"""<ms2><v key="{name.ToString()}" /></ms2>""";
     }
 
     public void SetTitle(StringCode title) {
-        Title = $@"<ms2><v key=""{title.ToString()}"" /></ms2>";
+        Title = $"""<ms2><v key="{title.ToString()}" /></ms2>""";
     }
 
     public void SetContent(StringCode content) {
-        Content = $@"<ms2><v key=""{content.ToString()}"" /></ms2>";
+        Content = $"""<ms2><v key="{content.ToString()}" /></ms2>""";
     }
 
     public bool MesoCollected() {
@@ -159,7 +159,7 @@ public class Mail : IByteSerializable {
         var result = new StringBuilder();
         result.Append("<ms2>");
         foreach ((string key, string value) in args) {
-            result.Append($@"<v {(key.Length > 0 ? key : "key")}=""{value}"" />");
+            result.Append($"""<v {(key.Length > 0 ? key : "key")}="{value}" />""");
         }
         result.Append("</ms2>");
 

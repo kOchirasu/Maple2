@@ -89,8 +89,8 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
             }
 
             if (damageAmount != 0) {
-                Stats[StatAttribute.Health].Add(damageAmount);
-                Field.Broadcast(StatsPacket.Update(this, StatAttribute.Health));
+                Stats[BasicAttribute.Health].Add(damageAmount);
+                Field.Broadcast(StatsPacket.Update(this, BasicAttribute.Health));
             }
 
             damage.Targets.Add(targetRecord);
@@ -131,7 +131,7 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
             return;
         }
 
-        if (Stats[StatAttribute.Health].Current <= 0) {
+        if (Stats[BasicAttribute.Health].Current <= 0) {
             IsDead = true;
             OnDeath();
             return;

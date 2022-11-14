@@ -38,7 +38,7 @@ internal class Item {
     public DateTime CreationTime { get; set; }
     public DateTime LastModified { get; set; }
 
-    [return:NotNullIfNotNull("other")]
+    [return:NotNullIfNotNull(nameof(other))]
     public static implicit operator Item?(Maple2.Model.Game.Item? other) {
         if (other == null) {
             return null;

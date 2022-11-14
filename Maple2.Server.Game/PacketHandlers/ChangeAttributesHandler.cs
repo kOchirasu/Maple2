@@ -88,7 +88,7 @@ public class ChangeAttributesHandler : PacketHandler<GameSession> {
                         return;
                     }
                 } else {
-                    if (!itemOption.Basic.ContainsKey((StatAttribute) attribute)) {
+                    if (!itemOption.Basic.ContainsKey((BasicAttribute) attribute)) {
                         session.Send(ChangeAttributesPacket.Error(s_itemremake_error_server_impossible));
                         return;
                     }
@@ -132,7 +132,7 @@ public class ChangeAttributesHandler : PacketHandler<GameSession> {
                         return;
                     }
                 } else {
-                    if (!ItemStatsCalc.UpdateRandomOption(ref changeItem, new LockOption((StatAttribute) attribute, true))) {
+                    if (!ItemStatsCalc.UpdateRandomOption(ref changeItem, new LockOption((BasicAttribute) attribute, true))) {
                         session.Send(ChangeAttributesPacket.Error(s_itemremake_error_server_default));
                         return;
                     }
@@ -193,7 +193,7 @@ public class ChangeAttributesHandler : PacketHandler<GameSession> {
         bool useLock = packet.ReadBool();
         if (useLock) {
             byte index = packet.ReadByte();
-            var attribute = (StatAttribute) packet.ReadShort();
+            var attribute = (BasicAttribute) packet.ReadShort();
         }
 
         packet.ReadBool();

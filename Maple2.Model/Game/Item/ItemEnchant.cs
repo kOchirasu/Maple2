@@ -15,20 +15,20 @@ public sealed class ItemEnchant : IByteSerializable, IByteDeserializable {
     public bool CanRepack { get; private set; }
     public int Charges { get; set; }
 
-    public readonly Dictionary<StatAttribute, StatOption> StatOptions;
+    public readonly Dictionary<BasicAttribute, BasicOption> BasicOptions;
 
     public ItemEnchant(int enchants = 0, int enchantExp = 0, byte enchantCharges = 1, bool canRepack = true,
-            int charges = 0, Dictionary<StatAttribute, StatOption>? statOptions = null) {
+            int charges = 0, Dictionary<BasicAttribute, BasicOption>? basicOptions = null) {
         Enchants = enchants;
         EnchantExp = enchantExp;
         EnchantCharges = enchantCharges;
         CanRepack = canRepack;
         Charges = charges;
-        StatOptions = statOptions ?? new Dictionary<StatAttribute, StatOption>();
+        BasicOptions = basicOptions ?? new Dictionary<BasicAttribute, BasicOption>();
     }
 
     public ItemEnchant Clone() {
-        return new ItemEnchant(Enchants, EnchantExp, EnchantCharges, CanRepack, Charges, new Dictionary<StatAttribute, StatOption>(StatOptions));
+        return new ItemEnchant(Enchants, EnchantExp, EnchantCharges, CanRepack, Charges, new Dictionary<BasicAttribute, BasicOption>(BasicOptions));
     }
 
     public void WriteTo(IByteWriter writer) {
@@ -41,10 +41,10 @@ public sealed class ItemEnchant : IByteSerializable, IByteDeserializable {
         writer.WriteBool(CanRepack);
         writer.WriteInt(Charges);
 
-        writer.WriteByte((byte)StatOptions.Count);
-        foreach ((StatAttribute type, StatOption option) in StatOptions) {
+        writer.WriteByte((byte)BasicOptions.Count);
+        foreach ((BasicAttribute type, BasicOption option) in BasicOptions) {
             writer.WriteInt((int)type);
-            writer.Write<StatOption>(option);
+            writer.Write<BasicOption>(option);
         }
     }
 
@@ -60,8 +60,8 @@ public sealed class ItemEnchant : IByteSerializable, IByteDeserializable {
 
         byte count = reader.ReadByte();
         for (int i = 0; i < count; i++) {
-            var type = (StatAttribute)reader.ReadInt();
-            StatOptions[type] = reader.Read<StatOption>();
+            var type = (BasicAttribute)reader.ReadInt();
+            BasicOptions[type] = reader.Read<BasicOption>();
         }
     }
 }

@@ -51,7 +51,7 @@ public record SkillMetadataConsume(
     long Meso,
     bool UseItem,
     float HpRate,
-    Dictionary<StatAttribute, long> Stat);
+    Dictionary<BasicAttribute, long> Stat);
 
 public record SkillMetadataRecovery(
     long SpValue,
