@@ -13,6 +13,7 @@ public static class UserEnvPacket {
         UpdateTitles = 1,
         LoadTitles = 2,
         LifeSkillCount = 8,
+        MasteryRewardsClaimed = 9,
     }
 
     public static ByteWriter AddTitle(int titleId) {
@@ -37,6 +38,18 @@ public static class UserEnvPacket {
         foreach (int title in titles) {
             pWriter.WriteInt(title);
         }
+
+        return pWriter;
+    }
+
+    public static ByteWriter LoadClaimedRewards(IDictionary<int, bool> claimedRewards) {
+        var pWriter = Packet.Of(SendOp.UserEnv);
+        pWriter.Write<Command>(Command.MasteryRewardsClaimed);
+        pWriter.WriteInt(claimedRewards.Count);
+        foreach (KeyValuePair<int, bool> reward in claimedRewards) {
+            pWriter.WriteInt(reward.Key);
+            pWriter.WriteBool(reward.Value);
+        };
 
         return pWriter;
     }
