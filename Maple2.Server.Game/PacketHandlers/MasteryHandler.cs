@@ -9,6 +9,7 @@ using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
+using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -32,10 +33,42 @@ public class MasteryHandler : PacketHandler<GameSession> {
     public override void Handle(GameSession session, IByteReader packet) {
         var command = packet.Read<Command>();
         switch (command) {
+            case Command.Reward:
+                HandleReward(session, packet);
+                break;
             case Command.Craft:
                 HandleCraft(session, packet);
                 break;
         }
+    }
+
+    private void HandleReward(GameSession session, IByteReader packet) {
+        int rewardBoxDetails = packet.ReadInt();
+        MasteryType type = (MasteryType) (rewardBoxDetails / 1000);
+        int grade = rewardBoxDetails % 100;
+
+        if (!TableMetadata.MasteryRewardTable.Entries.TryGetValue(type, out MasteryRewardTable.Entry? entry) || entry.Levels.TryGetValue(grade, out MasteryRewardTable.Level? levelMetadata) || levelMetadata == null) {
+            return;
+        }
+
+        if (session.Mastery[type] < levelMetadata.Value) {
+            session.Send(MasteryPacket.Error(MasteryError.s_mastery_error_invalid_level));
+            return;
+        }
+
+        if (!ItemMetadata.TryGet(levelMetadata.ItemId, out ItemMetadata? itemMetadata)) {
+            return;
+        }
+
+        var rewardItem = new Item(itemMetadata, levelMetadata.ItemRarity, levelMetadata.ItemAmount);
+
+        if (!session.Item.Inventory.CanAdd(rewardItem)) {
+            session.Send(ChatPacket.Alert(StringCode.s_err_inventory));
+            return;
+        }
+
+        session.Item.Inventory.Add(rewardItem, true);
+        session.Send(MasteryPacket.ClaimReward(rewardBoxDetails, new List<MasteryRecipeTable.Ingredient>(){new(levelMetadata.ItemId, (short) levelMetadata.ItemRarity, levelMetadata.ItemRarity, ItemTag.None)}));
     }
 
     private void HandleCraft(GameSession session, IByteReader packet) {

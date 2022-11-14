@@ -45,4 +45,5 @@ public class TableMetadata {
 [JsonDerivedType(typeof(ItemSocketScrollTable), typeDiscriminator: "itemsocketscroll")]
 [JsonDerivedType(typeof(ChatStickerTable), typeDiscriminator: "chatsticker")]
 [JsonDerivedType(typeof(MasteryRecipeTable), typeDiscriminator: "masteryrecipe")]
+[JsonDerivedType(typeof(MasteryRewardTable), typeDiscriminator: "masteryreward")]
 public abstract record Table;

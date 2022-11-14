@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using Maple2.File.Ingest.Utils;
 using Maple2.File.IO;
 using Maple2.File.Parser;
@@ -36,6 +37,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "interactobject_mastery.xml", Table = ParseInteractObject(true)};
         yield return new TableMetadata {Name = "itemsocket.xml", Table = ParseItemSocketTable()};
         yield return new TableMetadata {Name = "masteryreceipe.xml", Table = ParseMasteryRecipe()};
+		yield return new TableMetadata {Name = "mastery.xml", Table = ParseMasteryReward()};
         // Scroll
         yield return new TableMetadata {Name = "enchantscroll.xml", Table = ParseEnchantScrollTable()};
         yield return new TableMetadata {Name = "itemremakescroll.xml", Table = ParseItemRemakeScrollTable()};
@@ -533,6 +535,24 @@ public class TableMapper : TypeMapper<TableMetadata> {
             Rarity: (short) ingredientArray[1],
             Amount: ingredientArray[2],
             Tag: ItemTag.None);
+    }
+	
+	    private MasteryRewardTable ParseMasteryReward() {
+        var results = new Dictionary<MasteryType, MasteryRewardTable.Entry>();
+        foreach ((Parser.Enum.MasteryType Type, MasteryReward Reward) in parser.ParseMasteryReward()) {
+            var masteryLevelDictionary = new Dictionary<int, MasteryRewardTable.Level>();
+            foreach (MasteryLevel level in Reward.v) {
+                masteryLevelDictionary.Add(level.grade, new MasteryRewardTable.Level(
+                    Value: level.value,
+                    ItemId: level.rewardJobItemID,
+                    ItemRarity: level.rewardJobItemRank,
+                    ItemAmount: level.rewardJobItemCount));
+            }
+            results.Add((MasteryType) Type, new MasteryRewardTable.Entry(
+                Type: (MasteryType) Type,
+                Levels: masteryLevelDictionary));
+        }
+        return new MasteryRewardTable(results);
     }
 
     private EnchantScrollTable ParseEnchantScrollTable() {
