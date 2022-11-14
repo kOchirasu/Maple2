@@ -12,6 +12,7 @@ public class TableMetadataStorage {
     private readonly Lazy<JobTable> jobTable;
     private readonly Lazy<MagicPathTable> magicPathTable;
     private readonly Lazy<MasteryRecipeTable> masteryRecipeTable;
+    private readonly Lazy<MasteryRewardTable> masteryRewardTable;
     private readonly Lazy<InstrumentTable> instrumentTable;
     private readonly Lazy<InteractObjectTable> interactObjectTable;
     private readonly Lazy<InteractObjectTable> interactMasteryTable;
@@ -39,6 +40,7 @@ public class TableMetadataStorage {
     public JobTable JobTable => jobTable.Value;
     public MagicPathTable MagicPathTable => magicPathTable.Value;
     public MasteryRecipeTable MasteryRecipeTable => masteryRecipeTable.Value;
+    public MasteryRewardTable MasteryRewardTable => masteryRewardTable.Value;
     public InstrumentTable InstrumentTable => instrumentTable.Value;
     public InteractObjectTable InteractObjectTable => interactObjectTable.Value;
     public InteractObjectTable InteractMasteryTable => interactMasteryTable.Value;
@@ -67,6 +69,7 @@ public class TableMetadataStorage {
         jobTable = Retrieve<JobTable>(context, "job.xml");
         magicPathTable = Retrieve<MagicPathTable>(context, "magicpath.xml");
         masteryRecipeTable = Retrieve<MasteryRecipeTable>(context, "masteryreceipe.xml");
+        masteryRewardTable = Retrieve<MasteryRewardTable>(context, "mastery.xml");
         instrumentTable = Retrieve<InstrumentTable>(context, "instrumentcategoryinfo.xml");
         interactObjectTable = Retrieve<InteractObjectTable>(context, "interactobject.xml");
         interactMasteryTable = Retrieve<InteractObjectTable>(context, "interactobject_mastery.xml");

@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using Maple2.Model.Error;
-using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
@@ -13,6 +11,7 @@ public static class UserEnvPacket {
         UpdateTitles = 1,
         LoadTitles = 2,
         LifeSkillCount = 8,
+        MasteryRewardsClaimed = 9,
     }
 
     public static ByteWriter AddTitle(int titleId) {
@@ -37,6 +36,18 @@ public static class UserEnvPacket {
         foreach (int title in titles) {
             pWriter.WriteInt(title);
         }
+
+        return pWriter;
+    }
+
+    public static ByteWriter LoadClaimedRewards(IDictionary<int, bool> claimedRewards) {
+        var pWriter = Packet.Of(SendOp.UserEnv);
+        pWriter.Write<Command>(Command.MasteryRewardsClaimed);
+        pWriter.WriteInt(claimedRewards.Count);
+        foreach ((int rewardId, bool isClaimed) in claimedRewards) {
+            pWriter.WriteInt(rewardId);
+            pWriter.WriteBool(isClaimed);
+        };
 
         return pWriter;
     }
