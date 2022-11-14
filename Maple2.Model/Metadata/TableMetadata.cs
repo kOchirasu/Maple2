@@ -38,6 +38,11 @@ public class TableMetadata {
 [JsonDerivedType(typeof(ItemOptionPickTable), typeDiscriminator: "itemoptionpick")]
 [JsonDerivedType(typeof(ItemVariationTable), typeDiscriminator: "itemvariation")]
 [JsonDerivedType(typeof(ItemEquipVariationTable), typeDiscriminator: "itemequipvariation")]
+[JsonDerivedType(typeof(EnchantScrollTable), typeDiscriminator: "enchantscroll")]
+[JsonDerivedType(typeof(ItemRemakeScrollTable), typeDiscriminator: "itemremakescroll")]
+[JsonDerivedType(typeof(ItemRepackingScrollTable), typeDiscriminator: "itemrepackingscroll")]
+[JsonDerivedType(typeof(ItemSocketTable), typeDiscriminator: "itemsocket")]
+[JsonDerivedType(typeof(ItemSocketScrollTable), typeDiscriminator: "itemsocketscroll")]
 [JsonDerivedType(typeof(ChatStickerTable), typeDiscriminator: "chatsticker")]
 [JsonDerivedType(typeof(MasteryRecipeTable), typeDiscriminator: "masteryrecipe")]
 public abstract record Table;

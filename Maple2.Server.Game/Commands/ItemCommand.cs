@@ -34,16 +34,14 @@ public class ItemCommand : Command {
         var id = new Argument<int>("id", "Id of item to spawn.");
         var amount = new Option<int>(new[] {"--amount", "-a"}, () => 1, "Amount of the item.");
         var rarity = new Option<int>(new[] {"--rarity", "-r"}, () => 1, "Rarity of the item.");
-        var socket = new Option<int[]>(new[] {"--socket", "-s"}, "Number of sockets: '-s max -s unlocked'");
 
         AddArgument(id);
         AddOption(amount);
         AddOption(rarity);
-        AddOption(socket);
-        this.SetHandler<InvocationContext, int, int, int, int[]>(Handle, id, amount, rarity, socket);
+        this.SetHandler<InvocationContext, int, int, int>(Handle, id, amount, rarity);
     }
 
-    private void Handle(InvocationContext ctx, int itemId, int amount, int rarity, int[] socket) {
+    private void Handle(InvocationContext ctx, int itemId, int amount, int rarity) {
         try {
             if (!itemStorage.TryGet(itemId, out ItemMetadata? metadata)) {
                 ctx.Console.Error.WriteLine($"Invalid Item: {itemId}");
@@ -59,12 +57,8 @@ public class ItemCommand : Command {
             rarity = Math.Clamp(rarity, 1, MAX_RARITY);
 
             var item = new Item(metadata, rarity, amount);
-            item.Stats = ItemStatsCalc.Compute(item);
-            if (item.Inventory is InventoryType.Gear or InventoryType.Outfit) {
-                byte maxSockets = (byte) Math.Clamp(socket.Length >= 1 ? socket[0] : 0, 0, MAX_SOCKET);
-                byte unlockSockets = (byte) Math.Clamp(socket.Length >= 2 ? socket[1] : 0, 0, maxSockets);
-                item.Socket = new ItemSocket(maxSockets, unlockSockets);
-            }
+            item.Stats = ItemStatsCalc.GetStats(item);
+            item.Socket = ItemStatsCalc.GetSockets(item);
 
             using (GameStorage.Request db = session.GameStorage.Context()) {
                 item = db.CreateItem(session.CharacterId, item);

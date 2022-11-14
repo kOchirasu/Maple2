@@ -305,7 +305,7 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
             }
 
             var gem = new Item(metadata, rarity: Constant.GemstoneGrade);
-            gem.Stats = ItemStatsCalc.Compute(gem);
+            gem.Stats = ItemStatsCalc.GetStats(gem);
             if (!session.Item.Inventory.Add(gem, true)) {
                 return; // Failed to add to inventory
             }

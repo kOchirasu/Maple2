@@ -5,8 +5,11 @@ using Maple2.File.Parser;
 using Maple2.File.Parser.Xml;
 using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using ChatSticker = Maple2.File.Parser.Xml.Table.ChatSticker;
 using InteractObject = Maple2.File.Parser.Xml.Table.InteractObject;
+using ItemSocket = Maple2.File.Parser.Xml.Table.ItemSocket;
 using JobTable = Maple2.Model.Metadata.JobTable;
 using MagicPath = Maple2.Model.Metadata.MagicPath;
 
@@ -31,7 +34,13 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "instrumentcategoryinfo.xml", Table = ParseInstrument()};
         yield return new TableMetadata {Name = "interactobject.xml", Table = ParseInteractObject(false)};
         yield return new TableMetadata {Name = "interactobject_mastery.xml", Table = ParseInteractObject(true)};
+        yield return new TableMetadata {Name = "itemsocket.xml", Table = ParseItemSocketTable()};
         yield return new TableMetadata {Name = "masteryreceipe.xml", Table = ParseMasteryRecipe()};
+        // Scroll
+        yield return new TableMetadata {Name = "enchantscroll.xml", Table = ParseEnchantScrollTable()};
+        yield return new TableMetadata {Name = "itemremakescroll.xml", Table = ParseItemRemakeScrollTable()};
+        yield return new TableMetadata {Name = "itemrepackingscroll.xml", Table = ParseItemRepackingScrollTable()};
+        yield return new TableMetadata {Name = "itemsocketscroll.xml", Table = ParseItemSocketScrollTable()};
         // ItemOption
         yield return new TableMetadata {Name = "itemoptionconstant.xml", Table = ParseItemOptionConstant()};
         yield return new TableMetadata {Name = "itemoptionrandom.xml", Table = ParseItemOptionRandom()};
@@ -426,6 +435,24 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
     }
 
+    private ItemSocketTable ParseItemSocketTable() {
+        var results = new Dictionary<int, IReadOnlyDictionary<int, ItemSocketMetadata>>();
+        IEnumerable<IGrouping<int, ItemSocket>> groups = parser.ParseItemSocket()
+            .Select(entry => entry.Socket)
+            .GroupBy(entry => entry.id);
+        foreach (IGrouping<int, ItemSocket> group in groups) {
+            var idResults = new Dictionary<int, ItemSocketMetadata>();
+            foreach (ItemSocket socket in group) {
+                idResults.Add(socket.grade, new ItemSocketMetadata(
+                    MaxCount: (byte) socket.maxCount,
+                    OpenCount: (byte) socket.fixOpenCount));
+            }
+            results.Add(group.Key, idResults);
+        }
+
+        return new ItemSocketTable(results);
+    }
+
     private MasteryRecipeTable ParseMasteryRecipe() {
         var results = new Dictionary<int, MasteryRecipeTable.Entry>();
         foreach ((long id, MasteryRecipe recipe) in parser.ParseMasteryRecipe()) {
@@ -506,5 +533,61 @@ public class TableMapper : TypeMapper<TableMetadata> {
             Rarity: (short) ingredientArray[1],
             Amount: ingredientArray[2],
             Tag: ItemTag.None);
+    }
+
+    private EnchantScrollTable ParseEnchantScrollTable() {
+        var results = new Dictionary<int, EnchantScrollMetadata>();
+        foreach ((int id, EnchantScroll scroll) in parser.ParseEnchantScroll()) {
+            results.Add(id, new EnchantScrollMetadata(
+                Type: scroll.scrollType,
+                MinLevel: scroll.minLv,
+                MaxLevel: scroll.maxLv,
+                Enchants: scroll.grade,
+                ItemTypes: scroll.slot,
+                Rarities: scroll.rank));
+        }
+
+        return new EnchantScrollTable(results);
+    }
+
+    private ItemRemakeScrollTable ParseItemRemakeScrollTable() {
+        var results = new Dictionary<int, ItemRemakeScrollMetadata>();
+        foreach ((int id, ItemRemakeScroll scroll) in parser.ParseItemRemakeScroll()) {
+            results.Add(id, new ItemRemakeScrollMetadata(
+                MinLevel: scroll.minLv,
+                MaxLevel: scroll.maxLv,
+                ItemTypes: scroll.slot,
+                Rarities: scroll.rank));
+        }
+
+        return new ItemRemakeScrollTable(results);
+    }
+
+    private ItemRepackingScrollTable ParseItemRepackingScrollTable() {
+        var results = new Dictionary<int, ItemRepackingScrollMetadata>();
+        foreach ((int id, ItemRepackingScroll scroll) in parser.ParseItemRepackingScroll()) {
+            results.Add(id, new ItemRepackingScrollMetadata(
+                MinLevel: scroll.minLv,
+                MaxLevel: scroll.maxLv,
+                ItemTypes: scroll.slot,
+                Rarities: scroll.rank,
+                IsPet: scroll.petType));
+        }
+
+        return new ItemRepackingScrollTable(results);
+    }
+
+    private ItemSocketScrollTable ParseItemSocketScrollTable() {
+        var results = new Dictionary<int, ItemSocketScrollMetadata>();
+        foreach ((int id, ItemSocketScroll scroll) in parser.ParseItemSocketScroll()) {
+            results.Add(id, new ItemSocketScrollMetadata(
+                MinLevel: scroll.minLv,
+                MaxLevel: scroll.maxLv,
+                ItemTypes: scroll.slot,
+                Rarities: scroll.rank,
+                TradableCountDeduction: scroll.tradableCountDeduction ? 1 : 0));
+        }
+
+        return new ItemSocketScrollTable(results);
     }
 }

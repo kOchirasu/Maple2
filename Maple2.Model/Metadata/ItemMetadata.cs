@@ -30,7 +30,8 @@ public record ItemMetadataProperty(
     int TradableCount,
     int TradableCountDeduction,
     int RepackCount,
-    bool DisableDrop);
+    bool DisableDrop,
+    int SocketId);
 
 public record ItemMetadataLimit(
     Gender Gender,
