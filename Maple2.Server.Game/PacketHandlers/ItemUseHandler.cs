@@ -21,7 +21,8 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public ItemMetadataStorage ItemMetadata { get; init; } = null!;
+    public ItemMetadataStorage ItemMetadata { private get; init; } = null!;
+    public TableMetadataStorage TableMetadata { private get; init; } = null!;
     // ReSharper restore All
     #endregion
 
@@ -40,6 +41,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
                 break;
             case ItemFunction.ChatEmoticonAdd:
                 HandleChatSticker(session, item);
+                break;
+            case ItemFunction.EnchantScroll:
+                HandleEnchantScroll(session, item);
                 break;
             case ItemFunction.ItemRemakeScroll:
                 HandleItemRemakeScroll(session, item);
@@ -103,6 +107,20 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         session.Player.Value.Unlock.StickerSets[stickerSetId] = newTime;
 
         session.Send(ChatStickerPacket.Add(item, new ChatSticker(stickerSetId, session.Player.Value.Unlock.StickerSets[stickerSetId])));
+    }
+
+    private void HandleEnchantScroll(GameSession session, Item item) {
+        if (!int.TryParse(item.Metadata.Function?.Parameters, out int enchantId)) {
+            session.Send(EnchantScrollPacket.Error(EnchantScrollError.s_enchantscroll_invalid_scroll));
+            return;
+        }
+
+        if (!TableMetadata.EnchantScrollTable.Entries.TryGetValue(enchantId, out EnchantScrollMetadata? metadata)) {
+            session.Send(EnchantScrollPacket.Error(EnchantScrollError.s_enchantscroll_invalid_scroll));
+            return;
+        }
+
+        session.Send(EnchantScrollPacket.UseScroll(item, metadata));
     }
 
     private static void HandleItemRemakeScroll(GameSession session, Item item) {
