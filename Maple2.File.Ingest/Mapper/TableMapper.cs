@@ -38,6 +38,10 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "itemsocket.xml", Table = ParseItemSocketTable()};
         yield return new TableMetadata {Name = "masteryreceipe.xml", Table = ParseMasteryRecipe()};
         yield return new TableMetadata {Name = "mastery.xml", Table = ParseMasteryReward()};
+        // Fishing
+        yield return new TableMetadata {Name = "fishingspot.xml", Table = ParseFishingSpot()};
+        yield return new TableMetadata {Name = "fish.xml", Table = ParseFish()};
+        yield return new TableMetadata {Name = "fishingrod.xml", Table = ParseFishingRod()};
         // Scroll
         yield return new TableMetadata {Name = "enchantscroll.xml", Table = ParseEnchantScrollTable()};
         yield return new TableMetadata {Name = "itemremakescroll.xml", Table = ParseItemRemakeScrollTable()};
@@ -551,6 +555,51 @@ public class TableMapper : TypeMapper<TableMetadata> {
             results.Add((MasteryType) type, masteryLevelDictionary);
         }
         return new MasteryRewardTable(results);
+    }
+
+    private FishingSpotTable ParseFishingSpot() {
+        var results = new Dictionary<int, FishingSpotTable.Entry>();
+        foreach ((int mapId, FishingSpot spot) in parser.ParseFishingSpot()) {
+            var entry = new FishingSpotTable.Entry(mapId, spot.minMastery, spot.maxMastery, spot.liquidType);
+            results.Add(mapId, entry);
+        }
+        return new FishingSpotTable(results);
+    }
+
+    private FishTable ParseFish() {
+        var results = new Dictionary<int, FishTable.Entry>();
+
+        // Parse habitat and combine
+        var habitats = new Dictionary<int, IReadOnlyList<int>>();
+        foreach ((int id, FishHabitat habitat) in parser.ParseFishHabitat()) {
+            var habitatMaps = new List<int>();
+            foreach (string map in habitat.habitat) {
+                string mapString = map.Replace(",", "");
+                if (int.TryParse(mapString, out int mapId)) {
+                    habitatMaps.Add(mapId);
+                }
+            }
+            habitats.Add(id, habitatMaps);
+        }
+
+        foreach ((int id, Fish fish) in parser.ParseFish()) {
+            if (!habitats.TryGetValue(id, out IReadOnlyList<int>? habitatList)) {
+                habitatList = new List<int>();
+            }
+            var entry = new FishTable.Entry(id, fish.habitat, habitatList, fish.fishMastery, (short) fish.rank,
+                fish.smallSize.Split("-").Select(int.Parse).ToArray(), fish.bigSize.Split("-").Select(int.Parse).ToArray());
+            results.Add(id, entry);
+        }
+        return new FishTable(results);
+    }
+
+    private FishingRodTable ParseFishingRod() {
+        var results = new Dictionary<int, FishingRodTable.Entry>();
+        foreach ((int id, FishingRod rod) in parser.ParseFishingRod()) {
+            var entry = new FishingRodTable.Entry(rod.itemCode, rod.fishMasteryLimit, rod.addFishMastery, rod.reduceFishingTime);
+            results.Add(id, entry);
+        }
+        return new FishingRodTable(results);
     }
 
     private EnchantScrollTable ParseEnchantScrollTable() {
