@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Tools;
@@ -9,6 +10,7 @@ namespace Maple2.Server.Game.Model;
 
 public class FieldGuideObject : FieldEntity<IGuideObject>, IByteSerializable {
     public long CharacterId { get; init; }
+    public FishingRodTable.Entry? RodMetadata;
 
     public FieldGuideObject(FieldManager field, int objectId, IGuideObject value) : base(field, objectId, value) { }
 

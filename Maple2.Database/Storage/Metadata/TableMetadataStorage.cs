@@ -13,6 +13,9 @@ public class TableMetadataStorage {
     private readonly Lazy<MagicPathTable> magicPathTable;
     private readonly Lazy<MasteryRecipeTable> masteryRecipeTable;
     private readonly Lazy<MasteryRewardTable> masteryRewardTable;
+    private readonly Lazy<FishTable> fishTable;
+    private readonly Lazy<FishingRodTable> fishingRodTable;
+    private readonly Lazy<FishingSpotTable> fishingSpotTable;
     private readonly Lazy<InstrumentTable> instrumentTable;
     private readonly Lazy<InteractObjectTable> interactObjectTable;
     private readonly Lazy<InteractObjectTable> interactMasteryTable;
@@ -41,6 +44,9 @@ public class TableMetadataStorage {
     public MagicPathTable MagicPathTable => magicPathTable.Value;
     public MasteryRecipeTable MasteryRecipeTable => masteryRecipeTable.Value;
     public MasteryRewardTable MasteryRewardTable => masteryRewardTable.Value;
+    public FishTable FishTable => fishTable.Value;
+    public FishingRodTable FishingRodTable => fishingRodTable.Value;
+    public FishingSpotTable FishingSpotTable => fishingSpotTable.Value;
     public InstrumentTable InstrumentTable => instrumentTable.Value;
     public InteractObjectTable InteractObjectTable => interactObjectTable.Value;
     public InteractObjectTable InteractMasteryTable => interactMasteryTable.Value;
@@ -70,6 +76,9 @@ public class TableMetadataStorage {
         magicPathTable = Retrieve<MagicPathTable>(context, "magicpath.xml");
         masteryRecipeTable = Retrieve<MasteryRecipeTable>(context, "masteryreceipe.xml");
         masteryRewardTable = Retrieve<MasteryRewardTable>(context, "mastery.xml");
+        fishTable = Retrieve<FishTable>(context, "fish.xml");
+        fishingRodTable = Retrieve<FishingRodTable>(context, "fishingrod.xml");
+        fishingSpotTable = Retrieve<FishingSpotTable>(context, "fishingspot.xml");
         instrumentTable = Retrieve<InstrumentTable>(context, "instrumentcategoryinfo.xml");
         interactObjectTable = Retrieve<InteractObjectTable>(context, "interactobject.xml");
         interactMasteryTable = Retrieve<InteractObjectTable>(context, "interactobject_mastery.xml");
