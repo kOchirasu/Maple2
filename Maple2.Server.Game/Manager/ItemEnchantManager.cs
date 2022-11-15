@@ -121,7 +121,7 @@ public class ItemEnchantManager {
 
         // Ensure this item has an Enchant field set.
         upgradeItem.Enchant ??= new ItemEnchant();
-        int enchants = Math.Clamp(upgradeItem.Enchant.Enchants, 0, 15);
+        int enchants = Math.Clamp(upgradeItem.Enchant.Enchants, 0, 14);
         int minFodder = RequireFodder[enchants];
 
         foreach (IngredientInfo ingredient in GetRequiredCatalysts()) {
@@ -153,7 +153,7 @@ public class ItemEnchantManager {
             return false;
         }
 
-        int enchants = Math.Clamp(upgradeItem.Enchant?.Enchants ?? 0, 0, 15);
+        int enchants = Math.Clamp(upgradeItem.Enchant?.Enchants ?? 0, 0, 14);
         if (FodderRate[enchants] <= 0) {
             return false; // If adding fodder does not improve rate, restrict it.
         }
@@ -221,7 +221,7 @@ public class ItemEnchantManager {
         }
 
         upgradeItem.Enchant ??= new ItemEnchant();
-        int enchants = Math.Clamp(upgradeItem.Enchant.Enchants, 0, 15);
+        int enchants = Math.Clamp(upgradeItem.Enchant.Enchants, 0, 14);
         if (fodderWeight < RequireFodder[enchants]) {
             return false;
         }
@@ -356,7 +356,7 @@ public class ItemEnchantManager {
 
     // TODO: Dynamic attribute options
     public static IEnumerable<(BasicAttribute, BasicOption)> GetBasicOptions(Item upgradeItem, int target = -1) {
-        int enchants = target >= 0 ? Math.Clamp(target, 0, 15) : upgradeItem.Enchant?.Enchants ?? 0;
+        int enchants = Math.Clamp(target > 0 ? target - 1 : upgradeItem.Enchant?.Enchants ?? 0, 0, 14);
         if (upgradeItem.Type.IsWeapon) {
             yield return (BasicAttribute.MinWeaponAtk, new BasicOption(StatBonusRate[enchants]));
             yield return (BasicAttribute.MaxWeaponAtk, new BasicOption(StatBonusRate[enchants]));

@@ -13,6 +13,7 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Manager;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -63,18 +64,13 @@ public class EnchantScrollHandler : PacketHandler<GameSession> {
             return;
         }
 
-        var attributeDeltas = new Dictionary<BasicAttribute, BasicOption>();
-        item.Enchant ??= new ItemEnchant();
-        // We always preview the Max result, but if it's randomized then it's possible to get less.
-        foreach ((BasicAttribute attribute, BasicOption option) in ItemEnchantManager.GetBasicOptions(item, metadata.Enchants.Max())) {
-            if (item.Enchant.BasicOptions.TryGetValue(attribute, out BasicOption existing)) {
-                attributeDeltas[attribute] = option - existing;
-            } else {
-                attributeDeltas[attribute] = option;
-            }
-        }
+        int minEnchant = Math.Max(item.Enchant?.Enchants ?? 0, metadata.Enchants.Min());
+        Dictionary<BasicAttribute, BasicOption> minOptions = ItemEnchantManager.GetBasicOptions(item, minEnchant)
+            .ToDictionary(entry => entry.Item1, entry => entry.Item2);
+        Dictionary<BasicAttribute, BasicOption> maxOptions = ItemEnchantManager.GetBasicOptions(item, metadata.Enchants.Max())
+            .ToDictionary(entry => entry.Item1, entry => entry.Item2);
 
-        session.Send(EnchantScrollPacket.Preview(item, attributeDeltas));
+        session.Send(EnchantScrollPacket.Preview(item, metadata.Type, minOptions, maxOptions));
     }
 
     private void HandleEnchant(GameSession session, IByteReader packet) {
@@ -99,30 +95,21 @@ public class EnchantScrollHandler : PacketHandler<GameSession> {
                 return;
             }
 
-            item.Enchant ??= new ItemEnchant();
-            // Ensure that you cannot randomize an enchant lower than current.
-            int baseIndex = 0;
-            for (; baseIndex < metadata.Enchants.Length; baseIndex++) {
-                if (metadata.Enchants[baseIndex] >= item.Enchant.Enchants) {
-                    break;
-                }
-            }
-            int result = metadata.Enchants[Random.Shared.Next(baseIndex, metadata.Enchants.Length)];
-            if (result < item.Enchant.Enchants) {
-                session.Send(EnchantScrollPacket.Error(EnchantScrollError.s_enchantscroll_invalid_item));
-                return;
-            }
-
             if (!session.Item.Inventory.Consume(scrollUid, 1)) {
                 session.Send(EnchantScrollPacket.Error(EnchantScrollError.s_enchantscroll_invalid_scroll));
                 return;
             }
 
             // Update item enchant stats
-            foreach ((BasicAttribute attribute, BasicOption option) in ItemEnchantManager.GetBasicOptions(item, result)) {
-                item.Enchant.BasicOptions[attribute] = option;
+            int enchantLevel = metadata.Enchants.Random();
+            // Ensure that you cannot randomize an enchant lower than current item.
+            item.Enchant ??= new ItemEnchant();
+            if (enchantLevel > item.Enchant.Enchants) {
+                foreach ((BasicAttribute attribute, BasicOption option) in ItemEnchantManager.GetBasicOptions(item, enchantLevel)) {
+                    item.Enchant.BasicOptions[attribute] = option;
+                }
+                item.Enchant.Enchants = enchantLevel;
             }
-            item.Enchant.Enchants = result;
 
             session.Send(EnchantScrollPacket.Enchant(item));
         }

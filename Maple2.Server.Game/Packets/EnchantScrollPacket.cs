@@ -25,8 +25,10 @@ public static class EnchantScrollPacket {
         pWriter.WriteLong(item.Uid);
         pWriter.WriteShort(metadata.Type);
         pWriter.WriteBool(false);
-        pWriter.WriteInt();
+        pWriter.WriteInt(metadata.Enchants.Max());
         pWriter.WriteInt(10000); // div 100 = Rate
+        pWriter.WriteShort(metadata.MinLevel);
+        pWriter.WriteShort(metadata.MaxLevel);
         pWriter.WriteInt(metadata.ItemTypes.Length);
         foreach (int itemType in metadata.ItemTypes) {
             pWriter.WriteInt(itemType);
@@ -40,22 +42,40 @@ public static class EnchantScrollPacket {
             pWriter.WriteInt(metadata.Enchants.Max());
         }
 
-        pWriter.WriteShort(metadata.MinLevel);
-        pWriter.WriteShort(metadata.MaxLevel);
-
         return pWriter;
     }
 
-    public static ByteWriter Preview(Item item, IDictionary<BasicAttribute, BasicOption> statDeltas) {
+    public static ByteWriter Preview(Item item, short scrollType, IDictionary<BasicAttribute, BasicOption> minOptions, IDictionary<BasicAttribute, BasicOption> maxOptions) {
         var pWriter = Packet.Of(SendOp.EnchantScroll);
         pWriter.Write<Command>(Command.Preview);
         pWriter.WriteLong(item.Uid);
-        pWriter.WriteShort(1);
+        pWriter.WriteShort(scrollType);
 
-        pWriter.WriteInt(statDeltas.Count);
-        foreach ((BasicAttribute attribute, BasicOption delta) in statDeltas) {
-            pWriter.WriteShort((short) attribute);
-            pWriter.Write<BasicOption>(delta);
+        switch (scrollType) {
+            case 1 or 2:
+                pWriter.WriteInt(minOptions.Count);
+                foreach ((BasicAttribute attribute, BasicOption delta) in minOptions) {
+                    pWriter.WriteShort((short) attribute);
+                    pWriter.WriteFloat(delta.Rate);
+                    pWriter.WriteInt(delta.Value);
+                }
+                break;
+            case 3:
+                pWriter.WriteInt(minOptions.Count);
+                foreach ((BasicAttribute attribute, BasicOption delta) in minOptions) {
+                    pWriter.WriteShort((short) attribute);
+                    pWriter.WriteFloat(delta.Rate);
+                    pWriter.WriteInt(delta.Value);
+                }
+                pWriter.WriteInt(maxOptions.Count);
+                foreach ((BasicAttribute attribute, BasicOption delta) in maxOptions) {
+                    pWriter.WriteShort((short) attribute);
+                    pWriter.WriteFloat(delta.Rate);
+                    pWriter.WriteInt(delta.Value);
+                }
+                break;
+            case 5:
+                break;
         }
 
         return pWriter;
