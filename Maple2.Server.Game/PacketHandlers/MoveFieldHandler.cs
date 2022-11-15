@@ -21,7 +21,7 @@ public class MoveFieldHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public MapMetadataStorage MapMetadata { get; init; } = null!;
+    public required MapMetadataStorage MapMetadata { private get; init; }
     // ReSharper restore All
     #endregion
 

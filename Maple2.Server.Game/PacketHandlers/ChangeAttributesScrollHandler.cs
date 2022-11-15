@@ -24,8 +24,8 @@ public class ChangeAttributesScrollHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public TableMetadataStorage TableMetadata { private get; init; } = null!;
-    public ItemStatsCalculator ItemStatsCalc { private get; init; } = null!;
+    public required TableMetadataStorage TableMetadata { private get; init; }
+    public required ItemStatsCalculator ItemStatsCalc { private get; init; }
     // ReSharper restore All
     #endregion
 

@@ -36,7 +36,7 @@ public class BeautyHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public NpcMetadataStorage NpcMetadata { get; init; } = null!;
+    public required NpcMetadataStorage NpcMetadata { private get; init; }
     // ReSharper restore All
     #endregion
 

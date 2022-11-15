@@ -24,7 +24,7 @@ public class ChatStickerHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public TableMetadataStorage TableMetadata { private get; init; } = null!;
+    public required TableMetadataStorage TableMetadata { private get; init; }
     // ReSharper restore All
     #endregion
 
