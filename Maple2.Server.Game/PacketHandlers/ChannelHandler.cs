@@ -17,7 +17,7 @@ public class ChannelHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public WorldClient World { private get; init; } = null!;
+    public required WorldClient World { private get; init; }
     // ReSharper restore All
     #endregion
 

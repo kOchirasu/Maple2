@@ -35,10 +35,10 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public WorldClient World { private get; init; } = null!;
-    public GameStorage GameStorage { private get; init; } = null!;
-    public ItemMetadataStorage ItemMetadata { private get; init; } = null!;
-    public TableMetadataStorage TableMetadata { private get; init; } = null!;
+    public required WorldClient World { private get; init; }
+    public required GameStorage GameStorage { private get; init; }
+    public required ItemMetadataStorage ItemMetadata { private get; init; }
+    public required TableMetadataStorage TableMetadata { private get; init; }
     // ReSharper restore All
     #endregion
 

@@ -21,8 +21,8 @@ public class LoginHandler : PacketHandler<LoginSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public GlobalClient Global { private get; init; } = null!;
-    public WorldClient World { private get; init; } = null!;
+    public required GlobalClient Global { private get; init; }
+    public required WorldClient World { private get; init; }
     // ReSharper restore All
     #endregion
 

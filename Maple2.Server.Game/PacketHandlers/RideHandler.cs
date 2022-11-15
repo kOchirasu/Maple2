@@ -28,7 +28,7 @@ public class RideHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public RideMetadataStorage RideMetadata { private get; init; } = null!;
+    public required RideMetadataStorage RideMetadata { private get; init; }
     // ReSharper restore All
     #endregion
 

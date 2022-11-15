@@ -30,8 +30,8 @@ public class SkillHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public SkillMetadataStorage SkillMetadata { private get; init; } = null!;
-    public TableMetadataStorage TableMetadata { private get; init; } = null!;
+    public required SkillMetadataStorage SkillMetadata { private get; init; }
+    public required TableMetadataStorage TableMetadata { private get; init; }
     // ReSharper restore All
     #endregion
 

@@ -18,7 +18,7 @@ public class TutorialCommand : Command {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public ItemStatsCalculator ItemStatsCalc { private get; init; } = null!;
+    public required ItemStatsCalculator ItemStatsCalc { private get; init; }
     // ReSharper restore All
     #endregion
 

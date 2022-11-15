@@ -43,14 +43,14 @@ public sealed partial class GameSession : Core.Network.Session {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public GameStorage GameStorage { get; init; } = null!;
-    public WorldClient World { get; init; } = null!;
-    public ItemMetadataStorage ItemMetadata { get; init; } = null!;
-    public SkillMetadataStorage SkillMetadata { get; init; } = null!;
-    public TableMetadataStorage TableMetadata { get; init; } = null!;
-    public MapMetadataStorage MapMetadata { get; init; } = null!;
-    public FieldManager.Factory FieldFactory { private get; init; } = null!;
-    public Lua.Lua Lua { private get; init; } = null!;
+    public required GameStorage GameStorage { get; init; }
+    public required WorldClient World { get; init; }
+    public required ItemMetadataStorage ItemMetadata { get; init; }
+    public required SkillMetadataStorage SkillMetadata { get; init; }
+    public required TableMetadataStorage TableMetadata { get; init; }
+    public required MapMetadataStorage MapMetadata { get; init; }
+    public required FieldManager.Factory FieldFactory { private get; init; }
+    public required Lua.Lua Lua { private get; init; }
     // ReSharper restore All
     #endregion
 

@@ -21,7 +21,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public ItemMetadataStorage ItemMetadata { get; init; } = null!;
+    public required ItemMetadataStorage ItemMetadata { private get; init; }
     // ReSharper restore All
     #endregion
 

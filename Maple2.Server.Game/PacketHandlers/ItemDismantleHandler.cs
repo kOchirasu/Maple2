@@ -31,9 +31,9 @@ public class ItemDismantleHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public ItemMetadataStorage ItemMetadata { get; init; } = null!;
-    public TableMetadataStorage TableMetadata { private get; init; } = null!;
-    public Lua.Lua Lua { private get; init; } = null!;
+    public required ItemMetadataStorage ItemMetadata { private get; init; }
+    public required TableMetadataStorage TableMetadata { private get; init; }
+    public required Lua.Lua Lua { private get; init; }
     // ReSharper restore All
     #endregion
 
