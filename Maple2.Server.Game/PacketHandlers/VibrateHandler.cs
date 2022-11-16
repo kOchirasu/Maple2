@@ -15,7 +15,7 @@ public class VibrateHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public SkillMetadataStorage SkillMetadata { private get; init; } = null!;
+    public required SkillMetadataStorage SkillMetadata { private get; init; }
     // ReSharper restore All
     #endregion
 

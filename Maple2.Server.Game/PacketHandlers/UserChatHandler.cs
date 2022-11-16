@@ -16,8 +16,8 @@ public class UserChatHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public WorldClient World { private get; init; } = null!;
-    public GameStorage GameStorage { private get; init; } = null!;
+    public required WorldClient World { private get; init; }
+    public required GameStorage GameStorage { private get; init; }
     // ReSharper restore All
     #endregion
 

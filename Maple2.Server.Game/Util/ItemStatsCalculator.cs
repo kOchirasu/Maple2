@@ -15,8 +15,8 @@ namespace Maple2.Server.Game.Util;
 public sealed class ItemStatsCalculator {
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public TableMetadataStorage TableMetadata { private get; init; } = null!;
-    public Lua.Lua Lua { private get; init; } = null!;
+    public required TableMetadataStorage TableMetadata { private get; init; }
+    public required Lua.Lua Lua { private get; init; }
     // ReSharper restore All
     #endregion
 

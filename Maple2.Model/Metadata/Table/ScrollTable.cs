@@ -45,4 +45,5 @@ public record ItemSocketScrollMetadata(
     short MaxLevel,
     int[] ItemTypes,
     int[] Rarities,
+    byte SocketCount,
     int TradableCountDeduction);

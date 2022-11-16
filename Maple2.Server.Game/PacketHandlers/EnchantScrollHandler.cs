@@ -14,6 +14,7 @@ using Maple2.Server.Game.Manager;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Extensions;
+using static Maple2.Model.Error.EnchantScrollError;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -48,18 +49,18 @@ public class EnchantScrollHandler : PacketHandler<GameSession> {
         long itemUid = packet.ReadLong();
 
         if (!TryGetMetadata(session, scrollUid, out EnchantScrollMetadata? metadata)) {
-            session.Send(EnchantScrollPacket.Error(EnchantScrollError.s_enchantscroll_invalid_scroll));
+            session.Send(EnchantScrollPacket.Error(s_enchantscroll_invalid_scroll));
             return;
         }
 
         Item? item = session.Item.Inventory.Get(itemUid);
         if (item == null) {
-            session.Send(EnchantScrollPacket.Error(EnchantScrollError.s_enchantscroll_invalid_item));
+            session.Send(EnchantScrollPacket.Error(s_enchantscroll_invalid_item));
             return;
         }
 
         EnchantScrollError error = IsCompatibleScroll(item, metadata);
-        if (error != EnchantScrollError.s_enchantscroll_ok) {
+        if (error != s_enchantscroll_ok) {
             session.Send(EnchantScrollPacket.Error(error));
             return;
         }
@@ -79,24 +80,24 @@ public class EnchantScrollHandler : PacketHandler<GameSession> {
 
         lock (session.Item) {
             if (!TryGetMetadata(session, scrollUid, out EnchantScrollMetadata? metadata)) {
-                session.Send(EnchantScrollPacket.Error(EnchantScrollError.s_enchantscroll_invalid_scroll));
+                session.Send(EnchantScrollPacket.Error(s_enchantscroll_invalid_scroll));
                 return;
             }
 
             Item? item = session.Item.Inventory.Get(itemUid);
             if (item == null) {
-                session.Send(EnchantScrollPacket.Error(EnchantScrollError.s_enchantscroll_invalid_item));
+                session.Send(EnchantScrollPacket.Error(s_enchantscroll_invalid_item));
                 return;
             }
 
             EnchantScrollError error = IsCompatibleScroll(item, metadata);
-            if (error != EnchantScrollError.s_enchantscroll_ok) {
+            if (error != s_enchantscroll_ok) {
                 session.Send(EnchantScrollPacket.Error(error));
                 return;
             }
 
             if (!session.Item.Inventory.Consume(scrollUid, 1)) {
-                session.Send(EnchantScrollPacket.Error(EnchantScrollError.s_enchantscroll_invalid_scroll));
+                session.Send(EnchantScrollPacket.Error(s_enchantscroll_invalid_scroll));
                 return;
             }
 
@@ -117,23 +118,23 @@ public class EnchantScrollHandler : PacketHandler<GameSession> {
 
     private static EnchantScrollError IsCompatibleScroll(Item item, EnchantScrollMetadata metadata) {
         if (item.Metadata.Limit.Level < metadata.MinLevel || item.Metadata.Limit.Level > metadata.MaxLevel) {
-            return EnchantScrollError.s_enchantscroll_invalid_level;
+            return s_enchantscroll_invalid_level;
         }
         if (!metadata.ItemTypes.Contains(item.Type.Type)) {
-            return EnchantScrollError.s_enchantscroll_invalid_slot;
+            return s_enchantscroll_invalid_slot;
         }
         if (!metadata.Rarities.Contains(item.Rarity)) {
-            return EnchantScrollError.s_enchantscroll_invalid_rank;
+            return s_enchantscroll_invalid_rank;
         }
         if ((item.Enchant?.Enchants ?? 0) >= metadata.Enchants.Max()) {
-            return EnchantScrollError.s_enchantscroll_invalid_grade;
+            return s_enchantscroll_invalid_grade;
         }
         // No idea what it even means for an item to be unstable, but you can't enchant something to 0.
         if (metadata.Enchants is [0]) {
-            return EnchantScrollError.s_enchantscroll_not_breaking_item;
+            return s_enchantscroll_not_breaking_item;
         }
 
-        return EnchantScrollError.s_enchantscroll_ok;
+        return s_enchantscroll_ok;
     }
 
     private bool TryGetMetadata(GameSession session, long scrollUid, [NotNullWhen(true)] out EnchantScrollMetadata? metadata) {

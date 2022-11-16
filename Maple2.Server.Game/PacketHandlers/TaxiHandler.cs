@@ -25,8 +25,8 @@ public class TaxiHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public MapMetadataStorage MapMetadata { get; init; } = null!;
-    public MapEntityStorage EntityMetadata { get; init; } = null!;
+    public required MapMetadataStorage MapMetadata { private get; init; }
+    public required MapEntityStorage EntityMetadata { private get; init; }
     // ReSharper restore All
     #endregion
 
