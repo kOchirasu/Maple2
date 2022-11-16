@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.Tools.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -17,6 +18,7 @@ internal class CharacterUnlock {
     public required IDictionary<int, long> StickerSets { get; set; }
     public required IDictionary<int, bool> MasteryRewardsClaimed { get; set; }
     public required IDictionary<int, short> Pets { get; set; }
+    public required IDictionary<int, Fish> FishAlbum { get; set; }
     public required InventoryExpand Expand { get; set; }
     public DateTime LastModified { get; init; }
 
@@ -29,6 +31,7 @@ internal class CharacterUnlock {
             StickerSets = new Dictionary<int, long>(),
             MasteryRewardsClaimed = new Dictionary<int, bool>(),
             Pets = new SortedDictionary<int, short>(),
+            FishAlbum = new SortedDictionary<int, Fish>(),
             Expand = new InventoryExpand(),
         } : new CharacterUnlock {
             LastModified = other.LastModified,
@@ -56,6 +59,7 @@ internal class CharacterUnlock {
             StickerSets = other.StickerSets,
             MasteryRewardsClaimed = other.MasteryRewardsClaimed,
             Pets = other.Pets,
+            FishAlbum = other.FishAlbum,
         };
     }
 
@@ -122,7 +126,7 @@ internal class CharacterUnlock {
         builder.Property(unlock => unlock.StickerSets).HasJsonConversion();
         builder.Property(unlock => unlock.MasteryRewardsClaimed).HasJsonConversion();
         builder.Property(unlock => unlock.Pets).HasJsonConversion().IsRequired();
-
+        builder.Property(unlock => unlock.FishAlbum).HasJsonConversion().IsRequired();
         builder.Property(unlock => unlock.LastModified).IsRowVersion();
     }
 }

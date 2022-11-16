@@ -32,6 +32,7 @@ public class Unlock {
     public readonly IDictionary<int, long> StickerSets = new Dictionary<int, long>();
     public readonly IDictionary<int, bool> MasteryRewardsClaimed = new Dictionary<int, bool>();
     public readonly IDictionary<int, short> Pets = new SortedDictionary<int, short>();
+    public readonly IDictionary<int, Fish> FishAlbum = new SortedDictionary<int, Fish>();
 }
 
 public class Currency {

@@ -241,7 +241,7 @@ public class FishingHandler : PacketHandler<GameSession> {
             
         }
         
-        session.Send(FishingPacket.);
+        //session.Send(FishingPacket.);
     }
 
     private static FishTable.Entry GetFishToCatch(IEnumerable<FishTable.Entry> entries) {
