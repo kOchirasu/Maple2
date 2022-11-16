@@ -11,7 +11,7 @@ public sealed class ItemSocket : IByteSerializable, IByteDeserializable {
     public byte MaxSlots;
     public byte UnlockSlots {
         get => (byte) Sockets.Length;
-        set => Array.Resize(ref Sockets, value);
+        set => Array.Resize(ref Sockets, Math.Min(MaxSlots, value));
     }
 
     public ItemGemstone?[] Sockets;
