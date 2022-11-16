@@ -187,6 +187,11 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
         var results = new Dictionary<int, InstrumentMetadata>();
         foreach ((int id, InstrumentInfo info) in parser.ParseInstrumentInfo()) {
+            if (!categories.ContainsKey(info.category)) {
+                Console.WriteLine($"Instrument {id} does not have a matching category: {info.category}");
+                continue;
+            }
+
             (int midiId, int percussionId) = categories[info.category];
             results[id] = new InstrumentMetadata(
                 Id: info.id,
