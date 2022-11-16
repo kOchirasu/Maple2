@@ -22,6 +22,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
     public required ItemMetadataStorage ItemMetadata { private get; init; }
+    public required TableMetadataStorage TableMetadata { private get; init; }
     // ReSharper restore All
     #endregion
 
@@ -43,6 +44,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
                 break;
             case ItemFunction.ItemRemakeScroll:
                 HandleItemRemakeScroll(session, item);
+                break;
+            case ItemFunction.ItemSocketScroll:
+                HandleItemSocketScroll(session, item);
                 break;
             case ItemFunction.TitleScroll:
                 HandleTitleScroll(session, item);
@@ -107,6 +111,20 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
     private static void HandleItemRemakeScroll(GameSession session, Item item) {
         session.Send(ChangeAttributesScrollPacket.UseScroll(item));
+    }
+
+    private void HandleItemSocketScroll(GameSession session, Item item) {
+        if (!int.TryParse(item.Metadata.Function?.Parameters, out int scrollId)) {
+            session.Send(ItemSocketScrollPacket.Error(ItemSocketScrollError.s_itemsocket_scroll_error_server_default));
+            return;
+        }
+
+        if (!TableMetadata.ItemSocketScrollTable.Entries.TryGetValue(scrollId, out ItemSocketScrollMetadata? metadata)) {
+            session.Send(ItemSocketScrollPacket.Error(ItemSocketScrollError.s_itemsocket_scroll_error_server_default));
+            return;
+        }
+
+        session.Send(ItemSocketScrollPacket.UseScroll(item, metadata));
     }
 
     private static void HandleTitleScroll(GameSession session, Item item) {
