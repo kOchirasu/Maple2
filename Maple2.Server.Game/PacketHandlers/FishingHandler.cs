@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using Maple2.Database.Storage;
+using Maple2.Model.Common;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
@@ -24,7 +25,7 @@ public class FishingHandler : PacketHandler<GameSession> {
     private enum Command : byte {
         Prepare = 0,
         Stop = 1,
-        Catch = 8, // Success
+        Catch = 8,
         Start = 9,
         FailMinigame = 10,
     }
@@ -40,6 +41,15 @@ public class FishingHandler : PacketHandler<GameSession> {
         switch (function) {
             case Command.Prepare:
                 HandlePrepare(session, packet);
+                break;
+            case Command.Stop:
+                HandleStop(session);
+                break;
+            case Command.Catch:
+                HandleCatch(session, packet);
+                break;
+            case Command.Start:
+                HandleStart(session, packet);
                 break;
         }
     }
@@ -87,7 +97,12 @@ public class FishingHandler : PacketHandler<GameSession> {
     }
 
     private static Vector3 GetGuideObjectPosition(IEnumerable<Vector3> fishingBlocks, Vector3 playerPosition) {
-        return fishingBlocks.MinBy(o => Math.Sqrt(Math.Pow(playerPosition.X - o.X, 2) + Math.Pow(playerPosition.Y - o.Y, 2)));
+        // get the fishing block closest to player
+        Vector3 guidePosition = fishingBlocks.MinBy(o => Math.Sqrt(Math.Pow(playerPosition.X - o.X, 2) + Math.Pow(playerPosition.Y - o.Y, 2)));
+        
+        // Move guide 1 block up so it sits on top of the fishing block
+        guidePosition.Z += 150;
+        return guidePosition;
     }
 
     private static IList<Vector3> GetFishingBlocks(Vector3 position, Vector3 rotation) {
@@ -123,7 +138,7 @@ public class FishingHandler : PacketHandler<GameSession> {
                         checkBlock.X += Constant.BlockSize;
 
                         // Normally here we would scan Z levels for liquid blocks
-                        // For now we will just add the coordinate to the list;
+                        // For now we will just add the coordinate in the same level to the list;
                         nearbyBlockCoordinates.Add(checkBlock);
                     }
                     checkBlock.Y -= Constant.BlockSize;
@@ -140,7 +155,7 @@ public class FishingHandler : PacketHandler<GameSession> {
                     {
                         checkBlock.Y += Constant.BlockSize;
                         // Normally here we would scan Z levels for liquid blocks
-                        // For now we will just add the coordinate to the list;
+                        // For now we will just add the coordinate in the same level to the list;
                         nearbyBlockCoordinates.Add(checkBlock);
                     }
                     checkBlock.X -= Constant.BlockSize;
@@ -157,7 +172,7 @@ public class FishingHandler : PacketHandler<GameSession> {
                     {
                         checkBlock.X -= Constant.BlockSize;
                         // Normally here we would scan Z levels for liquid blocks
-                        // For now we will just add the coordinate to the list;
+                        // For now we will just add the coordinate in the same level to the list;
                         nearbyBlockCoordinates.Add(checkBlock);
                     }
                     checkBlock.Y += Constant.BlockSize;
@@ -174,7 +189,7 @@ public class FishingHandler : PacketHandler<GameSession> {
                     {
                         checkBlock.Y -= Constant.BlockSize;
                         // Normally here we would scan Z levels for liquid blocks
-                        // For now we will just add the coordinate to the list;
+                        // For now we will just add the coordinate in the same level to the list;
                         nearbyBlockCoordinates.Add(checkBlock);
                     }
                     checkBlock.X += Constant.BlockSize;
@@ -185,5 +200,95 @@ public class FishingHandler : PacketHandler<GameSession> {
         }
         return nearbyBlockCoordinates;
 
+    }
+    
+    private static void HandleStop(GameSession session) {
+        if (session.Field == null || session.GuideObject == null) {
+            return;
+        }
+
+        session.Send(FishingPacket.Stop());
+        session.Field.Broadcast(GuideObjectPacket.Remove(session.GuideObject));
+        session.GuideObject = null;
+    }
+
+    private void HandleCatch(GameSession session, IByteReader packet) {
+        bool success = packet.ReadBool();
+        
+        if (session.GuideObject == null) {
+            return;
+        }
+
+        // TODO: Get the fishing block underneath the guide object and validate what fish can be caught there
+        // For now we will assume all fish in the map are valid
+        IEnumerable<FishTable.Entry> entries = TableMetadata.FishTable.Entries.Values.Where(x => x.HabitatMapIds.Contains(session.Player.Value.Character.MapId)).ToArray();
+        if (!entries.Any()) {
+            session.Send(FishingPacket.Error(FishingError.s_fishing_error_notexist_fish));
+            return;
+        }
+
+        FishTable.Entry fish = GetFishToCatch(entries);
+        
+        // determine size of fish
+        int fishSize = Random.Shared.NextDouble() switch {
+            >= 0.0 and < 0.03 => Random.Shared.Next(fish.SmallSize[0], fish.SmallSize[1]),
+            >= 0.03 and < 0.15 => Random.Shared.Next(fish.SmallSize[1], fish.BigSize[0]),
+            >= 0.15 => Random.Shared.Next(fish.SmallSize[0], fish.SmallSize[1]),
+            _ => Random.Shared.Next(fish.SmallSize[0], fish.SmallSize[1])
+        };
+
+        if (success) {
+            
+        }
+        
+        session.Send(FishingPacket.);
+    }
+
+    private static FishTable.Entry GetFishToCatch(IEnumerable<FishTable.Entry> entries) {
+
+        List<FishTable.Entry> filteredFish;
+        int rarity = 1;
+        do { // roll until there's an acceptable rarity in the entries
+            rarity = Random.Shared.NextDouble() switch {
+                >= 0 and < 0.60 => 1,
+                >= 0.60 and < 0.85 => 2,
+                >= 0.85 and < 0.95 => 3,
+                >= 0.95 => 4,
+                _ => 1
+            };
+
+            filteredFish = entries.Where(x => x.Rarity == rarity).ToList();
+        } while (filteredFish.Count == 0);
+
+        // get one fish from selected rarity
+        return filteredFish[Random.Shared.Next(0, filteredFish.Count)];
+    }
+
+    private void HandleStart(GameSession session, IByteReader packet) {
+        var fishingBlock = packet.Read<Vector3B>();
+        
+        // WIP. Here we would check if the fishing block is valid and type of liquid to get proper fish.
+
+        if (!TableMetadata.FishTable.Entries.Values.Any(x => x.HabitatMapIds.Contains(session.Player.Value.Character.MapId))) {
+            session.Send(FishingPacket.Error(FishingError.s_fishing_error_notexist_fish));
+            return;
+        }
+
+        int fishingTick = Constant.fisherBoreDuration;
+        bool miniGame = false;
+
+        int successChance = Random.Shared.Next(0, 100);
+        if (successChance < Constant.FishingSuccessChance) {
+            int miniGameChance = Random.Shared.Next(0, 100);
+            if (miniGameChance < Constant.FishingMiniGameChance) {
+                miniGame = true;
+            }
+            int rodFishingTick = fishingTick - session.GuideObject?.RodMetadata?.ReduceTime ?? 0;
+            fishingTick = Random.Shared.Next(rodFishingTick - rodFishingTick / 3, rodFishingTick);
+        } else {
+            fishingTick = 20000; // if tick is over the base fishing tick, it will fail
+        }
+        
+        session.Send(FishingPacket.Start(fishingTick, miniGame));
     }
 }

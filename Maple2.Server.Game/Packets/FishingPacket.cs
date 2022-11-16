@@ -1,11 +1,14 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
 using Maple2.Model.Common;
+using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
+using Constant = System.Reflection.Metadata.Constant;
 
 namespace Maple2.Server.Game.Packets;
 
@@ -30,10 +33,27 @@ public static class FishingPacket {
         return pWriter;
     }
     
+    public static ByteWriter Stop() {
+        var pWriter = Packet.Of(SendOp.Fishing);
+        pWriter.Write<Command>(Command.Stop);
+
+        return pWriter;
+    }
+    
     public static ByteWriter Error(FishingError error) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.Error);
         pWriter.Write<FishingError>(error);
+
+        return pWriter;
+    }
+    
+    public static ByteWriter IncreaseMastery(FishTable.Entry fish) {
+        var pWriter = Packet.Of(SendOp.Fishing);
+        pWriter.Write<Command>(Command.IncreaseMastery);
+        pWriter.WriteInt(fish.Id);
+        pWriter.WriteInt(fish.Rarity * 2);
+        pWriter.WriteInt((int) MasteryType.Fishing);
 
         return pWriter;
     }
@@ -47,9 +67,18 @@ public static class FishingPacket {
             pWriter.Write<Vector3B>(tile);
             pWriter.WriteInt(10000001);
             pWriter.WriteInt(25);
-            pWriter.WriteInt(15000); // fishing time
+            pWriter.WriteInt(15000); // fishing time minus any rod or buff time reduction
             pWriter.WriteShort(1);
         }
+
+        return pWriter;
+    }
+    
+    public static ByteWriter Start(int fishingTick, bool miniGame) {
+        var pWriter = Packet.Of(SendOp.Fishing);
+        pWriter.Write<Command>(Command.Start);
+        pWriter.WriteBool(miniGame);
+        pWriter.WriteInt(fishingTick);
 
         return pWriter;
     }
