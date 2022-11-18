@@ -234,7 +234,7 @@ public class FishingHandler : PacketHandler<GameSession> {
             >= 0.0 and < 0.03 => Random.Shared.Next(fish.SmallSize[0], fish.SmallSize[1]),
             >= 0.03 and < 0.15 => Random.Shared.Next(fish.SmallSize[1], fish.BigSize[0]),
             >= 0.15 => Random.Shared.Next(fish.SmallSize[0], fish.SmallSize[1]),
-            _ => Random.Shared.Next(fish.SmallSize[0], fish.SmallSize[1])
+            _ => Random.Shared.Next(fish.SmallSize[0], fish.SmallSize[1]),
         };
 
         if (success) {
@@ -248,13 +248,14 @@ public class FishingHandler : PacketHandler<GameSession> {
 
         List<FishTable.Entry> filteredFish;
         int rarity = 1;
-        do { // roll until there's an acceptable rarity in the entries
+        // loop until there's an acceptable rarity in the entries
+        do {
             rarity = Random.Shared.NextDouble() switch {
                 >= 0 and < 0.60 => 1,
                 >= 0.60 and < 0.85 => 2,
                 >= 0.85 and < 0.95 => 3,
                 >= 0.95 => 4,
-                _ => 1
+                _ => 1,
             };
 
             filteredFish = entries.Where(x => x.Rarity == rarity).ToList();
@@ -286,7 +287,7 @@ public class FishingHandler : PacketHandler<GameSession> {
             int rodFishingTick = fishingTick - session.GuideObject?.RodMetadata?.ReduceTime ?? 0;
             fishingTick = Random.Shared.Next(rodFishingTick - rodFishingTick / 3, rodFishingTick);
         } else {
-            fishingTick = 20000; // if tick is over the base fishing tick, it will fail
+            fishingTick = Constant.fisherBoreDuration * 2; // if tick is over the base fishing tick, it will fail
         }
         
         session.Send(FishingPacket.Start(fishingTick, miniGame));

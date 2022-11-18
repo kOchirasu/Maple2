@@ -9,6 +9,7 @@ using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using ChatSticker = Maple2.File.Parser.Xml.Table.ChatSticker;
+using Fish = Maple2.File.Parser.Xml.Table.Fish;
 using InteractObject = Maple2.File.Parser.Xml.Table.InteractObject;
 using ItemSocket = Maple2.File.Parser.Xml.Table.ItemSocket;
 using JobTable = Maple2.Model.Metadata.JobTable;
