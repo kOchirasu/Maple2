@@ -215,8 +215,7 @@ public sealed class ItemStatsCalculator {
         }
 
         while (statResult.Count + specialResult.Count < total) {
-            int index = Random.Shared.Next(0, option.Entries.Length);
-            ItemOption.Entry entry = option.Entries[index];
+            ItemOption.Entry entry = option.Entries.Random();
             if (!AddResult(entry, statResult, specialResult)) {
                 Log.Error("Failed to select random item option: {Entry}", entry); // Invalid entry
             }

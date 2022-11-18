@@ -45,6 +45,10 @@ public static class EnumerableExtensions {
         return fallback();
     }
 
+    public static T Random<T>(this IList<T> list) {
+        return list[System.Random.Shared.Next(list.Count)];
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T AsType<TE, T>(this IEnumerable<TE> enumerable, Func<IEnumerable<TE>, T> function) {
         return function.Invoke(enumerable);
