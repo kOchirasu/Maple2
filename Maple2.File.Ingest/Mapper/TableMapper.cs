@@ -561,13 +561,15 @@ public class TableMapper : TypeMapper<TableMetadata> {
     private EnchantScrollTable ParseEnchantScrollTable() {
         var results = new Dictionary<int, EnchantScrollMetadata>();
         foreach ((int id, EnchantScroll scroll) in parser.ParseEnchantScroll()) {
-            results.Add(id, new EnchantScrollMetadata(
-                Type: scroll.scrollType,
+            var metadata = new EnchantScrollMetadata(
+                Type: (short) scroll.scrollType,
                 MinLevel: scroll.minLv,
                 MaxLevel: scroll.maxLv,
                 Enchants: scroll.grade,
                 ItemTypes: scroll.slot,
-                Rarities: scroll.rank));
+                Rarities: scroll.rank);
+            Array.Sort(metadata.Enchants); // Just in case
+            results.Add(id, metadata);
         }
 
         return new EnchantScrollTable(results);
