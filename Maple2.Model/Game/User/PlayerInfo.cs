@@ -2,45 +2,85 @@
 
 namespace Maple2.Model.Game;
 
-public record PlayerInfo(CharacterInfo Character, int PlotMapId, int PlotNumber, string HomeName, Trophy Trophy) {
-    public long AccountId => Character.AccountId;
-    public long CharacterId => Character.CharacterId;
-    public string Name => Character.Name;
-    public Gender Gender => Character.Gender;
-    public Job Job => Character.Job;
-    public short Level => Character.Level;
-    public int MapId => Character.MapId;
-    public string Picture => Character.Picture;
-    public string Motto => Character.Motto;
-    public int Channel => Character.Channel;
-    public bool Online => Character.Online;
-
-    // Not used...
-    public int ApartmentNumber => 0;
+public class PlayerInfo : CharacterInfo, IPlayerInfo {
+    // Home/Plot
+    public string HomeName { get; set; }
+    public int PlotMapId { get; set; }
+    public int PlotNumber { get; set; }
+    public int ApartmentNumber { get; set; }
+    public long PlotExpiryTime { get; set; }
+    // Trophy
+    public Trophy Trophy { get; set; }
 
     public static implicit operator PlayerInfo(Player player) {
-        return new PlayerInfo(player, player.Home.PlotMapId, player.Home.PlotNumber, player.Home.Name, player.Account.Trophy);
+        return new PlayerInfo(player, player.Home.Name, player.Account.Trophy);
+    }
+
+    public PlayerInfo(CharacterInfo character, string homeName, Trophy trophy) : base(character) {
+        HomeName = homeName;
+    }
+
+    public PlayerInfo Clone() {
+        return (PlayerInfo) MemberwiseClone();
     }
 }
 
-public record CharacterInfo(long AccountId, long CharacterId, string Name, Gender Gender, Job Job, short Level, int MapId, string Picture, string Motto) {
-    public short Channel;
-    public bool Online;
+public class CharacterInfo {
+    public long AccountId { get; }
+    public long CharacterId { get; }
+
+    public string Name { get; set; }
+    public string Motto { get; set; }
+    public string Picture { get; set; }
+    public Gender Gender { get; set; }
+    public Job Job { get; set; }
+    public short Level { get; set; }
+    public int GearScore { get; set; }
+    // Health
+    public long CurrentHp { get; set; }
+    public long TotalHp { get; set; }
+    // Location
+    public int MapId { get; set; }
+    public short Channel { get; set; }
+
+    public bool Online => Channel != 0;
+
+    public CharacterInfo(long accountId, long characterId, string name, string motto, string picture, Gender gender, Job job, short level) {
+        AccountId = accountId;
+        CharacterId = characterId;
+        Name = name;
+        Motto = motto;
+        Picture = picture;
+        Gender = gender;
+        Job = job;
+        Level = level;
+    }
+
+    public CharacterInfo(CharacterInfo other) {
+        AccountId = other.AccountId;
+        CharacterId = other.CharacterId;
+        Name = other.Name;
+        Motto = other.Motto;
+        Picture = other.Picture;
+        Gender = other.Gender;
+        Job = other.Job;
+        Level = other.Level;
+        MapId = other.MapId;
+        Channel = other.Channel;
+    }
 
     public static implicit operator CharacterInfo(Player player) {
         return new CharacterInfo(
-            AccountId: player.Account.Id,
-            CharacterId: player.Character.Id,
-            Name: player.Character.Name,
-            Gender: player.Character.Gender,
-            Job: player.Character.Job,
-            Level: player.Character.Level,
-            MapId: player.Character.MapId,
-            Picture: player.Character.Picture,
-            Motto: player.Character.Motto
-        ) {
-            Channel = player.Character.Channel,
-            Online = player.Character.Channel != 0,
-        };
+            accountId: player.Account.Id,
+            characterId: player.Character.Id,
+            name: player.Character.Name,
+            motto: player.Character.Motto,
+            picture: player.Character.Picture,
+            gender: player.Character.Gender,
+            job: player.Character.Job,
+            level: player.Character.Level) {
+                MapId = player.Character.MapId,
+                Channel = player.Character.Channel,
+            };
     }
 }

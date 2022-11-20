@@ -169,13 +169,13 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         }
 
         using GameStorage.Request db = session.GameStorage.Context();
-        CharacterInfo? receiverCharacterInfo = db.GetCharacterInfo(targetUser);
-        if (receiverCharacterInfo == default) {
+        long characterId = db.GetCharacterId(targetUser);
+        if (!session.PlayerInfo.GetOrFetch(characterId, out PlayerInfo? receiverInfo)) {
             session.Send(NoticePacket.MessageBox((StringCode.s_couple_effect_error_openbox_charname)));
             return;
         }
 
-        if (receiverCharacterInfo.AccountId == session.Player.Value.Character.AccountId) {
+        if (receiverInfo.AccountId == session.Player.Value.Character.AccountId) {
             session.Send(NoticePacket.MessageBox(StringCode.s_couple_effect_error_openbox_myself_account));
             return;
         }
@@ -194,7 +194,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         }
 
         var selfBadge = new Item(itemMetadata, buddyBadgeBoxParams[1]) {
-            CoupleInfo = new ItemCoupleInfo(receiverCharacterInfo.CharacterId, receiverCharacterInfo.Name, true),
+            CoupleInfo = new ItemCoupleInfo(receiverInfo.CharacterId, receiverInfo.Name, true),
         };
 
         if (!session.Item.Inventory.CanAdd(selfBadge)) {
@@ -208,7 +208,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         }
 
         var receiverMail = new Mail() {
-            ReceiverId = receiverCharacterInfo.CharacterId,
+            ReceiverId = receiverInfo.CharacterId,
             Type = MailType.System,
             ContentArgs = new[] {
                 ("str", $"{session.Player.Value.Character.Name}"),
@@ -222,7 +222,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         receiverMail = db.CreateMail(receiverMail);
         if (receiverMail == null) {
             session.Send(NoticePacket.MessageBox((StringCode.s_couple_effect_error_openbox_unknown)));
-            throw new InvalidOperationException($"Failed to create buddy badge mail for receiver character id: {receiverCharacterInfo.CharacterId}");
+            throw new InvalidOperationException($"Failed to create buddy badge mail for receiver character id: {receiverInfo.CharacterId}");
             return;
         }
 
@@ -231,19 +231,19 @@ public class ItemUseHandler : PacketHandler<GameSession> {
                 CoupleInfo = new ItemCoupleInfo(session.Player.Value.Character.Id, session.Player.Value.Character.Name),
             });
         if (receiverItem == null) {
-            throw new InvalidOperationException($"Failed to create buddy badge: {receiverItem.Id}");
+            throw new InvalidOperationException($"Failed to create buddy badge: {itemMetadata.Id}");
         }
 
         receiverMail.Items.Add(receiverItem);
 
         try {
             session.World.MailNotification(new MailNotificationRequest {
-                CharacterId = receiverCharacterInfo.CharacterId,
+                CharacterId = receiverInfo.CharacterId,
                 MailId = receiverMail.Id,
             });
         } catch { /* ignored */ }
 
         session.Item.Inventory.Add(selfBadge, true);
-        session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_mail_send_partner, receiverCharacterInfo.Name)));
+        session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_mail_send_partner, receiverInfo.Name)));
     }
 }

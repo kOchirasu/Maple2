@@ -14,4 +14,9 @@ public partial class ChannelService {
 
         return Task.FromResult(new MailNotificationResponse{Delivered = true});
     }
+
+    public override Task<PlayerUpdateResponse> UpdatePlayer(PlayerUpdateRequest request, ServerCallContext context) {
+        playerInfos.ReceiveUpdate(request);
+        return Task.FromResult(new PlayerUpdateResponse());
+    }
 }

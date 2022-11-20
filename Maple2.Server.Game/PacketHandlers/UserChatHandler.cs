@@ -75,8 +75,8 @@ public class UserChatHandler : PacketHandler<GameSession> {
         }
 
         using GameStorage.Request db = GameStorage.Context();
-        CharacterInfo? info = db.GetCharacterInfo(recipient);
-        if (info == null) {
+        long characterId = db.GetCharacterId(recipient);
+        if (!session.PlayerInfo.GetOrFetch(characterId, out PlayerInfo? info)) {
             session.Send(ChatPacket.Alert(StringCode.s_whisper_err_target));
             return;
         }

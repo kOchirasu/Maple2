@@ -13,6 +13,7 @@ using Maple2.Model.Metadata;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
+using Maple2.Server.Core.Sync;
 using Maple2.Server.Game.Commands;
 using Maple2.Server.Game.Manager;
 using Maple2.Server.Game.Manager.Config;
@@ -20,6 +21,7 @@ using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Manager.Items;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
+using Maple2.Server.Game.Util.Sync;
 using Maple2.Server.World.Service;
 using Maple2.Tools.Scheduler;
 using WorldClient = Maple2.Server.World.Service.World.WorldClient;
@@ -51,6 +53,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public required MapMetadataStorage MapMetadata { get; init; }
     public required FieldManager.Factory FieldFactory { private get; init; }
     public required Lua.Lua Lua { private get; init; }
+    public required PlayerInfoStorage PlayerInfo { get; init; }
     // ReSharper restore All
     #endregion
 
@@ -68,7 +71,7 @@ public sealed partial class GameSession : Core.Network.Session {
 
     public GameSession(TcpClient tcpClient, GameServer server, IComponentContext context) : base(tcpClient) {
         this.server = server;
-        State = SessionState.Moving;
+        State = SessionState.ChangeMap;
         CommandHandler = context.Resolve<CommandRouter>(new NamedParameter("session", this));
         Scheduler = new EventQueue();
         Scheduler.ScheduleRepeated(() => Send(TimeSyncPacket.Request()), 1000);
@@ -85,7 +88,7 @@ public sealed partial class GameSession : Core.Network.Session {
         CharacterId = characterId;
         MachineId = machineId;
 
-        State = SessionState.Moving;
+        State = SessionState.ChangeMap;
         server.OnConnected(this);
 
         using GameStorage.Request db = GameStorage.Context();
@@ -97,7 +100,15 @@ public sealed partial class GameSession : Core.Network.Session {
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
             return false;
         }
+        player.Character.Channel = (short) Channel;
         db.Commit();
+
+        var playerUpdate = new PlayerUpdateRequest {
+            AccountId = accountId,
+            CharacterId = characterId,
+        };
+        playerUpdate.SetFields(UpdateField.All, player);
+        PlayerInfo.SendUpdate(playerUpdate);
 
         player.Character.Channel = (short) Channel;
         Player = new FieldPlayer(this, player);
@@ -214,7 +225,7 @@ public sealed partial class GameSession : Core.Network.Session {
             return false;
         }
 
-        State = SessionState.Moving;
+        State = SessionState.ChangeMap;
         LeaveField();
 
         Field = newField;
@@ -234,6 +245,13 @@ public sealed partial class GameSession : Core.Network.Session {
         Field.OnAddPlayer(Player);
         Scheduler.Start();
         State = SessionState.Connected;
+
+        PlayerInfo.SendUpdate(new PlayerUpdateRequest {
+            AccountId = AccountId,
+            CharacterId = CharacterId,
+            MapId = Field.MapId,
+            Async = true,
+        });
 
         Send(StatsPacket.Init(Player));
         Field.Broadcast(StatsPacket.Update(Player), Player.Session);
@@ -309,6 +327,15 @@ public sealed partial class GameSession : Core.Network.Session {
         if (disposed) return;
         disposed = true;
 
+        if (State == SessionState.Connected) {
+            PlayerInfo.SendUpdate(new PlayerUpdateRequest {
+                AccountId = AccountId,
+                CharacterId = CharacterId,
+                MapId = 0,
+                Channel = 0,
+            });
+        }
+
         try {
             Scheduler.Stop();
             server.OnDisconnected(this);
@@ -321,6 +348,7 @@ public sealed partial class GameSession : Core.Network.Session {
                 Player.Value.Character.MapId = Player.Value.Character.ReturnMapId;
             }
 #endif
+            Buddy.Dispose();
 
             using (GameStorage.Request db = GameStorage.Context()) {
                 db.BeginTransaction();

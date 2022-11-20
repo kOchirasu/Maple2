@@ -67,15 +67,15 @@ public partial class GameStorage {
                 .FirstOrDefault();
         }
 
-        public CharacterInfo? GetCharacterInfo(long characterId) {
-            return Context.Character.Where(character => character.Id == characterId)
-                .Select<Model.Character, CharacterInfo>(character => character)
-                .FirstOrDefault();
-        }
-
-        public CharacterInfo? GetCharacterInfo(string name) {
-            return Context.Character.Where(character => character.Name == name)
-                .Select<Model.Character, CharacterInfo>(character => character)
+        public PlayerInfo? GetPlayerInfo(long characterId) {
+            return (from character in Context.Character where character.Id == characterId
+                    join account in Context.Account on character.AccountId equals account.Id
+                    join indoor in Context.UgcMap on
+                        new {OwnerId = character.AccountId, Indoor = true} equals new {indoor.OwnerId, indoor.Indoor}
+                    join outdoor in Context.UgcMap on
+                        new {OwnerId = character.AccountId, Indoor = true} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
+                    from outdoor in plot.DefaultIfEmpty()
+                    select BuildPlayerInfo(character, indoor, outdoor, account.Trophy))
                 .FirstOrDefault();
         }
 
@@ -277,7 +277,7 @@ public partial class GameStorage {
             if (defaultTab == null) {
                 return false;
             }
-            
+
             var config = new CharacterConfig {
                 CharacterId = characterId,
                 SkillBook = new Model.SkillBook {

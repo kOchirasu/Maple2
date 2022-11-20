@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Grpc.Core;
+using Maple2.Model.Game;
 using ChannelClient = Maple2.Server.Channel.Service.Channel.ChannelClient;
 
 namespace Maple2.Server.World.Service;
@@ -29,12 +30,12 @@ public partial class WorldService {
     }
 
     private Task<ChatResponse> WhisperChat(ChatRequest request) {
-        // Ideally we would know which channel a character was on.
-        if (!playerChannels.LookupCharacter(request.CharacterId, out _, out int channel)) {
+        if (!playerLookup.TryGet(request.CharacterId, out PlayerInfo? info)) {
             throw new RpcException(new Status(StatusCode.NotFound,
                 $"Unable to whisper: {request.Whisper.RecipientName}"));
         }
 
+        int channel = info.Channel;
         if (!channelClients.TryGetClient(channel, out ChannelClient? channelClient)) {
             logger.Error("No registry for channel: {Channel}", channel);
             throw new RpcException(new Status(StatusCode.InvalidArgument,
@@ -55,7 +56,6 @@ public partial class WorldService {
         try {
             return Task.FromResult(channelClient.Chat(channelChat));
         } catch (RpcException ex) when (ex.StatusCode is StatusCode.NotFound) {
-            playerChannels.Remove(request.AccountId, request.CharacterId);
             logger.Information("{CharacterId} not found...", request.CharacterId);
             return Task.FromResult(new ChatResponse());
         }

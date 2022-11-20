@@ -31,6 +31,6 @@ public partial class ChannelService {
                 break;
         }
 
-        return Task.FromResult(new BuddyResponse{Online = true});
+        return Task.FromResult(new BuddyResponse{Channel = session.Channel});
     }
 }

@@ -18,6 +18,7 @@ using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Service;
 using Maple2.Server.Game.Session;
 using Maple2.Server.Game.Util;
+using Maple2.Server.Game.Util.Sync;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -74,6 +75,8 @@ builder.Host.ConfigureContainer<ContainerBuilder>(autofac => {
     autofac.RegisterInstance(new Lua(Target.LOCALE));
     autofac.RegisterType<ItemStatsCalculator>()
         .PropertiesAutowired()
+        .SingleInstance();
+    autofac.RegisterType<PlayerInfoStorage>()
         .SingleInstance();
 
     // Database

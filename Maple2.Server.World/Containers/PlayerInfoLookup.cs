@@ -1,0 +1,123 @@
+﻿using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
+using Grpc.Core;
+using Maple2.Database.Storage;
+using Maple2.Model.Game;
+using Maple2.Server.Core.Sync;
+
+namespace Maple2.Server.World.Containers;
+
+public class PlayerInfoLookup {
+    private readonly TimeSpan syncInterval = TimeSpan.FromSeconds(2);
+
+    private readonly GameStorage gameStorage;
+    private readonly ChannelClientLookup channels;
+    private readonly CancellationTokenSource tokenSource;
+
+    // TODO: Just using dictionary for now, might need eviction at some point (LRUCache)
+    private readonly ConcurrentDictionary<long, PlayerInfo> cache;
+    private readonly ConcurrentQueue<PlayerInfoUpdateEvent> events;
+
+    public PlayerInfoLookup(GameStorage gameStorage, ChannelClientLookup channels) {
+        this.gameStorage = gameStorage;
+        this.channels = channels;
+        tokenSource = new CancellationTokenSource();
+
+        cache = new ConcurrentDictionary<long, PlayerInfo>();
+        events = new ConcurrentQueue<PlayerInfoUpdateEvent>();
+
+        Task.Factory.StartNew(() => {
+            while (!tokenSource.Token.IsCancellationRequested) {
+                Thread.Sleep(syncInterval);
+                Sync();
+            }
+        }, tokenSource.Token);
+    }
+
+    public bool TryGet(long characterId, [NotNullWhen(true)] out PlayerInfo? info) {
+        if (cache.TryGetValue(characterId, out info)) {
+            return true;
+        }
+
+        // If data is not cached, fetch from database.
+        using GameStorage.Request db = gameStorage.Context();
+        info = db.GetPlayerInfo(characterId);
+        return info != null && cache.TryAdd(characterId, info);
+    }
+
+    public bool Update(PlayerUpdateRequest request) {
+        PlayerInfoUpdateEvent @event = cache.TryGetValue(request.CharacterId, out PlayerInfo? info)
+            ? new PlayerInfoUpdateEvent(info, request)
+            : new PlayerInfoUpdateEvent(request);
+
+        // TODO: This support for both sync and async can cause ordering issues where older updates overwrite newer ones.
+        if (request.Async) {
+            events.Enqueue(@event);
+            return true;
+        }
+
+        info = Update(@event);
+        return info != null && Notify(info, @event.Type);
+    }
+
+    private void Sync() {
+        if (events.IsEmpty) {
+            return;
+        }
+
+        var updated = new Dictionary<long, Notification>();
+        foreach (PlayerInfoUpdateEvent @event in events) {
+            PlayerInfo? info = Update(@event);
+            if (info == null) {
+                continue;
+            }
+
+            if (!updated.ContainsKey(@event.Request.CharacterId)) {
+                updated[@event.Request.CharacterId] = new Notification(info);
+            }
+            updated[@event.Request.CharacterId].Type |= @event.Type;
+        }
+
+        foreach ((long _, Notification notification) in updated) {
+            Notify(notification.Info, notification.Type);
+        }
+    }
+
+    private PlayerInfo? Update(PlayerInfoUpdateEvent @event) {
+        if (@event.Type == UpdateField.None) {
+            return null; // No fields changed
+        }
+
+        if (!TryGet(@event.Request.CharacterId, out PlayerInfo? info)) {
+            return null; // No entry to update
+        }
+
+        info.Update(@event);
+        return info;
+    }
+
+    private bool Notify(PlayerInfo info, UpdateField type) {
+        var request = new PlayerUpdateRequest {
+            AccountId = info.AccountId,
+            CharacterId = info.CharacterId,
+        };
+        request.SetFields(type, info);
+
+        // Forward all updates to channels for caching.
+        Parallel.ForEach(channels, entry => {
+            try {
+                entry.Item2.UpdatePlayer(request);
+            } catch (RpcException) { /* ignored */ }
+        });
+
+        return true;
+    }
+
+    private record Notification(PlayerInfo Info) {
+        public UpdateField Type;
+    }
+}
