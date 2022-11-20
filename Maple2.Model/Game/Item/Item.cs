@@ -157,10 +157,10 @@ public class Item : IByteSerializable, IByteDeserializable {
                 var result = TransferFlag.Bind;
                 if (zeroTrades) {
                     if (belowRarity) {
-                        result &= TransferFlag.Trade | TransferFlag.Split;
+                        result |= TransferFlag.Trade | TransferFlag.Split;
                     }
                 } else {
-                    result &= TransferFlag.LimitTrade;
+                    result |= TransferFlag.LimitTrade;
                 }
                 return result;
             case TransferType.BlackMarketOnly:

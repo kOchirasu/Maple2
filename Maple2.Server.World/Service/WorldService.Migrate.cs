@@ -16,11 +16,10 @@ public partial class WorldService {
     private static readonly TimeSpan AuthExpiry = TimeSpan.FromSeconds(30);
 
     private readonly IMemoryCache tokenCache;
-    private readonly PlayerChannelLookup playerChannels = new();
+    // private readonly PlayerChannelLookup playerChannels = new();
 
     public override Task<MigrateOutResponse> MigrateOut(MigrateOutRequest request, ServerCallContext context) {
         ulong token = UniqueToken();
-        playerChannels.Remove(request.AccountId, request.CharacterId);
 
         switch (request.Server) {
             case Server.Login:
@@ -70,7 +69,6 @@ public partial class WorldService {
         }
 
         tokenCache.Remove(request.Token);
-        playerChannels.Add(data.AccountId, data.CharacterId, request.Channel);
         return Task.FromResult(new MigrateInResponse { CharacterId = data.CharacterId });
     }
 

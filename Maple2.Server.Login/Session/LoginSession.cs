@@ -36,7 +36,7 @@ public class LoginSession : Core.Network.Session {
 
     public LoginSession(TcpClient tcpClient, LoginServer server) : base(tcpClient) {
         Server = server;
-        State = SessionState.Moving;
+        State = SessionState.ChangeMap;
     }
 
     public void Init(long accountId, Guid machineId) {

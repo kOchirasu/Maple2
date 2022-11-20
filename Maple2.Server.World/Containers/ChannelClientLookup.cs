@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
@@ -13,7 +14,7 @@ using ChannelClient = Maple2.Server.Channel.Service.Channel.ChannelClient;
 
 namespace Maple2.Server.World.Containers;
 
-public class ChannelClientLookup {
+public class ChannelClientLookup : IEnumerable<(int, ChannelClient)> {
 #if DEBUG
     private static readonly TimeSpan MonitorInterval = TimeSpan.FromSeconds(1);
 #else
@@ -142,5 +143,19 @@ public class ChannelClientLookup {
             await Task.Delay(MonitorInterval, cancellationToken);
         } while (!cancellationToken.IsCancellationRequested);
         logger.Error("End monitoring game channel: {Channel} for {EndPoint}", channel, channels[i].Endpoint);
+    }
+
+    public IEnumerator<(int, ChannelClient)> GetEnumerator() {
+        for (int i = 0; i < channels.Length; i++) {
+            if (!activeChannels[i]) {
+                continue;
+            }
+
+            yield return (i + 1, channels[i].Client);
+        }
+    }
+
+    IEnumerator IEnumerable.GetEnumerator() {
+        return GetEnumerator();
     }
 }

@@ -50,7 +50,7 @@ builder.Host.ConfigureContainer<ContainerBuilder>(autofac => {
 
     autofac.RegisterType<ChannelClientLookup>()
         .SingleInstance();
-    autofac.RegisterType<PlayerChannelLookup>()
+    autofac.RegisterType<PlayerInfoLookup>()
         .SingleInstance();
 });
 

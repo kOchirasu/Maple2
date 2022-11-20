@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -20,7 +21,19 @@ internal class Buddy {
         return other == null ? null : new Buddy {
             Id = other.Id,
             OwnerId = other.OwnerId,
-            BuddyId = other.BuddyInfo.CharacterId,
+            BuddyId = other.Info.CharacterId,
+            Type = other.Type,
+            Message = other.Message,
+        };
+    }
+
+    [return:NotNullIfNotNull(nameof(other))]
+    public static implicit operator Maple2.Model.Game.BuddyEntry?(Buddy? other) {
+        return other == null ? null : new Maple2.Model.Game.BuddyEntry {
+            Id = other.Id,
+            OwnerId = other.OwnerId,
+            BuddyId = other.BuddyId,
+            LastModified = other.LastModified.ToEpochSeconds(),
             Type = other.Type,
             Message = other.Message,
         };

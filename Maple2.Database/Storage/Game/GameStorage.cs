@@ -37,6 +37,9 @@ public partial class GameStorage {
     }
 
     private static PlayerInfo BuildPlayerInfo(Model.Character character, UgcMap indoor, UgcMap? outdoor, Trophy trophy) {
-        return new PlayerInfo(character, outdoor?.MapId ?? 0, outdoor?.Number ?? 0, outdoor?.Name ?? indoor.Name, trophy);
+        return new PlayerInfo(character, outdoor?.Name ?? indoor.Name, trophy) {
+            PlotMapId = outdoor?.MapId ?? 0,
+            PlotNumber = outdoor?.Number ?? 0,
+        };
     }
 }

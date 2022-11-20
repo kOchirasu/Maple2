@@ -65,7 +65,6 @@ public sealed class PetManager : IDisposable {
     }
 
     public StringCode Add(long uid, short slot, int amount) {
-        Console.WriteLine($"Adding {amount}x {uid} to {slot}");
         lock (session.Item) {
             Item? deposit = session.Item.Inventory.Get(uid);
             if (deposit == null || deposit.Amount < amount) {

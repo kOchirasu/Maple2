@@ -60,9 +60,9 @@ public static class BuddyPacket {
         pWriter.Write<Command>(Command.Accept);
         pWriter.Write<BuddyError>(BuddyError.ok);
         pWriter.WriteLong(buddy.Id);
-        pWriter.WriteLong(buddy.BuddyInfo.CharacterId);
-        pWriter.WriteLong(buddy.BuddyInfo.AccountId);
-        pWriter.WriteUnicodeString(buddy.BuddyInfo.Name);
+        pWriter.WriteLong(buddy.Info.CharacterId);
+        pWriter.WriteLong(buddy.Info.AccountId);
+        pWriter.WriteUnicodeString(buddy.Info.Name);
 
         return pWriter;
     }
@@ -101,9 +101,9 @@ public static class BuddyPacket {
         pWriter.Write<Command>(Command.Remove);
         pWriter.Write<BuddyError>(BuddyError.ok);
         pWriter.WriteLong(buddy.Id);
-        pWriter.WriteLong(buddy.BuddyInfo.CharacterId);
-        pWriter.WriteLong(buddy.BuddyInfo.AccountId);
-        pWriter.WriteUnicodeString(buddy.BuddyInfo.Name);
+        pWriter.WriteLong(buddy.Info.CharacterId);
+        pWriter.WriteLong(buddy.Info.AccountId);
+        pWriter.WriteUnicodeString(buddy.Info.Name);
 
         return pWriter;
     }
@@ -156,7 +156,7 @@ public static class BuddyPacket {
         var pWriter = Packet.Of(SendOp.Buddy);
         pWriter.Write<Command>(Command.NotifyRemove);
         pWriter.WriteInt();
-        pWriter.WriteUnicodeString(buddy.BuddyInfo.Name);
+        pWriter.WriteUnicodeString(buddy.Info.Name);
         pWriter.WriteUnicodeString(action);
         pWriter.WriteLong(buddy.Id);
 
@@ -166,9 +166,9 @@ public static class BuddyPacket {
     public static ByteWriter NotifyOnline(Buddy buddy) {
         var pWriter = Packet.Of(SendOp.Buddy);
         pWriter.Write<Command>(Command.NotifyOnline);
-        pWriter.WriteBool(!buddy.BuddyInfo.Online); // true == offline
+        pWriter.WriteBool(!buddy.Info.Online); // true == offline
         pWriter.WriteLong(buddy.Id);
-        pWriter.WriteUnicodeString(buddy.BuddyInfo.Name);
+        pWriter.WriteUnicodeString(buddy.Info.Name);
 
         return pWriter;
     }

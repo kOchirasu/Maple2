@@ -7,36 +7,53 @@ using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.Server.Core.Sync;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Server.Game.Util.Sync;
+using Maple2.Tools.Extensions;
 using Serilog;
 using static Maple2.Model.Error.BuddyError;
 
 namespace Maple2.Server.Game.Manager;
 
-public class BuddyManager {
+public class BuddyManager : IDisposable {
     private readonly GameSession session;
 
     private readonly IDictionary<long, Buddy> buddies;
     private readonly IDictionary<long, Buddy> blocked;
 
+    private bool disposed;
     private readonly ILogger logger = Log.Logger.ForContext<BuddyManager>();
 
     public BuddyManager(GameStorage.Request db, GameSession session) {
         this.session = session;
-        IEnumerable<IGrouping<bool, Buddy>> groups =
+        IEnumerable<IGrouping<bool, BuddyEntry>> groups =
             db.ListBuddies(session.CharacterId).GroupBy(entry => entry.Type == BuddyType.Blocked);
-        foreach (IGrouping<bool, Buddy> group in groups) {
+        foreach (IGrouping<bool, BuddyEntry> group in groups) {
+            Dictionary<long, Buddy> result = group
+                .Select(entry => session.PlayerInfo.GetOrFetch(entry.BuddyId, out PlayerInfo? info) ? new Buddy(entry, info) : null)
+                .WhereNotNull()
+                .ToDictionary(entry => entry.Id, entry => entry);
             if (group.Key) {
-                blocked = group.ToDictionary(entry => entry.Id, entry => entry);
+                blocked = result;
             } else {
-                buddies = group.ToDictionary(entry => entry.Id, entry => entry);
+                buddies = result;
             }
         }
 
         // Set to empty dictionary if uninitialized by db.
         buddies ??= new Dictionary<long, Buddy>();
         blocked ??= new Dictionary<long, Buddy>();
+
+        foreach ((long entryId, Buddy buddy) in buddies) {
+            var listener = new PlayerInfoListener(UpdateField.Buddy, (type, info) => SyncUpdate(entryId, type, info));
+            session.PlayerInfo.Listen(buddy.Info.CharacterId, listener);
+        }
+    }
+
+    public void Dispose() {
+        disposed = true;
     }
 
     public void Load() {
@@ -86,7 +103,13 @@ public class BuddyManager {
                 session.Send(BuddyPacket.Invite(name: name, error: s_buddy_err_target_full));
                 return;
             }
-            Buddy self = db.CreateBuddy(session.CharacterId, receiverId, BuddyType.OutRequest, message)!;
+            BuddyEntry? entry = db.CreateBuddy(session.CharacterId, receiverId, BuddyType.OutRequest, message);
+            if (entry == null || !session.PlayerInfo.GetOrFetch(entry.BuddyId, out PlayerInfo? info)) {
+                session.Send(BuddyPacket.Invite(error: s_buddy_err_miss_id));
+                return;
+            }
+
+            var self = new Buddy(entry, info);
             db.CreateBuddy(receiverId, session.CharacterId, BuddyType.InRequest, message);
             db.Commit();
 
@@ -107,12 +130,13 @@ public class BuddyManager {
 
     public void ReceiveInvite(long senderId) {
         using GameStorage.Request db = session.GameStorage.Context();
-        Buddy? self = db.GetBuddy(session.CharacterId, senderId);
-        if (self == null) {
+        BuddyEntry? entry = db.GetBuddy(session.CharacterId, senderId);
+        if (entry == null || !session.PlayerInfo.GetOrFetch(entry.BuddyId, out PlayerInfo? info)) {
             logger.Debug("Could not find sender:{SenderId} for ReceiveInvite", senderId);
             return;
         }
 
+        var self = new Buddy(entry, info);
         // DB written by sender as single transaction.
         buddies[self.Id] = self;
         session.Send(BuddyPacket.Append(self));
@@ -125,12 +149,14 @@ public class BuddyManager {
         }
 
         using GameStorage.Request db = session.GameStorage.Context();
-        long receiverId = self.BuddyInfo.CharacterId;
-        Buddy? other = db.GetBuddy(receiverId, session.CharacterId);
-        if (other == null) {
+        long receiverId = self.Info.CharacterId;
+        BuddyEntry? entry = db.GetBuddy(receiverId, session.CharacterId);
+        if (entry == null || !session.PlayerInfo.GetOrFetch(entry.BuddyId, out PlayerInfo? info)) {
             logger.Warning("Accept without paired entry");
             return;
         }
+
+        var other = new Buddy(entry, info);
         self.Type = BuddyType.Default;
         other.Type = BuddyType.Default;
 
@@ -144,11 +170,11 @@ public class BuddyManager {
                 ReceiverId = receiverId,
                 Accept = new BuddyRequest.Types.Accept {EntryId = other.Id},
             });
-            self.BuddyInfo.Character.Online = response.Online;
+            self.Info.Channel = (short) response.Channel;
 
             session.Send(BuddyPacket.Accept(self));
             session.Send(BuddyPacket.UpdateInfo(self));
-            if (self.BuddyInfo.Character.Online) {
+            if (self.Info.Online) {
                 session.Send(BuddyPacket.NotifyOnline(self));
             }
         } catch (SystemException ex) {
@@ -164,7 +190,7 @@ public class BuddyManager {
 
         // DB written by sender as single transaction.
         self.Type = BuddyType.Default;
-        self.BuddyInfo.Character.Online = true;
+        self.Info.Channel = 1; // We don't actually know the channel here, but we know they are online.
         session.Send(BuddyPacket.UpdateInfo(self));
         session.Send(BuddyPacket.NotifyAccept(self));
         session.Send(BuddyPacket.NotifyOnline(self));
@@ -178,13 +204,14 @@ public class BuddyManager {
 
         try {
             using GameStorage.Request db = session.GameStorage.Context();
-            long receiverId = self.BuddyInfo.CharacterId;
-            Buddy? other = db.GetBuddy(receiverId, session.CharacterId);
-            if (other == null) {
+            long receiverId = self.Info.CharacterId;
+            BuddyEntry? entry = db.GetBuddy(receiverId, session.CharacterId);
+            if (entry == null || !session.PlayerInfo.GetOrFetch(entry.BuddyId, out PlayerInfo? info)) {
                 logger.Warning("Decline without paired entry");
                 return;
             }
 
+            var other = new Buddy(entry, info);
             if (!buddies.Remove(entryId) || !db.RemoveBuddy(self, other)) {
                 return;
             }
@@ -228,13 +255,13 @@ public class BuddyManager {
             logger.Warning("EntryId: {Buddy}", entryId);
             long receiverId;
             if (buddies.Remove(entryId, out Buddy? self)) {
-                receiverId = self.BuddyInfo.CharacterId;
+                receiverId = self.Info.CharacterId;
                 self.Type = BuddyType.Blocked;
                 self.Message = message;
                 db.UpdateBuddy(self);
 
                 blocked[self.Id] = self;
-                session.Send(BuddyPacket.Block(self.Id, self.BuddyInfo.Name, self.Message));
+                session.Send(BuddyPacket.Block(self.Id, self.Info.Name, self.Message));
                 session.Send(BuddyPacket.UpdateInfo(self));
             } else {
                 receiverId = db.GetCharacterId(name);
@@ -243,20 +270,26 @@ public class BuddyManager {
                     return;
                 }
 
-                self = db.CreateBuddy(session.CharacterId, receiverId, BuddyType.Blocked, message);
-                if (self == null) {
+                BuddyEntry? selfEntry = db.CreateBuddy(session.CharacterId, receiverId, BuddyType.Blocked, message);
+                if (selfEntry == null || !session.PlayerInfo.GetOrFetch(selfEntry.BuddyId, out PlayerInfo? selfInfo)) {
                     session.Send(BuddyPacket.Block(error: s_buddy_err_unknown));
                     return;
                 }
 
+                self = new Buddy(selfEntry, selfInfo);
                 blocked[self.Id] = self;
-                session.Send(BuddyPacket.Block(self.Id, self.BuddyInfo.Name, self.Message));
+                session.Send(BuddyPacket.Block(self.Id, self.Info.Name, self.Message));
                 session.Send(BuddyPacket.Append(self));
             }
 
             // Delete entry for existing buddy if it exists.
-            Buddy? other = db.GetBuddy(receiverId, session.CharacterId);
-            if (other != null && other.Type != BuddyType.Blocked && db.RemoveBuddy(other)) {
+            BuddyEntry? otherEntry = db.GetBuddy(receiverId, session.CharacterId);
+            if (otherEntry == null || !session.PlayerInfo.GetOrFetch(otherEntry.BuddyId, out PlayerInfo? otherInfo)) {
+                return;
+            }
+
+            var other = new Buddy(otherEntry, otherInfo);
+            if (other.Type != BuddyType.Blocked && db.RemoveBuddy(other)) {
                 BuddyResponse _ = session.World.Buddy(new BuddyRequest {
                     ReceiverId = receiverId,
                     Block = new BuddyRequest.Types.Block {SenderId = session.CharacterId},
@@ -306,13 +339,14 @@ public class BuddyManager {
 
         try {
             using GameStorage.Request db = session.GameStorage.Context();
-            long receiverId = self.BuddyInfo.CharacterId;
-            Buddy? other = db.GetBuddy(receiverId, session.CharacterId);
-            if (other == null) {
+            long receiverId = self.Info.CharacterId;
+            BuddyEntry? entry = db.GetBuddy(receiverId, session.CharacterId);
+            if (entry == null || !session.PlayerInfo.GetOrFetch(entry.BuddyId, out PlayerInfo? otherInfo)) {
                 logger.Warning("Delete without paired entry");
                 return;
             }
 
+            var other = new Buddy(entry, otherInfo);
             if (!db.RemoveBuddy(self, other)) {
                 return;
             }
@@ -354,7 +388,7 @@ public class BuddyManager {
                 return;
             }
 
-            session.Send(BuddyPacket.UpdateBlock(self.Id, self.BuddyInfo.Name, self.Message));
+            session.Send(BuddyPacket.UpdateBlock(self.Id, self.Info.Name, self.Message));
         } catch (SystemException ex) {
             logger.Warning(ex, "UpdateBlock failed");
             session.Send(BuddyPacket.UpdateBlock(error: s_buddy_err_unknown));
@@ -369,13 +403,14 @@ public class BuddyManager {
 
         try {
             using GameStorage.Request db = session.GameStorage.Context();
-            long receiverId = self.BuddyInfo.CharacterId;
-            Buddy? other = db.GetBuddy(receiverId, session.CharacterId);
-            if (other == null) {
+            long receiverId = self.Info.CharacterId;
+            BuddyEntry? entry = db.GetBuddy(receiverId, session.CharacterId);
+            if (entry == null || !session.PlayerInfo.GetOrFetch(entry.BuddyId, out PlayerInfo? otherInfo)) {
                 logger.Warning("Cancel without paired entry");
                 return;
             }
 
+            var other = new Buddy(entry, otherInfo);
             if (!db.RemoveBuddy(self, other)) {
                 return;
             }
@@ -402,19 +437,34 @@ public class BuddyManager {
 
     private bool TryGet(long buddyId, [NotNullWhen(true)] out Buddy? result) {
         foreach (Buddy buddy in buddies.Values) {
-            if (buddyId == buddy.BuddyInfo.CharacterId) {
+            if (buddyId == buddy.Info.CharacterId) {
                 result = buddy;
                 return true;
             }
         }
         foreach (Buddy buddy in blocked.Values) {
-            if (buddyId == buddy.BuddyInfo.CharacterId) {
+            if (buddyId == buddy.Info.CharacterId) {
                 result = buddy;
                 return true;
             }
         }
 
         result = null;
+        return false;
+    }
+
+    private bool SyncUpdate(long id, UpdateField type, IPlayerInfo info) {
+        if (disposed || !buddies.TryGetValue(id, out Buddy? buddy)) {
+            return true;
+        }
+
+        bool wasOnline = buddy.Info.Online;
+        buddy.Info.Update(type, info);
+
+        session.Send(BuddyPacket.UpdateInfo(buddy));
+        if (buddy.Info.Online != wasOnline) {
+            session.Send(BuddyPacket.NotifyOnline(buddy));
+        }
         return false;
     }
 }
