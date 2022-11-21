@@ -80,7 +80,7 @@ public static class PlayerInfoUpdateExtensions {
             self.TotalHp = other.TotalHp;
         }
         if (type.HasFlag(UpdateField.Home)) {
-            self.Name = other.HomeName;
+            self.HomeName = other.HomeName;
             self.MapId = other.PlotMapId;
             self.PlotNumber = other.PlotNumber;
             self.ApartmentNumber = other.ApartmentNumber;

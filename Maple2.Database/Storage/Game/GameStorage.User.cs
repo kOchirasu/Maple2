@@ -73,7 +73,7 @@ public partial class GameStorage {
                     join indoor in Context.UgcMap on
                         new {OwnerId = character.AccountId, Indoor = true} equals new {indoor.OwnerId, indoor.Indoor}
                     join outdoor in Context.UgcMap on
-                        new {OwnerId = character.AccountId, Indoor = true} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
+                        new {OwnerId = character.AccountId, Indoor = false} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
                     from outdoor in plot.DefaultIfEmpty()
                     select BuildPlayerInfo(character, indoor, outdoor, account.Trophy))
                 .FirstOrDefault();

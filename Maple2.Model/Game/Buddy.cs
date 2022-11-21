@@ -1,4 +1,6 @@
-﻿using Maple2.Model.Enum;
+﻿using System;
+using System.Threading;
+using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
@@ -12,24 +14,62 @@ public class BuddyEntry {
 
     public string Message = string.Empty;
     public BuddyType Type;
+
+    public static implicit operator BuddyEntry(Buddy buddy) {
+        return new BuddyEntry {
+            Id = buddy.Id,
+            OwnerId = buddy.OwnerId,
+            BuddyId = buddy.Info.CharacterId,
+            LastModified = buddy.LastModified,
+            Message = buddy.Message,
+            Type = buddy.Type,
+        };
+    }
 }
 
-public class Buddy : IByteSerializable {
+public class Buddy : IByteSerializable, IDisposable {
     public readonly long Id;
     public readonly long OwnerId;
     public readonly long LastModified;
     public readonly PlayerInfo Info;
 
     public string Message;
-    public BuddyType Type;
+    public BuddyType Type { get; private set; }
+
+    public CancellationTokenSource? TokenSource;
 
     public Buddy(BuddyEntry entry, PlayerInfo info) {
         Id = entry.Id;
         OwnerId = entry.OwnerId;
         LastModified = entry.LastModified;
         Message = entry.Message;
-        Type = entry.Type;
         Info = info.Clone();
+
+        SetType(entry.Type);
+    }
+
+    public void SetType(BuddyType type) {
+        Type = type;
+
+        // Remove any sensitive information from PlayerInfo
+        if (Type == BuddyType.Blocked) {
+            Info.Motto = string.Empty;
+            Info.Picture = string.Empty;
+            Info.Gender = Gender.Male;
+            Info.Job = Job.Newbie;
+            Info.Level = 0;
+            Info.GearScore = 0;
+            Info.CurrentHp = 0;
+            Info.TotalHp = 0;
+            Info.MapId = 0;
+            Info.Channel = 0;
+            Info.HomeName = string.Empty;
+            Info.PlotMapId = 0;
+            Info.PlotNumber = 0;
+            Info.ApartmentNumber = 0;
+            Info.PlotExpiryTime = 0;
+            Info.Trophy = default;
+        }
     }
 
     public void WriteTo(IByteWriter writer) {
@@ -58,5 +98,10 @@ public class Buddy : IByteSerializable {
         writer.WriteUnicodeString(Info.HomeName);
         writer.WriteLong(Info.PlotExpiryTime); // Home expiry time?
         writer.Write<Trophy>(Info.Trophy);
+    }
+
+    public void Dispose() {
+        TokenSource?.Cancel();
+        TokenSource?.Dispose();
     }
 }

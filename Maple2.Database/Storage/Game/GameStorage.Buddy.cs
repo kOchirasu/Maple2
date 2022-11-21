@@ -43,16 +43,16 @@ public partial class GameStorage {
             return Context.Buddy.Count(buddy => buddy.OwnerId == ownerId && buddy.Type != BuddyType.Blocked);
         }
 
-        public bool UpdateBuddy(params Buddy[] buddies) {
-            foreach (Buddy buddy in buddies) {
+        public bool UpdateBuddy(params BuddyEntry[] buddies) {
+            foreach (BuddyEntry buddy in buddies) {
                 Context.Buddy.Update(buddy);
             }
 
             return Context.TrySaveChanges();
         }
 
-        public bool RemoveBuddy(params Buddy[] buddies) {
-            foreach (Buddy buddy in buddies) {
+        public bool RemoveBuddy(params BuddyEntry[] buddies) {
+            foreach (BuddyEntry buddy in buddies) {
                 Context.Buddy.Remove(buddy);
             }
 

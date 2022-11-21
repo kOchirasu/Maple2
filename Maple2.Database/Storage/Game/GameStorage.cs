@@ -1,4 +1,5 @@
 ﻿using Maple2.Database.Context;
+using Maple2.Database.Extensions;
 using Maple2.Database.Model;
 using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
@@ -37,9 +38,15 @@ public partial class GameStorage {
     }
 
     private static PlayerInfo BuildPlayerInfo(Model.Character character, UgcMap indoor, UgcMap? outdoor, Trophy trophy) {
-        return new PlayerInfo(character, outdoor?.Name ?? indoor.Name, trophy) {
-            PlotMapId = outdoor?.MapId ?? 0,
-            PlotNumber = outdoor?.Number ?? 0,
+        if (outdoor == null) {
+            return new PlayerInfo(character, indoor.Name, trophy);
+        }
+
+        return new PlayerInfo(character, outdoor.Name, trophy) {
+            PlotMapId = outdoor.MapId,
+            PlotNumber = outdoor.Number,
+            ApartmentNumber = outdoor.ApartmentNumber,
+            PlotExpiryTime = outdoor.ExpiryTime.ToEpochSeconds(),
         };
     }
 }

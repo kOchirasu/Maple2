@@ -100,15 +100,7 @@ public sealed partial class GameSession : Core.Network.Session {
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
             return false;
         }
-        player.Character.Channel = (short) Channel;
         db.Commit();
-
-        var playerUpdate = new PlayerUpdateRequest {
-            AccountId = accountId,
-            CharacterId = characterId,
-        };
-        playerUpdate.SetFields(UpdateField.All, player);
-        PlayerInfo.SendUpdate(playerUpdate);
 
         player.Character.Channel = (short) Channel;
         Player = new FieldPlayer(this, player);
@@ -127,6 +119,13 @@ public sealed partial class GameSession : Core.Network.Session {
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
             return false;
         }
+
+        var playerUpdate = new PlayerUpdateRequest {
+            AccountId = accountId,
+            CharacterId = characterId,
+        };
+        playerUpdate.SetFields(UpdateField.All, player);
+        PlayerInfo.SendUpdate(playerUpdate);
 
         //session.Send(Packet.Of(SendOp.REQUEST_SYSTEM_INFO));
         Send(MigrationPacket.MoveResult(MigrationError.ok));

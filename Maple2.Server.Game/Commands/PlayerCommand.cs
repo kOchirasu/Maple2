@@ -45,6 +45,14 @@ public class PlayerCommand : Command {
                 session.Player.Value.Character.Level = level;
                 session.Field?.Broadcast(LevelUpPacket.LevelUp(session.Player));
                 session.Stats.Refresh();
+
+                session.PlayerInfo.SendUpdate(new PlayerUpdateRequest {
+                    AccountId = session.AccountId,
+                    CharacterId = session.CharacterId,
+                    Level = level,
+                    Async = true,
+                });
+
                 ctx.ExitCode = 0;
             } catch (SystemException ex) {
                 ctx.Console.Error.WriteLine(ex.Message);
