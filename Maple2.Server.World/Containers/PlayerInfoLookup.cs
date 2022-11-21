@@ -8,10 +8,11 @@ using Grpc.Core;
 using Maple2.Database.Storage;
 using Maple2.Model.Game;
 using Maple2.Server.Core.Sync;
+using Serilog;
 
 namespace Maple2.Server.World.Containers;
 
-public class PlayerInfoLookup {
+public class PlayerInfoLookup : IDisposable {
     private readonly TimeSpan syncInterval = TimeSpan.FromSeconds(2);
 
     private readonly GameStorage gameStorage;
@@ -21,6 +22,8 @@ public class PlayerInfoLookup {
     // TODO: Just using dictionary for now, might need eviction at some point (LRUCache)
     private readonly ConcurrentDictionary<long, PlayerInfo> cache;
     private readonly ConcurrentQueue<PlayerInfoUpdateEvent> events;
+
+    private readonly ILogger logger = Log.ForContext<PlayerInfoLookup>();
 
     public PlayerInfoLookup(GameStorage gameStorage, ChannelClientLookup channels) {
         this.gameStorage = gameStorage;
@@ -36,6 +39,11 @@ public class PlayerInfoLookup {
                 Sync();
             }
         }, tokenSource.Token);
+    }
+
+    public void Dispose() {
+        tokenSource.Cancel();
+        tokenSource.Dispose();
     }
 
     public bool TryGet(long characterId, [NotNullWhen(true)] out PlayerInfo? info) {
@@ -70,7 +78,7 @@ public class PlayerInfoLookup {
         }
 
         var updated = new Dictionary<long, Notification>();
-        foreach (PlayerInfoUpdateEvent @event in events) {
+        while (events.TryDequeue(out PlayerInfoUpdateEvent? @event)) {
             PlayerInfo? info = Update(@event);
             if (info == null) {
                 continue;
@@ -111,7 +119,9 @@ public class PlayerInfoLookup {
         Parallel.ForEach(channels, entry => {
             try {
                 entry.Item2.UpdatePlayer(request);
-            } catch (RpcException) { /* ignored */ }
+            } catch (RpcException ex) {
+                logger.Warning("[{Error}] Failed to notify channel {Channel} with events: {CharacterId}|{Type}", ex.StatusCode, entry.Item1, info.CharacterId, type);
+            }
         });
 
         return true;

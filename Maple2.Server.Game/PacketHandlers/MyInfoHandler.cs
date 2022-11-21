@@ -4,6 +4,7 @@ using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Server.Game.Util.Sync;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -18,6 +19,7 @@ public class MyInfoHandler : PacketHandler<GameSession> {
         var command = packet.Read<Command>();
         switch (command) {
             case Command.SetMotto:
+                HandleSetMotto(session, packet);
                 return;
         }
     }
@@ -31,5 +33,12 @@ public class MyInfoHandler : PacketHandler<GameSession> {
 
         session.Player.Value.Character.Motto = motto;
         session.Field?.Broadcast(MyInfoPacket.UpdateMotto(session.Player));
+
+        session.PlayerInfo.SendUpdate(new PlayerUpdateRequest {
+            AccountId = session.AccountId,
+            CharacterId = session.CharacterId,
+            Motto = motto,
+            Async = true,
+        });
     }
 }

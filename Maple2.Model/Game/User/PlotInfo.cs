@@ -11,9 +11,9 @@ public class PlotInfo {
 
     public long Id { get; set; }
     public long OwnerId { get; set; }
-    private string name;
+    private string? name;
     public string Name {
-        get => name;
+        get => name ?? "Unknown";
         set {
             if (!string.IsNullOrWhiteSpace(value)) {
                 name = value;
@@ -27,7 +27,6 @@ public class PlotInfo {
     public long ExpiryTime { get; set; }
 
     public PlotInfo(UgcMapGroup metadata) {
-        name = "Unknown";
         Metadata = metadata;
     }
 

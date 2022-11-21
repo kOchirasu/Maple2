@@ -264,7 +264,7 @@ public static class CubePacket {
         pWriter.WriteInt(player.Home.PlotNumber);
         pWriter.WriteInt(player.Home.ApartmentNumber);
         pWriter.WriteUnicodeString(player.Home.Name);
-        pWriter.WriteLong(player.Home.Outdoor?.ExpiryTime ?? 0);
+        pWriter.WriteLong(player.Home.PlotExpiryTime);
         pWriter.WriteLong(player.Home.LastModified);
         pWriter.WriteBool(load);
 

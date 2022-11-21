@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
@@ -23,7 +24,7 @@ public class BuddyManager : IDisposable {
     private readonly IDictionary<long, Buddy> buddies;
     private readonly IDictionary<long, Buddy> blocked;
 
-    private bool disposed;
+    private readonly CancellationTokenSource tokenSource;
     private readonly ILogger logger = Log.Logger.ForContext<BuddyManager>();
 
     public BuddyManager(GameStorage.Request db, GameSession session) {
@@ -45,15 +46,23 @@ public class BuddyManager : IDisposable {
         // Set to empty dictionary if uninitialized by db.
         buddies ??= new Dictionary<long, Buddy>();
         blocked ??= new Dictionary<long, Buddy>();
+        tokenSource = new CancellationTokenSource();
 
-        foreach ((long entryId, Buddy buddy) in buddies) {
-            var listener = new PlayerInfoListener(UpdateField.Buddy, (type, info) => SyncUpdate(entryId, type, info));
-            session.PlayerInfo.Listen(buddy.Info.CharacterId, listener);
+        foreach (Buddy buddy in buddies.Values) {
+            BeginListen(buddy);
         }
     }
 
     public void Dispose() {
-        disposed = true;
+        tokenSource.Cancel();
+        tokenSource.Dispose();
+
+        foreach (Buddy buddy in buddies.Values) {
+            buddy.Dispose();
+        }
+        foreach (Buddy buddy in blocked.Values) {
+            buddy.Dispose();
+        }
     }
 
     public void Load() {
@@ -104,15 +113,15 @@ public class BuddyManager : IDisposable {
                 return;
             }
             BuddyEntry? entry = db.CreateBuddy(session.CharacterId, receiverId, BuddyType.OutRequest, message);
+            db.CreateBuddy(receiverId, session.CharacterId, BuddyType.InRequest, message); // Intentionally ignored result
+            db.Commit();
+
             if (entry == null || !session.PlayerInfo.GetOrFetch(entry.BuddyId, out PlayerInfo? info)) {
                 session.Send(BuddyPacket.Invite(error: s_buddy_err_miss_id));
                 return;
             }
 
             var self = new Buddy(entry, info);
-            db.CreateBuddy(receiverId, session.CharacterId, BuddyType.InRequest, message);
-            db.Commit();
-
             buddies[self.Id] = self;
 
             session.Send(BuddyPacket.Invite(name, message));
@@ -150,14 +159,13 @@ public class BuddyManager : IDisposable {
 
         using GameStorage.Request db = session.GameStorage.Context();
         long receiverId = self.Info.CharacterId;
-        BuddyEntry? entry = db.GetBuddy(receiverId, session.CharacterId);
-        if (entry == null || !session.PlayerInfo.GetOrFetch(entry.BuddyId, out PlayerInfo? info)) {
+        BuddyEntry? other = db.GetBuddy(receiverId, session.CharacterId);
+        if (other == null) {
             logger.Warning("Accept without paired entry");
             return;
         }
 
-        var other = new Buddy(entry, info);
-        self.Type = BuddyType.Default;
+        self.SetType(BuddyType.Default);
         other.Type = BuddyType.Default;
 
         try {
@@ -166,11 +174,14 @@ public class BuddyManager : IDisposable {
                 return;
             }
 
-            BuddyResponse response = session.World.Buddy(new BuddyRequest {
+            session.World.Buddy(new BuddyRequest {
                 ReceiverId = receiverId,
                 Accept = new BuddyRequest.Types.Accept {EntryId = other.Id},
             });
-            self.Info.Channel = (short) response.Channel;
+            if (session.PlayerInfo.GetOrFetch(self.Info.CharacterId, out PlayerInfo? info)) {
+                self.Info.Update(UpdateField.All, info);
+            }
+            BeginListen(self);
 
             session.Send(BuddyPacket.Accept(self));
             session.Send(BuddyPacket.UpdateInfo(self));
@@ -189,8 +200,13 @@ public class BuddyManager : IDisposable {
         }
 
         // DB written by sender as single transaction.
-        self.Type = BuddyType.Default;
-        self.Info.Channel = 1; // We don't actually know the channel here, but we know they are online.
+        self.SetType(BuddyType.Default);
+        if (session.PlayerInfo.GetOrFetch(self.Info.CharacterId, out PlayerInfo? info)) {
+            self.Info.Update(UpdateField.All, info);
+        }
+
+        BeginListen(self);
+
         session.Send(BuddyPacket.UpdateInfo(self));
         session.Send(BuddyPacket.NotifyAccept(self));
         session.Send(BuddyPacket.NotifyOnline(self));
@@ -205,13 +221,12 @@ public class BuddyManager : IDisposable {
         try {
             using GameStorage.Request db = session.GameStorage.Context();
             long receiverId = self.Info.CharacterId;
-            BuddyEntry? entry = db.GetBuddy(receiverId, session.CharacterId);
-            if (entry == null || !session.PlayerInfo.GetOrFetch(entry.BuddyId, out PlayerInfo? info)) {
+            BuddyEntry? other = db.GetBuddy(receiverId, session.CharacterId);
+            if (other == null) {
                 logger.Warning("Decline without paired entry");
                 return;
             }
 
-            var other = new Buddy(entry, info);
             if (!buddies.Remove(entryId) || !db.RemoveBuddy(self, other)) {
                 return;
             }
@@ -245,18 +260,29 @@ public class BuddyManager : IDisposable {
             session.Send(BuddyPacket.Block(name: name, error: s_buddy_err_max_block));
             return;
         }
-        if (blocked.TryGetValue(entryId, out _)) {
-            logger.Information("Could not find entry:{EntryId} to Block", entryId);
-            return;
+        if (entryId == 0) {
+            // entryId is 0 when blocking by |name|.
+            // We still search for entryId to convert the existing buddy entry.
+            foreach (Buddy value in buddies.Values) {
+                if (value.Info.Name == name) {
+                    entryId = value.Id;
+                }
+            }
+        } else {
+            if (blocked.TryGetValue(entryId, out _)) {
+                logger.Information("Could not find entry:{EntryId} to Block", entryId);
+                return;
+            }
         }
 
         try {
             using GameStorage.Request db = session.GameStorage.Context();
-            logger.Warning("EntryId: {Buddy}", entryId);
             long receiverId;
             if (buddies.Remove(entryId, out Buddy? self)) {
+                EndListen(self);
+
                 receiverId = self.Info.CharacterId;
-                self.Type = BuddyType.Blocked;
+                self.SetType(BuddyType.Blocked);
                 self.Message = message;
                 db.UpdateBuddy(self);
 
@@ -283,12 +309,11 @@ public class BuddyManager : IDisposable {
             }
 
             // Delete entry for existing buddy if it exists.
-            BuddyEntry? otherEntry = db.GetBuddy(receiverId, session.CharacterId);
-            if (otherEntry == null || !session.PlayerInfo.GetOrFetch(otherEntry.BuddyId, out PlayerInfo? otherInfo)) {
+            BuddyEntry? other = db.GetBuddy(receiverId, session.CharacterId);
+            if (other == null) {
                 return;
             }
 
-            var other = new Buddy(otherEntry, otherInfo);
             if (other.Type != BuddyType.Blocked && db.RemoveBuddy(other)) {
                 BuddyResponse _ = session.World.Buddy(new BuddyRequest {
                     ReceiverId = receiverId,
@@ -308,6 +333,8 @@ public class BuddyManager : IDisposable {
         }
 
         if (buddies.Remove(buddy.Id)) {
+            EndListen(buddy);
+
             session.Send(BuddyPacket.Remove(buddy));
         }
     }
@@ -340,17 +367,20 @@ public class BuddyManager : IDisposable {
         try {
             using GameStorage.Request db = session.GameStorage.Context();
             long receiverId = self.Info.CharacterId;
-            BuddyEntry? entry = db.GetBuddy(receiverId, session.CharacterId);
-            if (entry == null || !session.PlayerInfo.GetOrFetch(entry.BuddyId, out PlayerInfo? otherInfo)) {
+            BuddyEntry? other = db.GetBuddy(receiverId, session.CharacterId);
+            if (other == null) {
                 logger.Warning("Delete without paired entry");
                 return;
             }
 
-            var other = new Buddy(entry, otherInfo);
             if (!db.RemoveBuddy(self, other)) {
                 return;
             }
 
+            if (!buddies.Remove(entryId, out self)) {
+                return;
+            }
+            EndListen(self);
             session.Send(BuddyPacket.Remove(self));
             BuddyResponse _ = session.World.Buddy(new BuddyRequest {
                 ReceiverId = receiverId,
@@ -368,6 +398,7 @@ public class BuddyManager : IDisposable {
             return;
         }
 
+        EndListen(self);
         session.Send(BuddyPacket.Remove(self));
     }
 
@@ -404,13 +435,12 @@ public class BuddyManager : IDisposable {
         try {
             using GameStorage.Request db = session.GameStorage.Context();
             long receiverId = self.Info.CharacterId;
-            BuddyEntry? entry = db.GetBuddy(receiverId, session.CharacterId);
-            if (entry == null || !session.PlayerInfo.GetOrFetch(entry.BuddyId, out PlayerInfo? otherInfo)) {
+            BuddyEntry? other = db.GetBuddy(receiverId, session.CharacterId);
+            if (other == null) {
                 logger.Warning("Cancel without paired entry");
                 return;
             }
 
-            var other = new Buddy(entry, otherInfo);
             if (!db.RemoveBuddy(self, other)) {
                 return;
             }
@@ -453,8 +483,30 @@ public class BuddyManager : IDisposable {
         return false;
     }
 
-    private bool SyncUpdate(long id, UpdateField type, IPlayerInfo info) {
-        if (disposed || !buddies.TryGetValue(id, out Buddy? buddy)) {
+    private void BeginListen(Buddy buddy) {
+        if (buddy.Type != BuddyType.Default) {
+            return;
+        }
+        // Clean up previous token if necessary
+        if (buddy.TokenSource != null) {
+            logger.Warning("BeginListen called on Buddy {Id} that was already listening", buddy.Id);
+            EndListen(buddy);
+        }
+
+        buddy.TokenSource = CancellationTokenSource.CreateLinkedTokenSource(tokenSource.Token);
+        CancellationToken token = buddy.TokenSource.Token;
+        var listener = new PlayerInfoListener(UpdateField.Buddy, (type, info) => SyncUpdate(token, buddy.Id, type, info));
+        session.PlayerInfo.Listen(buddy.Info.CharacterId, listener);
+    }
+
+    private void EndListen(Buddy buddy) {
+        buddy.TokenSource?.Cancel();
+        buddy.TokenSource?.Dispose();
+        buddy.TokenSource = null;
+    }
+
+    private bool SyncUpdate(CancellationToken cancel, long id, UpdateField type, IPlayerInfo info) {
+        if (cancel.IsCancellationRequested || !buddies.TryGetValue(id, out Buddy? buddy)) {
             return true;
         }
 

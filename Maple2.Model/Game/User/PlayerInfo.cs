@@ -13,11 +13,17 @@ public class PlayerInfo : CharacterInfo, IPlayerInfo {
     public Trophy Trophy { get; set; }
 
     public static implicit operator PlayerInfo(Player player) {
-        return new PlayerInfo(player, player.Home.Name, player.Account.Trophy);
+        return new PlayerInfo(player, player.Home.Name, player.Account.Trophy) {
+            PlotMapId = player.Home.PlotMapId,
+            PlotNumber = player.Home.PlotNumber,
+            ApartmentNumber = player.Home.ApartmentNumber,
+            PlotExpiryTime = player.Home.PlotExpiryTime,
+        };
     }
 
     public PlayerInfo(CharacterInfo character, string homeName, Trophy trophy) : base(character) {
-        HomeName = homeName;
+        HomeName = string.IsNullOrWhiteSpace(homeName) ? "Unknown" : homeName;
+        Trophy = trophy;
     }
 
     public PlayerInfo Clone() {
