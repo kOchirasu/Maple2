@@ -33,6 +33,17 @@ public class Unlock {
     public readonly IDictionary<int, bool> MasteryRewardsClaimed = new Dictionary<int, bool>();
     public readonly IDictionary<int, short> Pets = new SortedDictionary<int, short>();
     public readonly IDictionary<int, Fish> FishAlbum = new SortedDictionary<int, Fish>();
+    
+    public void AddFish(GameSession session, int fishId, int fishSize) {
+        if (FishAlbum.TryGetValue(fishId, out Fish? fish)) {
+            fish.TotalCaught++;
+            
+            if (fishSize > fish.LargestSize) {
+                fish.LargestSize = fishSize;
+            }
+        }
+        FishAlbum[fishId] = fish;
+    }
 }
 
 public class Currency {

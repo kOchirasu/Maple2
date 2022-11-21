@@ -8,6 +8,7 @@ using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
+using Maple2.Tools.Extensions;
 using Constant = System.Reflection.Metadata.Constant;
 
 namespace Maple2.Server.Game.Packets;
@@ -48,11 +49,11 @@ public static class FishingPacket {
         return pWriter;
     }
     
-    public static ByteWriter IncreaseMastery(FishTable.Entry fish) {
+    public static ByteWriter IncreaseMastery(int fishId, int exp) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.IncreaseMastery);
-        pWriter.WriteInt(fish.Id);
-        pWriter.WriteInt(fish.Rarity * 2);
+        pWriter.WriteInt(fishId);
+        pWriter.WriteInt(exp);
         pWriter.WriteInt((int) MasteryType.Fishing);
 
         return pWriter;
@@ -69,6 +70,28 @@ public static class FishingPacket {
             pWriter.WriteInt(25);
             pWriter.WriteInt(15000); // fishing time minus any rod or buff time reduction
             pWriter.WriteShort(1);
+        }
+
+        return pWriter;
+    }
+    
+    public static ByteWriter LoadAlbum(IDictionary<int, Fish> fishAlbum) {
+        var pWriter = Packet.Of(SendOp.Fishing);
+        pWriter.Write<Command>(Command.LoadAlbum);
+        pWriter.WriteInt(fishAlbum.Count);
+        foreach ((int id, Fish fish) in fishAlbum) {
+            pWriter.WriteClass(fish);
+        }
+
+        return pWriter;
+    }
+    
+    public static ByteWriter CatchFish(IDictionary<int, Fish> fishAlbum) {
+        var pWriter = Packet.Of(SendOp.Fishing);
+        pWriter.Write<Command>(Command.CatchFish);
+        pWriter.WriteInt(fishAlbum.Count);
+        foreach ((int id, Fish fish) in fishAlbum) {
+            pWriter.WriteClass(fish);
         }
 
         return pWriter;

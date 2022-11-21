@@ -15,6 +15,7 @@ using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Server.Game.Util;
+using Serilog.Core;
 using static Maple2.Model.Error.BuddyEmoteError;
 
 namespace Maple2.Server.Game.PacketHandlers;
@@ -227,21 +228,66 @@ public class FishingHandler : PacketHandler<GameSession> {
             return;
         }
 
-        FishTable.Entry fish = GetFishToCatch(entries);
+        FishTable.Entry fishEntry = GetFishToCatch(entries);
         
         // determine size of fish
         int fishSize = Random.Shared.NextDouble() switch {
-            >= 0.0 and < 0.03 => Random.Shared.Next(fish.SmallSize[0], fish.SmallSize[1]),
-            >= 0.03 and < 0.15 => Random.Shared.Next(fish.SmallSize[1], fish.BigSize[0]),
-            >= 0.15 => Random.Shared.Next(fish.SmallSize[0], fish.SmallSize[1]),
-            _ => Random.Shared.Next(fish.SmallSize[0], fish.SmallSize[1]),
+            >= 0.0 and < 0.03 => Random.Shared.Next(fishEntry.SmallSize[0], fishEntry.SmallSize[1]),
+            >= 0.03 and < 0.15 => Random.Shared.Next(fishEntry.SmallSize[1], fishEntry.BigSize[0]),
+            >= 0.15 => Random.Shared.Next(fishEntry.SmallSize[0], fishEntry.SmallSize[1]),
+            _ => Random.Shared.Next(fishEntry.SmallSize[0], fishEntry.SmallSize[1]),
         };
 
         if (success) {
+            bool newFish = false;
+            IDictionary<int, Fish> fishAlbum = session.Player.Value.Unlock.FishAlbum;
+            if (fishAlbum.TryGetValue(fishEntry.Id, out Fish? fish)) {
+                fish.TotalCaught++;
             
+                if (fishSize > fish.LargestSize) {
+                    fish.LargestSize = fishSize;
+                }
+            } else {
+                fishAlbum[fishEntry.Id] = new Fish(fishEntry.Id, fishSize);
+                newFish = true;
+            }
+
+            if (fishSize >= fishEntry.BigSize[0]) {
+                fishAlbum[fishEntry.Id].TotalPrizeFish++;
+            }
+            
+            AddMastery(session, fishEntry, newFish);
         }
         
         //session.Send(FishingPacket.);
+    }
+
+    private void AddMastery(GameSession session, FishTable.Entry fishEntry, bool newFish) {
+        if (newFish) {
+            int exp = fishEntry.Rarity * Constant.FishingMasteryIncreaseFactor;
+            session.Mastery[MasteryType.Fishing] += exp;
+            session.Send(MasteryPacket.UpdateMastery(MasteryType.Fishing, session.Mastery[MasteryType.Fishing]));
+            session.Send(FishingPacket.IncreaseMastery(fishEntry.Id, exp));
+            return;
+        }
+
+        if (!TableMetadata.FishingSpotTable.Entries.TryGetValue(session.Player.Value.Character.MapId, out FishingSpotTable.Entry? fishingSpotEntry)) {
+            return;
+        }
+        
+
+        int expChance;
+        if (session.Mastery[MasteryType.Fishing] > fishingSpotEntry.MaxMastery) {
+            expChance = Random.Shared.Next(0, 200); 
+        } else {
+            expChance = Random.Shared.Next(0, 100);
+        }
+        
+        if (expChance <= 10) {
+            int exp = Random.Shared.Next(1, 3);
+            session.Mastery[MasteryType.Fishing] += exp;
+            session.Send(FishingPacket.IncreaseMastery(fishEntry.Id, exp));
+        }
     }
 
     private static FishTable.Entry GetFishToCatch(IEnumerable<FishTable.Entry> entries) {

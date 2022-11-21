@@ -158,7 +158,7 @@ public sealed partial class GameSession : Core.Network.Session {
         // UserEnv
         Send(UserEnvPacket.LoadTitles(Player.Value.Unlock.Titles));
         Send(UserEnvPacket.LoadClaimedRewards(Player.Value.Unlock.MasteryRewardsClaimed));
-        // Fishing
+        Send(FishingPacket.LoadAlbum(Player.Value.Unlock.FishAlbum));
         Pet?.Load();
         Send(PetPacket.LoadCollection(Player.Value.Unlock.Pets));
         // LegionBattle
