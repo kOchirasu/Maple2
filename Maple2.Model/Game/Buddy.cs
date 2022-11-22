@@ -56,8 +56,6 @@ public class Buddy : IByteSerializable, IDisposable {
             Info.Motto = string.Empty;
             Info.Picture = string.Empty;
             Info.Gender = Gender.Male;
-            Info.Job = Job.Newbie;
-            Info.Level = 0;
             Info.GearScore = 0;
             Info.CurrentHp = 0;
             Info.TotalHp = 0;
