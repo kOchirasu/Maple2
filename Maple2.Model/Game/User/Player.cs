@@ -32,6 +32,8 @@ public class Unlock {
     public readonly IDictionary<int, long> StickerSets = new Dictionary<int, long>();
     public readonly IDictionary<int, bool> MasteryRewardsClaimed = new Dictionary<int, bool>();
     public readonly IDictionary<int, short> Pets = new SortedDictionary<int, short>();
+    // TODO: Determine where to save this data.
+    public readonly IDictionary<int, Quest> Quests = new Dictionary<int, Quest>();
 }
 
 public class Currency {
