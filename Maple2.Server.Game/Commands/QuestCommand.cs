@@ -40,7 +40,7 @@ public class QuestCommand : Command {
         if (state is QuestState.Started or QuestState.Completed) {
             Unlock unlock = session.Player.Value.Unlock;
             if (!unlock.Quests.TryGetValue(id, out Quest? quest)) {
-                quest = new Quest(metadata) {
+                quest = new Quest(metadata.Id) {
                     State = QuestState.Started,
                     Accepted = true,
                     StartTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),

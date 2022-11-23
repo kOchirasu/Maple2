@@ -7,8 +7,7 @@ using Maple2.Tools;
 namespace Maple2.Model.Game;
 
 public class Quest : IByteSerializable {
-    public readonly QuestMetadata Metadata;
-    public int Id => Metadata.Id;
+    public readonly int Id;
 
     public QuestState State;
     public int CompletionCount;
@@ -18,8 +17,8 @@ public class Quest : IByteSerializable {
     public bool Accepted;
     public IList<int> Conditions;
 
-    public Quest(QuestMetadata metadata) {
-        Metadata = metadata;
+    public Quest(int id) {
+        Id = id;
         Conditions = new List<int>();
     }
 
