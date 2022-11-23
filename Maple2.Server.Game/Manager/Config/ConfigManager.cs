@@ -16,12 +16,13 @@ public class ConfigManager {
 
     private readonly GameSession session;
 
-    private readonly Dictionary<int, KeyBind> keyBinds;
+    private readonly IDictionary<int, KeyBind> keyBinds;
     private short activeHotBar;
     private readonly List<HotBar> hotBars;
     private IList<SkillMacro> skillMacros;
     private IList<Wardrobe> wardrobes;
     private IList<int> favoriteStickers;
+    private readonly IDictionary<LapenshardSlot, int> lapenshards;
     private readonly StatAttributes statAttributes;
 
     public readonly SkillManager Skill;
@@ -31,6 +32,7 @@ public class ConfigManager {
         keyBinds = new Dictionary<int, KeyBind>();
         hotBars = new List<HotBar>();
         skillMacros = new List<SkillMacro>();
+        lapenshards = new Dictionary<LapenshardSlot, int>();
 
         (
             IList<KeyBind>? KeyBinds,
@@ -38,6 +40,7 @@ public class ConfigManager {
             IList<SkillMacro>? Macros,
             IList<Wardrobe>? Wardrobes,
             IList<int>? FavoriteStickers,
+            IDictionary<LapenshardSlot, int>? Lapenshards,
             IDictionary<BasicAttribute, int>? Allocation,
             SkillBook? SkillBook
         ) load = db.LoadCharacterConfig(session.CharacterId);
@@ -52,6 +55,7 @@ public class ConfigManager {
         skillMacros = load.Macros ?? new List<SkillMacro>();
         wardrobes = load.Wardrobes ?? new List<Wardrobe>();
         favoriteStickers = load.FavoriteStickers ?? new List<int>();
+        lapenshards = load.Lapenshards ?? new Dictionary<LapenshardSlot, int>();
 
         statAttributes = new StatAttributes();
         if (load.Allocation != null) {
@@ -97,16 +101,16 @@ public class ConfigManager {
         if (favoriteStickers.Contains(stickerId)) {
             return false;
         }
-        
+
         favoriteStickers.Add(stickerId);
         return true;
     }
-    
+
     public bool TryUnfavoriteChatSticker(int stickerId) {
         if (!favoriteStickers.Contains(stickerId)) {
             return false;
         }
-        
+
         favoriteStickers.Remove(stickerId);
         return true;
     }
@@ -237,6 +241,7 @@ public class ConfigManager {
             skillMacros,
             wardrobes,
             favoriteStickers,
+            lapenshards,
             statAttributes.Allocation,
             Skill.SkillBook
         );
