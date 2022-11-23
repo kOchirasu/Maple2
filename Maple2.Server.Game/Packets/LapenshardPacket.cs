@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -15,31 +16,31 @@ public static class LapenshardPacket {
         Upgrade = 5,
     }
 
-    public static ByteWriter Load(ICollection<Item> items) {
+    public static ByteWriter Load(IDictionary<LapenshardSlot, int> items) {
         var pWriter = Packet.Of(SendOp.Lapenshard);
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteInt(items.Count);
-        foreach (Item lapenshard in items) {
-            pWriter.WriteInt(lapenshard.Slot);
-            pWriter.WriteInt(lapenshard.Id);
+        foreach ((LapenshardSlot slot, int id) in items) {
+            pWriter.Write<LapenshardSlot>(slot);
+            pWriter.WriteInt(id);
         }
 
         return pWriter;
     }
 
-    public static ByteWriter Equip(Item lapenshard) {
+    public static ByteWriter Equip(LapenshardSlot slot, int id) {
         var pWriter = Packet.Of(SendOp.Lapenshard);
         pWriter.Write<Command>(Command.Equip);
-        pWriter.WriteInt(lapenshard.Slot);
-        pWriter.WriteInt(lapenshard.Id);
+        pWriter.Write<LapenshardSlot>(slot);
+        pWriter.WriteInt(id);
 
         return pWriter;
     }
 
-    public static ByteWriter Unequip(short slot) {
+    public static ByteWriter Unequip(LapenshardSlot slot) {
         var pWriter = Packet.Of(SendOp.Lapenshard);
         pWriter.Write<Command>(Command.Unequip);
-        pWriter.WriteInt(slot);
+        pWriter.Write<LapenshardSlot>(slot);
 
         return pWriter;
     }
@@ -52,12 +53,12 @@ public static class LapenshardPacket {
         return pWriter;
     }
 
-    public static ByteWriter Upgrade(Item lapenshard, bool success = true) {
+    public static ByteWriter Upgrade(long uid, int id, LapenshardSlot slot, bool success = true) {
         var pWriter = Packet.Of(SendOp.Lapenshard);
         pWriter.Write<Command>(Command.Upgrade);
-        pWriter.WriteLong(lapenshard.Uid);
-        pWriter.WriteInt(lapenshard.Id);
-        pWriter.WriteInt(lapenshard.Rarity);
+        pWriter.WriteLong(uid);
+        pWriter.WriteInt(id);
+        pWriter.Write<LapenshardSlot>(slot);
         pWriter.WriteBool(success);
 
         return pWriter;

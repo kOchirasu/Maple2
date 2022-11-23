@@ -35,6 +35,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "instrumentcategoryinfo.xml", Table = ParseInstrument()};
         yield return new TableMetadata {Name = "interactobject.xml", Table = ParseInteractObject(false)};
         yield return new TableMetadata {Name = "interactobject_mastery.xml", Table = ParseInteractObject(true)};
+        yield return new TableMetadata {Name = "itemlapenshardupgrade.xml", Table = ParseLapenshardUpgradeTable()};
         yield return new TableMetadata {Name = "itemsocket.xml", Table = ParseItemSocketTable()};
         yield return new TableMetadata {Name = "masteryreceipe.xml", Table = ParseMasteryRecipe()};
         yield return new TableMetadata {Name = "mastery.xml", Table = ParseMasteryReward()};
@@ -440,6 +441,32 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
             yield return (type, new ItemEquipVariationTable(values, rates, specialValues, specialRates));
         }
+    }
+
+    private LapenshardUpgradeTable ParseLapenshardUpgradeTable() {
+        var results = new Dictionary<int, LapenshardUpgradeTable.Entry>();
+        foreach ((int itemId, ItemLapenshardUpgrade upgrade) in parser.ParseItemLapenshardUpgrade()) {
+            var ingredients = new List<LapenshardUpgradeTable.Ingredient>();
+            if (upgrade.IngredientCount1 > 0 && upgrade.IngredientItemID1?.Length > 1) {
+                ingredients.Add(new LapenshardUpgradeTable.Ingredient(Enum.Parse<ItemTag>(upgrade.IngredientItemID1[1]), upgrade.IngredientCount1));
+            }
+            if (upgrade.IngredientCount2 > 0 && upgrade.IngredientItemID2?.Length > 1) {
+                ingredients.Add(new LapenshardUpgradeTable.Ingredient(Enum.Parse<ItemTag>(upgrade.IngredientItemID2[1]), upgrade.IngredientCount2));
+            }
+            if (upgrade.IngredientCount3 > 0 && upgrade.IngredientItemID3?.Length > 1) {
+                ingredients.Add(new LapenshardUpgradeTable.Ingredient(Enum.Parse<ItemTag>(upgrade.IngredientItemID3[1]), upgrade.IngredientCount3));
+            }
+
+            results.Add(itemId, new LapenshardUpgradeTable.Entry(
+                Level: upgrade.LapenLevel,
+                GroupId: upgrade.LapenGroupID,
+                NextItemId: upgrade.NextItemID,
+                RequireCount: upgrade.GroupLapenshardMinCount,
+                Ingredients: ingredients,
+                Meso: upgrade.meso));
+        }
+
+        return new LapenshardUpgradeTable(results);
     }
 
     private ItemSocketTable ParseItemSocketTable() {

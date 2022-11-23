@@ -60,6 +60,10 @@ public class EquipManager {
     /// <param name="isSkin">Whether the item is a skin or not.</param>
     /// <returns>The items if any that were unequipped to equip this item.</returns>
     public bool Equip(long itemUid, EquipSlot slot, bool isSkin) {
+        if (!Enum.IsDefined<EquipSlot>(slot)) {
+            return false;
+        }
+
         lock (session.Item) {
             // Check that item is valid and can be equipped.
             Item? item = session.Item.Inventory.Get(itemUid);
@@ -67,12 +71,9 @@ public class EquipManager {
                 session.Send(NoticePacket.MessageBox(StringCode.s_item_invalid_do_not_have));
                 return false;
             }
-            if (item.IsExpired()) {
-                session.Send(NoticePacket.MessageBox(StringCode.s_item_err_puton_expired));
-                return false;
-            }
-            if (item.Binding != null && item.Binding.CharacterId != session.CharacterId) {
-                session.Send(NoticePacket.MessageBox(StringCode.s_item_err_puton_invalid_binding));
+            StringCode result = ValidateEquipItem(session, item);
+            if (result != StringCode.s_empty_string) {
+                session.Send(NoticePacket.MessageBox(result));
                 return false;
             }
 
@@ -115,7 +116,7 @@ public class EquipManager {
                 }
             }
 
-            if (item.Metadata.Limit.TransferType == TransferType.BindOnEquip || item.Metadata.Limit.TransferType == TransferType.BindOnLoot) {
+            if (item.Metadata.Limit.TransferType is TransferType.BindOnEquip or TransferType.BindOnLoot) {
                 session.Item.Bind(item);
             }
 
@@ -155,36 +156,37 @@ public class EquipManager {
 
     public bool EquipBadge(long itemUid) {
         lock (session.Item) {
-            Item? item = session.Item.Inventory.Get(itemUid);
-            if (item == null) {
+            Item? badge = session.Item.Inventory.Get(itemUid);
+            if (badge == null) {
                 session.Send(NoticePacket.MessageBox(StringCode.s_item_invalid_do_not_have));
                 return false;
             }
-            if (item.IsExpired()) {
-                session.Send(NoticePacket.MessageBox(StringCode.s_item_err_puton_expired));
+            StringCode result = ValidateEquipItem(session, badge);
+            if (result != StringCode.s_empty_string) {
+                session.Send(NoticePacket.MessageBox(result));
                 return false;
             }
 
             // Remove item being equipped from inventory so unequipped items and be moved there.
-            if (!session.Item.Inventory.Remove(itemUid, out item) || item.Badge == null) {
+            if (!session.Item.Inventory.Remove(itemUid, out badge) || badge.Badge == null) {
                 return false;
             }
 
-            if (!UnequipBadge(item.Badge.Type, item.Slot)) {
-                return false;
+            if (!UnequipBadge(badge.Badge.Type, badge.Slot)) {
+                throw new InvalidOperationException("Failed to unequip badge");
             }
 
-            if (item.Metadata.Limit.TransferType == TransferType.BindOnEquip || item.Metadata.Limit.TransferType == TransferType.BindOnLoot) {
-                session.Item.Bind(item);
+            if (badge.Metadata.Limit.TransferType is TransferType.BindOnEquip or TransferType.BindOnLoot) {
+                session.Item.Bind(badge);
             }
 
-            item.Group = ItemGroup.Badge;
-            item.Slot = -1;
-            Badge[item.Badge.Type] = item;
-            session.Field?.Broadcast(EquipPacket.EquipBadge(session.Player, item));
+            badge.Group = ItemGroup.Badge;
+            badge.Slot = -1;
+            Badge[badge.Badge.Type] = badge;
+            session.Field?.Broadcast(EquipPacket.EquipBadge(session.Player, badge));
 
-            if (item.Badge.Type == BadgeType.PetSkin) {
-                session.Pet?.BadgeChanged(item.Badge);
+            if (badge.Badge.Type == BadgeType.PetSkin) {
+                session.Pet?.BadgeChanged(badge.Badge);
             }
 
             return true;
@@ -192,35 +194,48 @@ public class EquipManager {
     }
 
     public bool UnequipBadge(BadgeType slot, short inventorySlot = -1) {
+        if (!Enum.IsDefined<BadgeType>(slot)) {
+            return false;
+        }
+
         lock (session.Item) {
-            if (!Badge.TryRemove(slot, out Item? unequipItem)) {
-                return true;
+            if (!Badge.TryRemove(slot, out Item? unequipBadge)) {
+                return true; // Nothing to unequip
             }
 
-            if (unequipItem.Badge == null) {
+            if (session.Item.Inventory.FreeSlots(InventoryType.Badge) == 0) {
+                return false;
+            }
+
+            if (unequipBadge.Badge == null) {
                 throw new InvalidOperationException("Unequipped badge that is not a badge");
             }
 
-            unequipItem.Group = ItemGroup.Default;
-            unequipItem.Slot = inventorySlot;
-            bool success = session.Item.Inventory.Add(unequipItem);
+            unequipBadge.Group = ItemGroup.Default;
+            unequipBadge.Slot = inventorySlot;
 
-            if (success) {
-                session.Field?.Broadcast(EquipPacket.UnequipBadge(session.Player, unequipItem.Badge.Type));
-
-                if (unequipItem.Badge.Type == BadgeType.PetSkin) {
-                    session.Pet?.BadgeChanged(null);
-                }
+            bool success = session.Item.Inventory.Add(unequipBadge);
+            if (!success) {
+                throw new InvalidOperationException($"Failed to unequip badge: {unequipBadge.Uid}");
             }
 
-            return success;
+            session.Field?.Broadcast(EquipPacket.UnequipBadge(session.Player, unequipBadge.Badge.Type));
+
+            if (unequipBadge.Badge.Type == BadgeType.PetSkin) {
+                session.Pet?.BadgeChanged(null);
+            }
+            return true;
         }
     }
 
     private bool UnequipInternal(EquipSlot slot, bool isSkin, short inventorySlot = -1) {
         ConcurrentDictionary<EquipSlot, Item> equips = isSkin ? Outfit : Gear;
         if (!equips.TryRemove(slot, out Item? unequipItem)) {
-            return true;
+            return true; // Nothing to unequip
+        }
+
+        if (session.Item.Inventory.FreeSlots(isSkin ? InventoryType.Outfit : InventoryType.Gear) == 0) {
+            return false;
         }
 
         unequipItem.Group = ItemGroup.Default;
@@ -234,10 +249,29 @@ public class EquipManager {
             success = session.Item.Inventory.Add(unequipItem);
         }
 
-        if (success) {
-            session.Field?.Broadcast(EquipPacket.UnequipItem(session.Player, unequipItem));
+        if (!success) {
+            throw new InvalidOperationException($"Failed to unequip item: {unequipItem.Uid}");
         }
-        return success;
+
+        session.Field?.Broadcast(EquipPacket.UnequipItem(session.Player, unequipItem));
+        return true;
+    }
+
+    public static StringCode ValidateEquipItem(GameSession session, Item item) {
+        if (item.Metadata.Limit.Level > session.Player.Value.Character.Level) {
+            return StringCode.s_item_err_puton_low_level;
+        }
+        if (item.IsExpired()) {
+            return StringCode.s_item_err_puton_expired;
+        }
+        if (item.Metadata.Limit.Jobs.Length > 0 && !item.Metadata.Limit.Jobs.Contains(session.Player.Value.Character.Job.Code())) {
+            return StringCode.s_item_err_puton_job;
+        }
+        if (item.Binding != null && item.Binding.CharacterId != session.CharacterId) {
+            return StringCode.s_item_err_puton_invalid_binding;
+        }
+
+        return StringCode.s_empty_string;
     }
 
     private static bool ValidEquipSlot(EquipSlot slot) {

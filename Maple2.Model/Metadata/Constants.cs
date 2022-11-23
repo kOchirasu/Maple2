@@ -16,6 +16,7 @@ public static class Constant {
     public const int MaxBuddyCount = 100;
     public const int MaxBlockCount = 100;
     public const int GemstoneGrade = 4;
+    public const int LapenshardGrade = 3;
     public const int InventoryExpandRowCount = 6;
     public const int DefaultReturnMapId = 2000062; // Lith Harbor
     public const int DefaultHomeMapId = 62000000;  // Private Residence
