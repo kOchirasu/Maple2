@@ -48,6 +48,8 @@ public static class ModelExtensions {
 
     public static EquipSlot EquipSlot(this Item item) =>
         System.Enum.IsDefined<EquipSlot>((EquipSlot) item.Slot) ? (EquipSlot) item.Slot : Enum.EquipSlot.Unknown;
+    public static LapenshardSlot LapenshardSlot(this Item item) =>
+        System.Enum.IsDefined<LapenshardSlot>((LapenshardSlot) item.Slot) ? (LapenshardSlot) item.Slot : default;
 
     public static bool IsCurrency(this Item item) => item.Id is >= 90000000 and < 100000000;
     public static bool IsMeso(this Item item) => item.Id is >= 90000001 and <= 90000003;

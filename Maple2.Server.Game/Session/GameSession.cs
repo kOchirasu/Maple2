@@ -140,7 +140,6 @@ public sealed partial class GameSession : Core.Network.Session {
         Send(TimeSyncPacket.Set(DateTimeOffset.UtcNow));
 
         Send(StatsPacket.Init(Player));
-        // Quest
 
         Send(RequestPacket.TickSync(Environment.TickCount));
 
@@ -161,7 +160,12 @@ public sealed partial class GameSession : Core.Network.Session {
         // Prestige
         Item.Inventory.Load();
         Item.Furnishing.Load();
-        // Quest
+        // Load Quests
+        Send(QuestPacket.StartLoad(0));
+        // Send(QuestPacket.LoadSkyFortressMissions(Array.Empty<int>()));
+        // Send(QuestPacket.LoadKritiasMissions(Array.Empty<int>()));
+        Send(QuestPacket.LoadQuestStates(player.Unlock.Quests.Values));
+        // Send(QuestPacket.LoadQuests(Array.Empty<int>()));
         // Achieve
         // MaidCraftItem
         // UserMaid
@@ -265,6 +269,7 @@ public sealed partial class GameSession : Core.Network.Session {
 
         Send(CubePacket.UpdateProfile(Player, true));
         Send(CubePacket.ReturnMap(Player.Value.Character.ReturnMapId));
+        Config.LoadLapenshard();
         Send(RevivalPacket.Count(0)); // TODO: Consumed daily revivals?
         Send(RevivalPacket.Confirm(Player));
         Config.LoadStatAttributes();
