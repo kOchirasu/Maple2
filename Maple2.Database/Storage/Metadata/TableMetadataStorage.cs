@@ -16,6 +16,7 @@ public class TableMetadataStorage {
     private readonly Lazy<FishTable> fishTable;
     private readonly Lazy<FishingRodTable> fishingRodTable;
     private readonly Lazy<FishingSpotTable> fishingSpotTable;
+    private readonly Lazy<FishingRewardTable> fishingRewardTable;
     private readonly Lazy<InstrumentTable> instrumentTable;
     private readonly Lazy<InteractObjectTable> interactObjectTable;
     private readonly Lazy<InteractObjectTable> interactMasteryTable;
@@ -47,6 +48,7 @@ public class TableMetadataStorage {
     public FishTable FishTable => fishTable.Value;
     public FishingRodTable FishingRodTable => fishingRodTable.Value;
     public FishingSpotTable FishingSpotTable => fishingSpotTable.Value;
+    public FishingRewardTable FishingRewardTable => fishingRewardTable.Value;
     public InstrumentTable InstrumentTable => instrumentTable.Value;
     public InteractObjectTable InteractObjectTable => interactObjectTable.Value;
     public InteractObjectTable InteractMasteryTable => interactMasteryTable.Value;
@@ -79,6 +81,7 @@ public class TableMetadataStorage {
         fishTable = Retrieve<FishTable>(context, "fish.xml");
         fishingRodTable = Retrieve<FishingRodTable>(context, "fishingrod.xml");
         fishingSpotTable = Retrieve<FishingSpotTable>(context, "fishingspot.xml");
+        fishingRewardTable = Retrieve<FishingRewardTable>(context, "fishingreward.xml");
         instrumentTable = Retrieve<InstrumentTable>(context, "instrumentcategoryinfo.xml");
         interactObjectTable = Retrieve<InteractObjectTable>(context, "interactobject.xml");
         interactMasteryTable = Retrieve<InteractObjectTable>(context, "interactobject_mastery.xml");

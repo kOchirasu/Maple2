@@ -18,7 +18,7 @@ internal class CharacterUnlock {
     public required IDictionary<int, long> StickerSets { get; set; }
     public required IDictionary<int, bool> MasteryRewardsClaimed { get; set; }
     public required IDictionary<int, short> Pets { get; set; }
-    public required IDictionary<int, Fish> FishAlbum { get; set; }
+    public required IDictionary<int, FishEntry> FishAlbum { get; set; }
     public required InventoryExpand Expand { get; set; }
     public DateTime LastModified { get; init; }
 
@@ -31,7 +31,7 @@ internal class CharacterUnlock {
             StickerSets = new Dictionary<int, long>(),
             MasteryRewardsClaimed = new Dictionary<int, bool>(),
             Pets = new SortedDictionary<int, short>(),
-            FishAlbum = new SortedDictionary<int, Fish>(),
+            FishAlbum = new SortedDictionary<int, FishEntry>(),
             Expand = new InventoryExpand(),
         } : new CharacterUnlock {
             LastModified = other.LastModified,
@@ -108,6 +108,10 @@ internal class CharacterUnlock {
 
         foreach ((int rewardId, bool isClaimed) in other.MasteryRewardsClaimed) {
             unlock.MasteryRewardsClaimed[rewardId] = isClaimed;
+        }
+
+        foreach ((int fishId, FishEntry fish) in other.FishAlbum) {
+            unlock.FishAlbum[fishId] = fish;
         }
 
         return unlock;

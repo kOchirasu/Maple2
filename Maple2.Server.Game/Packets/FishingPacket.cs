@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
 using Maple2.Model.Common;
-using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -9,7 +8,6 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
 using Maple2.Tools.Extensions;
-using Constant = System.Reflection.Metadata.Constant;
 
 namespace Maple2.Server.Game.Packets;
 
@@ -21,6 +19,7 @@ public static class FishingPacket {
         IncreaseMastery = 3,
         LoadTiles = 4,
         CatchItem = 5,
+        PrizeFish = 6,
         LoadAlbum = 7,
         CatchFish = 8,
         Start = 9,
@@ -49,12 +48,10 @@ public static class FishingPacket {
         return pWriter;
     }
     
-    public static ByteWriter IncreaseMastery(int fishId, int exp) {
+    public static ByteWriter IncreaseMastery(FishCatch fishCatch) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.IncreaseMastery);
-        pWriter.WriteInt(fishId);
-        pWriter.WriteInt(exp);
-        pWriter.WriteInt((int) MasteryType.Fishing);
+        pWriter.Write<FishCatch>(fishCatch);
 
         return pWriter;
     }
@@ -75,22 +72,48 @@ public static class FishingPacket {
         return pWriter;
     }
     
-    public static ByteWriter LoadAlbum(IDictionary<int, Fish> fishAlbum) {
+    public static ByteWriter CatchItem(IList<FishingRewardTable.Entry> rewards) {
+        var pWriter = Packet.Of(SendOp.Fishing);
+        pWriter.Write<Command>(Command.CatchItem);
+        pWriter.WriteInt(rewards.Count);
+        foreach (FishingRewardTable.Entry item in rewards) {
+            pWriter.WriteInt(item.Id);
+            pWriter.WriteInt(item.Amount);
+        }
+
+        return pWriter;
+    }
+    
+    public static ByteWriter PrizeFish(string playerName, int fishId) {
+        var pWriter = Packet.Of(SendOp.Fishing);
+        pWriter.Write<Command>(Command.PrizeFish);
+        pWriter.WriteUnicodeString(playerName);
+        pWriter.WriteInt(fishId);
+        pWriter.WriteInt();
+
+        return pWriter;
+    }
+    
+    public static ByteWriter LoadAlbum(IDictionary<int, FishEntry> fishAlbum) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.LoadAlbum);
         pWriter.WriteInt(fishAlbum.Count);
-        foreach ((int id, Fish fish) in fishAlbum) {
+        foreach ((int id, FishEntry fish) in fishAlbum) {
             pWriter.WriteClass(fish);
         }
 
         return pWriter;
     }
     
-    public static ByteWriter CatchFish(IDictionary<int, Fish> fishAlbum) {
+    public static ByteWriter CatchFish(int id, int size, FishEntry? fish = null) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.CatchFish);
-        pWriter.WriteInt(fishAlbum.Count);
-        foreach ((int id, Fish fish) in fishAlbum) {
+        pWriter.WriteInt(id);
+        pWriter.WriteInt(size);
+        pWriter.WriteBool(fish != null);
+        pWriter.WriteByte();
+
+        if (fish != null) {
             pWriter.WriteClass(fish);
         }
 

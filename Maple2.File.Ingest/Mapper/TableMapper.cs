@@ -8,6 +8,7 @@ using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Newtonsoft.Json;
 using ChatSticker = Maple2.File.Parser.Xml.Table.ChatSticker;
 using Fish = Maple2.File.Parser.Xml.Table.Fish;
 using InteractObject = Maple2.File.Parser.Xml.Table.InteractObject;
@@ -43,6 +44,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "fishingspot.xml", Table = ParseFishingSpot()};
         yield return new TableMetadata {Name = "fish.xml", Table = ParseFish()};
         yield return new TableMetadata {Name = "fishingrod.xml", Table = ParseFishingRod()};
+        yield return new TableMetadata {Name = "fishingreward.xml", Table = ParseFishingRewards()};
         // Scroll
         yield return new TableMetadata {Name = "enchantscroll.xml", Table = ParseEnchantScrollTable()};
         yield return new TableMetadata {Name = "itemremakescroll.xml", Table = ParseItemRemakeScrollTable()};
@@ -601,6 +603,16 @@ public class TableMapper : TypeMapper<TableMetadata> {
             results.Add(id, entry);
         }
         return new FishingRodTable(results);
+    }
+    
+    private FishingRewardTable ParseFishingRewards() {
+        var results = new Dictionary<int, FishingRewardTable.Entry>();
+        string json = System.IO.File.ReadAllText($"../../../Json/FishingRewards.json");
+        var items = JsonConvert.DeserializeObject<List<FishingRewardTable.Entry>>(json);
+        foreach (FishingRewardTable.Entry entry in items) {
+            results[entry.Id] = entry;
+        }
+        return new FishingRewardTable(results);
     }
 
     private EnchantScrollTable ParseEnchantScrollTable() {

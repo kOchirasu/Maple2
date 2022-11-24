@@ -12,7 +12,8 @@ namespace Maple2.Server.World.Migrations
                 name: "FishAlbum",
                 table: "character-unlock",
                 type: "json",
-                nullable: false)
+                nullable: false,
+                defaultValue: "{}")
                 .Annotation("MySql:CharSet", "utf8mb4");
         }
 

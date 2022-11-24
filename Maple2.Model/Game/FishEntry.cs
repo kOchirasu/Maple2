@@ -1,20 +1,27 @@
-﻿
+﻿using System.Text.Json.Serialization;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
 namespace Maple2.Model.Game;
 
-public class Fish : IByteSerializable {
+public class FishEntry : IByteSerializable {
     
     public int Id { get; }
     public int TotalCaught { get; set; }
     public int TotalPrizeFish { get; set; }
     public int LargestSize { get; set; }
 
-    public Fish(int id, int fishSize) {
+    public FishEntry(int id, int fishSize) {
         Id = id;
-        TotalCaught = 1;
         LargestSize = fishSize;
+    }
+    
+    [JsonConstructor]
+    public FishEntry(int id, int totalCaught, int totalPrizeFish, int largestSize) {
+        Id = id;
+        TotalCaught = totalCaught;
+        TotalPrizeFish = totalPrizeFish;
+        LargestSize = largestSize;
     }
 
     public void WriteTo(IByteWriter writer) {

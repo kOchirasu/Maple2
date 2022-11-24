@@ -33,6 +33,8 @@ public partial class GameSession {
 
     public NpcScript? NpcScript;
 
+    public bool FishingMiniGameActive;
+
     public bool CanHold() {
         return GuideObject == null
                && Ride == null

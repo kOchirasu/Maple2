@@ -68,6 +68,8 @@ public class MasteryManager {
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, "Invalid mastery type.");
             }
+            
+            session.Send(MasteryPacket.UpdateMastery(type, session.Mastery[type]));
         }
     }
 }
