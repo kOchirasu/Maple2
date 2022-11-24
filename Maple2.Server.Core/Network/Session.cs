@@ -26,7 +26,7 @@ public abstract class Session : IDisposable {
     private const int HANDSHAKE_SIZE = 19;
     private const int STOP_TIMEOUT = 2000;
 
-    public SessionState State { get; protected set; }
+    public SessionState State { get; set; }
 
     public EventHandler<string>? OnError;
     public EventHandler<IByteReader>? OnPacket;

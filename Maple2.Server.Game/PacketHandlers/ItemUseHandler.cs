@@ -21,7 +21,8 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public ItemMetadataStorage ItemMetadata { get; init; } = null!;
+    public required ItemMetadataStorage ItemMetadata { private get; init; }
+    public required TableMetadataStorage TableMetadata { private get; init; }
     // ReSharper restore All
     #endregion
 
@@ -41,8 +42,14 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             case ItemFunction.ChatEmoticonAdd:
                 HandleChatSticker(session, item);
                 break;
+            case ItemFunction.EnchantScroll:
+                HandleEnchantScroll(session, item);
+                break;
             case ItemFunction.ItemRemakeScroll:
                 HandleItemRemakeScroll(session, item);
+                break;
+            case ItemFunction.ItemSocketScroll:
+                HandleItemSocketScroll(session, item);
                 break;
             case ItemFunction.TitleScroll:
                 HandleTitleScroll(session, item);
@@ -105,8 +112,36 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         session.Send(ChatStickerPacket.Add(item, new ChatSticker(stickerSetId, session.Player.Value.Unlock.StickerSets[stickerSetId])));
     }
 
+    private void HandleEnchantScroll(GameSession session, Item item) {
+        if (!int.TryParse(item.Metadata.Function?.Parameters, out int enchantId)) {
+            session.Send(EnchantScrollPacket.Error(EnchantScrollError.s_enchantscroll_invalid_scroll));
+            return;
+        }
+
+        if (!TableMetadata.EnchantScrollTable.Entries.TryGetValue(enchantId, out EnchantScrollMetadata? metadata)) {
+            session.Send(EnchantScrollPacket.Error(EnchantScrollError.s_enchantscroll_invalid_scroll));
+            return;
+        }
+
+        session.Send(EnchantScrollPacket.UseScroll(item, metadata));
+    }
+
     private static void HandleItemRemakeScroll(GameSession session, Item item) {
         session.Send(ChangeAttributesScrollPacket.UseScroll(item));
+    }
+
+    private void HandleItemSocketScroll(GameSession session, Item item) {
+        if (!int.TryParse(item.Metadata.Function?.Parameters, out int scrollId)) {
+            session.Send(ItemSocketScrollPacket.Error(ItemSocketScrollError.s_itemsocket_scroll_error_server_default));
+            return;
+        }
+
+        if (!TableMetadata.ItemSocketScrollTable.Entries.TryGetValue(scrollId, out ItemSocketScrollMetadata? metadata)) {
+            session.Send(ItemSocketScrollPacket.Error(ItemSocketScrollError.s_itemsocket_scroll_error_server_default));
+            return;
+        }
+
+        session.Send(ItemSocketScrollPacket.UseScroll(item, metadata));
     }
 
     private static void HandleTitleScroll(GameSession session, Item item) {
@@ -134,13 +169,13 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         }
 
         using GameStorage.Request db = session.GameStorage.Context();
-        CharacterInfo? receiverCharacterInfo = db.GetCharacterInfo(targetUser);
-        if (receiverCharacterInfo == default) {
+        long characterId = db.GetCharacterId(targetUser);
+        if (!session.PlayerInfo.GetOrFetch(characterId, out PlayerInfo? receiverInfo)) {
             session.Send(NoticePacket.MessageBox((StringCode.s_couple_effect_error_openbox_charname)));
             return;
         }
 
-        if (receiverCharacterInfo.AccountId == session.Player.Value.Character.AccountId) {
+        if (receiverInfo.AccountId == session.Player.Value.Character.AccountId) {
             session.Send(NoticePacket.MessageBox(StringCode.s_couple_effect_error_openbox_myself_account));
             return;
         }
@@ -159,7 +194,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         }
 
         var selfBadge = new Item(itemMetadata, buddyBadgeBoxParams[1]) {
-            CoupleInfo = new ItemCoupleInfo(receiverCharacterInfo.CharacterId, receiverCharacterInfo.Name, true),
+            CoupleInfo = new ItemCoupleInfo(receiverInfo.CharacterId, receiverInfo.Name, true),
         };
 
         if (!session.Item.Inventory.CanAdd(selfBadge)) {
@@ -173,7 +208,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         }
 
         var receiverMail = new Mail() {
-            ReceiverId = receiverCharacterInfo.CharacterId,
+            ReceiverId = receiverInfo.CharacterId,
             Type = MailType.System,
             ContentArgs = new[] {
                 ("str", $"{session.Player.Value.Character.Name}"),
@@ -187,7 +222,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         receiverMail = db.CreateMail(receiverMail);
         if (receiverMail == null) {
             session.Send(NoticePacket.MessageBox((StringCode.s_couple_effect_error_openbox_unknown)));
-            throw new InvalidOperationException($"Failed to create buddy badge mail for receiver character id: {receiverCharacterInfo.CharacterId}");
+            throw new InvalidOperationException($"Failed to create buddy badge mail for receiver character id: {receiverInfo.CharacterId}");
             return;
         }
 
@@ -196,19 +231,19 @@ public class ItemUseHandler : PacketHandler<GameSession> {
                 CoupleInfo = new ItemCoupleInfo(session.Player.Value.Character.Id, session.Player.Value.Character.Name),
             });
         if (receiverItem == null) {
-            throw new InvalidOperationException($"Failed to create buddy badge: {receiverItem.Id}");
+            throw new InvalidOperationException($"Failed to create buddy badge: {itemMetadata.Id}");
         }
 
         receiverMail.Items.Add(receiverItem);
 
         try {
             session.World.MailNotification(new MailNotificationRequest {
-                CharacterId = receiverCharacterInfo.CharacterId,
+                CharacterId = receiverInfo.CharacterId,
                 MailId = receiverMail.Id,
             });
         } catch { /* ignored */ }
 
         session.Item.Inventory.Add(selfBadge, true);
-        session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_mail_send_partner, receiverCharacterInfo.Name)));
+        session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_mail_send_partner, receiverInfo.Name)));
     }
 }

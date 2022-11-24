@@ -63,4 +63,13 @@ public class ConcurrentMultiDictionary<TK1, TK2, TV> where TK1 : notnull where T
         value = default(TV);
         return false;
     }
+
+    public TV GetValueOrDefault(TK1 key, TV value) {
+        return data.TryGetValue(key, out TV? result) ? result : value;
+    }
+
+    public TV GetValueOrDefault(TK2 key2, TV value) {
+        return mapping.TryGetValue(key2, out TK1? key1) ? GetValueOrDefault(key1, value) : value;
+
+    }
 }

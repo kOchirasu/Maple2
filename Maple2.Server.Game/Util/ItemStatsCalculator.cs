@@ -15,8 +15,8 @@ namespace Maple2.Server.Game.Util;
 public sealed class ItemStatsCalculator {
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public TableMetadataStorage TableMetadata { private get; init; } = null!;
-    public Lua.Lua Lua { private get; init; } = null!;
+    public required TableMetadataStorage TableMetadata { private get; init; }
+    public required Lua.Lua Lua { private get; init; }
     // ReSharper restore All
     #endregion
 
@@ -215,8 +215,7 @@ public sealed class ItemStatsCalculator {
         }
 
         while (statResult.Count + specialResult.Count < total) {
-            int index = Random.Shared.Next(0, option.Entries.Length);
-            ItemOption.Entry entry = option.Entries[index];
+            ItemOption.Entry entry = option.Entries.Random();
             if (!AddResult(entry, statResult, specialResult)) {
                 Log.Error("Failed to select random item option: {Entry}", entry); // Invalid entry
             }

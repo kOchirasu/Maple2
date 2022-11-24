@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace Maple2.Tools.Extensions;
@@ -45,6 +46,10 @@ public static class EnumerableExtensions {
         return fallback();
     }
 
+    public static T Random<T>(this IList<T> list) {
+        return list[System.Random.Shared.Next(list.Count)];
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T AsType<TE, T>(this IEnumerable<TE> enumerable, Func<IEnumerable<TE>, T> function) {
         return function.Invoke(enumerable);
@@ -63,6 +68,8 @@ public static class EnumerableExtensions {
             }
         }
     }
+
+    public static IEnumerable<T> WhereNotNull<T>(this IEnumerable<T?> source) where T : class => source.Where(x => x != null)!;
 
     public static bool TryGetValue<TK1, TK2, TV>(this IReadOnlyDictionary<TK1, IReadOnlyDictionary<TK2, TV>> dictionary,TK1 key1, TK2 key2,
                                                  [NotNullWhen(true)] out TV? value) {

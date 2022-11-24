@@ -302,6 +302,7 @@ public sealed partial class FieldManager : IDisposable {
 
     public void Dispose() {
         cancel.Cancel();
+        cancel.Dispose();
         thread.Join();
     }
 }

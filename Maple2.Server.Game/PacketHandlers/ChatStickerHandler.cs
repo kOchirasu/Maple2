@@ -1,5 +1,4 @@
 ﻿using System;
-using Maple2.Database.Extensions;
 using Maple2.Database.Storage;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -24,7 +23,7 @@ public class ChatStickerHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public TableMetadataStorage TableMetadata { private get; init; } = null!;
+    public required TableMetadataStorage TableMetadata { private get; init; }
     // ReSharper restore All
     #endregion
 

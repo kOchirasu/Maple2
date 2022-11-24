@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
@@ -122,13 +121,13 @@ public class ItemEnchantManager {
 
         // Ensure this item has an Enchant field set.
         upgradeItem.Enchant ??= new ItemEnchant();
-        int enchants = Math.Clamp(upgradeItem.Enchant.Enchants, 0, 15);
+        int enchants = Math.Clamp(upgradeItem.Enchant.Enchants, 0, 14);
         int minFodder = RequireFodder[enchants];
 
         foreach (IngredientInfo ingredient in GetRequiredCatalysts()) {
             catalysts.Add(ingredient);
         }
-        foreach ((BasicAttribute attribute, BasicOption option) in GetBasicOptions()) {
+        foreach ((BasicAttribute attribute, BasicOption option) in GetBasicOptions(upgradeItem)) {
             if (upgradeItem.Enchant.BasicOptions.TryGetValue(attribute, out BasicOption existing)) {
                 attributeDeltas[attribute] = option - existing;
             } else {
@@ -154,7 +153,7 @@ public class ItemEnchantManager {
             return false;
         }
 
-        int enchants = Math.Clamp(upgradeItem.Enchant?.Enchants ?? 0, 0, 15);
+        int enchants = Math.Clamp(upgradeItem.Enchant?.Enchants ?? 0, 0, 14);
         if (FodderRate[enchants] <= 0) {
             return false; // If adding fodder does not improve rate, restrict it.
         }
@@ -222,7 +221,7 @@ public class ItemEnchantManager {
         }
 
         upgradeItem.Enchant ??= new ItemEnchant();
-        int enchants = Math.Clamp(upgradeItem.Enchant.Enchants, 0, 15);
+        int enchants = Math.Clamp(upgradeItem.Enchant.Enchants, 0, 14);
         if (fodderWeight < RequireFodder[enchants]) {
             return false;
         }
@@ -241,7 +240,7 @@ public class ItemEnchantManager {
                 if (success) {
                     // GetBasicOptions() again to ensure rates match those in table.
                     // This *MUST* be called before incrementing Enchants.
-                    foreach ((BasicAttribute attribute, BasicOption option) in GetBasicOptions()) {
+                    foreach ((BasicAttribute attribute, BasicOption option) in GetBasicOptions(upgradeItem)) {
                         upgradeItem.Enchant.BasicOptions[attribute] = option;
                     }
                     upgradeItem.Enchant.Enchants++;
@@ -260,7 +259,7 @@ public class ItemEnchantManager {
                     upgradeItem.Enchant.EnchantExp = 0;
                     // GetBasicOptions() again to ensure rates match those in table.
                     // This *MUST* be called before incrementing Enchants.
-                    foreach ((BasicAttribute attribute, BasicOption option) in GetBasicOptions()) {
+                    foreach ((BasicAttribute attribute, BasicOption option) in GetBasicOptions(upgradeItem)) {
                         upgradeItem.Enchant.BasicOptions[attribute] = option;
                     }
                     upgradeItem.Enchant.Enchants++;
@@ -356,12 +355,8 @@ public class ItemEnchantManager {
     }
 
     // TODO: Dynamic attribute options
-    private IEnumerable<(BasicAttribute, BasicOption)> GetBasicOptions() {
-        if (upgradeItem == null) {
-            yield break;
-        }
-
-        int enchants = upgradeItem.Enchant?.Enchants ?? 0;
+    public static IEnumerable<(BasicAttribute, BasicOption)> GetBasicOptions(Item upgradeItem, int target = -1) {
+        int enchants = Math.Clamp(target > 0 ? target - 1 : upgradeItem.Enchant?.Enchants ?? 0, 0, 14);
         if (upgradeItem.Type.IsWeapon) {
             yield return (BasicAttribute.MinWeaponAtk, new BasicOption(StatBonusRate[enchants]));
             yield return (BasicAttribute.MaxWeaponAtk, new BasicOption(StatBonusRate[enchants]));

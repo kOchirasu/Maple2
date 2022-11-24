@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Database.Storage;
@@ -6,6 +7,7 @@ using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Core.Packets;
+using Maple2.Server.Game.Manager.Items;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -16,12 +18,13 @@ public class ConfigManager {
 
     private readonly GameSession session;
 
-    private readonly Dictionary<int, KeyBind> keyBinds;
+    private readonly IDictionary<int, KeyBind> keyBinds;
     private short activeHotBar;
     private readonly List<HotBar> hotBars;
     private IList<SkillMacro> skillMacros;
     private IList<Wardrobe> wardrobes;
     private IList<int> favoriteStickers;
+    private readonly IDictionary<LapenshardSlot, int> lapenshards;
     private readonly StatAttributes statAttributes;
 
     public readonly SkillManager Skill;
@@ -31,6 +34,7 @@ public class ConfigManager {
         keyBinds = new Dictionary<int, KeyBind>();
         hotBars = new List<HotBar>();
         skillMacros = new List<SkillMacro>();
+        lapenshards = new Dictionary<LapenshardSlot, int>();
 
         (
             IList<KeyBind>? KeyBinds,
@@ -38,9 +42,10 @@ public class ConfigManager {
             IList<SkillMacro>? Macros,
             IList<Wardrobe>? Wardrobes,
             IList<int>? FavoriteStickers,
+            IDictionary<LapenshardSlot, int>? Lapenshards,
             IDictionary<BasicAttribute, int>? Allocation,
             SkillBook? SkillBook
-        ) load = db.LoadCharacterConfig(session.CharacterId);
+            ) load = db.LoadCharacterConfig(session.CharacterId);
         if (load.KeyBinds != null) {
             foreach (KeyBind keyBind in load.KeyBinds) {
                 SetKeyBind(keyBind);
@@ -52,6 +57,7 @@ public class ConfigManager {
         skillMacros = load.Macros ?? new List<SkillMacro>();
         wardrobes = load.Wardrobes ?? new List<Wardrobe>();
         favoriteStickers = load.FavoriteStickers ?? new List<int>();
+        lapenshards = load.Lapenshards ?? new Dictionary<LapenshardSlot, int>();
 
         statAttributes = new StatAttributes();
         if (load.Allocation != null) {
@@ -97,16 +103,16 @@ public class ConfigManager {
         if (favoriteStickers.Contains(stickerId)) {
             return false;
         }
-        
+
         favoriteStickers.Add(stickerId);
         return true;
     }
-    
+
     public bool TryUnfavoriteChatSticker(int stickerId) {
         if (!favoriteStickers.Contains(stickerId)) {
             return false;
         }
-        
+
         favoriteStickers.Remove(stickerId);
         return true;
     }
@@ -230,6 +236,99 @@ public class ConfigManager {
     }
     #endregion
 
+    #region Lapenshard
+    public void LoadLapenshard() {
+        session.Send(LapenshardPacket.Load(lapenshards));
+    }
+
+    public int TryGetLapenshard(LapenshardSlot slot) {
+        return lapenshards.TryGetValue(slot, out int id) ? id : -1;
+    }
+
+    public void SetLapenshard(LapenshardSlot slot, int id) {
+        lapenshards[slot] = id;
+    }
+
+    public bool EquipLapenshard(long itemUid, LapenshardSlot slot) {
+        if (!Enum.IsDefined<LapenshardSlot>(slot)) {
+            return false;
+        }
+
+        Item? lapenshard = session.Item.Inventory.Get(itemUid);
+        if (lapenshard == null) {
+            session.Send(NoticePacket.MessageBox(StringCode.s_item_invalid_do_not_have));
+            return false;
+        }
+        if (!lapenshard.Type.IsLapenshard) {
+            return false;
+        }
+        StringCode result = EquipManager.ValidateEquipItem(session, lapenshard);
+        if (result != StringCode.s_empty_string) {
+            session.Send(NoticePacket.MessageBox(result));
+            return false;
+        }
+
+        // Cannot equip the same lapenshard twice.
+        foreach (LapenshardSlot lapenshardSlot in Enum.GetValues<LapenshardSlot>()) {
+            if (lapenshards.TryGetValue(lapenshardSlot, out int existing) && existing == lapenshard.Id) {
+                return false;
+            }
+        }
+
+        if (lapenshard.Type.IsRedLapenshard && slot is not (LapenshardSlot.Red1 or LapenshardSlot.Red2)) {
+            return false;
+        }
+        if (lapenshard.Type.IsBlueLapenshard && slot is not (LapenshardSlot.Blue1 or LapenshardSlot.Blue2)) {
+            return false;
+        }
+        if (lapenshard.Type.IsGreenLapenshard && slot is not (LapenshardSlot.Green1 or LapenshardSlot.Green2)) {
+            return false;
+        }
+
+        if (!UnequipLapenshard(slot)) {
+            return false;
+        }
+
+        if (!session.Item.Inventory.Consume(itemUid, 1)) {
+            return false;
+        }
+
+        lapenshards[slot] = lapenshard.Id;
+        session.Send(LapenshardPacket.Equip(slot, lapenshard.Id));
+
+        return true;
+    }
+
+    public bool UnequipLapenshard(LapenshardSlot slot) {
+        if (!Enum.IsDefined<LapenshardSlot>(slot)) {
+            return false;
+        }
+
+        if (!lapenshards.TryGetValue(slot, out int lapenshardId)) {
+            return true; // Nothing to unequip
+        }
+
+        if (!session.ItemMetadata.TryGet(lapenshardId, out ItemMetadata? metadata)) {
+            return false;
+        }
+
+        if (!lapenshards.Remove(slot, out lapenshardId)) {
+            return false;
+        }
+
+        var lapenshard = new Item(metadata, Constant.LapenshardGrade);
+        lapenshard.Transfer?.Bind(session.Player.Value.Character);
+        bool success = session.Item.Inventory.Add(lapenshard);
+        if (!success) {
+            lapenshards[slot] = lapenshardId; // Revert removal
+            return false;
+        }
+
+        session.Send(LapenshardPacket.Unequip(slot));
+        return true;
+    }
+    #endregion
+
     public void Save(GameStorage.Request db) {
         db.SaveCharacterConfig(
             session.CharacterId, keyBinds.Values.ToList(),
@@ -237,6 +336,7 @@ public class ConfigManager {
             skillMacros,
             wardrobes,
             favoriteStickers,
+            lapenshards,
             statAttributes.Allocation,
             Skill.SkillBook
         );

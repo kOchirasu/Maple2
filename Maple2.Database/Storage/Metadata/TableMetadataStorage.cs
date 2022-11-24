@@ -20,6 +20,7 @@ public class TableMetadataStorage {
     private readonly Lazy<InstrumentTable> instrumentTable;
     private readonly Lazy<InteractObjectTable> interactObjectTable;
     private readonly Lazy<InteractObjectTable> interactMasteryTable;
+    private readonly Lazy<LapenshardUpgradeTable> lapenshardUpgradeTable;
     private readonly Lazy<ItemSocketTable> itemSocketTable;
 
     private readonly Lazy<EnchantScrollTable> enchantScrollTable;
@@ -52,6 +53,7 @@ public class TableMetadataStorage {
     public InstrumentTable InstrumentTable => instrumentTable.Value;
     public InteractObjectTable InteractObjectTable => interactObjectTable.Value;
     public InteractObjectTable InteractMasteryTable => interactMasteryTable.Value;
+    public LapenshardUpgradeTable LapenshardUpgradeTable => lapenshardUpgradeTable.Value;
     public ItemSocketTable ItemSocketTable => itemSocketTable.Value;
 
     public EnchantScrollTable EnchantScrollTable => enchantScrollTable.Value;
@@ -85,6 +87,7 @@ public class TableMetadataStorage {
         instrumentTable = Retrieve<InstrumentTable>(context, "instrumentcategoryinfo.xml");
         interactObjectTable = Retrieve<InteractObjectTable>(context, "interactobject.xml");
         interactMasteryTable = Retrieve<InteractObjectTable>(context, "interactobject_mastery.xml");
+        lapenshardUpgradeTable = Retrieve<LapenshardUpgradeTable>(context, "itemlapenshardupgrade.xml");
         itemSocketTable = Retrieve<ItemSocketTable>(context, "itemsocket.xml");
         enchantScrollTable = Retrieve<EnchantScrollTable>(context, "enchantscroll.xml");
         itemRemakeScrollTable = Retrieve<ItemRemakeScrollTable>(context, "itemremakescroll.xml");

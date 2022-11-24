@@ -15,6 +15,6 @@ public class Club {
 }
 
 public record ClubMember(
-    PlayerInfo Info,
+    IPlayerInfo Info,
     long JoinTime,
     long LastLoginTime);

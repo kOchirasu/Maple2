@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
@@ -19,6 +20,7 @@ internal class CharacterUnlock {
     public required IDictionary<int, bool> MasteryRewardsClaimed { get; set; }
     public required IDictionary<int, short> Pets { get; set; }
     public required IDictionary<int, FishEntry> FishAlbum { get; set; }
+    public required IList<Quest> Quests { get; set; }
     public required InventoryExpand Expand { get; set; }
     public DateTime LastModified { get; init; }
 
@@ -32,6 +34,7 @@ internal class CharacterUnlock {
             MasteryRewardsClaimed = new Dictionary<int, bool>(),
             Pets = new SortedDictionary<int, short>(),
             FishAlbum = new SortedDictionary<int, FishEntry>(),
+            Quests = new List<Quest>(),
             Expand = new InventoryExpand(),
         } : new CharacterUnlock {
             LastModified = other.LastModified,
@@ -60,6 +63,7 @@ internal class CharacterUnlock {
             MasteryRewardsClaimed = other.MasteryRewardsClaimed,
             Pets = other.Pets,
             FishAlbum = other.FishAlbum,
+            Quests = other.Quests.Values.Select<Maple2.Model.Game.Quest, Quest>(quest => quest).ToArray(),
         };
     }
 
@@ -86,7 +90,7 @@ internal class CharacterUnlock {
                 {InventoryType.Badge, other.Expand.Badge},
                 {InventoryType.Lapenshard, other.Expand.Lapenshard},
                 {InventoryType.Fragment, other.Expand.Fragment},
-            }
+            },
         };
 
         unlock.Maps.UnionWith(other.Maps);
@@ -94,20 +98,17 @@ internal class CharacterUnlock {
         unlock.Titles.UnionWith(other.Titles);
         unlock.Emotes.UnionWith(other.Emotes);
 
-        foreach ((int petId, short rarity) in other.Pets) {
-            if (unlock.Pets.TryGetValue(petId, out short existingRarity)) {
-                unlock.Pets[petId] = Math.Max(existingRarity, rarity);
-            } else {
-                unlock.Pets[petId] = rarity;
-            }
-        }
-
         foreach ((int groupId, long expiration) in other.StickerSets) {
             unlock.StickerSets[groupId] = expiration;
         }
-
         foreach ((int rewardId, bool isClaimed) in other.MasteryRewardsClaimed) {
             unlock.MasteryRewardsClaimed[rewardId] = isClaimed;
+        }
+        foreach ((int petId, short rarity) in other.Pets) {
+            unlock.Pets[petId] = rarity;
+        }
+        foreach (Quest quest in other.Quests) {
+            unlock.Quests[quest.Id] = quest;
         }
 
         foreach ((int fishId, FishEntry fish) in other.FishAlbum) {
@@ -131,6 +132,8 @@ internal class CharacterUnlock {
         builder.Property(unlock => unlock.MasteryRewardsClaimed).HasJsonConversion();
         builder.Property(unlock => unlock.Pets).HasJsonConversion().IsRequired();
         builder.Property(unlock => unlock.FishAlbum).HasJsonConversion().IsRequired();
+        builder.Property(unlock => unlock.Quests).HasJsonConversion().IsRequired();
+
         builder.Property(unlock => unlock.LastModified).IsRowVersion();
     }
 }

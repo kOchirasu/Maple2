@@ -1,7 +1,9 @@
-﻿using M2dXmlGenerator;
+﻿using System.Diagnostics;
+using M2dXmlGenerator;
 using Maple2.File.IO;
 using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.Quest;
+using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 
 namespace Maple2.File.Ingest.Mapper;
@@ -19,12 +21,13 @@ public class QuestMapper : TypeMapper<QuestMetadata> {
                 continue;
             }
 
+            Debug.Assert(Enum.IsDefined((QuestType) data.basic.questType), $"Invalid QuestType: {data.basic.questType}");
             yield return new QuestMetadata(
                 Id: id,
                 Name: name,
                 Basic: new QuestMetadataBasic(
                     ChapterId: data.basic.chapterID,
-                    Type: data.basic.questType,
+                    Type: (QuestType) data.basic.questType,
                     Account: data.basic.account,
                     StandardLevel: data.basic.standardLevel,
                     AutoStart: data.basic.autoStart,

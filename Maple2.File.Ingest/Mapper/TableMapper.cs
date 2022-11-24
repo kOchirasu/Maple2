@@ -37,6 +37,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "instrumentcategoryinfo.xml", Table = ParseInstrument()};
         yield return new TableMetadata {Name = "interactobject.xml", Table = ParseInteractObject(false)};
         yield return new TableMetadata {Name = "interactobject_mastery.xml", Table = ParseInteractObject(true)};
+        yield return new TableMetadata {Name = "itemlapenshardupgrade.xml", Table = ParseLapenshardUpgradeTable()};
         yield return new TableMetadata {Name = "itemsocket.xml", Table = ParseItemSocketTable()};
         yield return new TableMetadata {Name = "masteryreceipe.xml", Table = ParseMasteryRecipe()};
         yield return new TableMetadata {Name = "mastery.xml", Table = ParseMasteryReward()};
@@ -194,6 +195,11 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
         var results = new Dictionary<int, InstrumentMetadata>();
         foreach ((int id, InstrumentInfo info) in parser.ParseInstrumentInfo()) {
+            if (!categories.ContainsKey(info.category)) {
+                Console.WriteLine($"Instrument {id} does not have a matching category: {info.category}");
+                continue;
+            }
+
             (int midiId, int percussionId) = categories[info.category];
             results[id] = new InstrumentMetadata(
                 Id: info.id,
@@ -444,6 +450,32 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
     }
 
+    private LapenshardUpgradeTable ParseLapenshardUpgradeTable() {
+        var results = new Dictionary<int, LapenshardUpgradeTable.Entry>();
+        foreach ((int itemId, ItemLapenshardUpgrade upgrade) in parser.ParseItemLapenshardUpgrade()) {
+            var ingredients = new List<LapenshardUpgradeTable.Ingredient>();
+            if (upgrade.IngredientCount1 > 0 && upgrade.IngredientItemID1?.Length > 1) {
+                ingredients.Add(new LapenshardUpgradeTable.Ingredient(Enum.Parse<ItemTag>(upgrade.IngredientItemID1[1]), upgrade.IngredientCount1));
+            }
+            if (upgrade.IngredientCount2 > 0 && upgrade.IngredientItemID2?.Length > 1) {
+                ingredients.Add(new LapenshardUpgradeTable.Ingredient(Enum.Parse<ItemTag>(upgrade.IngredientItemID2[1]), upgrade.IngredientCount2));
+            }
+            if (upgrade.IngredientCount3 > 0 && upgrade.IngredientItemID3?.Length > 1) {
+                ingredients.Add(new LapenshardUpgradeTable.Ingredient(Enum.Parse<ItemTag>(upgrade.IngredientItemID3[1]), upgrade.IngredientCount3));
+            }
+
+            results.Add(itemId, new LapenshardUpgradeTable.Entry(
+                Level: upgrade.LapenLevel,
+                GroupId: upgrade.LapenGroupID,
+                NextItemId: upgrade.NextItemID,
+                RequireCount: upgrade.GroupLapenshardMinCount,
+                Ingredients: ingredients,
+                Meso: upgrade.meso));
+        }
+
+        return new LapenshardUpgradeTable(results);
+    }
+
     private ItemSocketTable ParseItemSocketTable() {
         var results = new Dictionary<int, IReadOnlyDictionary<int, ItemSocketMetadata>>();
         IEnumerable<IGrouping<int, ItemSocket>> groups = parser.ParseItemSocket()
@@ -618,13 +650,15 @@ public class TableMapper : TypeMapper<TableMetadata> {
     private EnchantScrollTable ParseEnchantScrollTable() {
         var results = new Dictionary<int, EnchantScrollMetadata>();
         foreach ((int id, EnchantScroll scroll) in parser.ParseEnchantScroll()) {
-            results.Add(id, new EnchantScrollMetadata(
-                Type: scroll.scrollType,
+            var metadata = new EnchantScrollMetadata(
+                Type: (short) scroll.scrollType,
                 MinLevel: scroll.minLv,
                 MaxLevel: scroll.maxLv,
                 Enchants: scroll.grade,
                 ItemTypes: scroll.slot,
-                Rarities: scroll.rank));
+                Rarities: scroll.rank);
+            Array.Sort(metadata.Enchants); // Just in case
+            results.Add(id, metadata);
         }
 
         return new EnchantScrollTable(results);
@@ -658,6 +692,31 @@ public class TableMapper : TypeMapper<TableMetadata> {
     }
 
     private ItemSocketScrollTable ParseItemSocketScrollTable() {
+        // SELECT GROUP_CONCAT(Name), JSON_EXTRACT(`Function`, '$.Parameters') as param
+        //     FROM item
+        //     WHERE JSON_EXTRACT(`Function`, '$.Name')='ItemSocketScroll'
+        // GROUP BY param;
+        var socketCount = new Dictionary<int, byte> {
+            {10000001, 1}, {10000002, 2}, {10000003, 3},
+            {10000011, 1}, {10000012, 2},
+            {10000013, 1}, {10000014, 2},
+            {10000015, 1},
+            {10000016, 1},
+            {10000017, 1},
+            {10000018, 1},
+            {10000019, 1},
+            {10000020, 1},
+            {10000021, 1},
+            {10000022, 1}, {10000023, 2},
+            {10000024, 1}, {10000025, 2},
+            {10000026, 1}, {10000027, 2},
+            {10000028, 1}, {10000029, 2},
+            {10000030, 1},
+            {10000031, 1}, {10000032, 2},
+            {10000033, 1}, {10000034, 2},
+            {10000035, 1}, {10000036, 2},
+        };
+
         var results = new Dictionary<int, ItemSocketScrollMetadata>();
         foreach ((int id, ItemSocketScroll scroll) in parser.ParseItemSocketScroll()) {
             results.Add(id, new ItemSocketScrollMetadata(
@@ -665,6 +724,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 MaxLevel: scroll.maxLv,
                 ItemTypes: scroll.slot,
                 Rarities: scroll.rank,
+                SocketCount: socketCount[id],
                 TradableCountDeduction: scroll.tradableCountDeduction ? 1 : 0));
         }
 

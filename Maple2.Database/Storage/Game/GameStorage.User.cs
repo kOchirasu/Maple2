@@ -67,15 +67,15 @@ public partial class GameStorage {
                 .FirstOrDefault();
         }
 
-        public CharacterInfo? GetCharacterInfo(long characterId) {
-            return Context.Character.Where(character => character.Id == characterId)
-                .Select<Model.Character, CharacterInfo>(character => character)
-                .FirstOrDefault();
-        }
-
-        public CharacterInfo? GetCharacterInfo(string name) {
-            return Context.Character.Where(character => character.Name == name)
-                .Select<Model.Character, CharacterInfo>(character => character)
+        public PlayerInfo? GetPlayerInfo(long characterId) {
+            return (from character in Context.Character where character.Id == characterId
+                    join account in Context.Account on character.AccountId equals account.Id
+                    join indoor in Context.UgcMap on
+                        new {OwnerId = character.AccountId, Indoor = true} equals new {indoor.OwnerId, indoor.Indoor}
+                    join outdoor in Context.UgcMap on
+                        new {OwnerId = character.AccountId, Indoor = false} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
+                    from outdoor in plot.DefaultIfEmpty()
+                    select BuildPlayerInfo(character, indoor, outdoor, account.Trophy))
                 .FirstOrDefault();
         }
 
@@ -128,7 +128,7 @@ public partial class GameStorage {
                     StarPoint = character.Currency.StarPoint,
                     MesoToken = account.Currency.MesoToken,
                 },
-                Unlock = Context.CharacterUnlock.Find(characterId)!,
+                Unlock = Context.CharacterUnlock.Find(characterId),
                 Home = home,
             };
 
@@ -172,10 +172,10 @@ public partial class GameStorage {
             return Context.TrySaveChanges();
         }
 
-        public (IList<KeyBind>? KeyBinds, IList<QuickSlot[]>? HotBars, List<SkillMacro>?, List<Wardrobe>?, List<int>? FavoriteStickers, IDictionary<BasicAttribute, int>?, SkillBook?) LoadCharacterConfig(long characterId) {
+        public (IList<KeyBind>? KeyBinds, IList<QuickSlot[]>? HotBars, List<SkillMacro>?, List<Wardrobe>?, List<int>? FavoriteStickers, IDictionary<LapenshardSlot, int>? Lapenshards, IDictionary<BasicAttribute, int>?, SkillBook?) LoadCharacterConfig(long characterId) {
             CharacterConfig? config = Context.CharacterConfig.Find(characterId);
             if (config == null) {
-                return (null, null, null, null, null, null, null);
+                return (null, null, null, null, null, null, null, null);
             }
 
             SkillBook? skillBook = config.SkillBook == null ? null : new SkillBook {
@@ -192,6 +192,7 @@ public partial class GameStorage {
                 config.SkillMacros?.Select<Model.SkillMacro, SkillMacro>(macro => macro).ToList(),
                 config.Wardrobes?.Select<Model.Wardrobe, Wardrobe>(wardrobe => wardrobe).ToList(),
                 config.FavoriteStickers?.Select(stickers => stickers).ToList(),
+                config.Lapenshards,
                 config.StatAllocation,
                 skillBook
             );
@@ -204,6 +205,7 @@ public partial class GameStorage {
                 IEnumerable<SkillMacro> skillMacros,
                 IEnumerable<Wardrobe> wardrobes,
                 IList<int> favoriteStickers,
+                IDictionary<LapenshardSlot, int> lapenshards,
                 StatAttributes.PointAllocation allocation,
                 SkillBook skillBook) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
@@ -218,6 +220,7 @@ public partial class GameStorage {
             config.SkillMacros = skillMacros.Select<SkillMacro, Model.SkillMacro>(macro => macro).ToList();
             config.Wardrobes = wardrobes.Select<Wardrobe, Model.Wardrobe>(wardrobe => wardrobe).ToList();
             config.FavoriteStickers = favoriteStickers;
+            config.Lapenshards = lapenshards;
             config.StatAllocation = allocation.Attributes.ToDictionary(
                 attribute => attribute,
                 attribute => allocation[attribute]);
@@ -277,7 +280,7 @@ public partial class GameStorage {
             if (defaultTab == null) {
                 return false;
             }
-            
+
             var config = new CharacterConfig {
                 CharacterId = characterId,
                 SkillBook = new Model.SkillBook {

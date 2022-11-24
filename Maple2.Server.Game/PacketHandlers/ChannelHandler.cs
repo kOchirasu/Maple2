@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using Grpc.Core;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -17,7 +18,7 @@ public class ChannelHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public WorldClient World { private get; init; } = null!;
+    public required WorldClient World { private get; init; }
     // ReSharper restore All
     #endregion
 
@@ -36,6 +37,7 @@ public class ChannelHandler : PacketHandler<GameSession> {
             MigrateOutResponse response = World.MigrateOut(request);
             var endpoint = new IPEndPoint(IPAddress.Parse(response.IpAddress), response.Port);
             session.Send(MigrationPacket.GameToGame(endpoint, response.Token, session.Field?.MapId ?? 0));
+            session.State = SessionState.ChangeChannel;
         } catch (RpcException ex) {
             session.Send(MigrationPacket.GameToGameError(s_move_err_default));
             session.Send(NoticePacket.Disconnect(new InterfaceText(ex.Message)));

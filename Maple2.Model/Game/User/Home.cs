@@ -43,6 +43,7 @@ public class Home : IByteSerializable {
     public int PlotMapId => Outdoor?.MapId ?? 0;
     public int PlotNumber => Outdoor?.Number ?? 0;
     public int ApartmentNumber => Outdoor?.ApartmentNumber ?? 0;
+    public long PlotExpiryTime => Outdoor?.ExpiryTime ?? 0;
     public PlotState State => Outdoor?.State ?? PlotState.Open;
 
     public Home() {

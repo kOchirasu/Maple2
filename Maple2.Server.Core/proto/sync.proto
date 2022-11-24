@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package maple2;
+
+import "google/protobuf/timestamp.proto";
+
+message HealthInfo {
+  int64 current_hp = 1;
+  int64 total_hp = 2;
+}
+
+message LocationInfo {
+  int32 map_id = 1;
+  int32 channel = 2;
+}
+
+message HomeInfo {
+  string name = 1;
+  int32 map_id = 2;
+  int32 plot_number = 3;
+  int32 apartment_number = 4;
+  google.protobuf.Timestamp expiry_time = 5;
+}
+
+message TrophyInfo {
+  int32 combat = 1;
+  int32 adventure = 2;
+  int32 lifestyle = 3;
+}
+
+// Requests
+message MailNotificationRequest {
+  int64 mail_id = 1;
+  int64 character_id = 2;
+}
+
+message MailNotificationResponse {
+  bool delivered = 1;
+}
+
+message PlayerUpdateRequest {
+  int64 account_id = 1;
+  int64 character_id = 2;
+
+  optional string name = 4;
+  optional string motto = 5;
+  optional string picture = 6;
+  optional int32 gender = 7;
+  optional int32 job = 8;
+  optional int32 level = 9;
+  optional int32 gear_score = 10;
+  optional int32 map_id = 11;
+  optional int32 channel = 12;
+  optional HealthInfo health = 13;
+  optional HomeInfo home = 14;
+  optional TrophyInfo trophy = 15;
+
+  // Batch updates in a queue rather than immediately forwarding.
+  bool async = 20;
+}
+
+message PlayerUpdateResponse {
+
+}
+
+message PlayerInfoRequest {
+  int64 character_id = 1;
+}
+
+message PlayerInfoResponse {
+  int64 account_id = 1;
+  int64 character_id = 2;
+  string name = 4;
+  string motto = 5;
+  string picture = 6;
+  int32 gender = 7;
+  int32 job = 8;
+  int32 level = 9;
+  int32 gear_score = 10;
+  int32 map_id = 11;
+  int32 channel = 12;
+  HealthInfo health = 13;
+  HomeInfo home = 14;
+  TrophyInfo trophy = 15;
+}

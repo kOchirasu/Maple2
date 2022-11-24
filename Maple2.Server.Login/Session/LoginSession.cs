@@ -27,8 +27,8 @@ public class LoginSession : Core.Network.Session {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public WorldClient World { get; init; } = null!;
-    public GameStorage GameStorage { private get; init; } = null!;
+    public required WorldClient World { private get; init; }
+    public required GameStorage GameStorage { private get; init; }
     // ReSharper restore All
     #endregion
 
@@ -36,7 +36,7 @@ public class LoginSession : Core.Network.Session {
 
     public LoginSession(TcpClient tcpClient, LoginServer server) : base(tcpClient) {
         Server = server;
-        State = SessionState.Moving;
+        State = SessionState.ChangeMap;
     }
 
     public void Init(long accountId, Guid machineId) {

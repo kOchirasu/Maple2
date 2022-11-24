@@ -13,8 +13,8 @@ public partial class FieldManager {
     public sealed class Factory : IDisposable {
         #region Autofac Autowired
         // ReSharper disable MemberCanBePrivate.Global
-        public MapMetadataStorage MapMetadata { private get; init; } = null!;
-        public MapEntityStorage MapEntities { private get; init; } = null!;
+        public required MapMetadataStorage MapMetadata { private get; init; }
+        public required MapEntityStorage MapEntities { private get; init; }
         // ReSharper restore All
         #endregion
 

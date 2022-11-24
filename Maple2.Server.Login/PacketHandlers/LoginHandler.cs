@@ -21,8 +21,8 @@ public class LoginHandler : PacketHandler<LoginSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public GlobalClient Global { private get; init; } = null!;
-    public WorldClient World { private get; init; } = null!;
+    public required GlobalClient Global { private get; init; }
+    public required WorldClient World { private get; init; }
     // ReSharper restore All
     #endregion
 
@@ -52,11 +52,11 @@ public class LoginHandler : PacketHandler<LoginSession> {
                         return;
                     }
 
-                    // Account is already logged into game server.
-                    if (World.PlayerInfo(new PlayerInfoRequest {AccountId = response.AccountId}).IsOnline) {
-                        session.Send(LoginResultPacket.Error((byte) LoginResponse.Types.Code.AlreadyLogin, "", response.AccountId));
-                        return;
-                    }
+                    // TODO: Account is already logged into game server.
+                    // if (World.PlayerInfo(new PlayerInfoRequest {AccountId = response.AccountId}).Location.Channel > 0) {
+                    //     session.Send(LoginResultPacket.Error((byte) LoginResponse.Types.Code.AlreadyLogin, "", response.AccountId));
+                    //     return;
+                    // }
 
                     session.Init(response.AccountId, machineId);
 

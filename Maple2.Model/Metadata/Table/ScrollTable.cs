@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
+using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
 
 public record EnchantScrollTable(IReadOnlyDictionary<int, EnchantScrollMetadata> Entries) : Table;
 
 public record EnchantScrollMetadata(
-    int Type,
+    short Type,
     short MinLevel,
     short MaxLevel,
     int[] Enchants,
@@ -44,4 +45,5 @@ public record ItemSocketScrollMetadata(
     short MaxLevel,
     int[] ItemTypes,
     int[] Rarities,
+    byte SocketCount,
     int TradableCountDeduction);

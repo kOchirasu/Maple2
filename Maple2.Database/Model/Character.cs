@@ -101,8 +101,9 @@ internal class Character {
 
     [return:NotNullIfNotNull(nameof(other))]
     public static implicit operator CharacterInfo?(Character? other) {
-        return other == null ? null : new CharacterInfo(other.AccountId, other.Id, other.Name, other.Gender, other.Job,
-            other.Level, other.MapId, other.Profile.Picture, other.Profile.Motto);
+        return other == null ? null : new CharacterInfo(other.AccountId, other.Id, other.Name, other.Profile.Motto, other.Profile.Picture, other.Gender, other.Job, other.Level) {
+            MapId = other.MapId,
+        };
     }
 
     public static void Configure(EntityTypeBuilder<Character> builder) {

@@ -2,6 +2,7 @@
 
 public enum SessionState {
     Disconnected = 0,
-    Moving = 1, // Moving between maps
-    Connected = 2,
+    ChangeMap = 1, // Moving between maps
+    ChangeChannel = 2, // Changing channels
+    Connected = 3,
 }

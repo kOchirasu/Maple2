@@ -194,6 +194,9 @@ namespace Maple2.Server.World.Migrations
                     b.Property<string>("KeyBinds")
                         .HasColumnType("json");
 
+                    b.Property<string>("Lapenshards")
+                        .HasColumnType("json");
+
                     b.Property<DateTime>("LastModified")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -244,6 +247,10 @@ namespace Maple2.Server.World.Migrations
                         .HasColumnType("json");
 
                     b.Property<string>("Pets")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<string>("Quests")
                         .IsRequired()
                         .HasColumnType("json");
 
