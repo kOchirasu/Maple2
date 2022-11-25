@@ -1,12 +1,10 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using Maple2.File.Ingest.Utils;
 using Maple2.File.IO;
 using Maple2.File.Parser;
 using Maple2.File.Parser.Xml;
 using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
-using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Newtonsoft.Json;
 using ChatSticker = Maple2.File.Parser.Xml.Table.ChatSticker;
@@ -45,7 +43,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "fishingspot.xml", Table = ParseFishingSpot()};
         yield return new TableMetadata {Name = "fish.xml", Table = ParseFish()};
         yield return new TableMetadata {Name = "fishingrod.xml", Table = ParseFishingRod()};
-        yield return new TableMetadata {Name = "fishingreward.xml", Table = ParseFishingRewards()};
+        yield return new TableMetadata {Name = "fishingreward.json", Table = ParseFishingRewards()};
         // Scroll
         yield return new TableMetadata {Name = "enchantscroll.xml", Table = ParseEnchantScrollTable()};
         yield return new TableMetadata {Name = "itemremakescroll.xml", Table = ParseItemRemakeScrollTable()};
@@ -595,7 +593,13 @@ public class TableMapper : TypeMapper<TableMetadata> {
     private FishingSpotTable ParseFishingSpot() {
         var results = new Dictionary<int, FishingSpotTable.Entry>();
         foreach ((int mapId, FishingSpot spot) in parser.ParseFishingSpot()) {
-            var entry = new FishingSpotTable.Entry(mapId, spot.minMastery, spot.maxMastery, spot.liquidType);
+            List<LiquidType> liquidTypes = new List<LiquidType>();
+            foreach (string liquidType in spot.liquidType) {
+                if (Enum.TryParse(liquidType, out LiquidType type)) {
+                    liquidTypes.Add(type);
+                }
+            }
+            var entry = new FishingSpotTable.Entry(mapId, spot.minMastery, spot.maxMastery, liquidTypes);
             results.Add(mapId, entry);
         }
         return new FishingSpotTable(results);
@@ -621,8 +625,15 @@ public class TableMapper : TypeMapper<TableMetadata> {
             if (!habitats.TryGetValue(id, out IReadOnlyList<int>? habitatList)) {
                 habitatList = new List<int>();
             }
-            var entry = new FishTable.Entry(id, fish.habitat, habitatList, fish.fishMastery, (short) fish.rank,
-                fish.smallSize.Split("-").Select(int.Parse).ToArray(), fish.bigSize.Split("-").Select(int.Parse).ToArray());
+            
+            if (!Enum.TryParse(fish.habitat, out LiquidType liquidType)) {
+                liquidType = LiquidType.all;
+            }
+
+            int[] smallSize = fish.smallSize.Split("-").Select(int.Parse).ToArray();
+            int[] bigSize = fish.bigSize.Split("-").Select(int.Parse).ToArray();
+            var entry = new FishTable.Entry(id, liquidType, habitatList, fish.fishMastery, (short) fish.rank,
+                new FishTable.Range<int>(smallSize[0], smallSize[1]), new FishTable.Range<int>(bigSize[0], bigSize[1]));
             results.Add(id, entry);
         }
         return new FishTable(results);

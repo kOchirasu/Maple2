@@ -83,6 +83,10 @@ public static class Constant {
     public const int WeddingDivorceRequireMarriageDay = 30;
     public const int CharacterNameLengthMin = 2;
     public const int BlockSize = 150;
+    public const float SouthEast = 0;
+    public const float NorthEast = 90;
+    public const float NorthWest = 180;
+    public const float SouthWest = 270;
     #endregion
 
     #region table/constants.xml

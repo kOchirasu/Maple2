@@ -1,13 +1,17 @@
 ﻿using System.Collections.Generic;
+using System.Numerics;
+using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
 
 public record FishTable(IReadOnlyDictionary<int, FishTable.Entry> Entries) : Table {
     public record Entry(int Id,
-                        string FluidHabitat,
+                        LiquidType FluidHabitat,
                         IReadOnlyList<int> HabitatMapIds,
                         int Mastery,
                         short Rarity,
-                        int[] SmallSize,
-                        int[] BigSize);
+                        Range<int> SmallSize,
+                        Range<int> BigSize);
+    
+    public record struct Range<T>(T Min, T Max) where T : INumber<T>;
 }

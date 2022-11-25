@@ -5,17 +5,16 @@ using Maple2.Tools;
 namespace Maple2.Model.Game;
 
 public class FishEntry : IByteSerializable {
-    
-    public int Id { get; }
-    public int TotalCaught { get; set; }
-    public int TotalPrizeFish { get; set; }
-    public int LargestSize { get; set; }
 
-    public FishEntry(int id, int fishSize) {
+    public int Id;
+    public int TotalCaught;
+    public int TotalPrizeFish;
+    public int LargestSize;
+
+    public FishEntry(int id) {
         Id = id;
-        LargestSize = fishSize;
     }
-    
+
     [JsonConstructor]
     public FishEntry(int id, int totalCaught, int totalPrizeFish, int largestSize) {
         Id = id;

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
 using Maple2.Model.Common;
+using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -48,10 +49,13 @@ public static class FishingPacket {
         return pWriter;
     }
     
-    public static ByteWriter IncreaseMastery(FishCatch fishCatch) {
+    public static ByteWriter IncreaseMastery(int fishId, int exp, CaughtFishType fishType) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.IncreaseMastery);
-        pWriter.Write<FishCatch>(fishCatch);
+        pWriter.WriteInt(fishId);
+        pWriter.WriteInt(exp);
+        pWriter.Write<CaughtFishType>(fishType);
+        pWriter.WriteShort(1); // unk
 
         return pWriter;
     }
@@ -63,10 +67,10 @@ public static class FishingPacket {
         pWriter.WriteInt(tiles.Count);
         foreach (Vector3 tile in tiles) {
             pWriter.Write<Vector3B>(tile);
-            pWriter.WriteInt(10000001);
-            pWriter.WriteInt(25);
+            pWriter.WriteInt(10000001); // fish id ?
+            pWriter.WriteInt(25); // unk
             pWriter.WriteInt(15000); // fishing time minus any rod or buff time reduction
-            pWriter.WriteShort(1);
+            pWriter.WriteShort(1); // unk
         }
 
         return pWriter;
@@ -94,12 +98,12 @@ public static class FishingPacket {
         return pWriter;
     }
     
-    public static ByteWriter LoadAlbum(IDictionary<int, FishEntry> fishAlbum) {
+    public static ByteWriter LoadAlbum(ICollection<FishEntry> fishAlbum) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.LoadAlbum);
         pWriter.WriteInt(fishAlbum.Count);
-        foreach ((int id, FishEntry fish) in fishAlbum) {
-            pWriter.WriteClass(fish);
+        foreach (FishEntry fish in fishAlbum) {
+            pWriter.WriteClass<FishEntry>(fish);
         }
 
         return pWriter;
@@ -114,7 +118,7 @@ public static class FishingPacket {
         pWriter.WriteByte();
 
         if (fish != null) {
-            pWriter.WriteClass(fish);
+            pWriter.WriteClass<FishEntry>(fish);
         }
 
         return pWriter;

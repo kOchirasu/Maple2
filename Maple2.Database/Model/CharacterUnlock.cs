@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
-using Maple2.Model.Game;
 using Maple2.Tools.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -19,7 +18,7 @@ internal class CharacterUnlock {
     public required IDictionary<int, long> StickerSets { get; set; }
     public required IDictionary<int, bool> MasteryRewardsClaimed { get; set; }
     public required IDictionary<int, short> Pets { get; set; }
-    public required IDictionary<int, FishEntry> FishAlbum { get; set; }
+    public required IList<FishEntry> FishAlbum { get; set; }
     public required IList<Quest> Quests { get; set; }
     public required InventoryExpand Expand { get; set; }
     public DateTime LastModified { get; init; }
@@ -33,7 +32,7 @@ internal class CharacterUnlock {
             StickerSets = new Dictionary<int, long>(),
             MasteryRewardsClaimed = new Dictionary<int, bool>(),
             Pets = new SortedDictionary<int, short>(),
-            FishAlbum = new SortedDictionary<int, FishEntry>(),
+            FishAlbum = new List<FishEntry>(),
             Quests = new List<Quest>(),
             Expand = new InventoryExpand(),
         } : new CharacterUnlock {
@@ -62,7 +61,7 @@ internal class CharacterUnlock {
             StickerSets = other.StickerSets,
             MasteryRewardsClaimed = other.MasteryRewardsClaimed,
             Pets = other.Pets,
-            FishAlbum = other.FishAlbum,
+            FishAlbum = other.FishAlbum.Values.Select<Maple2.Model.Game.FishEntry, FishEntry>(fish => fish).ToArray(),
             Quests = other.Quests.Values.Select<Maple2.Model.Game.Quest, Quest>(quest => quest).ToArray(),
         };
     }
@@ -110,9 +109,8 @@ internal class CharacterUnlock {
         foreach (Quest quest in other.Quests) {
             unlock.Quests[quest.Id] = quest;
         }
-
-        foreach ((int fishId, FishEntry fish) in other.FishAlbum) {
-            unlock.FishAlbum[fishId] = fish;
+        foreach (FishEntry entry in other.FishAlbum) {
+            unlock.FishAlbum[entry.Id] = entry;
         }
 
         return unlock;

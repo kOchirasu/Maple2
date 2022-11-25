@@ -83,7 +83,7 @@ public class TableMetadataStorage {
         fishTable = Retrieve<FishTable>(context, "fish.xml");
         fishingRodTable = Retrieve<FishingRodTable>(context, "fishingrod.xml");
         fishingSpotTable = Retrieve<FishingSpotTable>(context, "fishingspot.xml");
-        fishingRewardTable = Retrieve<FishingRewardTable>(context, "fishingreward.xml");
+        fishingRewardTable = Retrieve<FishingRewardTable>(context, "fishingreward.json");
         instrumentTable = Retrieve<InstrumentTable>(context, "instrumentcategoryinfo.xml");
         interactObjectTable = Retrieve<InteractObjectTable>(context, "interactobject.xml");
         interactMasteryTable = Retrieve<InteractObjectTable>(context, "interactobject_mastery.xml");

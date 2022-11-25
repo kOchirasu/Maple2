@@ -13,7 +13,7 @@ namespace Maple2.Server.World.Migrations
                 table: "character-unlock",
                 type: "json",
                 nullable: false,
-                defaultValue: "{}")
+                defaultValue: "[]")
                 .Annotation("MySql:CharSet", "utf8mb4");
         }
 

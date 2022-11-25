@@ -13,7 +13,7 @@ using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using Maple2.Server.Game.Util;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -30,14 +30,14 @@ public class FishingHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public ItemMetadataStorage ItemMetadata { get; init; } = null!;
-    public TableMetadataStorage TableMetadata { private get; init; } = null!;
+    public required ItemMetadataStorage ItemMetadata { private get; init; }
+    public required TableMetadataStorage TableMetadata { private get; init; }
     // ReSharper restore All
     #endregion
 
     public override void Handle(GameSession session, IByteReader packet) {
-        var function = packet.Read<Command>();
-        switch (function) {
+        var command = packet.Read<Command>();
+        switch (command) {
             case Command.Prepare:
                 HandlePrepare(session, packet);
                 break;
@@ -86,6 +86,7 @@ public class FishingHandler : PacketHandler<GameSession> {
 
         if (session.Mastery[MasteryType.Fishing] < spotMetadata.MinMastery) {
             session.Send(FishingPacket.Error(FishingError.s_fishing_error_lack_mastery));
+            return;
         }
 
         IList<Vector3> fishingBlocks = GetFishingBlocks(session.Player.Position, session.Player.Rotation);
@@ -116,20 +117,14 @@ public class FishingHandler : PacketHandler<GameSession> {
          
          For now, we will only be getting near-ish blocks. */
 
-        Vector3 roundedCoordinates = position;
-        
-        roundedCoordinates.X = (float) (Math.Round(roundedCoordinates.X / Constant.BlockSize) * Constant.BlockSize);
-        roundedCoordinates.Y = (float) (Math.Round(roundedCoordinates.Y / Constant.BlockSize) * Constant.BlockSize);
-        roundedCoordinates.Z = (float) (Math.Round(roundedCoordinates.Z / Constant.BlockSize) * Constant.BlockSize);
-
-        float direction = RotationDirectionUtil.GetClosestDirection(rotation);
-
+        Vector3 checkCoordinates = position.Align();
+        float direction = rotation.AlignRotation().Z;
         var nearbyBlockCoordinates = new List<Vector3>();
 
-        roundedCoordinates.Z -= Constant.BlockSize;
-        Vector3 checkBlock = roundedCoordinates;
+        checkCoordinates.Z -= Constant.BlockSize;
+        Vector3 checkBlock = checkCoordinates;
         switch (direction) {
-            case RotationDirectionUtil.NORTH_EAST: {
+            case Constant.NorthEast: {
                 checkBlock.Y += 2 * Constant.BlockSize; // start at the corner
 
                 for (int yAxis = 0; yAxis < 5; yAxis++) {
@@ -141,11 +136,11 @@ public class FishingHandler : PacketHandler<GameSession> {
                         nearbyBlockCoordinates.Add(checkBlock);
                     }
                     checkBlock.Y -= Constant.BlockSize;
-                    checkBlock.X = roundedCoordinates.X; // reset X
+                    checkBlock.X = checkCoordinates.X; // reset X
                 }
                 break;
             }
-            case RotationDirectionUtil.NORTH_WEST: {
+            case Constant.NorthWest: {
                 checkBlock.X += 2 * Constant.BlockSize; // start at the corner
 
                 for (int xAxis = 0; xAxis < 5; xAxis++) {
@@ -156,11 +151,11 @@ public class FishingHandler : PacketHandler<GameSession> {
                         nearbyBlockCoordinates.Add(checkBlock);
                     }
                     checkBlock.X -= Constant.BlockSize;
-                    checkBlock.Y = roundedCoordinates.Y; // reset Y
+                    checkBlock.Y = checkCoordinates.Y; // reset Y
                 }
                 break;
             }
-            case RotationDirectionUtil.SOUTH_WEST: {
+            case Constant.SouthWest: {
                 checkBlock.Y -= 2 * Constant.BlockSize; // start at the corner
 
                 for (int yAxis = 0; yAxis < 5; yAxis++) {
@@ -171,11 +166,11 @@ public class FishingHandler : PacketHandler<GameSession> {
                         nearbyBlockCoordinates.Add(checkBlock);
                     }
                     checkBlock.Y += Constant.BlockSize;
-                    checkBlock.X = roundedCoordinates.X; // reset X
+                    checkBlock.X = checkCoordinates.X; // reset X
                 }
                 break;
             }
-            case RotationDirectionUtil.SOUTH_EAST: {
+            case Constant.SouthEast: {
                 checkBlock.X -= 2 * Constant.BlockSize; // start at the corner
 
                 for (int xAxis = 0; xAxis < 5; xAxis++) {
@@ -186,7 +181,7 @@ public class FishingHandler : PacketHandler<GameSession> {
                         nearbyBlockCoordinates.Add(checkBlock);
                     }
                     checkBlock.X += Constant.BlockSize;
-                    checkBlock.Y = roundedCoordinates.Y; // reset Y
+                    checkBlock.Y = checkCoordinates.Y; // reset Y
                 }
                 break;
             }
@@ -215,7 +210,7 @@ public class FishingHandler : PacketHandler<GameSession> {
 
         // TODO: Get the fishing block underneath the guide object and validate what fish can be caught there
         // For now we will assume all fish in the map are valid
-        IEnumerable<FishTable.Entry> entries = TableMetadata.FishTable.Entries.Values.Where(x => x.HabitatMapIds.Contains(session.Player.Value.Character.MapId) && x.Mastery <= session.Mastery[MasteryType.Fishing]).ToArray();
+        IEnumerable<FishTable.Entry> entries = TableMetadata.FishTable.Entries.Values.Where(entry => entry.HabitatMapIds.Contains(session.Player.Value.Character.MapId) && entry.Mastery <= session.Mastery[MasteryType.Fishing]).ToArray();
         if (!entries.Any()) {
             session.Send(FishingPacket.Error(FishingError.s_fishing_error_notexist_fish));
             HandleStop(session);
@@ -226,29 +221,31 @@ public class FishingHandler : PacketHandler<GameSession> {
 
         // determine size of fish
         int fishSize = Random.Shared.NextDouble() switch {
-            >= 0.0 and < 0.01 when session.FishingMiniGameActive => Random.Shared.Next(fishEntry.BigSize[1], fishEntry.BigSize[1] * 10), // prize
-            >= 0.0 and < 0.03 => Random.Shared.Next(fishEntry.BigSize[0], fishEntry.BigSize[1]), // big
-            >= 0.03 and < 0.15 => Random.Shared.Next(fishEntry.SmallSize[1], fishEntry.BigSize[0]), // medium
-            >= 0.15 => Random.Shared.Next(fishEntry.SmallSize[0], fishEntry.SmallSize[1]), // small
-            _ => Random.Shared.Next(fishEntry.SmallSize[0], fishEntry.SmallSize[1]),
+            >= 0.0 and < 0.01 when session.FishingMiniGameActive => Random.Shared.Next(fishEntry.BigSize.Max, fishEntry.BigSize.Max * 10), // prize
+            >= 0.0 and < 0.03 => Random.Shared.Next(fishEntry.BigSize.Min, fishEntry.BigSize.Max), // big
+            >= 0.03 and < 0.15 => Random.Shared.Next(fishEntry.SmallSize.Max, fishEntry.BigSize.Min), // medium
+            >= 0.15 => Random.Shared.Next(fishEntry.SmallSize.Min, fishEntry.SmallSize.Max), // small
+            _ => Random.Shared.Next(fishEntry.SmallSize.Min, fishEntry.SmallSize.Max),
         };
 
         FishEntry? fish = null;
         if (success) {
             IDictionary<int, FishEntry> fishAlbum = session.Player.Value.Unlock.FishAlbum;
             if (!fishAlbum.TryGetValue(fishEntry.Id, out fish)) {
-                fish = new FishEntry(fishEntry.Id, fishSize);
+                fish = new FishEntry(fishEntry.Id) {
+                    LargestSize = fishSize,
+                };
                 fishAlbum[fishEntry.Id] = fish;
-                AddMastery(session, new FishCatch(fishEntry, CaughtFishType.FirstKind));
+                AddMastery(session, fishEntry, CaughtFishType.FirstKind);
             }
 
-            if (fishSize > fishEntry.BigSize[1]) {
-                AddMastery(session, new FishCatch(fishEntry, CaughtFishType.Prize));
+            if (fishSize > fishEntry.BigSize.Max) {
+                AddMastery(session, fishEntry, CaughtFishType.Prize);
                 session.Field?.Broadcast(FishingPacket.PrizeFish(session.Player.Value.Character.Name, fishEntry.Id));
                 fish.TotalPrizeFish++;
             }
 
-            AddMastery(session, new FishCatch(fishEntry, CaughtFishType.Default));
+            AddMastery(session, fishEntry, CaughtFishType.Default);
 
             fish.TotalCaught++;
             if (fishSize > fish.LargestSize) {
@@ -294,32 +291,38 @@ public class FishingHandler : PacketHandler<GameSession> {
         session.Send(FishingPacket.CatchItem(items));
     }
 
-    private void AddMastery(GameSession session, FishCatch fishCatch) {
+    private void AddMastery(GameSession session, FishTable.Entry entry, CaughtFishType fishType) {
 
         if (session.Mastery[MasteryType.Fishing] >= Constant.FishingMasteryMax) {
             return;
         }
 
-        if (fishCatch.Type == CaughtFishType.Default) {
-            if (!TableMetadata.FishingSpotTable.Entries.TryGetValue(session.Player.Value.Character.MapId, out FishingSpotTable.Entry? fishingSpotEntry) ||
-                session.Mastery[MasteryType.Fishing] >= fishingSpotEntry.MaxMastery && Random.Shared.NextDouble() > Constant.FishingMasteryAdditionalExpChance) {
-                return;
-            }
+        int exp = entry.Rarity;
+        switch (fishType) {
+            case CaughtFishType.Prize:
+            case CaughtFishType.FirstKind:
+                exp = entry.Rarity * Constant.FishingMasteryIncreaseFactor;
+                break;
+            case CaughtFishType.Default:
+                if (!TableMetadata.FishingSpotTable.Entries.TryGetValue(session.Player.Value.Character.MapId, out FishingSpotTable.Entry? fishingSpotEntry) ||
+                    session.Mastery[MasteryType.Fishing] >= fishingSpotEntry.MaxMastery && Random.Shared.NextDouble() > Constant.FishingMasteryAdditionalExpChance) {
+                    return;
+                }
 
-            // give mastery exp if within the fishing spot's mastery range
-            if (fishingSpotEntry.MinMastery >= session.Mastery[MasteryType.Fishing]) {
-                fishCatch.Exp = Random.Shared.NextDouble() switch {
-                    >= 0.0 and < 0.80 => 1,
-                    >= 0.80 and < 0.98 => 2,
-                    >= 0.98 => 3,
-                    _ => 1,
-                };
-            }
-
+                // give mastery exp if within the fishing spot's mastery range
+                if (fishingSpotEntry.MinMastery >= session.Mastery[MasteryType.Fishing]) {
+                    exp = Random.Shared.NextDouble() switch {
+                        >= 0.0 and < 0.80 => 1,
+                        >= 0.80 and < 0.98 => 2,
+                        >= 0.98 => 3,
+                        _ => 1,
+                    };
+                }
+                break;
         }
 
-        session.Mastery[MasteryType.Fishing] += fishCatch.Exp;
-        session.Send(FishingPacket.IncreaseMastery(fishCatch));
+        session.Mastery[MasteryType.Fishing] += exp;
+        session.Send(FishingPacket.IncreaseMastery(entry.Id, exp, fishType));
     }
 
     private static FishTable.Entry GetFishToCatch(IEnumerable<FishTable.Entry> entries) {
@@ -340,7 +343,7 @@ public class FishingHandler : PacketHandler<GameSession> {
         } while (filteredFish.Count == 0);
 
         // get one fish from selected rarity
-        return filteredFish[Random.Shared.Next(0, filteredFish.Count)];
+        return filteredFish.Random();
     }
 
     private void HandleStart(GameSession session, IByteReader packet) {
