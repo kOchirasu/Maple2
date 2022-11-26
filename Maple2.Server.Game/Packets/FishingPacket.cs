@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Numerics;
 using Maple2.Model.Common;
 using Maple2.Model.Enum;
@@ -24,8 +25,10 @@ public static class FishingPacket {
         LoadAlbum = 7,
         CatchFish = 8,
         Start = 9,
+        Auto = 10,
+        Simulate = 11,
     }
-    
+
     public static ByteWriter Prepare(long rodUid) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.Prepare);
@@ -33,14 +36,14 @@ public static class FishingPacket {
 
         return pWriter;
     }
-    
+
     public static ByteWriter Stop() {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.Stop);
 
         return pWriter;
     }
-    
+
     public static ByteWriter Error(FishingError error) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.Error);
@@ -48,14 +51,14 @@ public static class FishingPacket {
 
         return pWriter;
     }
-    
+
     public static ByteWriter IncreaseMastery(int fishId, int exp, CaughtFishType fishType) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.IncreaseMastery);
         pWriter.WriteInt(fishId);
         pWriter.WriteInt(exp);
         pWriter.Write<CaughtFishType>(fishType);
-        pWriter.WriteShort(1); // unk
+        pWriter.WriteShort(1); // fish grade/rarity ?
 
         return pWriter;
     }
@@ -75,7 +78,7 @@ public static class FishingPacket {
 
         return pWriter;
     }
-    
+
     public static ByteWriter CatchItem(IList<FishingRewardTable.Entry> rewards) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.CatchItem);
@@ -87,7 +90,7 @@ public static class FishingPacket {
 
         return pWriter;
     }
-    
+
     public static ByteWriter PrizeFish(string playerName, int fishId) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.PrizeFish);
@@ -97,7 +100,7 @@ public static class FishingPacket {
 
         return pWriter;
     }
-    
+
     public static ByteWriter LoadAlbum(ICollection<FishEntry> fishAlbum) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.LoadAlbum);
@@ -108,7 +111,7 @@ public static class FishingPacket {
 
         return pWriter;
     }
-    
+
     public static ByteWriter CatchFish(int id, int size, FishEntry? fish = null) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.CatchFish);
@@ -123,12 +126,38 @@ public static class FishingPacket {
 
         return pWriter;
     }
-    
+
     public static ByteWriter Start(int fishingTick, bool miniGame) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.Start);
         pWriter.WriteBool(miniGame);
         pWriter.WriteInt(fishingTick);
+
+        return pWriter;
+    }
+
+    public static ByteWriter Auto(bool autoFish) {
+        var pWriter = Packet.Of(SendOp.Fishing);
+        pWriter.Write<Command>(Command.Auto);
+        pWriter.WriteBool(autoFish);
+
+        return pWriter;
+    }
+
+    public static ByteWriter Simulate(ICollection<FishEntry> fishEntries) {
+        var pWriter = Packet.Of(SendOp.Fishing);
+        pWriter.Write<Command>(Command.Simulate);
+        pWriter.WriteInt(fishEntries.Count);
+        foreach (FishEntry fish in fishEntries) {
+            pWriter.WriteInt(fish.Id);
+            pWriter.WriteInt(); // pick count
+            pWriter.WriteInt(); // catch count
+            pWriter.WriteInt(); // count
+            // loop for each count above
+            pWriter.WriteInt(); // unk
+            // end loop
+            pWriter.WriteInt(); // prize count
+        }
 
         return pWriter;
     }

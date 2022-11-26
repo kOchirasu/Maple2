@@ -89,12 +89,11 @@ public class FishingHandler : PacketHandler<GameSession> {
             return;
         }
 
-        IList<Vector3> fishingBlocks = GetFishingBlocks(session.Player.Position, session.Player.Rotation);
+        IList<Vector3> fishingBlocks = GetFishingBlocks(session.Player.Position, session.Player.Rotation).ToArray();
+        session.GuideObject = session.Field.SpawnGuideObject(session.Player, new FishingGuideObject(), GetGuideObjectPosition(fishingBlocks, session.Player.Position));
+        session.GuideObject.RodMetadata = rodMetadata;
 
-        session.GuideObject = session.Field?.SpawnGuideObject(session.Player, new FishingGuideObject(), GetGuideObjectPosition(fishingBlocks, session.Player.Position));
-        session.GuideObject!.RodMetadata = rodMetadata;
-
-        session.Field?.Broadcast(GuideObjectPacket.Create(session.GuideObject));
+        session.Field.Broadcast(GuideObjectPacket.Create(session.GuideObject));
         session.Send(FishingPacket.LoadTiles(fishingBlocks));
         session.Send(FishingPacket.Prepare(fishingRodUid));
     }
@@ -108,7 +107,7 @@ public class FishingHandler : PacketHandler<GameSession> {
         return guidePosition;
     }
 
-    private static IList<Vector3> GetFishingBlocks(Vector3 position, Vector3 rotation) {
+    private static IEnumerable<Vector3> GetFishingBlocks(Vector3 position, Vector3 rotation) {
         /* Note this is all wrong and is a temp placeholder until the actual functionality is implemented.
          Normally how it should work is we get the intercardinal direction that the player is facing closest to (Southwest, northwest, southeast, northeast)
          We then scan in front of the player a 5x3x3 area for liquid blocks
@@ -119,7 +118,6 @@ public class FishingHandler : PacketHandler<GameSession> {
 
         Vector3 checkCoordinates = position.Align();
         float direction = rotation.AlignRotation().Z;
-        var nearbyBlockCoordinates = new List<Vector3>();
 
         checkCoordinates.Z -= Constant.BlockSize;
         Vector3 checkBlock = checkCoordinates;
@@ -133,7 +131,7 @@ public class FishingHandler : PacketHandler<GameSession> {
 
                         // Normally here we would scan Z levels for liquid blocks
                         // For now we will just add the coordinate in the same level to the list;
-                        nearbyBlockCoordinates.Add(checkBlock);
+                        yield return checkBlock;
                     }
                     checkBlock.Y -= Constant.BlockSize;
                     checkBlock.X = checkCoordinates.X; // reset X
@@ -148,7 +146,7 @@ public class FishingHandler : PacketHandler<GameSession> {
                         checkBlock.Y += Constant.BlockSize;
                         // Normally here we would scan Z levels for liquid blocks
                         // For now we will just add the coordinate in the same level to the list;
-                        nearbyBlockCoordinates.Add(checkBlock);
+                        yield return checkBlock;
                     }
                     checkBlock.X -= Constant.BlockSize;
                     checkBlock.Y = checkCoordinates.Y; // reset Y
@@ -163,7 +161,7 @@ public class FishingHandler : PacketHandler<GameSession> {
                         checkBlock.X -= Constant.BlockSize;
                         // Normally here we would scan Z levels for liquid blocks
                         // For now we will just add the coordinate in the same level to the list;
-                        nearbyBlockCoordinates.Add(checkBlock);
+                        yield return checkBlock;
                     }
                     checkBlock.Y += Constant.BlockSize;
                     checkBlock.X = checkCoordinates.X; // reset X
@@ -178,7 +176,7 @@ public class FishingHandler : PacketHandler<GameSession> {
                         checkBlock.Y -= Constant.BlockSize;
                         // Normally here we would scan Z levels for liquid blocks
                         // For now we will just add the coordinate in the same level to the list;
-                        nearbyBlockCoordinates.Add(checkBlock);
+                        yield return checkBlock;
                     }
                     checkBlock.X += Constant.BlockSize;
                     checkBlock.Y = checkCoordinates.Y; // reset Y
@@ -186,8 +184,6 @@ public class FishingHandler : PacketHandler<GameSession> {
                 break;
             }
         }
-        return nearbyBlockCoordinates;
-
     }
 
     private static void HandleStop(GameSession session) {
@@ -218,7 +214,6 @@ public class FishingHandler : PacketHandler<GameSession> {
         }
 
         FishTable.Entry fishEntry = GetFishToCatch(entries);
-
         // determine size of fish
         int fishSize = Random.Shared.NextDouble() switch {
             >= 0.0 and < 0.01 when session.FishingMiniGameActive => Random.Shared.Next(fishEntry.BigSize.Max, fishEntry.BigSize.Max * 10), // prize

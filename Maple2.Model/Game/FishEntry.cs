@@ -15,14 +15,6 @@ public class FishEntry : IByteSerializable {
         Id = id;
     }
 
-    [JsonConstructor]
-    public FishEntry(int id, int totalCaught, int totalPrizeFish, int largestSize) {
-        Id = id;
-        TotalCaught = totalCaught;
-        TotalPrizeFish = totalPrizeFish;
-        LargestSize = largestSize;
-    }
-
     public void WriteTo(IByteWriter writer) {
         writer.WriteInt(Id);
         writer.WriteInt(TotalCaught);
