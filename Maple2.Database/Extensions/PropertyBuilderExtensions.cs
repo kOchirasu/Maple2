@@ -1,4 +1,7 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -24,5 +27,11 @@ internal static class PropertyBuilderExtensions {
     public static ReferenceReferenceBuilder<TEntity, TRelatedEntity> OneToOne<TEntity, TRelatedEntity>(
             this EntityTypeBuilder<TEntity> builder) where TEntity : class where TRelatedEntity : class {
         return builder.HasOne<TRelatedEntity>().WithOne();
+    }
+
+    public static ReferenceReferenceBuilder<TEntity, TRelatedEntity> OneToOne<TEntity, TRelatedEntity>(
+            this EntityTypeBuilder<TEntity> builder, Expression<Func<TEntity, TRelatedEntity?>>? navigationExpression)
+            where TEntity : class where TRelatedEntity : class {
+        return builder.HasOne<TRelatedEntity>(navigationExpression).WithOne();
     }
 }

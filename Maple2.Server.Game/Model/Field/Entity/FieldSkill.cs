@@ -110,13 +110,15 @@ public class FieldSkill : FieldEntity<SkillMetadata> {
                     Level = Value.Level,
                     MotionPoint = record.MotionPoint,
                     AttackPoint = record.AttackPoint,
+                    Direction = Rotation,
                 };
                 var targetRecords = new List<TargetRecord>();
                 if (attack.Arrow.BounceType > 0) {
                     IActor[] targets = Array.Empty<IActor>();
                     var bounceTargets = new List<IActor>();
                     Vector3 position = Position;
-                    for (int bounce = 0; bounce < attack.Arrow.BounceCount; bounce++) {
+                    long prevTargetUid = 0;
+                    for (int bounce = 0; bounce <= attack.Arrow.BounceCount; bounce++) {
                         Vector3 box = attack.Arrow.Collision + attack.Arrow.CollisionAdd;
                         var circle = new Circle(new Vector2(position.X, position.Y), attack.Arrow.BounceRadius);
                         // var rectangle = new Rectangle(new Vector2(Position.X, Position.Y), box.X, box.Y, UseDirection ? Rotation.Z : 0);
@@ -132,12 +134,14 @@ public class FieldSkill : FieldEntity<SkillMetadata> {
                         IActor target = targets[0];
                         record.TargetUid++;
                         targetRecords.Add(new TargetRecord {
+                            PrevUid = prevTargetUid,
                             Uid = record.TargetUid,
                             TargetId = target.ObjectId,
                             Index = (byte) targetRecords.Count,
                         });
                         bounceTargets.Add(target);
                         position = target.Position;
+                        prevTargetUid = record.TargetUid;
                     }
 
                     Field.Broadcast(SkillDamagePacket.Target(record, targetRecords));
@@ -173,6 +177,7 @@ public class FieldSkill : FieldEntity<SkillMetadata> {
 
                     foreach (IActor target in targets) {
                         target.ApplyDamage(Caster, damage, attack);
+                        // TODO: Set PrevUid?
                         targetRecords.Add(new TargetRecord {
                             Uid = (long) ObjectId << 32 | (uint) targetRecords.Count,
                             TargetId = target.ObjectId,
