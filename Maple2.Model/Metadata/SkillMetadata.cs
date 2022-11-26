@@ -68,6 +68,7 @@ public record SkillMetadataAttack(
     long CubeMagicPathId,
     SkillMetadataPet? Pet,
     SkillMetadataRange Range,
+    SkillMetadataArrow Arrow,
     SkillMetadataDamage Damage,
     SkillEffectMetadata[] Skills);
 
@@ -89,6 +90,17 @@ public record SkillMetadataRange(
     SkillEntity IncludeCaster, // 0,1,2
     SkillEntity ApplyTarget, // 0,1,2,3,5,6,7,8
     SkillEntity CastTarget); // 0,1,2,3,4,5,7
+
+public record SkillMetadataArrow(
+    bool Overlap,
+    bool Explosion,
+    SkillEntity NonTarget,
+    int BounceType,
+    int BounceCount,
+    float BounceRadius,
+    bool BounceOverlap,
+    Vector3 Collision,
+    Vector3 CollisionAdd);
 
 public record SkillMetadataDamage(
     int Count,
