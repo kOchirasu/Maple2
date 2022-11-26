@@ -44,13 +44,16 @@ public static class SkillUtils {
         }
     }
 
-    public static IEnumerable<T> Filter<T>(this Prism[] prisms, IEnumerable<T> entities, int limit = 10) where T : IActor {
+    public static IEnumerable<T> Filter<T>(this Prism[] prisms, IEnumerable<T> entities, int limit = 10, ICollection<IActor>? ignore = null) where T : IActor {
         foreach (T entity in entities) {
             if (limit <= 0) {
                 yield break;
             }
 
             if (entity.IsDead) {
+                continue;
+            }
+            if (ignore != null && ignore.Contains(entity)) {
                 continue;
             }
 

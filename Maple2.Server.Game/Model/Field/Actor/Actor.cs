@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
 using System.Threading;
 using Maple2.Model.Enum;
@@ -49,6 +50,7 @@ public abstract class ActorBase<T> : IActor<T> {
     public virtual void ApplyEffect(IActor caster, SkillEffectMetadata effect) { }
     public virtual void ApplyDamage(IActor caster, DamageRecord damage, SkillMetadataAttack attack) { }
     public virtual void AddBuff(IActor caster, int id, short level, bool notifyField = true) { }
+    public virtual void TargetAttack(SkillRecord record) { }
 
     public virtual void Sync() { }
 }
@@ -121,6 +123,40 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
         // Logger.Information("> {Data}", additionalEffect.Property);
         if (notifyField) {
             Field.Broadcast(BuffPacket.Add(buff));
+        }
+    }
+
+    public override void TargetAttack(SkillRecord record) {
+        if (record.Targets.Count == 0) {
+            return;
+        }
+
+        var damage = new DamageRecord {
+            CasterId = record.Caster.ObjectId,
+            TargetUid = record.TargetUid,
+            OwnerId = record.Caster.ObjectId,
+            SkillId = record.SkillId,
+            Level = record.Level,
+            AttackPoint = record.AttackPoint,
+            MotionPoint = record.MotionPoint,
+            Position = record.ImpactPosition,
+            Direction = record.Direction,
+        };
+
+        foreach (IActor target in record.Targets) {
+            target.ApplyDamage(this, damage, record.Attack);
+        }
+
+        Field.Broadcast(SkillDamagePacket.Damage(damage));
+
+        foreach (SkillEffectMetadata effect in record.Attack.Skills) {
+            if (effect.Condition != null) {
+                foreach (IActor actor in record.Targets) {
+                    actor.ApplyEffect(this, effect);
+                }
+            } else if (effect.Splash != null) {
+                // Handled by SplashAttack?
+            }
         }
     }
 

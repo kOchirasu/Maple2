@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Numerics;
 using Maple2.Database.Storage;
+using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
+using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
@@ -143,7 +145,7 @@ public class SkillHandler : PacketHandler<GameSession> {
             targets.Add(new TargetRecord {
                 Uid = packet.ReadLong(),
                 TargetId = packet.ReadInt(),
-                Index = packet.ReadByte(),
+                Unknown = packet.ReadByte(),
             });
 
             // While more targets in packet.
@@ -151,8 +153,8 @@ public class SkillHandler : PacketHandler<GameSession> {
                 targets.Add(new TargetRecord {
                     Uid = packet.ReadLong(),
                     TargetId = packet.ReadInt(),
-                    Index = packet.ReadByte(),
                     Unknown = packet.ReadByte(),
+                    Index = packet.ReadByte(),
                 });
             }
 
@@ -162,6 +164,10 @@ public class SkillHandler : PacketHandler<GameSession> {
     }
 
     private void HandleTarget(GameSession session, IByteReader packet) {
+        if (session.Field == null) {
+            return;
+        }
+
         long skillUid = packet.ReadLong();
         SkillRecord? record = session.ActiveSkills.Get(skillUid);
         if (record == null) {
@@ -190,13 +196,33 @@ public class SkillHandler : PacketHandler<GameSession> {
             Logger.Error("Unhandled skill-Target value2({Value}): {Record}", unknown2, record);
         }
 
-        int[] targetIds = new int[count];
         for (byte i = 0; i < count; i++) {
-            targetIds[i] = packet.ReadInt();
+            int targetId = packet.ReadInt();
             packet.ReadByte();
+
+            switch (record.Attack.Range.ApplyTarget) {
+                case SkillEntity.Target:
+                    if (session.Field.Mobs.TryGetValue(targetId, out FieldNpc? npc)) {
+                        record.Targets.Add(npc);
+                    }
+                    continue;
+                case SkillEntity.Owner:
+                    if (session.Field.TryGetPlayer(targetId, out FieldPlayer? player)) {
+                        record.Targets.Add(player);
+                    }
+                    continue;
+                case SkillEntity.RegionPet:
+                    if (session.Field.Pets.TryGetValue(targetId, out FieldPet? pet)) {
+                        record.Targets.Add(pet);
+                    }
+                    continue;
+                default:
+                    Logger.Debug("Unhandled Target-SkillEntity:{Entity}", record.Attack.Range.ApplyTarget);
+                    continue;
+            }
         }
 
-        session.Player.TargetAttack(record, targetIds);
+        session.Player.TargetAttack(record);
         session.Player.InBattle = true;
     }
 
