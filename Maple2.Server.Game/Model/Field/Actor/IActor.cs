@@ -20,6 +20,8 @@ public interface IActor : IFieldEntity {
     public virtual void ApplyEffect(IActor caster, SkillEffectMetadata effect) { }
     public virtual void ApplyDamage(IActor caster, DamageRecord damage, SkillMetadataAttack attack) { }
     public virtual void AddBuff(IActor caster, int id, short level, bool notifyField = true) { }
+
+    public virtual void TargetAttack(SkillRecord record) { }
 }
 
 public interface IActor<T> : IActor {

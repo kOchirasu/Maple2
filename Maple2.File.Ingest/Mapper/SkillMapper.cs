@@ -47,6 +47,16 @@ public class SkillMapper : TypeMapper<StoredSkillMetadata> {
                                 ForcedTaming: attack.petTamingProperty.forcedTaming
                             ) : null,
                             Range: Convert(attack.rangeProperty),
+                            Arrow: new SkillMetadataArrow(
+                                Overlap: attack.arrowProperty.overlap,
+                                Explosion: attack.arrowProperty.explosion,
+                                NonTarget: (SkillEntity) attack.arrowProperty.nonTarget,
+                                BounceType: attack.arrowProperty.bounceType,
+                                BounceCount: attack.arrowProperty.bounceCount,
+                                BounceRadius: attack.arrowProperty.bounceRadius,
+                                BounceOverlap: attack.arrowProperty.bounceType > 0 && attack.arrowProperty.bounceOverlap,
+                                Collision: attack.arrowProperty.collision,
+                                CollisionAdd: attack.arrowProperty.collisionAdd),
                             Damage: new SkillMetadataDamage(
                                 Count: attack.damageProperty.count,
                                 Rate: attack.damageProperty.rate,

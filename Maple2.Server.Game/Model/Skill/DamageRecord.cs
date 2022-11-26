@@ -7,7 +7,7 @@ namespace Maple2.Server.Game.Model.Skill;
 public class DamageRecord {
     public long SkillUid { get; init; }
     public long TargetUid { get; init; } // For Non-Region skills
-    public int CasterId { get; init; }   // For Region skills
+    public int CasterId { get; init; }
 
     public int OwnerId;
     public int SkillId;

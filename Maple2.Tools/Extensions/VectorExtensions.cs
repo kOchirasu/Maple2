@@ -14,13 +14,13 @@ public static class VectorExtensions {
         return new Vector3(
             MathF.Round(position.X / interval) * interval,
             MathF.Round(position.Y / interval) * interval,
-            MathF.Floor(position.Z / interval) * interval
+            MathF.Floor(MathF.Round(position.Z) / interval) * interval
         );
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3 AlignHeight(this in Vector3 position, float interval = BLOCK_SIZE) {
-        return position with {Z = MathF.Floor(position.Z / interval) * interval};
+        return position with {Z = MathF.Floor(MathF.Round(position.Z) / interval) * interval};
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -49,7 +49,7 @@ public static class SkillDamagePacket {
         pWriter.Write<Command>(Command.Damage);
         pWriter.WriteLong(record.SkillUid);
         pWriter.WriteLong(record.TargetUid);
-        pWriter.WriteInt(record.OwnerId);
+        pWriter.WriteInt(record.CasterId);
         pWriter.WriteInt(record.SkillId);
         pWriter.WriteShort(record.Level);
         pWriter.WriteByte(record.MotionPoint);

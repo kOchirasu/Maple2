@@ -226,7 +226,7 @@ public partial class FieldManager {
         Broadcast(RegionSkillPacket.Add(fieldSkill));
     }
 
-    public void AddSkill(IActor caster, SkillEffectMetadata effect, Vector3[] points, in Vector3 position, in Vector3 rotation = default) {
+    public void AddSkill(IActor caster, SkillEffectMetadata effect, Vector3[] points, in Vector3 rotation = default) {
         Debug.Assert(effect.Splash != null, "Cannot add non-splash skill to field");
 
         foreach (SkillEffectMetadata.Skill skill in effect.Skills) {
@@ -236,7 +236,7 @@ public partial class FieldManager {
 
             int fireCount = effect.FireCount > 0 ? effect.FireCount : -1;
             var fieldSkill = new FieldSkill(this, NextLocalId(), caster, metadata, fireCount, effect.Splash, points) {
-                Position = position,
+                Position = points[0],
                 Rotation = rotation,
             };
 
@@ -278,21 +278,21 @@ public partial class FieldManager {
                 continue;
             }
 
-            AddSkill(record.Caster, effect, cubePoints, record.Position, record.Rotation);
+            AddSkill(record.Caster, effect, cubePoints, record.Rotation);
         }
     }
 
-    public IEnumerable<IActor> GetTargets(Prism[] prisms, SkillEntity entity, int limit) {
+    public IEnumerable<IActor> GetTargets(Prism[] prisms, SkillEntity entity, int limit, ICollection<IActor>? ignore = null) {
         switch (entity) {
             case SkillEntity.Owner:
             case SkillEntity.Attacker:
             case SkillEntity.RegionBuff:
             case SkillEntity.RegionDebuff:
-                return prisms.Filter(Players.Values, limit);
+                return prisms.Filter(Players.Values, limit, ignore);
             case SkillEntity.Target:
-                return prisms.Filter(Mobs.Values, limit);
+                return prisms.Filter(Mobs.Values, limit, ignore);
             case SkillEntity.RegionPet:
-                return prisms.Filter(Pets.Values.Where(pet => pet.OwnerId == 0), limit);
+                return prisms.Filter(Pets.Values.Where(pet => pet.OwnerId == 0), limit, ignore);
             default:
                 Log.Debug("Unhandled SkillEntity:{Entity}", entity);
                 return Array.Empty<IActor>();
