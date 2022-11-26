@@ -323,10 +323,13 @@ public partial class FieldManager {
 
     #region Player Managed
     // GuideObject is not added to the field, it will be managed by |GameSession.State|
-    public FieldGuideObject SpawnGuideObject(IActor<Player> owner, IGuideObject guideObject) {
+    public FieldGuideObject SpawnGuideObject(IActor<Player> owner, IGuideObject guideObject, Vector3 position = default) {
+        if (position == default) {
+            position = owner.Position;
+        }
         var fieldGuideObject = new FieldGuideObject(this, NextLocalId(), guideObject) {
             CharacterId = owner.Value.Character.Id,
-            Position = owner.Position,
+            Position = position,
             // rotation?
         };
 

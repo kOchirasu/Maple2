@@ -166,7 +166,6 @@ public class MasteryHandler : PacketHandler<GameSession> {
 
         if (!entry.NoRewardExp) {
             session.Mastery[entry.Type] += entry.RewardMastery;
-            session.Send(MasteryPacket.UpdateMastery(entry.Type, session.Mastery[entry.Type]));
         }
 
         foreach (MasteryRecipeTable.Ingredient rewardItem in entry.RewardItems) {

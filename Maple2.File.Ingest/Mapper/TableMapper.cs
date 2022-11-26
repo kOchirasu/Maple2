@@ -1,14 +1,14 @@
-﻿using System.Diagnostics;
-using System.Numerics;
+﻿using System.Numerics;
 using Maple2.File.Ingest.Utils;
 using Maple2.File.IO;
 using Maple2.File.Parser;
 using Maple2.File.Parser.Xml;
 using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
-using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Newtonsoft.Json;
 using ChatSticker = Maple2.File.Parser.Xml.Table.ChatSticker;
+using Fish = Maple2.File.Parser.Xml.Table.Fish;
 using InteractObject = Maple2.File.Parser.Xml.Table.InteractObject;
 using ItemSocket = Maple2.File.Parser.Xml.Table.ItemSocket;
 using JobTable = Maple2.Model.Metadata.JobTable;
@@ -39,6 +39,11 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "itemsocket.xml", Table = ParseItemSocketTable()};
         yield return new TableMetadata {Name = "masteryreceipe.xml", Table = ParseMasteryRecipe()};
         yield return new TableMetadata {Name = "mastery.xml", Table = ParseMasteryReward()};
+        // Fishing
+        yield return new TableMetadata {Name = "fishingspot.xml", Table = ParseFishingSpot()};
+        yield return new TableMetadata {Name = "fish.xml", Table = ParseFish()};
+        yield return new TableMetadata {Name = "fishingrod.xml", Table = ParseFishingRod()};
+        yield return new TableMetadata {Name = "fishingreward.json", Table = ParseFishingRewards()};
         // Scroll
         yield return new TableMetadata {Name = "enchantscroll.xml", Table = ParseEnchantScrollTable()};
         yield return new TableMetadata {Name = "itemremakescroll.xml", Table = ParseItemRemakeScrollTable()};
@@ -583,6 +588,74 @@ public class TableMapper : TypeMapper<TableMetadata> {
             results.Add((MasteryType) type, masteryLevelDictionary);
         }
         return new MasteryRewardTable(results);
+    }
+
+    private FishingSpotTable ParseFishingSpot() {
+        var results = new Dictionary<int, FishingSpotTable.Entry>();
+        foreach ((int mapId, FishingSpot spot) in parser.ParseFishingSpot()) {
+            List<LiquidType> liquidTypes = new List<LiquidType>();
+            foreach (string liquidType in spot.liquidType) {
+                if (Enum.TryParse(liquidType, out LiquidType type)) {
+                    liquidTypes.Add(type);
+                }
+            }
+            var entry = new FishingSpotTable.Entry(mapId, spot.minMastery, spot.maxMastery, liquidTypes);
+            results.Add(mapId, entry);
+        }
+        return new FishingSpotTable(results);
+    }
+
+    private FishTable ParseFish() {
+        var results = new Dictionary<int, FishTable.Entry>();
+
+        // Parse habitat and combine
+        var habitats = new Dictionary<int, IReadOnlyList<int>>();
+        foreach ((int id, FishHabitat habitat) in parser.ParseFishHabitat()) {
+            var habitatMaps = new List<int>();
+            foreach (string map in habitat.habitat) {
+                string mapString = map.Replace(",", "");
+                if (int.TryParse(mapString, out int mapId)) {
+                    habitatMaps.Add(mapId);
+                }
+            }
+            habitats.Add(id, habitatMaps);
+        }
+
+        foreach ((int id, Fish fish) in parser.ParseFish()) {
+            if (!habitats.TryGetValue(id, out IReadOnlyList<int>? habitatList)) {
+                habitatList = new List<int>();
+            }
+            
+            if (!Enum.TryParse(fish.habitat, out LiquidType liquidType)) {
+                liquidType = LiquidType.all;
+            }
+
+            int[] smallSize = fish.smallSize.Split("-").Select(int.Parse).ToArray();
+            int[] bigSize = fish.bigSize.Split("-").Select(int.Parse).ToArray();
+            var entry = new FishTable.Entry(id, liquidType, habitatList, fish.fishMastery, (short) fish.rank,
+                new FishTable.Range<int>(smallSize[0], smallSize[1]), new FishTable.Range<int>(bigSize[0], bigSize[1]));
+            results.Add(id, entry);
+        }
+        return new FishTable(results);
+    }
+
+    private FishingRodTable ParseFishingRod() {
+        var results = new Dictionary<int, FishingRodTable.Entry>();
+        foreach ((int id, FishingRod rod) in parser.ParseFishingRod()) {
+            var entry = new FishingRodTable.Entry(rod.itemCode, rod.fishMasteryLimit, rod.addFishMastery, rod.reduceFishingTime);
+            results.Add(id, entry);
+        }
+        return new FishingRodTable(results);
+    }
+    
+    private FishingRewardTable ParseFishingRewards() {
+        var results = new Dictionary<int, FishingRewardTable.Entry>();
+        string json = System.IO.File.ReadAllText($"../../../Json/FishingRewards.json");
+        var items = JsonConvert.DeserializeObject<List<FishingRewardTable.Entry>>(json);
+        foreach (FishingRewardTable.Entry entry in items) {
+            results[entry.Id] = entry;
+        }
+        return new FishingRewardTable(results);
     }
 
     private EnchantScrollTable ParseEnchantScrollTable() {
