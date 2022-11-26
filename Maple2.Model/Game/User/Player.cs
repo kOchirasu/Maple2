@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using Maple2.Model.Enum;
 
@@ -32,6 +33,7 @@ public class Unlock {
     public readonly IDictionary<int, long> StickerSets = new Dictionary<int, long>();
     public readonly IDictionary<int, bool> MasteryRewardsClaimed = new Dictionary<int, bool>();
     public readonly IDictionary<int, short> Pets = new SortedDictionary<int, short>();
+    public readonly IDictionary<int, FishEntry> FishAlbum = new Dictionary<int, FishEntry>();
     // TODO: Determine where to save this data.
     public readonly IDictionary<int, Quest> Quests = new Dictionary<int, Quest>();
 }

@@ -55,6 +55,12 @@ public static class Constant {
     public const int ChangeAttributesMinLevel = 50;
     public const int ChangeAttributesMinRarity = 4;
     public const int ChangeAttributesMaxRarity = 6;
+    public const double FishingSuccessChance = 0.90;
+    public const double FishingMiniGameChance = 0.90;
+    public const double FishingMasteryAdditionalExpChance = 0.05;
+    public const int FishingMasteryIncreaseFactor = 2;
+    public const int FishingRewardsMaxCount = 1;
+    public const double FishingItemChance = 0.05;
     public const int MaxMottoLength = 20;
 
 
@@ -76,6 +82,11 @@ public static class Constant {
     public const int WeddingHallModifyLimitHour = 3;
     public const int WeddingDivorceRequireMarriageDay = 30;
     public const int CharacterNameLengthMin = 2;
+    public const int BlockSize = 150;
+    public const float SouthEast = 0;
+    public const float NorthEast = 90;
+    public const float NorthWest = 180;
+    public const float SouthWest = 270;
     #endregion
 
     #region table/constants.xml
@@ -502,7 +513,7 @@ public static class Constant {
     public const string NoticeDialogUrlPubTest = "maview:/Game/BannerTest";
     public const int NoticeDialogOpenSeconds = 5000;
     public const int RemakeOptionMaxCount = 10;
-    public const int fisherBoreDuration = 10000;
+    public const int FisherBoreDuration = 10000;
     public const string fishingStartCastingBarText0 = "s_fishing_start_castingbar_text0";
     public const string fishingStartCastingBarText1 = "s_fishing_start_castingbar_text1";
     public const string fishingStartCastingBarText2 = "s_fishing_start_castingbar_text2";

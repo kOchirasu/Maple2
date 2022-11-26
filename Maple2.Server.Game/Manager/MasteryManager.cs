@@ -1,19 +1,22 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.Manager;
 
 public class MasteryManager {
     private readonly GameSession session;
-    
+
     private Mastery Mastery => session.Player.Value.Character.Mastery;
     public MasteryManager(GameSession session) {
         this.session = session;
     }
-    
+
     public int this[MasteryType type] {
         get => type switch {
             MasteryType.Fishing => Mastery.Fishing,
@@ -27,14 +30,14 @@ public class MasteryManager {
             MasteryType.Alchemist => Mastery.Alchemy,
             MasteryType.Cooking => Mastery.Cooking,
             MasteryType.PetTaming => Mastery.PetTaming,
-            _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Invalid mastery type.")
+            _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Invalid mastery type."),
         };
         set {
             switch (type) {
                 case MasteryType.Fishing:
                     Mastery.Fishing = Math.Clamp(value, Mastery.Fishing, Constant.FishingMasteryMax);
                     break;
-                case MasteryType.Music: 
+                case MasteryType.Music:
                     Mastery.Instrument = Math.Clamp(value, Mastery.Instrument, Constant.PerformanceMasteryMax);
                     break;
                 case MasteryType.Mining:
@@ -67,6 +70,16 @@ public class MasteryManager {
                 default:
                     throw new ArgumentOutOfRangeException(nameof(type), type, "Invalid mastery type.");
             }
+
+            session.Send(MasteryPacket.UpdateMastery(type, session.Mastery[type]));
         }
+    }
+
+    public short GetLevel(MasteryType type) {
+        if (!session.TableMetadata.MasteryRewardTable.Entries.TryGetValue(type, out IReadOnlyDictionary<int, MasteryRewardTable.Entry>? masteryRewardEntries)) {
+            return 1;
+        }
+
+        return (short) Math.Max(1, masteryRewardEntries.FirstOrDefault(mastery => session.Mastery[MasteryType.Fishing] >= mastery.Value.Value).Key);
     }
 }

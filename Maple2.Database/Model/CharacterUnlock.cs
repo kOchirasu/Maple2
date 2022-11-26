@@ -18,6 +18,7 @@ internal class CharacterUnlock {
     public required IDictionary<int, long> StickerSets { get; set; }
     public required IDictionary<int, bool> MasteryRewardsClaimed { get; set; }
     public required IDictionary<int, short> Pets { get; set; }
+    public required IList<FishEntry> FishAlbum { get; set; }
     public required IList<Quest> Quests { get; set; }
     public required InventoryExpand Expand { get; set; }
     public DateTime LastModified { get; init; }
@@ -31,6 +32,7 @@ internal class CharacterUnlock {
             StickerSets = new Dictionary<int, long>(),
             MasteryRewardsClaimed = new Dictionary<int, bool>(),
             Pets = new SortedDictionary<int, short>(),
+            FishAlbum = new List<FishEntry>(),
             Quests = new List<Quest>(),
             Expand = new InventoryExpand(),
         } : new CharacterUnlock {
@@ -59,6 +61,7 @@ internal class CharacterUnlock {
             StickerSets = other.StickerSets,
             MasteryRewardsClaimed = other.MasteryRewardsClaimed,
             Pets = other.Pets,
+            FishAlbum = other.FishAlbum.Values.Select<Maple2.Model.Game.FishEntry, FishEntry>(fish => fish).ToArray(),
             Quests = other.Quests.Values.Select<Maple2.Model.Game.Quest, Quest>(quest => quest).ToArray(),
         };
     }
@@ -106,6 +109,9 @@ internal class CharacterUnlock {
         foreach (Quest quest in other.Quests) {
             unlock.Quests[quest.Id] = quest;
         }
+        foreach (FishEntry entry in other.FishAlbum) {
+            unlock.FishAlbum[entry.Id] = entry;
+        }
 
         return unlock;
     }
@@ -123,6 +129,7 @@ internal class CharacterUnlock {
         builder.Property(unlock => unlock.StickerSets).HasJsonConversion();
         builder.Property(unlock => unlock.MasteryRewardsClaimed).HasJsonConversion();
         builder.Property(unlock => unlock.Pets).HasJsonConversion().IsRequired();
+        builder.Property(unlock => unlock.FishAlbum).HasJsonConversion().IsRequired();
         builder.Property(unlock => unlock.Quests).HasJsonConversion().IsRequired();
 
         builder.Property(unlock => unlock.LastModified).IsRowVersion();
