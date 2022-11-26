@@ -142,20 +142,23 @@ public class SkillHandler : PacketHandler<GameSession> {
 
         for (byte i = 0; i < count; i++) {
             var targets = new List<TargetRecord>();
-            targets.Add(new TargetRecord {
+            var targetRecord = new TargetRecord {
                 Uid = packet.ReadLong(),
                 TargetId = packet.ReadInt(),
                 Unknown = packet.ReadByte(),
-            });
+            };
+            targets.Add(targetRecord);
 
             // While more targets in packet.
             while (packet.ReadBool()) {
-                targets.Add(new TargetRecord {
+                targetRecord = new TargetRecord {
+                    PrevUid = targetRecord.Uid,
                     Uid = packet.ReadLong(),
                     TargetId = packet.ReadInt(),
                     Unknown = packet.ReadByte(),
                     Index = packet.ReadByte(),
-                });
+                };
+                targets.Add(targetRecord);
             }
 
             session.Player.InBattle = true;

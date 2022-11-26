@@ -8,6 +8,9 @@ public sealed class Ms2Context : DbContext {
     internal DbSet<Character> Character { get; set; } = null!;
     internal DbSet<CharacterConfig> CharacterConfig { get; set; } = null!;
     internal DbSet<CharacterUnlock> CharacterUnlock { get; set; } = null!;
+    internal DbSet<Guild> Guild { get; set; } = null!;
+    internal DbSet<GuildMember> GuildMember { get; set; } = null!;
+    internal DbSet<GuildApplication> GuildApplication { get; set; } = null!;
     internal DbSet<Home> Home { get; set; } = null!;
     internal DbSet<Item> Item { get; set; } = null!;
     internal DbSet<PetConfig> PetConfig { get; set; } = null!;
@@ -30,6 +33,9 @@ public sealed class Ms2Context : DbContext {
         modelBuilder.Entity<Character>(Maple2.Database.Model.Character.Configure);
         modelBuilder.Entity<CharacterConfig>(Maple2.Database.Model.CharacterConfig.Configure);
         modelBuilder.Entity<CharacterUnlock>(Maple2.Database.Model.CharacterUnlock.Configure);
+        modelBuilder.Entity<Guild>(Maple2.Database.Model.Guild.Configure);
+        modelBuilder.Entity<GuildMember>(Maple2.Database.Model.GuildMember.Configure);
+        modelBuilder.Entity<GuildApplication>(Maple2.Database.Model.GuildApplication.Configure);
         modelBuilder.Entity<Home>(Maple2.Database.Model.Home.Configure);
         modelBuilder.Entity<Item>(Maple2.Database.Model.Item.Configure);
         modelBuilder.Entity<PetConfig>(Maple2.Database.Model.PetConfig.Configure);
