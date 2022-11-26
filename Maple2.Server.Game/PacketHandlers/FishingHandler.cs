@@ -249,7 +249,7 @@ public class FishingHandler : PacketHandler<GameSession> {
 
         }
 
-        session.Send(FishingPacket.CatchFish(fishEntry.Id, fishSize, fish));
+        session.Send(FishingPacket.CatchFish(fishEntry.Id, fishSize, false, fish));
         session.FishingMiniGameActive = false;
 
         if (success) {
@@ -316,8 +316,13 @@ public class FishingHandler : PacketHandler<GameSession> {
                 break;
         }
 
+        if (!TableMetadata.MasteryRewardTable.Entries.TryGetValue(MasteryType.Fishing, out IReadOnlyDictionary<int, MasteryRewardTable.Entry>? masteryRewardEntries)) {
+            return;
+        }
+
+        int? level = masteryRewardEntries?.FirstOrDefault(mastery => session.Mastery[MasteryType.Fishing] >= mastery.Value.Value).Key ?? 1;
         session.Mastery[MasteryType.Fishing] += exp;
-        session.Send(FishingPacket.IncreaseMastery(entry.Id, exp, fishType));
+        session.Send(FishingPacket.IncreaseMastery(entry.Id, (short) level, exp, fishType));
     }
 
     private static FishTable.Entry GetFishToCatch(IEnumerable<FishTable.Entry> entries) {

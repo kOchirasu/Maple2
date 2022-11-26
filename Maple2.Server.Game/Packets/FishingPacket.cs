@@ -52,13 +52,13 @@ public static class FishingPacket {
         return pWriter;
     }
 
-    public static ByteWriter IncreaseMastery(int fishId, int exp, CaughtFishType fishType) {
+    public static ByteWriter IncreaseMastery(int fishId, short level, int exp, CaughtFishType fishType) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.IncreaseMastery);
         pWriter.WriteInt(fishId);
         pWriter.WriteInt(exp);
         pWriter.Write<CaughtFishType>(fishType);
-        pWriter.WriteShort(1); // fish grade/rarity ?
+        pWriter.WriteShort(level);
 
         return pWriter;
     }
@@ -66,7 +66,7 @@ public static class FishingPacket {
     public static ByteWriter LoadTiles(IList<Vector3> tiles) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.LoadTiles);
-        pWriter.WriteByte();
+        pWriter.WriteByte(); // disable loading tiles
         pWriter.WriteInt(tiles.Count);
         foreach (Vector3 tile in tiles) {
             pWriter.Write<Vector3B>(tile);
@@ -112,13 +112,13 @@ public static class FishingPacket {
         return pWriter;
     }
 
-    public static ByteWriter CatchFish(int id, int size, FishEntry? fish = null) {
+    public static ByteWriter CatchFish(int id, int size, bool autoFish = false, FishEntry? fish = null) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.CatchFish);
         pWriter.WriteInt(id);
         pWriter.WriteInt(size);
         pWriter.WriteBool(fish != null);
-        pWriter.WriteByte();
+        pWriter.WriteBool(autoFish);
 
         if (fish != null) {
             pWriter.WriteClass<FishEntry>(fish);
