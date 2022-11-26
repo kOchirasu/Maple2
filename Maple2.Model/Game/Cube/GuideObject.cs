@@ -1,4 +1,5 @@
-﻿using Maple2.PacketLib.Tools;
+﻿using Maple2.Model.Metadata;
+using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
 namespace Maple2.Model.Game;
@@ -23,6 +24,14 @@ public class ConstructionGuideObject : IGuideObject {
 
 public class FishingGuideObject : IGuideObject {
     public GuideObjectType Type => GuideObjectType.Fishing;
+
+    public readonly FishingRodTable.Entry Rod;
+    public readonly FishingSpotTable.Entry Spot;
+
+    public FishingGuideObject(FishingRodTable.Entry rod, FishingSpotTable.Entry spot) {
+        Rod = rod;
+        Spot = spot;
+    }
 
     public void WriteTo(IByteWriter writer) { }
 }

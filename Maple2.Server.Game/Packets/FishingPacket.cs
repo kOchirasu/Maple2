@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using Maple2.Model.Common;
@@ -127,11 +128,11 @@ public static class FishingPacket {
         return pWriter;
     }
 
-    public static ByteWriter Start(int fishingTick, bool miniGame) {
+    public static ByteWriter Start(int durationTick, bool miniGame) {
         var pWriter = Packet.Of(SendOp.Fishing);
         pWriter.Write<Command>(Command.Start);
         pWriter.WriteBool(miniGame);
-        pWriter.WriteInt(fishingTick);
+        pWriter.WriteInt(Environment.TickCount + durationTick);
 
         return pWriter;
     }

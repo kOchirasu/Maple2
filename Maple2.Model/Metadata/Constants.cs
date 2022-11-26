@@ -513,7 +513,7 @@ public static class Constant {
     public const string NoticeDialogUrlPubTest = "maview:/Game/BannerTest";
     public const int NoticeDialogOpenSeconds = 5000;
     public const int RemakeOptionMaxCount = 10;
-    public const int fisherBoreDuration = 10000;
+    public const int FisherBoreDuration = 10000;
     public const string fishingStartCastingBarText0 = "s_fishing_start_castingbar_text0";
     public const string fishingStartCastingBarText1 = "s_fishing_start_castingbar_text1";
     public const string fishingStartCastingBarText2 = "s_fishing_start_castingbar_text2";
