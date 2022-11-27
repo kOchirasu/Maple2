@@ -7,12 +7,11 @@ using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Newtonsoft.Json;
-using ChatSticker = Maple2.File.Parser.Xml.Table.ChatSticker;
-using Fish = Maple2.File.Parser.Xml.Table.Fish;
+using GuildNpcType = Maple2.Model.Enum.GuildNpcType;
 using InteractObject = Maple2.File.Parser.Xml.Table.InteractObject;
-using ItemSocket = Maple2.File.Parser.Xml.Table.ItemSocket;
 using JobTable = Maple2.Model.Metadata.JobTable;
 using MagicPath = Maple2.Model.Metadata.MagicPath;
+using MasteryType = Maple2.Model.Enum.MasteryType;
 
 namespace Maple2.File.Ingest.Mapper;
 
@@ -39,6 +38,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "itemsocket.xml", Table = ParseItemSocketTable()};
         yield return new TableMetadata {Name = "masteryreceipe.xml", Table = ParseMasteryRecipe()};
         yield return new TableMetadata {Name = "mastery.xml", Table = ParseMasteryReward()};
+        yield return new TableMetadata {Name = "guild*.xml", Table = ParseGuildTable() };
         // Fishing
         yield return new TableMetadata {Name = "fishingspot.xml", Table = ParseFishingSpot()};
         yield return new TableMetadata {Name = "fish.xml", Table = ParseFish()};
@@ -590,17 +590,100 @@ public class TableMapper : TypeMapper<TableMetadata> {
         return new MasteryRewardTable(results);
     }
 
+    private GuildTable ParseGuildTable() {
+        // Dictionary<short, int> expTable = parser.ParseGuildExp()
+        //     .ToDictionary(entry => (short) entry.Id, entry => entry.Item.value);
+
+        var guildBuffs = new Dictionary<int, IReadOnlyDictionary<short, GuildTable.Buff>>();
+        foreach ((int id, IEnumerable<GuildBuff> buffs) in parser.ParseGuildBuff()) {
+            var buffLevels = new Dictionary<short, GuildTable.Buff>();
+            foreach (GuildBuff buff in buffs) {
+                buffLevels[buff.level] = new GuildTable.Buff(
+                    Id: buff.additionalEffectId,
+                    Level: buff.additionalEffectLevel,
+                    RequireLevel: buff.requireLevel,
+                    Cost: buff.cost,
+                    UpgradeCost: buff.upgradeCost,
+                    Duration: buff.duration);
+            }
+            guildBuffs.Add(id, buffLevels);
+        }
+
+        var guildHouses = new Dictionary<int, IReadOnlyDictionary<int, GuildTable.House>>();
+        foreach ((int rank, IEnumerable<GuildHouse> houses) in parser.ParseGuildHouse()) {
+            var themes = new Dictionary<int, GuildTable.House>();
+            foreach (GuildHouse house in houses) {
+                themes.Add(house.theme, new GuildTable.House(
+                    MapId: house.fieldID,
+                    RequireLevel: house.upgradeReqGuildLevel,
+                    UpgradeCost: house.upgradeCost,
+                    ReThemeCost: house.rethemeCost,
+                    Facilities: house.facility));
+            }
+            guildHouses.Add(rank, themes);
+        }
+
+        var guildNpcs = new Dictionary<GuildNpcType, IReadOnlyDictionary<short, GuildTable.Npc>>();
+        foreach ((Parser.Enum.GuildNpcType type, IEnumerable<GuildNpc> npcs) in parser.ParseGuildNpc()) {
+            var levels = new Dictionary<short, GuildTable.Npc>();
+            foreach (GuildNpc npc in npcs) {
+                levels.Add((short) npc.level, new GuildTable.Npc(
+                    Type: (GuildNpcType) type,
+                    Level: (short) npc.level,
+                    RequireGuildLevel: npc.requireGuildLevel,
+                    RequireHouseLevel: npc.requireHouseLevel,
+                    UpgradeCost: (int) npc.upgradeCost));
+            }
+            guildNpcs.Add((GuildNpcType) type, levels);
+        }
+
+        var guildProperties = new SortedDictionary<short, GuildTable.Property>();
+        foreach ((int level, GuildProperty property) in parser.ParseGuildProperty()) {
+            var entry = new GuildTable.Property(
+                Level: (short) property.level,
+                Experience: property.accumExp,
+                Capacity: property.capacity,
+                FundMax: property.fundMax,
+                DonateMax: property.donationMax,
+                CheckInExp: property.attendGuildExp,
+                WinMiniGameExp: property.winMiniGameGuildExp,
+                LoseMiniGameExp: property.loseMiniGameGuildExp,
+                RaidExp: property.raidGuildExp,
+                CheckInFund: property.attendGuildFund,
+                WinMiniGameFund: property.winMiniGameGuildFund,
+                LoseMiniGameFund: property.loseMiniGameGuildFund,
+                RaidFund: property.raidGuildFund,
+                CheckInPlayerExpRate: property.attendUserExpFactor,
+                DonatePlayerExpRate: property.donationUserExpFactor,
+                CheckInCoin: property.attendGuildCoin,
+                DonateCoin: property.donateGuildCoin,
+                WinMiniGameCoin: property.winMiniGameGuildCoin,
+                LoseMiniGameCoin: property.loseMiniGameGuildCoin);
+            guildProperties.Add((short) level, entry);
+        }
+
+        return new GuildTable(
+            Buffs: guildBuffs,
+            Houses: guildHouses,
+            Npcs: guildNpcs,
+            Properties: guildProperties);
+    }
+
     private FishingSpotTable ParseFishingSpot() {
         var results = new Dictionary<int, FishingSpotTable.Entry>();
         foreach ((int mapId, FishingSpot spot) in parser.ParseFishingSpot()) {
-            List<LiquidType> liquidTypes = new List<LiquidType>();
+            var liquidTypes = new List<LiquidType>();
             foreach (string liquidType in spot.liquidType) {
                 if (Enum.TryParse(liquidType, out LiquidType type)) {
                     liquidTypes.Add(type);
                 }
             }
-            var entry = new FishingSpotTable.Entry(mapId, spot.minMastery, spot.maxMastery, liquidTypes);
-            results.Add(mapId, entry);
+
+            results.Add(mapId, new FishingSpotTable.Entry(
+                Id: mapId,
+                MinMastery: spot.minMastery,
+                MaxMastery: spot.maxMastery,
+                LiquidTypes: liquidTypes));
         }
         return new FishingSpotTable(results);
     }
@@ -625,15 +708,21 @@ public class TableMapper : TypeMapper<TableMetadata> {
             if (!habitats.TryGetValue(id, out IReadOnlyList<int>? habitatList)) {
                 habitatList = new List<int>();
             }
-            
+
             if (!Enum.TryParse(fish.habitat, out LiquidType liquidType)) {
                 liquidType = LiquidType.all;
             }
 
             int[] smallSize = fish.smallSize.Split("-").Select(int.Parse).ToArray();
             int[] bigSize = fish.bigSize.Split("-").Select(int.Parse).ToArray();
-            var entry = new FishTable.Entry(id, liquidType, habitatList, fish.fishMastery, (short) fish.rank,
-                new FishTable.Range<int>(smallSize[0], smallSize[1]), new FishTable.Range<int>(bigSize[0], bigSize[1]));
+            var entry = new FishTable.Entry(
+                Id: id,
+                FluidHabitat: liquidType,
+                HabitatMapIds: habitatList,
+                Mastery: fish.fishMastery,
+                Rarity: (short) fish.rank,
+                SmallSize: new FishTable.Range<int>(smallSize[0], smallSize[1]),
+                BigSize: new FishTable.Range<int>(bigSize[0], bigSize[1]));
             results.Add(id, entry);
         }
         return new FishTable(results);
@@ -642,15 +731,19 @@ public class TableMapper : TypeMapper<TableMetadata> {
     private FishingRodTable ParseFishingRod() {
         var results = new Dictionary<int, FishingRodTable.Entry>();
         foreach ((int id, FishingRod rod) in parser.ParseFishingRod()) {
-            var entry = new FishingRodTable.Entry(rod.itemCode, rod.fishMasteryLimit, rod.addFishMastery, rod.reduceFishingTime);
+            var entry = new FishingRodTable.Entry(
+                ItemId: rod.itemCode,
+                MinMastery: rod.fishMasteryLimit,
+                AddMastery: rod.addFishMastery,
+                ReduceTime: rod.reduceFishingTime);
             results.Add(id, entry);
         }
         return new FishingRodTable(results);
     }
-    
+
     private FishingRewardTable ParseFishingRewards() {
         var results = new Dictionary<int, FishingRewardTable.Entry>();
-        string json = System.IO.File.ReadAllText($"../../../Json/FishingRewards.json");
+        string json = System.IO.File.ReadAllText($"Json/FishingRewards.json");
         var items = JsonConvert.DeserializeObject<List<FishingRewardTable.Entry>>(json);
         foreach (FishingRewardTable.Entry entry in items) {
             results[entry.Id] = entry;

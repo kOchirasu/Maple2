@@ -27,4 +27,10 @@
         <ProjectReference Include="..\Maple2.Database\Maple2.Database.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="Json\FishingRewards.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>

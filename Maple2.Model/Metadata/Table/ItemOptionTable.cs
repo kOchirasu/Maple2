@@ -27,12 +27,12 @@ public record ItemOption(
     ItemOption.Range<int> NumPick,
     ItemOption.Entry[] Entries
 ) {
-    public record struct Entry(
+    public readonly record struct Entry(
         BasicAttribute? BasicAttribute = null,
         SpecialAttribute? SpecialAttribute = null,
         Range<int>? Values = null,
         Range<float>? Rates = null);
-    public record struct Range<T>(T Min, T Max) where T : INumber<T>;
+    public readonly record struct Range<T>(T Min, T Max) where T : INumber<T>;
 }
 
 public record ItemOptionPickTable(
@@ -54,7 +54,7 @@ public record ItemVariationTable(
     IReadOnlyDictionary<SpecialAttribute, ItemVariationTable.Range<int>> SpecialValues,
     IReadOnlyDictionary<SpecialAttribute, ItemVariationTable.Range<float>> SpecialRates
 ) : Table {
-    public record struct Range<T>(T Min, T Max, T Interval) where T : INumber<T>;
+    public readonly record struct Range<T>(T Min, T Max, T Interval) where T : INumber<T>;
 }
 
 public record ItemEquipVariationTable(
