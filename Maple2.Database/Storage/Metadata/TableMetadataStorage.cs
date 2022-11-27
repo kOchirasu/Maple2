@@ -22,6 +22,7 @@ public class TableMetadataStorage {
     private readonly Lazy<InteractObjectTable> interactMasteryTable;
     private readonly Lazy<LapenshardUpgradeTable> lapenshardUpgradeTable;
     private readonly Lazy<ItemSocketTable> itemSocketTable;
+    private readonly Lazy<GuildTable> guildTable;
 
     private readonly Lazy<EnchantScrollTable> enchantScrollTable;
     private readonly Lazy<ItemRemakeScrollTable> itemRemakeScrollTable;
@@ -55,6 +56,7 @@ public class TableMetadataStorage {
     public InteractObjectTable InteractMasteryTable => interactMasteryTable.Value;
     public LapenshardUpgradeTable LapenshardUpgradeTable => lapenshardUpgradeTable.Value;
     public ItemSocketTable ItemSocketTable => itemSocketTable.Value;
+    public GuildTable GuildTable => guildTable.Value;
 
     public EnchantScrollTable EnchantScrollTable => enchantScrollTable.Value;
     public ItemRemakeScrollTable ItemRemakeScrollTable => itemRemakeScrollTable.Value;
@@ -89,6 +91,7 @@ public class TableMetadataStorage {
         interactMasteryTable = Retrieve<InteractObjectTable>(context, "interactobject_mastery.xml");
         lapenshardUpgradeTable = Retrieve<LapenshardUpgradeTable>(context, "itemlapenshardupgrade.xml");
         itemSocketTable = Retrieve<ItemSocketTable>(context, "itemsocket.xml");
+        guildTable = Retrieve<GuildTable>(context, "guild*.xml");
         enchantScrollTable = Retrieve<EnchantScrollTable>(context, "enchantscroll.xml");
         itemRemakeScrollTable = Retrieve<ItemRemakeScrollTable>(context, "itemremakescroll.xml");
         itemRepackingScrollTable = Retrieve<ItemRepackingScrollTable>(context, "itemrepackingscroll.xml");
