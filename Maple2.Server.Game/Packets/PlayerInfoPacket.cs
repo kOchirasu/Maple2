@@ -106,7 +106,7 @@ public static class PlayerInfoPacket {
         buffer.WriteUnicodeString(); // GuildName
         buffer.WriteUnicodeString(); // GuildRank
 
-        buffer.WriteUnicodeString(player.Home.Indoor.Name);
+        buffer.WriteUnicodeString(player.Home.Name);
         buffer.WriteInt(player.Home.PlotMapId);
         buffer.WriteInt(player.Home.PlotNumber);
         buffer.WriteInt(player.Home.ApartmentNumber);

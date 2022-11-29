@@ -52,6 +52,8 @@ builder.Host.ConfigureContainer<ContainerBuilder>(autofac => {
         .SingleInstance();
     autofac.RegisterType<PlayerInfoLookup>()
         .SingleInstance();
+    autofac.RegisterType<GuildLookup>()
+        .SingleInstance();
 });
 
 WebApplication app = builder.Build();

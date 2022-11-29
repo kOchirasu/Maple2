@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using Maple2.Model.Enum;
@@ -29,7 +30,7 @@ public class Guild : IByteSerializable {
     public int HouseRank;
     public int HouseTheme;
 
-    public readonly IDictionary<long, GuildMember> Members;
+    public readonly ConcurrentDictionary<long, GuildMember> Members;
     public required IList<GuildRank> Ranks { get; init; }
     public required IList<GuildBuff> Buffs { get; init; }
     public required IList<GuildEvent> Events { get; init; }
@@ -45,7 +46,7 @@ public class Guild : IByteSerializable {
         LeaderCharacterId = leaderCharacterId;
         LeaderName = leaderName;
 
-        Members = new Dictionary<long, GuildMember>();
+        Members = new ConcurrentDictionary<long, GuildMember>();
         Ranks = new List<GuildRank>();
         Buffs = new List<GuildBuff>();
         Events = new List<GuildEvent>();

@@ -39,7 +39,9 @@ public class Character {
     public int ReviveMapId;
     public int ReturnMapId;
     public Vector3 ReturnPosition;
-    public string Motto = string.Empty;
     public string Picture = string.Empty;
-    public Mastery Mastery;
+    public string Motto = string.Empty;
+    public string GuildName = string.Empty;
+    public long GuildId;
+    public required Mastery Mastery;
 }

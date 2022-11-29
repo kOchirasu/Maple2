@@ -20,7 +20,7 @@ using Wardrobe = Maple2.Model.Game.Wardrobe;
 namespace Maple2.Database.Storage;
 
 public partial class GameStorage {
-    public partial class Request {
+    public partial class Request : IPlayerInfoProvider {
         public Account? GetAccount(long accountId) {
             return Context.Account.Find(accountId);
         }
@@ -98,6 +98,12 @@ public partial class GameStorage {
             Context.Character.Update(character);
             Context.SaveChanges();
 
+            Tuple<long, string> guild = Context.GuildMember
+                .Where(member => member.CharacterId == characterId)
+                .Join(Context.Guild, member => member.GuildId, guild => guild.Id,
+                    (member, guild) => new Tuple<long, string>(guild.Id, guild.Name))
+                .FirstOrDefault() ?? new Tuple<long, string>(0, string.Empty);
+
             Home? home = Context.Home.Find(accountId);
             if (home == null) {
                 return null;
@@ -111,6 +117,7 @@ public partial class GameStorage {
                 Logger.LogError("Account does not have a home entry: {AccountId}", accountId);
                 return null;
             }
+            PlotInfo? outdoor = ToPlotInfo(ugcMaps.FirstOrDefault(map => !map.Indoor));
 
             var player = new Player(account, character, objectId) {
                 Currency = new Currency{
@@ -132,8 +139,10 @@ public partial class GameStorage {
                 Home = home,
             };
 
+            player.Character.GuildId = guild.Item1;
+            player.Character.GuildName = guild.Item2;
             player.Home.Indoor = indoor;
-            player.Home.Outdoor = ToPlotInfo(ugcMaps.FirstOrDefault(map => !map.Indoor));
+            player.Home.Outdoor = outdoor;
 
             return player;
         }

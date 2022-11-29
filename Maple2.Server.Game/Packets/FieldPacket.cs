@@ -277,8 +277,8 @@ public static class FieldPacket {
         writer.Write<SkinColor>(character.SkinColor);
         writer.WriteLong(character.CreationTime);
         writer.Write<Trophy>(account.Trophy);
-        writer.WriteLong(); // GuildId
-        writer.WriteUnicodeString(); // GuildName
+        writer.WriteLong(character.GuildId);
+        writer.WriteUnicodeString(character.GuildName);
         writer.WriteUnicodeString(character.Motto);
         writer.WriteUnicodeString(character.Picture);
         writer.WriteByte(); // Club Count

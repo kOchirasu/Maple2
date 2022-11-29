@@ -44,18 +44,12 @@ public partial class GameStorage {
         }
 
         public bool UpdateBuddy(params BuddyEntry[] buddies) {
-            foreach (BuddyEntry buddy in buddies) {
-                Context.Buddy.Update(buddy);
-            }
-
+            Context.Buddy.UpdateRange(buddies.Select<BuddyEntry, Model.Buddy>(buddy => buddy));
             return Context.TrySaveChanges();
         }
 
         public bool RemoveBuddy(params BuddyEntry[] buddies) {
-            foreach (BuddyEntry buddy in buddies) {
-                Context.Buddy.Remove(buddy);
-            }
-
+            Context.Buddy.RemoveRange(buddies.Select<BuddyEntry, Model.Buddy>(buddy => buddy));
             return Context.TrySaveChanges();
         }
     }

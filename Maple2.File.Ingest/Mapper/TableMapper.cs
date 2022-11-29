@@ -642,7 +642,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
             var entry = new GuildTable.Property(
                 Level: (short) property.level,
                 Experience: property.accumExp,
-                Capacity: property.capacity,
+                Capacity: (byte) property.capacity,
                 FundMax: property.fundMax,
                 DonateMax: property.donationMax,
                 CheckInExp: property.attendGuildExp,

@@ -9,11 +9,6 @@ message HealthInfo {
   int64 total_hp = 2;
 }
 
-message LocationInfo {
-  int32 map_id = 1;
-  int32 channel = 2;
-}
-
 message HomeInfo {
   string name = 1;
   int32 map_id = 2;
