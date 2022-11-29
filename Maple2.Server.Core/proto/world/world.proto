@@ -18,6 +18,9 @@ service World {
   rpc Chat(maple2.ChatRequest) returns (maple2.ChatResponse);
   // Manage buddy list.
   rpc Buddy(maple2.BuddyRequest) returns (maple2.BuddyResponse);
+  // Manage guild.
+  rpc GuildInfo(GuildInfoRequest) returns (GuildInfoResponse);
+  rpc Guild(GuildRequest) returns (GuildResponse);
   // Retrieve player info from online player.
   rpc PlayerInfo(maple2.PlayerInfoRequest) returns (maple2.PlayerInfoResponse);
   // Update player info
@@ -64,4 +67,102 @@ message ChannelsRequest {}
 
 message ChannelsResponse {
   repeated int32 channels = 1;
+}
+
+message GuildInfo {
+  message Member {
+    int64 character_id = 1;
+    string message = 2;
+    int32 rank = 3;
+    int64 join_time = 4;
+    int64 login_time = 5;
+    int64 checkin_time = 6;
+    int64 donation_time = 7;
+    int32 weekly_contribution = 8;
+    int32 total_contribution = 9;
+    int32 daily_donation_count = 10;
+  }
+  message Rank {
+    string name = 1;
+    int32 permission = 2;
+  }
+  message Buff {
+    int32 id = 1;
+    int32 level = 2;
+    int64 expiry_time = 3;
+  }
+  message Npc {
+    int32 type = 1;
+    int32 level = 2;
+  }
+
+  int64 id = 1;
+  string name = 2;
+  string emblem = 3;
+  string notice = 4;
+  int64 creation_time = 5;
+  int32 focus = 6;
+  int32 experience = 7;
+  int32 funds = 8;
+  int32 house_rank = 9;
+  int32 house_theme = 10;
+
+  repeated Member members = 11;
+  repeated Rank ranks = 12;
+  repeated Buff buffs = 13;
+  // events
+  // posters
+  repeated Npc npcs = 16;
+  // bank
+}
+
+message GuildInfoRequest {
+  int64 guild_id = 1;
+}
+
+message GuildInfoResponse {
+  optional GuildInfo guild = 1;
+}
+
+message GuildRequest {
+  message Create {
+    string guild_name = 1;
+  }
+  message Disband {
+    int64 guild_id = 1;
+  }
+  message Invite {
+    int64 guild_id = 1;
+    int64 receiver_id = 2;
+  }
+  message RespondInvite {
+    int64 guild_id = 1;
+    bool accepted = 2;
+  }
+  message Leave {
+    int64 guild_id = 1;
+  }
+  message Expel {
+    int64 guild_id = 1;
+    int64 receiver_id = 2;
+  }
+
+  int64 requestor_id = 4;
+  oneof guild {
+    Create create = 1;
+    Disband disband = 2;
+    Invite invite = 3;
+    RespondInvite respond_invite = 5;
+    Leave leave = 7;
+    Expel expel = 8;
+  }
+}
+
+message GuildResponse {
+  oneof Info {
+    int64 guild_id = 1;
+    GuildInfo guild = 2;
+  }
+
+  int32 error = 3;
 }

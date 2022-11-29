@@ -34,7 +34,7 @@ public record GuildTable(
     public record Property(
         short Level,
         int Experience,
-        int Capacity,
+        byte Capacity,
         long FundMax,
         int DonateMax,
         int CheckInExp,

@@ -65,6 +65,14 @@ public class BuddyManager : IDisposable {
         }
     }
 
+    public bool IsBuddy(long characterId) {
+        return buddies.TryGetValue(characterId, out Buddy? buddy) && buddy.Type == BuddyType.Default;
+    }
+
+    public bool IsBlocked(long characterId) {
+        return blocked.TryGetValue(characterId, out Buddy? buddy);
+    }
+
     public void Load() {
         session.Send(BuddyPacket.StartList());
         if (buddies.Count + blocked.Count > 0) {

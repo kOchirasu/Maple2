@@ -12,7 +12,7 @@ using Serilog;
 
 namespace Maple2.Server.World.Containers;
 
-public class PlayerInfoLookup : IDisposable {
+public class PlayerInfoLookup : IPlayerInfoProvider, IDisposable {
     private readonly TimeSpan syncInterval = TimeSpan.FromSeconds(2);
 
     private readonly GameStorage gameStorage;
@@ -129,5 +129,10 @@ public class PlayerInfoLookup : IDisposable {
 
     private record Notification(PlayerInfo Info) {
         public UpdateField Type;
+    }
+
+    public PlayerInfo? GetPlayerInfo(long id) {
+        TryGet(id, out PlayerInfo? info);
+        return info;
     }
 }

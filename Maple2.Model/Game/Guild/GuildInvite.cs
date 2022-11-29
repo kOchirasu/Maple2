@@ -19,23 +19,22 @@ public class GuildInvite : IByteSerializable, IByteDeserializable {
 
     public long GuildId { get; set; }
     public string GuildName { get; set; } = string.Empty;
-    public string Unknown { get; set; } = string.Empty;
-    public string LeaderName { get; set; } = string.Empty;
-    public string PlayerName { get; set; } = string.Empty;
+    public string SenderName { get; set; } = string.Empty;
+    public string ReceiverName { get; set; } = string.Empty;
 
     public void WriteTo(IByteWriter writer) {
         writer.WriteLong(GuildId);
         writer.WriteUnicodeString(GuildName);
-        writer.WriteUnicodeString(Unknown);
-        writer.WriteUnicodeString(LeaderName);
-        writer.WriteUnicodeString(PlayerName);
+        writer.WriteUnicodeString();
+        writer.WriteUnicodeString(SenderName);
+        writer.WriteUnicodeString(ReceiverName);
     }
 
     public void ReadFrom(IByteReader reader) {
         GuildId = reader.ReadLong();
         GuildName = reader.ReadUnicodeString();
-        Unknown = reader.ReadUnicodeString();
-        LeaderName = reader.ReadUnicodeString();
-        PlayerName = reader.ReadUnicodeString();
+        reader.ReadUnicodeString();
+        SenderName = reader.ReadUnicodeString();
+        ReceiverName = reader.ReadUnicodeString();
     }
 }
