@@ -86,9 +86,9 @@ public class BuddyEmoteHandler : PacketHandler<GameSession> {
     private void HandleAccept(GameSession session, IByteReader packet) {
         int emoteId = packet.ReadInt();
         long senderId = packet.ReadLong();
-        var position = packet.Read<Vector3>();
-        var rotation = packet.Read<Vector3>();
-        int unknown = packet.ReadInt();
+        var senderPosition = packet.Read<Vector3>();
+        var receiverPosition = packet.Read<Vector3>();
+        float rotationZ = packet.ReadFloat();
 
         if (session.Field?.TryGetPlayerById(senderId, out FieldPlayer? sender) is null or false) {
             session.Send(BuddyEmotePacket.Error(s_couple_emotion_failed_accept_cannot_find_request_user));
@@ -96,7 +96,7 @@ public class BuddyEmoteHandler : PacketHandler<GameSession> {
         }
 
         sender.Session.Send(BuddyEmotePacket.Accept(emoteId, session.CharacterId));
-        ByteWriter start = BuddyEmotePacket.Start(emoteId, senderId, session.CharacterId, position, rotation, unknown);
+        ByteWriter start = BuddyEmotePacket.Start(emoteId, senderId, session.CharacterId, senderPosition, new Vector3(0, 0, rotationZ));
         session.Send(start);
         sender.Session.Send(start);
     }

@@ -63,15 +63,15 @@ public static class BuddyEmotePacket {
         return pWriter;
     }
 
-    public static ByteWriter Start(int emoteId, long senderId, long receiverId, in Vector3 position, in Vector3 rotation, int unknown) {
+    public static ByteWriter Start(int emoteId, long senderId, long receiverId, in Vector3 senderPosition, in Vector3 senderRotation) {
         var pWriter = Packet.Of(SendOp.BuddyEmote);
         pWriter.Write<Command>(Command.Start);
         pWriter.WriteInt(emoteId);
         pWriter.WriteLong(senderId);
         pWriter.WriteLong(receiverId);
-        pWriter.Write<Vector3>(position);
-        pWriter.Write<Vector3>(rotation);
-        pWriter.WriteInt(unknown);
+        pWriter.Write<Vector3>(senderPosition);
+        pWriter.Write<Vector3>(senderRotation);
+        pWriter.WriteInt();
 
         return pWriter;
     }
