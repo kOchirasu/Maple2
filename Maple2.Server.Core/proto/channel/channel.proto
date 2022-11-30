@@ -13,7 +13,45 @@ service Channel {
   rpc Buddy(maple2.BuddyRequest) returns (maple2.BuddyResponse);
   // Update player info
   rpc UpdatePlayer(maple2.PlayerUpdateRequest) returns (maple2.PlayerUpdateResponse);
+  // Manage guild.
+  rpc Guild(GuildRequest) returns (GuildResponse);
 
   // Notify character about new mail.
   rpc MailNotification(maple2.MailNotificationRequest) returns (maple2.MailNotificationResponse);
+}
+
+message GuildRequest {
+  message Invite {
+    string guild_name = 1;
+    int64 sender_id = 2;
+    string sender_name = 3;
+  }
+  message InviteReply {
+    string name = 1;
+    int32 reply = 2;
+  }
+  message AddMember {
+    int64 character_id = 1;
+    string requestor_name = 2;
+    int32 rank = 3;
+    int64 join_time = 4;
+    int64 login_time = 5;
+  }
+  message RemoveMember {
+    int64 character_id = 1;
+    string requestor_name = 2;
+  }
+
+  int64 guild_id = 1;
+  repeated int64 receiver_ids = 2;
+  oneof Guild {
+    Invite invite = 3;
+    InviteReply invite_reply = 4;
+    AddMember add_member = 5;
+    RemoveMember remove_member = 6;
+  }
+}
+
+message GuildResponse {
+  int32 error = 1;
 }

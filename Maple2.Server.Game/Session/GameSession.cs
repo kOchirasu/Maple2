@@ -40,6 +40,7 @@ public sealed partial class GameSession : Core.Network.Session {
 
     public long AccountId { get; private set; }
     public long CharacterId { get; private set; }
+    public string PlayerName => Player.Value.Character.Name;
     public Guid MachineId { get; private set; }
     public int Channel => server.Channel;
 
@@ -59,6 +60,7 @@ public sealed partial class GameSession : Core.Network.Session {
 
     public ConfigManager Config { get; set; }
     public MailManager Mail { get; set; }
+    public GuildManager Guild { get; set; }
     public BuddyManager Buddy { get; set; }
     public ItemManager Item { get; set; }
     public HousingManager Housing { get; set; }
@@ -111,6 +113,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Mail = new MailManager(this);
         ItemEnchant = new ItemEnchantManager(this, Lua);
 
+        Guild = new GuildManager(this);
         Config = new ConfigManager(db, this);
         Buddy = new BuddyManager(db, this);
         Item = new ItemManager(db, this);
@@ -134,6 +137,8 @@ public sealed partial class GameSession : Core.Network.Session {
         // MeretMarket
         // UserConditionEvent
         // PCBangBonus
+        Guild.Load();
+        // Club
         Buddy.Load();
 
         Send(TimeSyncPacket.Reset(DateTimeOffset.UtcNow));

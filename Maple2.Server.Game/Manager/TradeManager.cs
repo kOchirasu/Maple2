@@ -97,7 +97,7 @@ public class TradeManager : IDisposable {
         lock (mutex) {
             state = TradeState.Completed;
         }
-        sender.Session.Send(TradePacket.Decline(receiver.Session.Player.Value.Character.Name));
+        sender.Session.Send(TradePacket.Decline(receiver.Session.PlayerName));
         Dispose();
     }
 

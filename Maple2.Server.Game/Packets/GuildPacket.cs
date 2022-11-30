@@ -26,7 +26,7 @@ public static class GuildPacket {
         UpdateMemberName = 12,
         Unknown14 = 14,
         CheckedIn = 15,
-        Unknown18 = 18,
+        Joined = 18,
         NotifyLeave = 19,
         NotifyExpelMember = 20,
         NotifyUpdateMemberRank = 21,
@@ -140,11 +140,11 @@ public static class GuildPacket {
         return pWriter;
     }
 
-    public static ByteWriter NotifyInvite(string name, bool accepted, GuildInvite.Response response) {
+    public static ByteWriter NotifyInvite(string name, GuildInvite.Response response) {
         var pWriter = Packet.Of(SendOp.Guild);
         pWriter.Write<Command>(Command.NotifyInvite);
         pWriter.WriteUnicodeString(name);
-        pWriter.WriteBool(accepted);
+        pWriter.WriteBool(response == GuildInvite.Response.Accept);
         pWriter.Write<GuildInvite.Response>(response);
 
         return pWriter;
@@ -223,12 +223,14 @@ public static class GuildPacket {
         return pWriter;
     }
 
-    public static ByteWriter Unknown18(GuildMember member) {
+    // s_guild_notify_accept_invite
+    // - {0} invited {1} to the guild, and they accepted.
+    public static ByteWriter Joined(string requestorName, GuildMember member, bool notify = true) {
         var pWriter = Packet.Of(SendOp.Guild);
-        pWriter.Write<Command>(Command.Unknown18);
-        pWriter.WriteUnicodeString();
-        pWriter.WriteUnicodeString();
-        pWriter.WriteByte();
+        pWriter.Write<Command>(Command.Joined);
+        pWriter.WriteUnicodeString(requestorName);
+        pWriter.WriteUnicodeString(member.Name);
+        pWriter.WriteBool(notify);
         pWriter.WriteClass<GuildMember>(member);
 
         return pWriter;
@@ -246,10 +248,10 @@ public static class GuildPacket {
 
     // s_guild_notify_expel_member
     // - {0} has kicked {1} out of the guild.
-    public static ByteWriter NotifyExpelMember(string actorName, string playerName) {
+    public static ByteWriter NotifyExpelMember(string requestorName, string playerName) {
         var pWriter = Packet.Of(SendOp.Guild);
         pWriter.Write<Command>(Command.NotifyExpelMember);
-        pWriter.WriteUnicodeString(actorName);
+        pWriter.WriteUnicodeString(requestorName);
         pWriter.WriteUnicodeString(playerName);
 
         return pWriter;
@@ -259,10 +261,10 @@ public static class GuildPacket {
     // - {0} is now the rank of [{1}].
     // s_guild_notify_change_member_grade_me
     // - Updated to the rank of [{0}] in the guild.
-    public static ByteWriter NotifyUpdateMemberRank(string actorName, string playerName, GuildRank rank) {
+    public static ByteWriter NotifyUpdateMemberRank(string requestorName, string playerName, GuildRank rank) {
         var pWriter = Packet.Of(SendOp.Guild);
         pWriter.Write<Command>(Command.NotifyUpdateMemberRank);
-        pWriter.WriteUnicodeString(actorName);
+        pWriter.WriteUnicodeString(requestorName);
         pWriter.WriteUnicodeString(playerName);
         pWriter.WriteByte(rank.Id);
 
@@ -314,10 +316,10 @@ public static class GuildPacket {
 
     // s_guild_notify_change_notify
     // - {0} has changed the guild notice.
-    public static ByteWriter NotifyUpdateNotice(string actorName, byte notice, string message) {
+    public static ByteWriter NotifyUpdateNotice(string requestorName, byte notice, string message) {
         var pWriter = Packet.Of(SendOp.Guild);
         pWriter.Write<Command>(Command.NotifyUpdateNotice);
-        pWriter.WriteUnicodeString(actorName);
+        pWriter.WriteUnicodeString(requestorName);
         pWriter.WriteByte(notice); // 1
         pWriter.WriteUnicodeString(message);
 
@@ -337,10 +339,10 @@ public static class GuildPacket {
 
     // s_guild_notify_change_capacity
     // - The guild's member maximum has been changed.
-    public static ByteWriter NotifyUpdateCapacity(string actorName, int capacity) {
+    public static ByteWriter NotifyUpdateCapacity(string requestorName, int capacity) {
         var pWriter = Packet.Of(SendOp.Guild);
         pWriter.Write<Command>(Command.NotifyUpdateCapacity);
-        pWriter.WriteUnicodeString(actorName);
+        pWriter.WriteUnicodeString(requestorName);
         pWriter.WriteInt(capacity);
 
         return pWriter;
@@ -358,10 +360,10 @@ public static class GuildPacket {
         return pWriter;
     }
 
-    public static ByteWriter NotifyUpdateFocus(string actorName, bool toggle, GuildFocus focus) {
+    public static ByteWriter NotifyUpdateFocus(string requestorName, bool toggle, GuildFocus focus) {
         var pWriter = Packet.Of(SendOp.Guild);
         pWriter.Write<Command>(Command.NotifyUpdateFocus);
-        pWriter.WriteUnicodeString(actorName);
+        pWriter.WriteUnicodeString(requestorName);
         pWriter.WriteBool(toggle);
         pWriter.Write<GuildFocus>(focus);
 
@@ -377,11 +379,11 @@ public static class GuildPacket {
         return pWriter;
     }
 
-    public static ByteWriter UpdateMember(GuildMember member) {
+    public static ByteWriter UpdateMember(PlayerInfo info) {
         var pWriter = Packet.Of(SendOp.Guild);
         pWriter.Write<Command>(Command.UpdateMember);
-        pWriter.WriteUnicodeString(member.Name);
-        pWriter.WriteClass<GuildMember>(member);
+        pWriter.WriteUnicodeString(info.Name);
+        GuildMember.WriteInfo(pWriter, info);
 
         return pWriter;
     }
@@ -451,10 +453,10 @@ public static class GuildPacket {
     // - {0} accepted {1}'s guild membership application.
     // s_guild_notify_search_join_reject
     // - {0} denied {1}'s guild membership application.
-    public static ByteWriter NotifyApplication(string actorName, string playerName, long applicationId, bool accepted) {
+    public static ByteWriter NotifyApplication(string requestorName, string playerName, long applicationId, bool accepted) {
         var pWriter = Packet.Of(SendOp.Guild);
         pWriter.Write<Command>(Command.NotifyApplication);
-        pWriter.WriteUnicodeString(actorName);
+        pWriter.WriteUnicodeString(requestorName);
         pWriter.WriteUnicodeString(playerName);
         pWriter.WriteBool(accepted);
         pWriter.WriteLong(applicationId);

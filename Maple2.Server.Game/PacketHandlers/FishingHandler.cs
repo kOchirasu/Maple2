@@ -228,7 +228,7 @@ public class FishingHandler : PacketHandler<GameSession> {
             if (fishSize > fishEntry.BigSize.Max) {
                 fish.TotalPrizeFish++;
                 AddMastery(session, fishingGuideObject.Spot, fishEntry, CaughtFishType.Prize);
-                session.Field.Broadcast(FishingPacket.PrizeFish(session.Player.Value.Character.Name, fishEntry.Id));
+                session.Field.Broadcast(FishingPacket.PrizeFish(session.PlayerName, fishEntry.Id));
             } else {
                 AddMastery(session, fishingGuideObject.Spot, fishEntry, CaughtFishType.Default);
             }

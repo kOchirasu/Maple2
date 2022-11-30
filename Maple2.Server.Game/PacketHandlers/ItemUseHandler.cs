@@ -163,7 +163,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
     private void HandleBuddyBadgeBox(GameSession session, IByteReader packet, Item item) {
         string targetUser = packet.ReadUnicodeString();
 
-        if (targetUser == session.Player.Value.Character.Name) {
+        if (targetUser == session.PlayerName) {
             session.Send(NoticePacket.MessageBox(StringCode.s_couple_effect_error_openbox_myself_char));
             return;
         }
@@ -211,7 +211,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             ReceiverId = receiverInfo.CharacterId,
             Type = MailType.System,
             ContentArgs = new[] {
-                ("str", $"{session.Player.Value.Character.Name}"),
+                ("str", $"{session.PlayerName}"),
             },
         };
 
@@ -228,7 +228,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
         Item? receiverItem = db.CreateItem(receiverMail.Id,
             new Item(itemMetadata, buddyBadgeBoxParams[1]) {
-                CoupleInfo = new ItemCoupleInfo(session.Player.Value.Character.Id, session.Player.Value.Character.Name),
+                CoupleInfo = new ItemCoupleInfo(session.Player.Value.Character.Id, session.PlayerName),
             });
         if (receiverItem == null) {
             throw new InvalidOperationException($"Failed to create buddy badge: {itemMetadata.Id}");

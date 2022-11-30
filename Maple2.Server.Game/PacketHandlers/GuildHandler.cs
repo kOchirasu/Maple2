@@ -1,9 +1,16 @@
-﻿using Maple2.Model.Enum;
+﻿using System.Linq;
+using Grpc.Core;
+using Maple2.Database.Storage;
+using Maple2.Model.Enum;
+using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
+using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Server.World.Service;
 using Maple2.Tools.Extensions;
 using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
@@ -16,7 +23,7 @@ public class GuildHandler : PacketHandler<GameSession> {
         Create = 1,
         Disband = 2,
         Invite = 3,
-        RespondInvite = 4,
+        RespondInvite = 5,
         Leave = 7,
         Expel = 8,
         UpdateMemberRank = 10,
@@ -178,27 +185,209 @@ public class GuildHandler : PacketHandler<GameSession> {
 
     private void HandleCreate(GameSession session, IByteReader packet) {
         string guildName = packet.ReadUnicodeString();
+        if (session.Guild.Guild != null) {
+            return; // Already in a guild.
+        }
+        if (guildName.Length is < Constant.GuildNameLengthMin or > Constant.GuildNameLengthMax) {
+            session.Send(GuildPacket.Error(GuildError.s_guild_err_name_value)); // temp
+            return;
+        }
+        if (session.Player.Value.Character.Level < Constant.GuildCreateMinLevel) {
+            session.Send(GuildPacket.Error(GuildError.s_guild_err_not_enough_level));
+            return;
+        }
+        if (session.Currency.CanAddMeso(-Constant.GuildCreatePrice) != -Constant.GuildCreatePrice) {
+            session.Send(GuildPacket.Error(GuildError.s_guild_err_no_money));
+            return;
+        }
+
+        try {
+            var request = new GuildRequest {
+                RequestorId = session.CharacterId,
+                Create = new GuildRequest.Types.Create {
+                    GuildName = guildName,
+                },
+            };
+            GuildResponse response = World.Guild(request);
+            var error = (GuildError) response.Error;
+            if (error != GuildError.none) {
+                session.Send(GuildPacket.Error(error));
+                return;
+            }
+            if (response.InfoCase != GuildResponse.InfoOneofCase.Guild) {
+                session.Send(GuildPacket.Error(GuildError.s_guild_err_null_guild));
+                return;
+            }
+
+            session.Guild.SetGuild(response.Guild);
+            session.Currency.Meso -= Constant.GuildCreatePrice;
+
+            session.Guild.Load();
+            session.Send(GuildPacket.Created(guildName));
+        } catch (RpcException ex) {
+            Logger.Error(ex, "Failed to create guild: {Name}", guildName);
+            session.Send(GuildPacket.Error(GuildError.s_guild_err_unknown));
+        }
     }
 
     private void HandleDisband(GameSession session) {
+        if (session.Guild.Guild == null) {
+            return; // Not in a guild.
+        }
 
+        if (session.Guild.Guild.LeaderCharacterId != session.CharacterId) {
+            session.Send(GuildPacket.Error(GuildError.s_guild_err_no_master));
+            return;
+        }
+
+        try {
+            var request = new GuildRequest {
+                RequestorId = session.CharacterId,
+                Disband = new GuildRequest.Types.Disband {
+                    GuildId = session.Guild.Id,
+                },
+            };
+            GuildResponse response = World.Guild(request);
+            var error = (GuildError) response.Error;
+            if (error != GuildError.none) {
+                session.Send(GuildPacket.Error(error));
+                return;
+            }
+
+            session.Send(GuildPacket.Disbanded());
+            session.Guild.RemoveGuild();
+        } catch (RpcException ex) {
+            Logger.Error(ex, "Failed to disband guild");
+            session.Send(GuildPacket.Error(GuildError.s_guild_err_unknown));
+        }
     }
 
     private void HandleInvite(GameSession session, IByteReader packet) {
+        if (session.Guild.Guild == null) {
+            return; // Not in a guild.
+        }
+
         string playerName = packet.ReadUnicodeString();
+        using GameStorage.Request db = session.GameStorage.Context();
+        long characterId = db.GetCharacterId(playerName);
+        if (characterId == 0) {
+            session.Send(GuildPacket.Error(GuildError.s_guild_err_wait_inviting));
+            return;
+        }
+
+        try {
+            var request = new GuildRequest {
+                RequestorId = session.CharacterId,
+                Invite = new GuildRequest.Types.Invite {
+                    GuildId = session.Guild.Id,
+                    ReceiverId = characterId,
+                },
+            };
+            GuildResponse response = World.Guild(request);
+            var error = (GuildError) response.Error;
+            if (error != GuildError.none) {
+                session.Send(GuildPacket.Error(error));
+                return;
+            }
+
+            session.Send(GuildPacket.Invited(playerName));
+        } catch (RpcException ex) {
+            Logger.Error(ex, "Failed to invite {Name} to guild", playerName);
+            session.Send(GuildPacket.Error(GuildError.s_guild_err_unknown));
+        }
     }
 
     private void HandleRespondInvite(GameSession session, IByteReader packet) {
         var invite = packet.ReadClass<GuildInvite>();
         bool accepted = packet.ReadBool();
+
+        try {
+            var request = new GuildRequest {
+                RequestorId = session.CharacterId,
+                RespondInvite = new GuildRequest.Types.RespondInvite {
+                    GuildId = invite.GuildId,
+                    Accepted = accepted,
+                },
+            };
+            GuildResponse response = World.Guild(request);
+            var error = (GuildError) response.Error;
+            if (error != GuildError.none) {
+                session.Send(GuildPacket.Error(error));
+                return;
+            }
+
+            session.Send(GuildPacket.InviteReply(invite, accepted));
+            switch (response.InfoCase) {
+                case GuildResponse.InfoOneofCase.GuildId: // Reject
+                    break;
+                case GuildResponse.InfoOneofCase.Guild: // Accept
+                    session.Guild.SetGuild(response.Guild);
+                    session.Guild.Load();
+                    break;
+            }
+        } catch (RpcException ex) {
+            Logger.Error(ex, "Failed to respond to guild invite");
+            session.Send(GuildPacket.Error(GuildError.s_guild_err_unknown));
+        }
     }
 
     private void HandleLeave(GameSession session) {
+        if (session.Guild.Guild == null) {
+            return; // Not in a guild.
+        }
 
+        try {
+            var request = new GuildRequest {
+                RequestorId = session.CharacterId,
+                Leave = new GuildRequest.Types.Leave {
+                    GuildId = session.Guild.Id,
+                },
+            };
+            GuildResponse response = World.Guild(request);
+            var error = (GuildError) response.Error;
+            if (error != GuildError.none) {
+                session.Send(GuildPacket.Error(error));
+                return;
+            }
+
+            session.Send(GuildPacket.Leave());
+            session.Guild.RemoveGuild();
+        } catch (RpcException ex) {
+            Logger.Error(ex, "Failed to leave guild");
+            session.Send(GuildPacket.Error(GuildError.s_guild_err_unknown));
+        }
     }
 
     private void HandleExpel(GameSession session, IByteReader packet) {
+        if (session.Guild.Guild == null) {
+            return; // Not in a guild.
+        }
+
         string playerName = packet.ReadUnicodeString();
+        GuildMember? member = session.Guild.Guild.Members.Values
+            .FirstOrDefault(member => member.Name == playerName);
+        if (member == null) {
+            session.Send(GuildPacket.Error(GuildError.s_guild_err_null_member));
+            return;
+        }
+
+        try {
+            var request = new GuildRequest {
+                RequestorId = session.CharacterId,
+                Expel = new GuildRequest.Types.Expel {
+                    GuildId = session.Guild.Id,
+                    ReceiverId = member.CharacterId,
+                },
+            };
+            GuildResponse response = World.Guild(request);
+            var error = (GuildError) response.Error;
+            if (error != GuildError.none) {
+                session.Send(GuildPacket.Error(error));
+                return;
+            }
+
+            session.Send(GuildPacket.Expelled(playerName));
+        } catch (RpcException) { /* ignored */ }
     }
 
     private void HandleUpdateMemberRank(GameSession session, IByteReader packet) {
