@@ -177,7 +177,7 @@ public class InstrumentHandler : PacketHandler<GameSession> {
         score.Music.Length = length;
         score.Music.Instrument = instrument;
         score.Music.Title = title;
-        score.Music.Author = session.Player.Value.Character.Name;
+        score.Music.Author = session.PlayerName;
         score.Music.AuthorId = session.CharacterId;
         score.Music.Mml = mml;
 

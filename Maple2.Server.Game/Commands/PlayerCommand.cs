@@ -135,7 +135,7 @@ public class PlayerCommand : Command {
         }
 
         private void Handle(InvocationContext ctx) {
-            ctx.Console.Out.WriteLine($"Player: {session.Player.ObjectId} ({session.Player.Value.Character.Name})");
+            ctx.Console.Out.WriteLine($"Player: {session.Player.ObjectId} ({session.PlayerName})");
             ctx.Console.Out.WriteLine($"  Position: {session.Player.Position}");
             ctx.Console.Out.WriteLine($"  Rotation: {session.Player.Rotation}");
         }

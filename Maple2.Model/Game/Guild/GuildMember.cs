@@ -50,7 +50,7 @@ public class GuildMember : IByteSerializable {
         writer.WriteBool(!Info.Online);
     }
 
-    private static void WriteInfo(IByteWriter writer, PlayerInfo info) {
+    public static void WriteInfo(IByteWriter writer, PlayerInfo info) {
         writer.WriteLong(info.AccountId);
         writer.WriteLong(info.CharacterId);
         writer.WriteUnicodeString(info.Name);

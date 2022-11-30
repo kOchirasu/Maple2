@@ -36,6 +36,7 @@ public partial class GameStorage {
                         WeeklyContribution = member.WeeklyContribution,
                         TotalContribution = member.TotalContribution,
                         DailyDonationCount = member.DailyDonationCount,
+                        JoinTime = member.CreationTime.ToEpochSeconds(),
                         LoginTime = member.LoginTime.ToEpochSeconds(),
                         CheckinTime = member.CheckinTime.ToEpochSeconds(),
                         DonationTime = member.DonationTime.ToEpochSeconds(),
@@ -92,6 +93,27 @@ public partial class GameStorage {
             }
 
             return Commit() ? LoadGuild(guild.Id, string.Empty) : null;
+        }
+
+        public GuildMember? CreateGuildMember(long guildId, PlayerInfo info) {
+            var member = new Model.GuildMember {
+                GuildId = guildId,
+                CharacterId = info.CharacterId,
+                Rank = 5,
+                LoginTime = DateTime.Now,
+            };
+            Context.GuildMember.Add(member);
+            if (!SaveChanges()) {
+                return null;
+            }
+
+            return new GuildMember {
+                GuildId = member.GuildId,
+                Info = info,
+                Rank = member.Rank,
+                JoinTime = member.CreationTime.ToEpochSeconds(),
+                LoginTime = member.LoginTime.ToEpochSeconds(),
+            };
         }
 
         public bool SaveGuild(Guild guild) {

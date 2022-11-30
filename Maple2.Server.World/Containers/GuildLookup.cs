@@ -1,42 +1,40 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Maple2.Database.Storage;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
-using Maple2.Tools;
 
 namespace Maple2.Server.World.Containers;
 
-public class GuildLookup {
+public class GuildLookup : IDisposable {
     private readonly GameStorage gameStorage;
     private readonly ChannelClientLookup channelClients;
     private readonly PlayerInfoLookup playerLookup;
 
-    private readonly ConcurrentMultiDictionary<long, string, GuildManager> guilds;
+    private readonly ConcurrentDictionary<long, GuildManager> guilds;
 
     public GuildLookup(GameStorage gameStorage, ChannelClientLookup channelClients, PlayerInfoLookup playerLookup) {
         this.gameStorage = gameStorage;
         this.channelClients = channelClients;
         this.playerLookup = playerLookup;
 
-        guilds = new ConcurrentMultiDictionary<long, string, GuildManager>();
+        guilds = new ConcurrentDictionary<long, GuildManager>();
+    }
+
+    public void Dispose() {
+        // We must dispose all GuildManager to save state.
+        foreach (GuildManager manager in guilds.Values) {
+            manager.Dispose();
+        }
     }
 
     public bool TryGet(long guildId, [NotNullWhen(true)] out GuildManager? guild) {
-        if (guilds.TryGet(guildId, out guild)) {
+        if (guilds.TryGetValue(guildId, out guild)) {
             return true;
         }
 
-        guild = FetchGuild(guildId, string.Empty);
-        return guild != null;
-    }
-
-    public bool TryGet(string guildName, [NotNullWhen(true)] out GuildManager? guild) {
-        if (guilds.TryGet(guildName, out guild)) {
-            return true;
-        }
-
-        guild = FetchGuild(0, guildName);
+        guild = FetchGuild(guildId);
         return guild != null;
     }
 
@@ -56,7 +54,7 @@ public class GuildLookup {
         }
 
         guildId = guild.Id;
-        guilds.TryAdd(guildId, guild.Name, new GuildManager(guild) {
+        guilds.TryAdd(guildId, new GuildManager(guild) {
             GameStorage = gameStorage,
             ChannelClients = channelClients,
         });
@@ -75,7 +73,7 @@ public class GuildLookup {
             return GuildError.s_guild_err_exist_member;
         }
 
-        if (!guilds.Remove(guildId, out manager)) {
+        if (!guilds.TryRemove(guildId, out manager)) {
             // Failed to remove guild after validating.
             return GuildError.s_guild_err_unknown;
         }
@@ -89,9 +87,9 @@ public class GuildLookup {
         return GuildError.none;
     }
 
-    private GuildManager? FetchGuild(long guildId, string guildName) {
+    private GuildManager? FetchGuild(long guildId) {
         using GameStorage.Request db = gameStorage.Context();
-        Guild? guild = guildId != 0 ? db.GetGuild(guildId) : db.GetGuild(guildName);
+        Guild? guild = db.GetGuild(guildId);
         if (guild == null) {
             return null;
         }
@@ -104,6 +102,6 @@ public class GuildLookup {
             GameStorage = gameStorage,
             ChannelClients = channelClients,
         };
-        return guilds.TryAdd(guild.Id, guild.Name, manager) ? manager : null;
+        return guilds.TryAdd(guild.Id, manager) ? manager : null;
     }
 }

@@ -69,7 +69,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
     }
 
     private void HandleWhisper(GameSession session, string message, string recipient) {
-        if (recipient == session.Player.Value.Character.Name) {
+        if (recipient == session.PlayerName) {
             session.Send(ChatPacket.Alert(StringCode.s_whisper_err_myself));
             return;
         }
@@ -84,7 +84,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
         var request = new ChatRequest {
             AccountId = session.AccountId,
             CharacterId = session.CharacterId,
-            Name = session.Player.Value.Character.Name,
+            Name = session.PlayerName,
             Message = message,
             Whisper = new ChatRequest.Types.Whisper {RecipientId = info.CharacterId, RecipientName = recipient},
         };
@@ -110,7 +110,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
         var request = new ChatRequest {
             AccountId = session.AccountId,
             CharacterId = session.CharacterId,
-            Name = session.Player.Value.Character.Name,
+            Name = session.PlayerName,
             Message = message,
             Party = new ChatRequest.Types.Party {PartyId = 0},
         };
@@ -124,7 +124,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
         var request = new ChatRequest {
             AccountId = session.AccountId,
             CharacterId = session.CharacterId,
-            Name = session.Player.Value.Character.Name,
+            Name = session.PlayerName,
             Message = message,
             Guild = new ChatRequest.Types.Guild {GuildId = 0},
         };
@@ -138,7 +138,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
         var request = new ChatRequest {
             AccountId = session.AccountId,
             CharacterId = session.CharacterId,
-            Name = session.Player.Value.Character.Name,
+            Name = session.PlayerName,
             Message = message,
             World = new ChatRequest.Types.World(),
         };
@@ -156,7 +156,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
         var request = new ChatRequest {
             AccountId = session.AccountId,
             CharacterId = session.CharacterId,
-            Name = session.Player.Value.Character.Name,
+            Name = session.PlayerName,
             Message = message,
             Super = new ChatRequest.Types.Super {ItemId = 0},
         };
@@ -170,7 +170,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
         var request = new ChatRequest {
             AccountId = session.AccountId,
             CharacterId = session.CharacterId,
-            Name = session.Player.Value.Character.Name,
+            Name = session.PlayerName,
             Message = message,
             Club = new ChatRequest.Types.Club {ClubId = clubId},
         };
@@ -184,7 +184,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
         var request = new ChatRequest {
             AccountId = session.AccountId,
             CharacterId = session.CharacterId,
-            Name = session.Player.Value.Character.Name,
+            Name = session.PlayerName,
             Message = message,
             Wedding = new ChatRequest.Types.Wedding {ItemId = 0},
         };

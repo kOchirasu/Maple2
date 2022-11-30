@@ -86,7 +86,7 @@ public class BuddyManager : IDisposable {
             session.Send(BuddyPacket.Invite(error: s_buddy_err_unknown));
             return;
         }
-        if (name == session.Player.Value.Character.Name) {
+        if (name == session.PlayerName) {
             session.Send(BuddyPacket.Invite(error: s_buddy_err_my_id_ex));
             return;
         }

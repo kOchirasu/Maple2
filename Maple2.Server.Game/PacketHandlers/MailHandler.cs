@@ -63,7 +63,7 @@ public class MailHandler : PacketHandler<GameSession> {
         string title = packet.ReadUnicodeString();
         string content = packet.ReadUnicodeString();
 
-        if (receiverName == session.Player.Value.Character.Name) {
+        if (receiverName == session.PlayerName) {
             session.Send(MailPacket.Error(MailError.s_mail_error_recipient_equal_sender));
             return;
         }
@@ -79,7 +79,7 @@ public class MailHandler : PacketHandler<GameSession> {
             SenderId = session.CharacterId,
             ReceiverId = receiverId,
             Type = MailType.Player,
-            SenderName = session.Player.Value.Character.Name,
+            SenderName = session.PlayerName,
             Title = title,     // TODO: xml escaping?
             Content = content, // TODO: xml escaping?
         };

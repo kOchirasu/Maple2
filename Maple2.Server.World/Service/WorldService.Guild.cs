@@ -4,6 +4,7 @@ using Grpc.Core;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Server.World.Containers;
+using ChannelGuildRequest = Maple2.Server.Channel.Service.GuildRequest;
 
 namespace Maple2.Server.World.Service;
 
@@ -77,10 +78,38 @@ public partial class WorldService {
         if (!guildLookup.TryGet(respond.GuildId, out GuildManager? manager)) {
             return new GuildResponse {Error = (int) GuildError.s_guild_err_invalid_guild};
         }
+        string requestorName = manager.ConsumeInvite(requestorId);
+        if (string.IsNullOrEmpty(requestorName)) {
+            return new GuildResponse {Error = (int) GuildError.s_guild_err_null_invite_member};
+        }
+        if (!playerLookup.TryGet(requestorId, out PlayerInfo? info)) {
+            return new GuildResponse {Error = (int) GuildError.s_guild_err_none};
+        }
 
-        //respond.Accepted
+        if (respond.Accepted) {
+            GuildError error = manager.Join(requestorName, info);
+            if (error != GuildError.none) {
+                return new GuildResponse {Error = (int) error};
+            }
 
-        return new GuildResponse {Error = (int) GuildError.s_guild_err_unknown};
+            manager.Broadcast(new ChannelGuildRequest {
+                InviteReply = new ChannelGuildRequest.Types.InviteReply {
+                    Name = info.Name,
+                    Reply = (int) GuildInvite.Response.Accept,
+                },
+            });
+
+            return new GuildResponse {Guild = ToGuildInfo(manager.Guild)};
+        }
+
+        manager.Broadcast(new ChannelGuildRequest {
+            InviteReply = new ChannelGuildRequest.Types.InviteReply {
+                Name = info.Name,
+                Reply = (int) GuildInvite.Response.RejectInvite,
+            },
+        });
+
+        return new GuildResponse {GuildId = manager.Guild.Id};
     }
 
     private GuildResponse LeaveGuild(long requestorId, GuildRequest.Types.Leave leave) {
