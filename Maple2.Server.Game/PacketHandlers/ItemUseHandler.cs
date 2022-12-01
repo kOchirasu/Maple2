@@ -57,6 +57,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             case ItemFunction.OpenCoupleEffectBox:
                 HandleBuddyBadgeBox(session, packet, item);
                 break;
+            case ItemFunction.ExpendCharacterSlot:
+                HandleExpandCharacterSlot(session, item);
+                break;
             default:
                 Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
                 return;
@@ -245,5 +248,17 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
         session.Item.Inventory.Add(selfBadge, true);
         session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_mail_send_partner, receiverInfo.Name)));
+    }
+    
+    private void HandleExpandCharacterSlot(GameSession session, Item item) {
+        if (session.Player.Value.Account.MaxCharacters >= Constant.ServerMaxCharacters) {
+            session.Send(ItemUsePacket.MaxCharacterSlots());
+            return;
+        }
+
+        if (session.Item.Inventory.Consume(item.Uid, 1)) {
+            session.Player.Value.Account.MaxCharacters++;
+            session.Send(ItemUsePacket.CharacterSlotAdded());
+        }
     }
 }
