@@ -249,7 +249,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         session.Item.Inventory.Add(selfBadge, true);
         session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_mail_send_partner, receiverInfo.Name)));
     }
-    
+
     private void HandleExpandCharacterSlot(GameSession session, Item item) {
         if (session.Player.Value.Account.MaxCharacters >= Constant.ServerMaxCharacters) {
             session.Send(ItemUsePacket.MaxCharacterSlots());
