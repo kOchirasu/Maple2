@@ -1,4 +1,5 @@
-﻿using Google.Protobuf.WellKnownTypes;
+﻿using System;
+using Google.Protobuf.WellKnownTypes;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 
@@ -52,6 +53,8 @@ public static class PlayerInfoUpdateExtensions {
                 Lifestyle = update.Request.Trophy.Lifestyle,
             };
         }
+
+        info.UpdateTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }
 
     public static void Update(this IPlayerInfo self, UpdateField type, IPlayerInfo other) {
@@ -89,6 +92,8 @@ public static class PlayerInfoUpdateExtensions {
         if (type.HasFlag(UpdateField.Trophy)) {
             self.Trophy = other.Trophy;
         }
+
+        self.UpdateTime = other.UpdateTime;
     }
 
     public static void SetFields(this PlayerUpdateRequest request, UpdateField type, PlayerInfo info) {

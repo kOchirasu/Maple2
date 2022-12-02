@@ -43,6 +43,7 @@ public class PlayerInfoStorage {
                 TotalHp = response.Health.TotalHp,
                 MapId = response.MapId,
                 Channel = (short) response.Channel,
+                UpdateTime = response.UpdateTime,
             };
             var trophy = new Trophy {
                 Adventure = response.Trophy.Adventure,

@@ -21,6 +21,7 @@ public partial class WorldService {
         return Task.FromResult(new PlayerInfoResponse {
             AccountId = info.AccountId,
             CharacterId = info.CharacterId,
+            UpdateTime = info.UpdateTime,
             Name = info.Name,
             Motto = info.Motto,
             Picture = info.Picture,

@@ -491,6 +491,7 @@ public class BuddyManager : IDisposable {
         return false;
     }
 
+    #region PlayerInfo Events
     private void BeginListen(Buddy buddy) {
         if (buddy.Type != BuddyType.Default) {
             return;
@@ -527,4 +528,5 @@ public class BuddyManager : IDisposable {
         }
         return false;
     }
+    #endregion
 }

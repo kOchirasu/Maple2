@@ -357,6 +357,7 @@ public sealed partial class GameSession : Core.Network.Session {
                 Player.Value.Character.MapId = Player.Value.Character.ReturnMapId;
             }
 #endif
+            Guild.Dispose();
             Buddy.Dispose();
 
             using (GameStorage.Request db = GameStorage.Context()) {
