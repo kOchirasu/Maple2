@@ -101,5 +101,6 @@ public class Buddy : IByteSerializable, IDisposable {
     public void Dispose() {
         TokenSource?.Cancel();
         TokenSource?.Dispose();
+        TokenSource = null;
     }
 }

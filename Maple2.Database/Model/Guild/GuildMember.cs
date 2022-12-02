@@ -35,7 +35,7 @@ internal class GuildMember {
             WeeklyContribution = other.WeeklyContribution,
             TotalContribution = other.TotalContribution,
             DailyDonationCount = other.DailyDonationCount,
-            LoginTime = other.LoginTime.FromEpochSeconds(),
+            LoginTime = (other.Info.UpdateTime > 0 ? other.Info.UpdateTime : other.LoginTime).FromEpochSeconds(),
             CheckinTime = other.CheckinTime.FromEpochSeconds(),
             DonationTime = other.DonationTime.FromEpochSeconds(),
         };

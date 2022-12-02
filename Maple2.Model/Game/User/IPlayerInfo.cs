@@ -27,4 +27,7 @@ public interface IPlayerInfo {
     public long PlotExpiryTime { get; set; }
     // Trophy
     public Trophy Trophy { get; set; }
+
+    // Timestamp
+    public long UpdateTime { get; set; }
 }

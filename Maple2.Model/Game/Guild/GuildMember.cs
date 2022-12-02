@@ -1,10 +1,12 @@
-﻿using Maple2.Model.Enum;
+﻿using System;
+using System.Threading;
+using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
 namespace Maple2.Model.Game;
 
-public class GuildMember : IByteSerializable {
+public class GuildMember : IByteSerializable, IDisposable {
     private const byte TYPE = 3;
 
     public long GuildId { get; init; }
@@ -24,6 +26,8 @@ public class GuildMember : IByteSerializable {
     public long AccountId => Info.AccountId;
     public long CharacterId => Info.CharacterId;
     public string Name => Info.Name;
+
+    public CancellationTokenSource? TokenSource;
 
     public void WriteTo(IByteWriter writer) {
         writer.WriteByte(TYPE);
@@ -67,5 +71,11 @@ public class GuildMember : IByteSerializable {
         writer.WriteInt(info.ApartmentNumber);
         writer.WriteLong(info.PlotExpiryTime);
         writer.Write<Trophy>(info.Trophy);
+    }
+
+    public void Dispose() {
+        TokenSource?.Cancel();
+        TokenSource?.Dispose();
+        TokenSource = null;
     }
 }

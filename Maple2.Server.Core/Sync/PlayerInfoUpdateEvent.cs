@@ -18,7 +18,8 @@ public enum UpdateField {
     Trophy = 256,
 
     // Presets
-    Buddy = Profile | Job | Level | Channel | Map | Channel | Home | Trophy,
+    Buddy = Profile | Job | Level | Map | Channel | Home | Trophy,
+    Guild = Profile | Job | Level | GearScore | Map | Channel | Home | Trophy,
     All = int.MaxValue,
 }
 

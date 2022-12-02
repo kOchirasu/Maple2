@@ -49,6 +49,7 @@ public class CharacterInfo {
     public int MapId { get; set; }
     public short Channel { get; set; }
 
+    public long UpdateTime { get; set; }
     public bool Online => Channel != 0;
 
     public CharacterInfo(long accountId, long characterId, string name, string motto, string picture, Gender gender, Job job, short level) {

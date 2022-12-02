@@ -1,31 +1,37 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.Server.Core.Sync;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Server.Game.Util.Sync;
 using Maple2.Server.World.Service;
 using Maple2.Tools.Extensions;
 using Serilog;
 
 namespace Maple2.Server.Game.Manager;
 
-public class GuildManager {
+public class GuildManager : IDisposable {
     private readonly GameSession session;
 
     public Guild? Guild { get; private set; }
     public long Id => Guild?.Id ?? 0;
 
     private GuildTable.Property properties;
+    private readonly CancellationTokenSource tokenSource;
 
     private readonly ILogger logger = Log.Logger.ForContext<GuildManager>();
 
     public GuildManager(GameSession session) {
         this.session = session;
         UpdateProperties();
+        tokenSource = new CancellationTokenSource();
 
         if (session.Player.Value.Character.GuildId == 0) {
             return;
@@ -36,6 +42,17 @@ public class GuildManager {
         });
         if (response.Guild != null) {
             SetGuild(response.Guild, false);
+        }
+    }
+
+    public void Dispose() {
+        session.Dispose();
+        tokenSource.Dispose();
+
+        if (Guild != null) {
+            foreach (GuildMember member in Guild.Members.Values) {
+                member.Dispose();
+            }
         }
     }
 
@@ -105,7 +122,9 @@ public class GuildManager {
             }).ToList(),
         };
         foreach (GuildMember member in members) {
-            guild.Members.TryAdd(member.CharacterId, member);
+            if (guild.Members.TryAdd(member.CharacterId, member)) {
+                BeginListen(member);
+            }
         }
 
         Guild = guild;
@@ -138,6 +157,7 @@ public class GuildManager {
             return false;
         }
 
+        BeginListen(member);
         session.Send(GuildPacket.Joined(requestorName, member));
         return true;
     }
@@ -149,6 +169,7 @@ public class GuildManager {
         if (!Guild.Members.TryRemove(characterId, out GuildMember? member)) {
             return false;
         }
+        EndListen(member);
 
         session.Send(string.IsNullOrEmpty(requestorName)
             ? GuildPacket.NotifyLeave(member.Name)
@@ -168,4 +189,48 @@ public class GuildManager {
             Guild.Capacity = properties.Capacity;
         }
     }
+
+    #region PlayerInfo Events
+    private void BeginListen(GuildMember member) {
+        // Clean up previous token if necessary
+        if (member.TokenSource != null) {
+            logger.Warning("BeginListen called on Member {Id} that was already listening", member.CharacterId);
+            EndListen(member);
+        }
+
+        member.TokenSource = CancellationTokenSource.CreateLinkedTokenSource(tokenSource.Token);
+        CancellationToken token = member.TokenSource.Token;
+        var listener = new PlayerInfoListener(UpdateField.Guild, (type, info) => SyncUpdate(token, member.CharacterId, type, info));
+        session.PlayerInfo.Listen(member.Info.CharacterId, listener);
+    }
+
+    private void EndListen(GuildMember member) {
+        member.TokenSource?.Cancel();
+        member.TokenSource?.Dispose();
+        member.TokenSource = null;
+    }
+
+    private bool SyncUpdate(CancellationToken cancel, long id, UpdateField type, IPlayerInfo info) {
+        if (cancel.IsCancellationRequested || Guild == null || !Guild.Members.TryGetValue(id, out GuildMember? member)) {
+            return true;
+        }
+
+        bool wasOnline = member.Info.Online;
+        member.Info.Update(type, info);
+        member.LoginTime = info.UpdateTime;
+
+        if (type == UpdateField.Map) {
+            session.Send(GuildPacket.UpdateMemberMap(member.Name, member.Info.MapId));
+        } else {
+            session.Send(GuildPacket.UpdateMember(member.Info));
+        }
+
+        if (member.Info.Online != wasOnline) {
+            session.Send(member.Info.Online
+                ? GuildPacket.NotifyLogin(member.Name)
+                : GuildPacket.NotifyLogout(member.Name, member.LoginTime));
+        }
+        return false;
+    }
+    #endregion
 }
