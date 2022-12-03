@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Linq;
+using System.Numerics;
 
 namespace Maple2.Tools.Collision;
 
@@ -17,10 +18,29 @@ public sealed class HoleCircle : Circle {
 
     public override bool Intersects(IPolygon other) {
         return other switch {
-            Circle circle => IntersectsCircle(circle) && !hole.IntersectsCircle(circle),
-            Polygon polygon => polygon.Intersects(this) && !polygon.Intersects(hole),
+            Circle circle => IntersectsCircle(circle),
+            Polygon polygon => IntersectsPolygon(polygon),
             _ => false,
         };
+    }
+
+    internal override bool IntersectsCircle(Circle other) {
+        // First check if other is fully contained within the hole.
+        float distanceSquared = Vector2.DistanceSquared(hole.Origin, other.Origin);
+        if (distanceSquared + other.Radius * other.Radius < hole.Radius * hole.Radius) {
+            return false;
+        }
+
+        return base.IntersectsCircle(other);
+    }
+
+    private bool IntersectsPolygon(Polygon other) {
+        // First check if other is fully contained within the hole.
+        if (other.Points.All(point => hole.Contains(point))) {
+            return false;
+        }
+
+        return other.Intersects(this);
     }
 
     public override string ToString() {

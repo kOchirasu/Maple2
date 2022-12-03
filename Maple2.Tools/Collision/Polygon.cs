@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Numerics;
 using System.Text;
 using Maple2.Tools.Extensions;
@@ -88,18 +89,20 @@ public abstract class Polygon : IPolygon {
     }
 
     public bool Intersects(IPolygon other) {
-        foreach (Vector2 axis in GetAxes(null)) {
+        foreach (Vector2 axis in other.GetAxes(this)) {
             Range range = AxisProjection(axis);
             Range otherRange = other.AxisProjection(axis);
             if (!range.Overlaps(otherRange)) {
                 return false;
             }
         }
-        foreach (Vector2 axis in other.GetAxes(this)) {
-            Range range = AxisProjection(axis);
-            Range otherRange = other.AxisProjection(axis);
-            if (!range.Overlaps(otherRange)) {
-                return false;
+        if (other is Polygon polygon) {
+            foreach (Vector2 axis in GetAxes(polygon)) {
+                Range range = AxisProjection(axis);
+                Range otherRange = other.AxisProjection(axis);
+                if (!range.Overlaps(otherRange)) {
+                    return false;
+                }
             }
         }
 
