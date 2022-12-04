@@ -18,7 +18,7 @@ public class TriggerGenerator {
 
     private static readonly HashSet<(string, bool, bool, bool)> ProcessedStrings = new();
     private static readonly SortedDictionary<string, (bool IsState, bool IsAction, bool IsCondition)> KoreanStrings = new();
-    private static readonly TriggerScriptCommon CommonScript = new();
+    private static readonly TriggerScriptCommon ApiScript = new();
 
     public TriggerGenerator(M2dReader xmlReader) {
         reader = xmlReader;
@@ -122,9 +122,9 @@ public class TriggerGenerator {
 
         // Create module for dungeon_common
         System.IO.File.Create("Scripts/Trigger/dungeon_common/__init__.py");
-        using var commonStream = new StreamWriter("Scripts/Trigger/common.py");
-        using var commonWriter = new IndentedTextWriter(commonStream, "    ");
-        CommonScript.WriteTo(commonWriter);
+        using var apiStream = new StreamWriter("Scripts/Trigger/trigger_api.py");
+        using var apiWriter = new IndentedTextWriter(apiStream, "    ");
+        ApiScript.WriteTo(apiWriter);
     }
 
     private static TriggerScript.State ParseState(XmlNode node, Dictionary<string, string> stateIndex, string filePath) {
@@ -180,11 +180,11 @@ public class TriggerGenerator {
 
         // IndexStrings(name, isAction: true);
         string name = Translate(origName, TriggerTranslate.TranslateAction);
-        if (!CommonScript.Actions.TryGetValue(name, out TriggerScriptCommon.Function? function)) {
+        if (!ApiScript.Actions.TryGetValue(name, out TriggerScriptCommon.Function? function)) {
             function = new TriggerScriptCommon.Function(name, false) {
                 Description = origName,
             };
-            CommonScript.Actions.Add(name, function);
+            ApiScript.Actions.Add(name, function);
         }
 
         var args = new List<Parameter>();
@@ -237,12 +237,12 @@ public class TriggerGenerator {
         origName = origName.TrimStart('!');
         // IndexStrings(name, isCondition: true);
         string name = Translate(origName, TriggerTranslate.TranslateCondition);
-        if (!CommonScript.Conditions.TryGetValue(name, out TriggerScriptCommon.Function? function)) {
+        if (!ApiScript.Conditions.TryGetValue(name, out TriggerScriptCommon.Function? function)) {
             function = new TriggerScriptCommon.Function(name, true) {
                 Description = origName,
                 ReturnType = ScriptType.Bool,
             };
-            CommonScript.Conditions.Add(name, function);
+            ApiScript.Conditions.Add(name, function);
         }
 
         var args = new List<Parameter>();
@@ -344,7 +344,7 @@ public class TriggerGenerator {
             builder.Append(translator(split));
         }
 
-        return TriggerTranslate.NormalizePythonFunction(builder.ToString());
+        return TriggerTranslate.ToSnakeCase(builder.ToString());
     }
 
     private static void IndexStrings(string? text, bool isState = false, bool isAction = false, bool isCondition = false) {

@@ -23,7 +23,7 @@ internal class TriggerScript {
             foreach (string comment in Comments) {
                 writer.WriteLine(CommentString(comment));
             }
-            writer.WriteLine($"class {Name}(common.Trigger):");
+            writer.WriteLine($"class {Name}(trigger_api.Trigger):");
 
             bool hasBody = false;
             writer.Indent++;
@@ -38,7 +38,7 @@ internal class TriggerScript {
                 hasBody = true;
             }
             if (Conditions.Count > 0) {
-                writer.WriteLine("def on_tick(self) -> common.Trigger:");
+                writer.WriteLine("def on_tick(self) -> trigger_api.Trigger:");
                 writer.Indent++;
                 foreach (Condition condition in Conditions) {
                     condition.WriteTo(writer);
@@ -146,7 +146,7 @@ internal class TriggerScript {
     }
 
     public void WriteTo(IndentedTextWriter writer) {
-        writer.WriteLine("import common");
+        writer.WriteLine("import trigger_api");
         if (Imports.Count > 0) {
             writer.WriteLine();
             foreach (string import in Imports) {

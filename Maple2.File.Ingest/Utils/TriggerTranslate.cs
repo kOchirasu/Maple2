@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Globalization;
+using System.Text;
 
 namespace Maple2.File.Ingest.Utils;
 
@@ -60,7 +61,28 @@ public static class TriggerTranslate {
         {"퀘스트유저를감지하면", "Quest User Detected"},
     };
 
-    public static string NormalizePythonFunction(string text) {
+    public static string ToPascalCase(string text) {
+        if(text == null) {
+            throw new ArgumentNullException(nameof(text));
+        }
+
+        text = text.Replace("1st", "First")
+            .Replace("2nd", "Second")
+            .Replace("50 Meso", "Fifty Meso");
+        var sb = new StringBuilder();
+        foreach (char c in text) {
+            if(!char.IsLetterOrDigit(c)) {
+                sb.Append(" ");
+            } else {
+                sb.Append(c);
+            }
+        }
+
+        TextInfo textInfo = new CultureInfo("en-US",false).TextInfo;
+        return textInfo.ToTitleCase(sb.ToString().ToLower()).Replace(" ", "");
+    }
+
+    public static string ToSnakeCase(string text) {
         if(text == null) {
             throw new ArgumentNullException(nameof(text));
         }
