@@ -216,8 +216,13 @@ public class GuildManager : IDisposable {
         }
 
         bool wasOnline = member.Info.Online;
+        string name = member.Info.Name;
         member.Info.Update(type, info);
         member.LoginTime = info.UpdateTime;
+
+        if (name != member.Info.Name) {
+            session.Send(GuildPacket.UpdateMemberName(name, member.Name));
+        }
 
         if (type == UpdateField.Map) {
             session.Send(GuildPacket.UpdateMemberMap(member.Name, member.Info.MapId));

@@ -13,6 +13,7 @@ using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Server.Game.Util;
+using static Maple2.Model.Error.CharacterCreateError;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -22,6 +23,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
     public required ItemMetadataStorage ItemMetadata { private get; init; }
+    public required GameStorage GameStorage { private get; init; }
     public required TableMetadataStorage TableMetadata { private get; init; }
     // ReSharper restore All
     #endregion
@@ -59,6 +61,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
                 break;
             case ItemFunction.ExpendCharacterSlot:
                 HandleExpandCharacterSlot(session, item);
+                break;
+            case ItemFunction.ChangeCharName:
+                HandleChangeCharacterName(session, packet, item);
                 break;
             default:
                 Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
@@ -260,5 +265,39 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             session.Player.Value.Account.MaxCharacters++;
             session.Send(ItemUsePacket.CharacterSlotAdded());
         }
+    }
+
+    private void HandleChangeCharacterName(GameSession session, IByteReader packet, Item item) {
+        string newName = packet.ReadUnicodeString();
+        
+        if (newName.Length < Constant.CharacterNameLengthMin) {
+            session.Send(CharacterListPacket.CreateError(s_char_err_name));
+            return;
+        }
+        
+        if (newName.Length > Constant.CharacterNameLengthMax) {
+            session.Send(CharacterListPacket.CreateError(s_char_err_system));
+            return;
+        }
+
+        using GameStorage.Request db = GameStorage.Context();
+        long existingId = db.GetCharacterId(newName);
+        if (existingId != default) {
+            session.Send(CharacterListPacket.CreateError(s_char_err_already_taken));
+            return;
+        }
+
+        if (!session.Item.Inventory.Consume(item.Uid, 1)) {
+            return;
+        }
+
+        session.Player.Value.Character.Name = newName;
+        // TODO: Update name on clubs, party(?), group chat(?)
+        session.PlayerInfo.SendUpdate(new PlayerUpdateRequest {
+            AccountId = session.AccountId,
+            CharacterId = session.CharacterId,
+            Name = newName,
+        });
+        session.Send(CharacterListPacket.NameChanged(session.CharacterId, newName));
     }
 }
