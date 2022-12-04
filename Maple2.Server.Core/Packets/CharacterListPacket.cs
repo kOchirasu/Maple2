@@ -71,11 +71,11 @@ public static class CharacterListPacket {
         pWriter.Write<CharacterDeleteError>(error);
         return pWriter;
     }
-    
+
     public static ByteWriter NameChanged(long characterId, string characterName) {
         var pWriter = Packet.Of(SendOp.CharacterList);
         pWriter.Write<Command>(Command.NameChanged);
-        pWriter.WriteInt(1); // unknown
+        pWriter.WriteInt(1); // accepted
         pWriter.WriteLong(characterId);
         pWriter.WriteUnicodeString(characterName);
         return pWriter;
