@@ -169,6 +169,16 @@ public class GuildManager : IDisposable {
         });
         return GuildError.none;
     }
+    
+    public GuildError UpdateMemberName(string oldName, string newName) {
+        Broadcast(new GuildRequest {
+            UpdateMemberName = new GuildRequest.Types.UpdateMemberName() {
+                OldName = oldName,
+                NewName = newName,
+            },
+        });
+        return GuildError.none;
+    }
 
     public string ConsumeInvite(long characterId) {
         foreach ((long id, (string name, DateTime expiryTime)) in pendingInvites) {

@@ -20,6 +20,8 @@ public partial class ChannelService {
                 return Task.FromResult(AddGuildMember(request.GuildId, request.ReceiverIds, request.AddMember));
             case GuildRequest.GuildOneofCase.RemoveMember:
                 return Task.FromResult(RemoveGuildMember(request.ReceiverIds, request.RemoveMember));
+            case GuildRequest.GuildOneofCase.UpdateMemberName:
+                return Task.FromResult(UpdateMemberName(request.ReceiverIds, request.UpdateMemberName));
             default:
                 return Task.FromResult(new GuildResponse {Error = (int) GuildError.s_guild_err_none});
         }
@@ -97,6 +99,24 @@ public partial class ChannelService {
             } else {
                 session.Guild.RemoveMember(remove.CharacterId, remove.RequestorName);
             }
+        }
+
+        return new GuildResponse();
+    }
+    
+    private GuildResponse UpdateMemberName(IEnumerable<long> receiverIds, GuildRequest.Types.UpdateMemberName update) {
+        foreach (long characterId in receiverIds) {
+            if (!server.GetSession(characterId, out GameSession? session)) {
+                continue;
+            }
+
+            session.Send(GuildPacket.UpdateMemberName(update.OldName, update.NewName));
+            /*if (characterId == remove.CharacterId) {
+                session.Send(GuildPacket.NotifyExpel(remove.RequestorName));
+                session.Guild.RemoveGuild();
+            } else {
+                session.Guild.RemoveMember(remove.CharacterId, remove.RequestorName);
+            }*/
         }
 
         return new GuildResponse();

@@ -7,12 +7,14 @@ using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
+using Maple2.Server.Channel.Service;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Server.Game.Util;
+using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -21,6 +23,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
+    public required WorldClient World { private get; init; }
     public required ItemMetadataStorage ItemMetadata { private get; init; }
     public required TableMetadataStorage TableMetadata { private get; init; }
     // ReSharper restore All
@@ -59,6 +62,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
                 break;
             case ItemFunction.ExpendCharacterSlot:
                 HandleExpandCharacterSlot(session, item);
+                break;
+            case ItemFunction.ChangeCharName:
+                HandleChangeCharacterName(session, packet, item);
                 break;
             default:
                 Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
@@ -244,7 +250,8 @@ public class ItemUseHandler : PacketHandler<GameSession> {
                 CharacterId = receiverInfo.CharacterId,
                 MailId = receiverMail.Id,
             });
-        } catch { /* ignored */ }
+        } catch { /* ignored */
+        }
 
         session.Item.Inventory.Add(selfBadge, true);
         session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_mail_send_partner, receiverInfo.Name)));
@@ -260,5 +267,21 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             session.Player.Value.Account.MaxCharacters++;
             session.Send(ItemUsePacket.CharacterSlotAdded());
         }
+    }
+
+    private void HandleChangeCharacterName(GameSession session, IByteReader packet, Item item) {
+        string newName = packet.ReadUnicodeString();
+
+        if (newName == session.PlayerName) { // is this needed? we already had a check
+            return;
+        }
+
+        if (!session.Item.Inventory.Consume(item.Uid, 1)) {
+            return;
+        }
+
+        session.Player.Value.Character.Name = newName;
+        // TODO: Update name on clubs, guild, party?, buddy list, group chat(?)
+        session.Send(CharacterListPacket.NameChanged(session.CharacterId, newName));
     }
 }
