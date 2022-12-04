@@ -271,6 +271,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         if (!session.Item.Inventory.Consume(item.Uid, 1)) {
             return;
         }
+
         session.Player.Value.Character.Name = newName;
         // TODO: Update name on clubs, party(?), group chat(?)
         session.PlayerInfo.SendUpdate(new PlayerUpdateRequest {
