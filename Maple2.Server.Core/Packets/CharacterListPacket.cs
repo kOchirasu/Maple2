@@ -25,6 +25,7 @@ public static class CharacterListPacket {
         EndList = 4,
         BeginDelete = 5,
         CancelDelete = 6,
+        NameChanged = 7,
     }
 
     public static ByteWriter AddEntries(Account account, ICollection<(Character, Equips)> entry) {
@@ -68,6 +69,15 @@ public static class CharacterListPacket {
         pWriter.Write<Command>(Command.CancelDelete);
         pWriter.WriteLong(characterId);
         pWriter.Write<CharacterDeleteError>(error);
+        return pWriter;
+    }
+
+    public static ByteWriter NameChanged(long characterId, string characterName) {
+        var pWriter = Packet.Of(SendOp.CharacterList);
+        pWriter.Write<Command>(Command.NameChanged);
+        pWriter.WriteInt(1); // accepted
+        pWriter.WriteLong(characterId);
+        pWriter.WriteUnicodeString(characterName);
         return pWriter;
     }
 
