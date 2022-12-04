@@ -247,8 +247,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
                 CharacterId = receiverInfo.CharacterId,
                 MailId = receiverMail.Id,
             });
-        } catch { /* ignored */
-        }
+        } catch { /* ignored */ }
 
         session.Item.Inventory.Add(selfBadge, true);
         session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_mail_send_partner, receiverInfo.Name)));
@@ -268,10 +267,6 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
     private void HandleChangeCharacterName(GameSession session, IByteReader packet, Item item) {
         string newName = packet.ReadUnicodeString();
-
-        if (newName == session.PlayerName) { // is this needed? we already had a check
-            return;
-        }
 
         if (!session.Item.Inventory.Consume(item.Uid, 1)) {
             return;
