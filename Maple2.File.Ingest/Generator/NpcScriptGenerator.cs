@@ -1,6 +1,7 @@
 ﻿using System.CodeDom.Compiler;
 using System.Diagnostics;
 using System.Text;
+using Maple2.File.Ingest.Utils;
 using Maple2.File.IO;
 using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.Npc;
@@ -12,6 +13,8 @@ using Maple2.Tools.Extensions;
 namespace Maple2.File.Ingest.Generator;
 
 public class NpcScriptGenerator {
+    private const bool NO_DIALOGUE = false;
+
     private readonly Dictionary<int, (string Name, NpcData Data)> npcs;
     private readonly Dictionary<int, (string Name, QuestData Data)> quests;
     private readonly IDictionary<string, string?> strings;
@@ -100,52 +103,66 @@ public class NpcScriptGenerator {
             }
 
             var index = new IndexedNpcScript(data, npc);
-            var stream = new StreamWriter($"Scripts/Npc/{id}.cs");
+            var stream = new StreamWriter($"Scripts/Npc/{id}.py");
             var writer = new IndentedTextWriter(stream, "    ");
-            writer.WriteLine("using Maple2.Model.Enum;");
-            writer.WriteLine("using Maple2.Script.Npc;");
+            writer.WriteLine(string.IsNullOrWhiteSpace(npcName) ? $@""""""" {id} """"""" : $@""""""" {id}: {npcName} """"""");
+
+            writer.WriteLine("from npc_api import Option, Script");
+            writer.WriteLine("import random");
+            BlankLine(writer);
             BlankLine(writer);
 
-            writer.WriteLine("/// <summary>");
-            writer.WriteLine($"/// {id}: {npcName}");
-            writer.WriteLine("/// </summary>");
-            writer.WriteLine($"public class _{id} : NpcScript {{");
+            writer.WriteLine("class Main(Script):");
             writer.Indent++;
+
+            // writer.WriteLine("def __init__(self):");
+            // writer.Indent++;
+            // writer.WriteLine("self.states = {");
+            // writer.Indent++;
+            // writer.WriteLine("# Select");
+            // foreach (TalkScript talkScript in data.select) {
+            //     writer.WriteLine($"{talkScript.id}: self.__{talkScript.id},");
+            // }
+            // if (data.job != null) {
+            //     writer.WriteLine("# Job");
+            //     writer.WriteLine($"{data.job.id}: self.__{data.job.id},");
+            // }
+            // writer.WriteLine("# Talk");
+            // foreach (TalkScript talkScript in data.script) {
+            //     writer.WriteLine($"{talkScript.id}: self.__{talkScript.id},");
+            // }
+            // writer.Indent--;
+            // writer.WriteLine("}");
+            // writer.Indent--;
+            // BlankLine(writer);
 
             GenerateFirst(writer, index);
             BlankLine(writer);
 
-            GenerateSelect(writer, index.Value);
+            GenerateSelect(writer, data);
             BlankLine(writer);
-
-            writer.WriteLine("protected override int Execute(int selection) {");
-            writer.Indent++;
-            writer.WriteLine("switch (Id, Index++) {");
-            writer.Indent++;
 
             // foreach (TalkScript talkScript in data.select) {
             //     GenerateCase(talkScript.id, writer, index, talkScript);
             // }
 
+            foreach (TalkScript talkScript in data.select) {
+                GenerateCase(talkScript.id, writer, index, talkScript, true);
+                BlankLine(writer);
+            }
+
             if (data.job != null) {
-                GenerateCase(data.job.id, writer, index, data.job);
+                GenerateCase(data.job.id, writer, index, data.job, true);
+                BlankLine(writer);
             }
 
             foreach (TalkScript talkScript in data.script) {
-                GenerateCase(talkScript.id, writer, index, talkScript);
+                GenerateCase(talkScript.id, writer, index, talkScript, false);
+                BlankLine(writer);
             }
-
-            writer.Indent--;
-            writer.WriteLine("}");
-            BlankLine(writer);
-            writer.WriteLine("return default;");
-            writer.Indent--;
-            writer.WriteLine("}");
-            BlankLine(writer);
 
             GenerateButton(writer, index);
             writer.Indent--;
-            writer.WriteLine("}");
 
             writer.Flush();
             stream.Flush();
@@ -167,22 +184,22 @@ public class NpcScriptGenerator {
             var index = new IndexedNpcScript(data, npc);
             var str = new StringWriter();
             var writer = new IndentedTextWriter(str, "    ");
-            writer.WriteLine("/// <summary>");
-            writer.WriteLine($"/// {id}: {npcName}");
-            writer.WriteLine("/// </summary>");
-            writer.WriteLine($"public static class Event{id} {{");
+            writer.WriteLine($@""""""" {id}: {npcName} """"""");
+            writer.WriteLine("from npc_api import Option, Script");
+
+            string className = string.IsNullOrWhiteSpace(npcName) ? $"Npc{id}" : TriggerTranslate.ToPascalCase(npcName);
+            writer.WriteLine($"class {className}Event(Script):");
             writer.Indent++;
             bool generated = GenerateEvent(writer, index);
             if (!generated) {
                 continue;
             }
             writer.Indent--;
-            writer.WriteLine("}");
 
             writer.Flush();
             str.Flush();
 
-            var stream = new StreamWriter($"Scripts/NpcEvent/{id}.cs");
+            var stream = new StreamWriter($"Scripts/NpcEvent/{id}.py");
             stream.Write(str);
             stream.Flush();
         }
@@ -192,86 +209,117 @@ public class NpcScriptGenerator {
         Dictionary<int, TalkScript> randomPicks = index.Value.script.Where(script => script.randomPick)
             .ToDictionary(entry => entry.id, entry => entry);
 
-        writer.WriteLine($"protected override int First() {{");
+        writer.WriteLine("def first(self) -> int:");
         writer.Indent++;
         if (index.Value.job != null && randomPicks.Count == 0) {
-            writer.WriteLine($"return {index.Value.job.id};");
-        } else if (index.Value.job == null && randomPicks.Count == 1) {
-            writer.WriteLine($"return {randomPicks.First().Key};");
+            writer.WriteLine($"return {index.Value.job.id}");
+        } else if (index.Value.job == null && randomPicks.Count >= 1) {
+            writer.WriteLine(randomPicks.Count > 1
+                ? $"return random.choice([{string.Join(", ", randomPicks.Keys)}])"
+                : $"return {randomPicks.First().Key}");
         } else {
             if (index.Value.job != null) {
-                writer.WriteLine($"// TODO: Job {index.Value.job.id}");
+                writer.WriteLine($"# TODO: Job {index.Value.job.id}");
             }
             if (randomPicks.Count > 0) {
-                writer.WriteLine($"// TODO: RandomPick {string.Join(";", randomPicks.Keys)}");
+                writer.WriteLine($"# TODO: RandomPick {string.Join(",", randomPicks.Keys)}");
             }
+            writer.WriteLine("return 0 # Default");
         }
         writer.Indent--;
-        writer.WriteLine("}");
     }
 
     private void GenerateSelect(IndentedTextWriter writer, NpcScript script) {
         int[] ids = script.select.Select(select => select.id).ToArray();
-        foreach (TalkScript talk in script.select) {
-            writer.WriteLine($"// Select {talk.id}:");
-            foreach (Content content in talk.content) {
-                WriteScriptText(writer, content.text);
-            }
-        }
+        // foreach (TalkScript talk in script.select) {
+        //     writer.WriteLine($"# Select {talk.id}:");
+        //     foreach (Content content in talk.content) {
+        //         WriteScriptText(writer, content.text);
+        //     }
+        // }
 
-        if (script.select.Count > 1) {
-            writer.WriteLine($"protected override int Select() => Random({string.Join(", ", ids)});");
-        } else {
-            writer.WriteLine($"protected override int Select() => {ids.FirstOrDefault()};");
-        }
+        writer.WriteLine("def select(self) -> int:");
+        writer.Indent++;
+        writer.WriteLine(script.select.Count > 1
+            ? $"return random.choice([{string.Join(", ", ids)}])"
+            : $"return {ids.FirstOrDefault()}");
+        writer.Indent--;
     }
 
     private void GenerateButton(IndentedTextWriter writer, IndexedNpcScript index) {
-        writer.WriteLine("protected override NpcTalkButton Button() {");
+        writer.WriteLine("def button(self) -> Option:");
         writer.Indent++;
-        writer.WriteLine("return (Id, Index) switch {");
-        writer.Indent++;
-        foreach (TalkScript script in index.Value.script) {
-            for (int i = 0; i < script.content.Count; i++) {
-                int id = script.id;
-                writer.WriteLine($"({id}, {i}) => NpcTalkButton.{index.GetResult(id, i)},");
-            }
-        }
+        int count = 0;
         if (index.Value.job != null) {
-            for (int i = 0; i < index.Value.job.content.Count; i++) {
+            for (int i = 0; i < index.Value.job.content.Count; i++, count++) {
                 int id = index.Value.job.id;
-                writer.WriteLine($"({id}, {i}) => NpcTalkButton.{index.GetResult(id, i)},");
+                if (count == 0) {
+                    writer.WriteLine($"if (self.state, self.index) == ({id}, {i}):");
+                } else {
+                    writer.WriteLine($"elif (self.state, self.index) == ({id}, {i}):");
+                }
+                writer.Indent++;
+                string option = TriggerTranslate.ToSnakeCase(index.GetResult(id, i).ToString()).ToUpper();
+                writer.WriteLine($"return Option.{option}");
+                writer.Indent--;
             }
         }
-        writer.WriteLine("_ => NpcTalkButton.None,");
+        foreach (TalkScript script in index.Value.script) {
+            for (int i = 0; i < script.content.Count; i++, count++) {
+                int id = script.id;
+                if (count == 0) {
+                    writer.WriteLine($"if (self.state, self.index) == ({id}, {i}):");
+                } else {
+                    writer.WriteLine($"elif (self.state, self.index) == ({id}, {i}):");
+                }
+                writer.Indent++;
+                string option = TriggerTranslate.ToSnakeCase(index.GetResult(id, i).ToString()).ToUpper();
+                writer.WriteLine($"return Option.{option}");
+                writer.Indent--;
+            }
+        }
+        writer.WriteLine("return Option.NONE");
         writer.Indent--;
-        writer.WriteLine("};");
-        writer.Indent--;
-        writer.WriteLine("}");
     }
 
-    private void GenerateCase(int id, IndentedTextWriter writer, IndexedNpcScript index, TalkScript script) {
+    private void GenerateCase(int id, IndentedTextWriter writer, IndexedNpcScript index, TalkScript script, bool isTodo) {
+        writer.WriteLine($"def __{id}(self, pick: int) -> int:");
+        writer.Indent++;
         if (script.content.Count == 1) {
-            writer.WriteLine($"case ({id}, 0):");
-            writer.Indent++;
             Content content = script.content[0];
             GenerateContent(writer, content);
-            writer.WriteLine("return -1;");
-            writer.Indent--;
-            return;
+        } else {
+            for (int i = 0; i < script.content.Count; i++) {
+                if (i == 0) {
+                    writer.WriteLine($"if self.index == {i}:");
+                } else {
+                    writer.WriteLine($"elif self.index == {i}:");
+                }
+                writer.Indent++;
+
+                Content content = script.content[i];
+                GenerateContent(writer, content);
+
+                // If it's the last content, we need to transition.
+                if (i == script.content.Count - 1) {
+                    if (isTodo) {
+                        writer.WriteLine("return None # TODO");
+                    } else {
+                        writer.WriteLine("return -1");
+                    }
+                } else {
+                    writer.WriteLine($"return {script.id}");
+                }
+                writer.Indent--;
+            }
         }
 
-        for (int i = 0; i < script.content.Count; i++) {
-            writer.WriteLine($"case ({id}, {i}):");
-            writer.Indent++;
-            Content content = script.content[i];
-            GenerateContent(writer, content);
-
-            // If it's the last content, we need to transition.
-            bool isLast = i == script.content.Count - 1;
-            writer.WriteLine(isLast ? "return -1;" : $"return {script.id};");
-            writer.Indent--;
+        if (isTodo) {
+            writer.WriteLine("return None # TODO");
+        } else {
+            writer.WriteLine("return -1");
         }
+        writer.Indent--;
     }
 
     private void GenerateContent(IndentedTextWriter writer, Content content) {
@@ -286,19 +334,21 @@ public class NpcScriptGenerator {
             builder.Append($"openTalkReward={content.openTalkReward} ");
         }
         if (builder.Length > 0) {
-            writer.WriteLine($"// {builder}");
+            writer.WriteLine($"# {builder}");
         }
 
         WriteScriptText(writer, content.text);
 
         if (content.distractor.Count > 0) {
-            writer.WriteLine("switch (selection) {");
-            writer.Indent++;
             for (int j = 0; j < content.distractor.Count; j++) {
                 Distractor distractor = content.distractor[j];
-                WriteScriptText(writer, distractor.text);
-                writer.WriteLine($"case {j}:");
+                if (j == 0) {
+                    writer.WriteLine($"if pick == {j}:");
+                } else {
+                    writer.WriteLine($"elif pick == {j}:");
+                }
                 writer.Indent++;
+                WriteScriptText(writer, distractor.text);
 
                 string success = distractor.@goto;
                 string fail = distractor.gotoFail;
@@ -307,25 +357,23 @@ public class NpcScriptGenerator {
                 if (string.IsNullOrWhiteSpace(success)) {
                     // You can't fail if no success?
                     Debug.Assert(string.IsNullOrWhiteSpace(fail));
-                    writer.WriteLine("return default;");
+                    writer.WriteLine("return 0");
                 } else {
                     if (string.IsNullOrWhiteSpace(fail) && int.TryParse(success, out int gotoId)) {
-                        writer.WriteLine($"return {gotoId};");
+                        writer.WriteLine($"return {gotoId}");
                     } else {
-                        writer.WriteLine($"// TODO: goto {success}");
+                        writer.WriteLine($"# TODO: goto {success}");
                         if (!string.IsNullOrWhiteSpace(fail)) {
-                            writer.WriteLine($"// TODO: gotoFail {fail}");
-                            writer.WriteLine($"return {fail};");
+                            writer.WriteLine($"# TODO: gotoFail {fail}");
+                            writer.WriteLine($"return {fail}");
                         } else {
-                            writer.WriteLine("return -1;");
+                            writer.WriteLine("self.close()");
+                            writer.WriteLine("return -1");
                         }
                     }
                 }
                 writer.Indent--;
             }
-
-            writer.Indent--;
-            writer.WriteLine("}");
         }
     }
 
@@ -365,23 +413,27 @@ public class NpcScriptGenerator {
         }
         writer.WriteLine("_ => (\"\", \"\", \"\"),");
         writer.Indent--;
-        writer.WriteLine("};");
+        writer.WriteLine("}");
         writer.Indent--;
         writer.WriteLine("}");
         return true;
     }
 
     private void WriteScriptText(IndentedTextWriter writer, string scriptText, bool writeTextId = true) {
+        if (NO_DIALOGUE) {
+            return;
+        }
+
         if (writeTextId) {
-            writer.WriteLine($"// {scriptText}");
+            writer.WriteLine($"# {scriptText}");
         }
         bool first = true;
         foreach (string text in GetScriptText(scriptText)) {
             if (first) {
-                writer.WriteLine($"// - {text}");
+                writer.WriteLine($"# - {text}");
                 first = false;
             } else {
-                writer.WriteLine($"//   {text}");
+                writer.WriteLine($"#   {text}");
             }
         }
     }
