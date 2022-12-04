@@ -7,14 +7,12 @@ using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
-using Maple2.Server.Channel.Service;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Server.Game.Util;
-using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -23,7 +21,6 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public required WorldClient World { private get; init; }
     public required ItemMetadataStorage ItemMetadata { private get; init; }
     public required TableMetadataStorage TableMetadata { private get; init; }
     // ReSharper restore All
@@ -279,9 +276,13 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         if (!session.Item.Inventory.Consume(item.Uid, 1)) {
             return;
         }
-
         session.Player.Value.Character.Name = newName;
-        // TODO: Update name on clubs, guild, party?, buddy list, group chat(?)
+        // TODO: Update name on clubs, party(?), group chat(?)
+        session.PlayerInfo.SendUpdate(new PlayerUpdateRequest {
+            AccountId = session.AccountId,
+            CharacterId = session.CharacterId,
+            Name = newName,
+        });
         session.Send(CharacterListPacket.NameChanged(session.CharacterId, newName));
     }
 }
