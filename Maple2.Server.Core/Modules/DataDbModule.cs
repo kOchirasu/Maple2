@@ -28,11 +28,12 @@ public class DataDbModule : Module {
         builder.RegisterInstance(context);
 
         builder.RegisterType<ItemMetadataStorage>().SingleInstance();
-        builder.RegisterType<MapMetadataStorage>().SingleInstance();
         builder.RegisterType<MapEntityStorage>().SingleInstance();
+        builder.RegisterType<MapMetadataStorage>().SingleInstance();
         builder.RegisterType<NpcMetadataStorage>().SingleInstance();
         builder.RegisterType<QuestMetadataStorage>().SingleInstance();
         builder.RegisterType<RideMetadataStorage>().SingleInstance();
+        builder.RegisterType<ScriptMetadataStorage>().SingleInstance();
         builder.RegisterType<SkillMetadataStorage>().SingleInstance();
         builder.RegisterType<TableMetadataStorage>().SingleInstance();
     }

@@ -55,6 +55,7 @@ UpdateDatabase(metadataContext, new MapMapper(xmlReader));
 UpdateDatabase(metadataContext, new UgcMapMapper(xmlReader));
 UpdateDatabase(metadataContext, new QuestMapper(xmlReader));
 UpdateDatabase(metadataContext, new RideMapper(xmlReader));
+UpdateDatabase(metadataContext, new ScriptMapper(xmlReader));
 UpdateDatabase(metadataContext, new SkillMapper(xmlReader));
 UpdateDatabase(metadataContext, new TableMapper(xmlReader));
 

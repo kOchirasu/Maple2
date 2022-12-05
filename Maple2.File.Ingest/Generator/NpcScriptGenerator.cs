@@ -46,7 +46,7 @@ public class NpcScriptGenerator {
             if (value.job != null) {
                 Scripts[value.job.id] = value.job;
             }
-            foreach (TalkScript script in value.script) {
+            foreach (ConditionTalkScript script in value.script) {
                 Scripts[script.id] = script;
             }
         }
@@ -57,7 +57,7 @@ public class NpcScriptGenerator {
             }
 
             Debug.Assert(index < script.content.Count, $"{index} >= {script.content.Count}");
-            Content content = script.content[index];
+            CinematicContent content = script.content[index];
             bool isLast = index == script.content.Count - 1;
 
             // Roulette Npcs have this information in their scripts.
@@ -90,7 +90,7 @@ public class NpcScriptGenerator {
     public void Generate() {
         foreach ((int id, NpcScript data) in scriptParser.ParseNpc()) {
             // No scripts for this npc
-            if (data.script.Count == 0 && data.job == null) {
+            if (data.job == null && data.select.Count == 0 && data.script.Count == 0) {
                 //Console.WriteLine($"Skipping: {id}");
                 continue;
             }
@@ -107,34 +107,13 @@ public class NpcScriptGenerator {
             var writer = new IndentedTextWriter(stream, "    ");
             writer.WriteLine(string.IsNullOrWhiteSpace(npcName) ? $@""""""" {id} """"""" : $@""""""" {id}: {npcName} """"""");
 
-            writer.WriteLine("from npc_api import Option, Script");
+            writer.WriteLine("from npc_api import Script");
             writer.WriteLine("import random");
             BlankLine(writer);
             BlankLine(writer);
 
             writer.WriteLine("class Main(Script):");
             writer.Indent++;
-
-            // writer.WriteLine("def __init__(self):");
-            // writer.Indent++;
-            // writer.WriteLine("self.states = {");
-            // writer.Indent++;
-            // writer.WriteLine("# Select");
-            // foreach (TalkScript talkScript in data.select) {
-            //     writer.WriteLine($"{talkScript.id}: self.__{talkScript.id},");
-            // }
-            // if (data.job != null) {
-            //     writer.WriteLine("# Job");
-            //     writer.WriteLine($"{data.job.id}: self.__{data.job.id},");
-            // }
-            // writer.WriteLine("# Talk");
-            // foreach (TalkScript talkScript in data.script) {
-            //     writer.WriteLine($"{talkScript.id}: self.__{talkScript.id},");
-            // }
-            // writer.Indent--;
-            // writer.WriteLine("}");
-            // writer.Indent--;
-            // BlankLine(writer);
 
             GenerateFirst(writer, index);
             BlankLine(writer);
@@ -144,29 +123,97 @@ public class NpcScriptGenerator {
 
             // foreach (TalkScript talkScript in data.select) {
             //     GenerateCase(talkScript.id, writer, index, talkScript);
+            //     BlankLine(writer);
             // }
 
-            foreach (TalkScript talkScript in data.select) {
-                GenerateCase(talkScript.id, writer, index, talkScript, true);
-                BlankLine(writer);
-            }
-
             if (data.job != null) {
-                GenerateCase(data.job.id, writer, index, data.job, true);
+                writer.WriteLine("# Job");
+                GenerateCase(data.job.id, writer, data.job);
                 BlankLine(writer);
             }
 
-            foreach (TalkScript talkScript in data.script) {
-                GenerateCase(talkScript.id, writer, index, talkScript, false);
-                BlankLine(writer);
+            foreach (ConditionTalkScript talkScript in data.script) {
+                if (talkScript.gotoConditionTalkID.Length > 0) {
+                    GenerateCase(talkScript.id, writer, talkScript);
+                    BlankLine(writer);
+                    continue;
+                }
+
+                // Distractors have "goto" which may need scripting.
+                bool hasFunction = talkScript.content.Any(content => content.functionID > 0);
+                bool hasChoice = talkScript.content.Any(content =>
+                    content.distractor.Any(distractor => distractor.@goto.Length + distractor.gotoFail.Length > 1));
+                if (hasFunction || hasChoice) {
+                    GenerateCase(talkScript.id, writer, talkScript);
+                    BlankLine(writer);
+                }
             }
 
-            GenerateButton(writer, index);
+            // GenerateButton(writer, index);
             writer.Indent--;
 
             writer.Flush();
             stream.Flush();
         }
+
+        // foreach ((int id, QuestScript data) in scriptParser.ParseQuest()) {
+        //     // No scripts for this quest
+        //     if (data.script.Count == 0) {
+        //         // Console.WriteLine($"Skipping: {id}");
+        //         continue;
+        //     }
+        //
+        //     bool hasData = false;
+        //     foreach (QuestTalkScript talkScript in data.script) {
+        //         // Distractors have "goto" which may need scripting.
+        //         bool hasFunction = talkScript.content.Any(content => content.functionID > 0);
+        //         bool hasChoice = talkScript.content.Any(content =>
+        //             content.distractor.Any(distractor => distractor.@goto.Length + distractor.gotoFail.Length > 1));
+        //         if (hasFunction || hasChoice) {
+        //             hasData = true;
+        //         }
+        //     }
+        //
+        //     if (!hasData) {
+        //         Console.WriteLine($"Skipping: {id} due to no data");
+        //         continue;
+        //     }
+        //
+        //     //Console.WriteLine($"Processing: {id}");
+        //     (string npcName, QuestData? quest) = quests.GetValueOrDefault(id);
+        //     if (quest == null) {
+        //         // The Quest is not included in FeatureLocale, so skip generating the script.
+        //         continue;
+        //     }
+        //
+        //     var stream = new StreamWriter($"Scripts/Quest/{id}.py");
+        //     var writer = new IndentedTextWriter(stream, "    ");
+        //     writer.WriteLine(string.IsNullOrWhiteSpace(npcName) ? $@""""""" {id} """"""" : $@""""""" {id}: {npcName} """"""");
+        //
+        //     writer.WriteLine("from npc_api import Script");
+        //     writer.WriteLine("import random");
+        //     BlankLine(writer);
+        //     BlankLine(writer);
+        //
+        //     writer.WriteLine("class Main(Script):");
+        //     writer.Indent++;
+        //
+        //     foreach (QuestTalkScript talkScript in data.script) {
+        //         // Distractors have "goto" which may need scripting.
+        //         bool hasFunction = talkScript.content.Any(content => content.functionID > 0);
+        //         bool hasChoice = talkScript.content.Any(content =>
+        //             content.distractor.Any(distractor => distractor.@goto.Length + distractor.gotoFail.Length > 1));
+        //         if (hasFunction || hasChoice) {
+        //             GenerateCase(talkScript.id, writer, talkScript);
+        //             BlankLine(writer);
+        //         }
+        //     }
+        //
+        //     writer.Indent--;
+        //
+        //     writer.Flush();
+        //     stream.Flush();
+        // }
     }
 
     public void GenerateEvent() {
@@ -185,7 +232,7 @@ public class NpcScriptGenerator {
             var str = new StringWriter();
             var writer = new IndentedTextWriter(str, "    ");
             writer.WriteLine($@""""""" {id}: {npcName} """"""");
-            writer.WriteLine("from npc_api import Option, Script");
+            writer.WriteLine("from npc_api import Script");
 
             string className = string.IsNullOrWhiteSpace(npcName) ? $"Npc{id}" : TriggerTranslate.ToPascalCase(npcName);
             writer.WriteLine($"class {className}Event(Script):");
@@ -206,7 +253,7 @@ public class NpcScriptGenerator {
     }
 
     private void GenerateFirst(IndentedTextWriter writer, IndexedNpcScript index) {
-        Dictionary<int, TalkScript> randomPicks = index.Value.script.Where(script => script.randomPick)
+        Dictionary<int, ConditionTalkScript> randomPicks = index.Value.script.Where(script => script.randomPick)
             .ToDictionary(entry => entry.id, entry => entry);
 
         writer.WriteLine("def first(self) -> int:");
@@ -222,9 +269,10 @@ public class NpcScriptGenerator {
                 writer.WriteLine($"# TODO: Job {index.Value.job.id}");
             }
             if (randomPicks.Count > 0) {
-                writer.WriteLine($"# TODO: RandomPick {string.Join(",", randomPicks.Keys)}");
+                writer.WriteLine($"return random.choice([{string.Join(", ", randomPicks.Keys)}])");
+            } else {
+                writer.WriteLine("return 0 # Default");
             }
-            writer.WriteLine("return 0 # Default");
         }
         writer.Indent--;
     }
@@ -254,9 +302,9 @@ public class NpcScriptGenerator {
             for (int i = 0; i < index.Value.job.content.Count; i++, count++) {
                 int id = index.Value.job.id;
                 if (count == 0) {
-                    writer.WriteLine($"if (self.state, self.index) == ({id}, {i}):");
+                    writer.WriteLine($"if (self.state, index) == ({id}, {i}):");
                 } else {
-                    writer.WriteLine($"elif (self.state, self.index) == ({id}, {i}):");
+                    writer.WriteLine($"elif (self.state, index) == ({id}, {i}):");
                 }
                 writer.Indent++;
                 string option = TriggerTranslate.ToSnakeCase(index.GetResult(id, i).ToString()).ToUpper();
@@ -264,13 +312,13 @@ public class NpcScriptGenerator {
                 writer.Indent--;
             }
         }
-        foreach (TalkScript script in index.Value.script) {
+        foreach (ConditionTalkScript script in index.Value.script) {
             for (int i = 0; i < script.content.Count; i++, count++) {
                 int id = script.id;
                 if (count == 0) {
-                    writer.WriteLine($"if (self.state, self.index) == ({id}, {i}):");
+                    writer.WriteLine($"if (self.state, index) == ({id}, {i}):");
                 } else {
-                    writer.WriteLine($"elif (self.state, self.index) == ({id}, {i}):");
+                    writer.WriteLine($"elif (self.state, index) == ({id}, {i}):");
                 }
                 writer.Indent++;
                 string option = TriggerTranslate.ToSnakeCase(index.GetResult(id, i).ToString()).ToUpper();
@@ -282,47 +330,50 @@ public class NpcScriptGenerator {
         writer.Indent--;
     }
 
-    private void GenerateCase(int id, IndentedTextWriter writer, IndexedNpcScript index, TalkScript script, bool isTodo) {
-        writer.WriteLine($"def __{id}(self, pick: int) -> int:");
+    private void GenerateCase(int id, IndentedTextWriter writer, TalkScript script) {
+        Debug.Assert(script.content.Count > 0);
+
+        var conditionScript = script as ConditionTalkScript;
+        writer.WriteLine($"def __{id}(self, index: int, pick: int) -> int:");
         writer.Indent++;
         if (script.content.Count == 1) {
-            Content content = script.content[0];
+            CinematicContent content = script.content[0];
             GenerateContent(writer, content);
-        } else {
+            if (conditionScript != null && conditionScript.gotoConditionTalkID.Length > 0) {
+                writer.WriteLine($"# TODO: gotoConditionTalkID {string.Join(", ", conditionScript.gotoConditionTalkID)}");
+            }
+        } else if (script.content.Count > 0) {
             for (int i = 0; i < script.content.Count; i++) {
                 if (i == 0) {
-                    writer.WriteLine($"if self.index == {i}:");
+                    writer.WriteLine($"if index == {i}:");
                 } else {
-                    writer.WriteLine($"elif self.index == {i}:");
+                    writer.WriteLine($"elif index == {i}:");
                 }
                 writer.Indent++;
 
-                Content content = script.content[i];
+                CinematicContent content = script.content[i];
                 GenerateContent(writer, content);
 
                 // If it's the last content, we need to transition.
                 if (i == script.content.Count - 1) {
-                    if (isTodo) {
-                        writer.WriteLine("return None # TODO");
-                    } else {
-                        writer.WriteLine("return -1");
+                    if (conditionScript != null && conditionScript.gotoConditionTalkID.Length > 0) {
+                        writer.WriteLine($"# TODO: gotoConditionTalkID {string.Join(", ", conditionScript.gotoConditionTalkID)}");
                     }
+                    writer.WriteLine("return -1");
                 } else {
                     writer.WriteLine($"return {script.id}");
                 }
+
+
                 writer.Indent--;
             }
         }
 
-        if (isTodo) {
-            writer.WriteLine("return None # TODO");
-        } else {
-            writer.WriteLine("return -1");
-        }
+        writer.WriteLine("return -1");
         writer.Indent--;
     }
 
-    private void GenerateContent(IndentedTextWriter writer, Content content) {
+    private void GenerateContent(IndentedTextWriter writer, CinematicContent content) {
         var builder = new StringBuilder();
         if (content.functionID > 0) {
             builder.Append($"functionID={content.functionID} ");
@@ -341,7 +392,7 @@ public class NpcScriptGenerator {
 
         if (content.distractor.Count > 0) {
             for (int j = 0; j < content.distractor.Count; j++) {
-                Distractor distractor = content.distractor[j];
+                CinematicDistractor distractor = content.distractor[j];
                 if (j == 0) {
                     writer.WriteLine($"if pick == {j}:");
                 } else {
@@ -350,24 +401,23 @@ public class NpcScriptGenerator {
                 writer.Indent++;
                 WriteScriptText(writer, distractor.text);
 
-                string success = distractor.@goto;
-                string fail = distractor.gotoFail;
+                int[] success = distractor.@goto;
+                int[] fail = distractor.gotoFail;
                 // No goto means script is complete
 
-                if (string.IsNullOrWhiteSpace(success)) {
+                if (success.Length == 0) {
                     // You can't fail if no success?
-                    Debug.Assert(string.IsNullOrWhiteSpace(fail));
+                    Debug.Assert(fail.Length == 0);
                     writer.WriteLine("return 0");
                 } else {
-                    if (string.IsNullOrWhiteSpace(fail) && int.TryParse(success, out int gotoId)) {
-                        writer.WriteLine($"return {gotoId}");
+                    if (fail.Length == 0 && success.Length == 1) {
+                        writer.WriteLine($"return {success[0]}");
                     } else {
-                        writer.WriteLine($"# TODO: goto {success}");
-                        if (!string.IsNullOrWhiteSpace(fail)) {
-                            writer.WriteLine($"# TODO: gotoFail {fail}");
-                            writer.WriteLine($"return {fail}");
+                        writer.WriteLine($"# TODO: goto {string.Join(", ", success)}");
+                        if (fail.Length != 0) {
+                            writer.WriteLine($"# TODO: gotoFail {string.Join(", ", fail)}");
+                            writer.WriteLine($"return {string.Join(", ", fail)}");
                         } else {
-                            writer.WriteLine("self.close()");
                             writer.WriteLine("return -1");
                         }
                     }
@@ -378,7 +428,7 @@ public class NpcScriptGenerator {
     }
 
     private bool GenerateEvent(IndentedTextWriter writer, IndexedNpcScript index) {
-        List<TalkScript> eventScripts = index.Value.script.Where(script => {
+        List<ConditionTalkScript> eventScripts = index.Value.script.Where(script => {
             return script.content.Count > 0 && script.content.Any(content => content.@event.Count > 0);
         }).ToList();
 
@@ -390,18 +440,18 @@ public class NpcScriptGenerator {
         writer.Indent++;
         writer.WriteLine("return (scriptId, eventId) switch {");
         writer.Indent++;
-        foreach (TalkScript script in eventScripts) {
-            Content content = script.content.First();
-            foreach (Event @event in content.@event) {
+        foreach (ConditionTalkScript script in eventScripts) {
+            CinematicContent content = script.content.First();
+            foreach (CinematicEventScript @event in content.@event) {
                 if (@event.content.Count == 1) {
-                    Content eventContent = @event.content.First();
+                    ScriptContent eventContent = @event.content.First();
                     WriteScriptText(writer, eventContent.text, false);
                     writer.WriteLine($"({script.id}, {@event.id}) => (\"{eventContent.text}\", \"{eventContent.voiceID}\", \"{eventContent.illust}\"),");
                 } else {
                     writer.WriteLine($"({script.id}, {@event.id}) => Random(");
                     writer.Indent++;
                     for (int i = 0; i < @event.content.Count; i++) {
-                        Content eventContent = @event.content[i];
+                        ScriptContent eventContent = @event.content[i];
                         WriteScriptText(writer, eventContent.text, false);
                         writer.Write($"(\"{eventContent.text}\", \"{eventContent.voiceID}\", \"{eventContent.illust}\")");
                         writer.WriteLine((i < script.content.Count - 1) ? "," : "");

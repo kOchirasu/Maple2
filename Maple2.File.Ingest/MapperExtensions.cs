@@ -307,7 +307,7 @@ public static class MapperExtensions {
             for (int i = 0; i < hasBuff.Length; i++) {
                 hasBuff[i] = new BeginConditionTarget.HasBuff(
                     Id: data.hasBuffID[i],
-                    Level: (short) (data.hasBuffLevel.Length > i ? data.hasBuffLevel[i] : 0),
+                    Level: data.hasBuffLevel.Length > i ? data.hasBuffLevel[i] : (short) 0,
                     Owned: data.hasBuffOwner.Length > i && data.hasBuffOwner[i],
                     Count: data.hasBuffCount.Length > i ? data.hasBuffCount[i] : 0,
                     Compare: data.hasBuffCountCompare.Length > i ? Enum.Parse<CompareType>(data.hasBuffCountCompare[i]) : CompareType.Equals);
