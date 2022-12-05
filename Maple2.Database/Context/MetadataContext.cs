@@ -17,6 +17,7 @@ public sealed class MetadataContext : DbContext {
     public DbSet<PetMetadata> PetMetadata { get; set; } = null!;
     public DbSet<QuestMetadata> QuestMetadata { get; set; } = null!;
     public DbSet<RideMetadata> RideMetadata { get; set; } = null!;
+    public DbSet<ScriptMetadata> ScriptMetadata { get; set; } = null!;
     public DbSet<StoredSkillMetadata> SkillMetadata { get; set; } = null!;
     public DbSet<TableMetadata> TableMetadata { get; set; } = null!;
     public DbSet<UgcMapMetadata> UgcMapMetadata { get; set; } = null!;
@@ -35,6 +36,7 @@ public sealed class MetadataContext : DbContext {
         modelBuilder.Entity<PetMetadata>(ConfigurePetMetadata);
         modelBuilder.Entity<QuestMetadata>(ConfigureQuestMetadata);
         modelBuilder.Entity<RideMetadata>(ConfigureRideMetadata);
+        modelBuilder.Entity<ScriptMetadata>(ConfigureScriptMetadata);
         modelBuilder.Entity<StoredSkillMetadata>(ConfigureSkillMetadata);
         modelBuilder.Entity<TableMetadata>(ConfigureTableMetadata);
         modelBuilder.Entity<UgcMapMetadata>(ConfigureUgcMapMetadata);
@@ -123,6 +125,13 @@ public sealed class MetadataContext : DbContext {
         builder.Property(ride => ride.Basic).HasJsonConversion();
         builder.Property(ride => ride.Speed).HasJsonConversion();
         builder.Property(ride => ride.Stats).HasJsonConversion();
+    }
+
+    private static void ConfigureScriptMetadata(EntityTypeBuilder<ScriptMetadata> builder) {
+        builder.ToTable("script");
+        builder.HasKey(script => script.Id);
+        builder.HasIndex(script => script.Type);
+        builder.Property(script => script.States).HasJsonConversion();
     }
 
     private static void ConfigureSkillMetadata(EntityTypeBuilder<StoredSkillMetadata> builder) {

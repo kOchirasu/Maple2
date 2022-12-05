@@ -483,8 +483,8 @@ public class TableMapper : TypeMapper<TableMetadata> {
             var idResults = new Dictionary<int, ItemSocketMetadata>();
             foreach (ItemSocket socket in group) {
                 idResults.Add(socket.grade, new ItemSocketMetadata(
-                    MaxCount: (byte) socket.maxCount,
-                    OpenCount: (byte) socket.fixOpenCount));
+                    MaxCount: socket.maxCount,
+                    OpenCount: socket.fixOpenCount));
             }
             results.Add(group.Key, idResults);
         }
@@ -627,12 +627,12 @@ public class TableMapper : TypeMapper<TableMetadata> {
         foreach ((Parser.Enum.GuildNpcType type, IEnumerable<GuildNpc> npcs) in parser.ParseGuildNpc()) {
             var levels = new Dictionary<short, GuildTable.Npc>();
             foreach (GuildNpc npc in npcs) {
-                levels.Add((short) npc.level, new GuildTable.Npc(
+                levels.Add(npc.level, new GuildTable.Npc(
                     Type: (GuildNpcType) type,
-                    Level: (short) npc.level,
+                    Level: npc.level,
                     RequireGuildLevel: npc.requireGuildLevel,
                     RequireHouseLevel: npc.requireHouseLevel,
-                    UpgradeCost: (int) npc.upgradeCost));
+                    UpgradeCost: npc.upgradeCost));
             }
             guildNpcs.Add((GuildNpcType) type, levels);
         }
@@ -640,9 +640,9 @@ public class TableMapper : TypeMapper<TableMetadata> {
         var guildProperties = new SortedDictionary<short, GuildTable.Property>();
         foreach ((int level, GuildProperty property) in parser.ParseGuildProperty()) {
             var entry = new GuildTable.Property(
-                Level: (short) property.level,
+                Level: property.level,
                 Experience: property.accumExp,
-                Capacity: (byte) property.capacity,
+                Capacity: property.capacity,
                 FundMax: property.fundMax,
                 DonateMax: property.donationMax,
                 CheckInExp: property.attendGuildExp,
@@ -695,11 +695,8 @@ public class TableMapper : TypeMapper<TableMetadata> {
         var habitats = new Dictionary<int, IReadOnlyList<int>>();
         foreach ((int id, FishHabitat habitat) in parser.ParseFishHabitat()) {
             var habitatMaps = new List<int>();
-            foreach (string map in habitat.habitat) {
-                string mapString = map.Replace(",", "");
-                if (int.TryParse(mapString, out int mapId)) {
-                    habitatMaps.Add(mapId);
-                }
+            foreach (int mapId in habitat.habitat) {
+                habitatMaps.Add(mapId);
             }
             habitats.Add(id, habitatMaps);
         }
@@ -720,7 +717,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 FluidHabitat: liquidType,
                 HabitatMapIds: habitatList,
                 Mastery: fish.fishMastery,
-                Rarity: (short) fish.rank,
+                Rarity: fish.rank,
                 SmallSize: new FishTable.Range<int>(smallSize[0], smallSize[1]),
                 BigSize: new FishTable.Range<int>(bigSize[0], bigSize[1]));
             results.Add(id, entry);
@@ -755,7 +752,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         var results = new Dictionary<int, EnchantScrollMetadata>();
         foreach ((int id, EnchantScroll scroll) in parser.ParseEnchantScroll()) {
             var metadata = new EnchantScrollMetadata(
-                Type: (short) scroll.scrollType,
+                Type: scroll.scrollType,
                 MinLevel: scroll.minLv,
                 MaxLevel: scroll.maxLv,
                 Enchants: scroll.grade,
@@ -829,7 +826,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 ItemTypes: scroll.slot,
                 Rarities: scroll.rank,
                 SocketCount: socketCount[id],
-                TradableCountDeduction: scroll.tradableCountDeduction ? 1 : 0));
+                TradableCountDeduction: scroll.tradableCountDeduction));
         }
 
         return new ItemSocketScrollTable(results);
