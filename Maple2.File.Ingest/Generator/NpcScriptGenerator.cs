@@ -271,7 +271,7 @@ public class NpcScriptGenerator {
             if (randomPicks.Count > 0) {
                 writer.WriteLine($"return random.choice([{string.Join(", ", randomPicks.Keys)}])");
             } else {
-                writer.WriteLine("return 0 # Default");
+                writer.WriteLine("return -1 # No dialogue");
             }
         }
         writer.Indent--;

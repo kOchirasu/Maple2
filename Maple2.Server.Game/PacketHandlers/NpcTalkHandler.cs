@@ -1,5 +1,4 @@
 ﻿using Maple2.Database.Storage;
-using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -17,7 +16,7 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
     private enum Command : byte {
         Close = 0,
         Talk = 1,
-        Next = 2,
+        Continue = 2,
         EnchantUnknown = 4,
         Enchant = 6,
         Quest = 7,
@@ -29,6 +28,7 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
     public required NpcMetadataStorage NpcMetadata { private get; init; }
+    public required ScriptMetadataStorage ScriptMetadata { private get; init; }
     // ReSharper restore All
     #endregion
 
@@ -47,8 +47,8 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
             case Command.Talk:
                 HandleTalk(session, packet);
                 return;
-            case Command.Next:
-                HandleNext(session, packet);
+            case Command.Continue:
+                HandleContinue(session, packet);
                 return;
             case Command.EnchantUnknown:
                 return;
@@ -85,51 +85,37 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
             return; // Invalid Npc
         }
 
-        if (!NpcMetadata.TryGet(npc.Value.Id, out NpcMetadata? metadata)) {
+        if (npc.Value.Metadata.Basic.ShopId > 0) {
+            // TODO: Load NPC Shop
+            Logger.Warning("Shop {Id} not loaded", npc.Value.Metadata.Basic.ShopId);
+        }
+
+        if (!ScriptMetadata.TryGet(npc.Value.Id, out ScriptMetadata? metadata)) {
             return;
         }
 
-        var scriptContext = new NpcScriptContext(session, npc);
-        int kind = metadata.Basic.Kind;
-        switch (kind) {
-            case 1 or (> 10 and < 20):
-                scriptContext.Respond(NpcTalkType.Dialog, 1, NpcTalkButton.None);
-                // TODO: Load Shop
-                return;
-            case 2:
-                scriptContext.Respond(NpcTalkType.Dialog, 1, NpcTalkButton.None);
-                // TODO: Storage
-                return;
-            case 86:
-                break; // TODO: BlackMarket
-            case 88:
-                break; // TODO: Birthday
-            case >= 100 and <= 104:
-                break; // TODO: Sky Fortress
-            case >= 105 and <= 107:
-                break; // TODO: Kritias
-        }
-
+        var scriptContext = new NpcScriptContext(session, npc, metadata);
         session.NpcScript = scriptLoader.Get(npc.Value.Id, scriptContext);
         if (session.NpcScript == null) {
             session.Send(NpcTalkPacket.Close());
             return;
         }
 
-        session.NpcScript.Respond();
+        // If we fail to begin the interaction, set script to null.
+        if (!session.NpcScript.Begin()) {
+            session.NpcScript = null;
+        }
     }
 
-    private void HandleNext(GameSession session, IByteReader packet) {
+    private void HandleContinue(GameSession session, IByteReader packet) {
         // Not talking to an Npc.
         if (session.NpcScript == null) {
             return;
         }
 
-        int selection = packet.ReadInt();
-        session.NpcScript.Advance(selection);
-
+        int pick = packet.ReadInt();
         // Attempt to Continue, if |false|, the dialogue has terminated.
-        if (!session.NpcScript.Continue()) {
+        if (!session.NpcScript.Continue(pick)) {
             session.NpcScript = null;
         }
     }
