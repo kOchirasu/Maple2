@@ -1,9 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using IronPython.Hosting;
-using Maple2.Database.Storage;
-using Maple2.Model.Metadata;
 using Microsoft.Scripting.Hosting;
 
 namespace Maple2.Server.Game.Scripting.Npc;
@@ -24,13 +23,13 @@ public class NpcScriptLoader {
     }
 
     public NpcScript? Get(int npcId, NpcScriptContext context) {
+        Console.WriteLine($"Load script for: {npcId}");
         if (!scriptSources.TryGetValue(npcId, out ScriptSource? script)) {
             script = engine.CreateScriptSourceFromFile($"Scripts/Npc/{npcId}.py");
             scriptSources[npcId] = script;
         }
 
         ScriptScope scope = engine.CreateScope();
-        scope.SetVariable("ctx", context);
         script.Execute(scope);
 
         dynamic? type = scope.GetVariable("Main");
@@ -38,6 +37,6 @@ public class NpcScriptLoader {
             return null;
         }
 
-        return new NpcScript(context, engine.Operations.CreateInstance(type));
+        return new NpcScript(context, engine.Operations.CreateInstance(type, context));
     }
 }

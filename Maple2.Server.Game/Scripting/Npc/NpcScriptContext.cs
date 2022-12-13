@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using IronPython.Runtime;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
@@ -27,6 +29,7 @@ public class NpcScriptContext {
 
         TalkType = npc.Value.Metadata.Basic.Kind switch {
             1 or > 10 and < 20 => NpcTalkType.Dialog, // Shop
+            >= 30 and < 40 => NpcTalkType.Dialog, // Beauty
             2 => NpcTalkType.Dialog, // Storage
             86 => NpcTalkType.Dialog, // TODO: BlackMarket
             88 => NpcTalkType.Dialog, // TODO: Birthday
@@ -108,14 +111,6 @@ public class NpcScriptContext {
             return content.ButtonType;
         }
 
-        if (content.Distractors.Length > 0) {
-            return NpcTalkButton.SelectableDistractor;
-        }
-
-        if (Index < state.Contents.Length - 1) {
-            return NpcTalkButton.Next;
-        }
-
         switch (state.Type) {
             case ScriptStateType.Job:
                 switch (Npc.Value.Metadata.Basic.Kind) {
@@ -146,6 +141,14 @@ public class NpcScriptContext {
                 break;
         }
 
+        if (content.Distractors.Length > 0) {
+            return NpcTalkButton.SelectableDistractor;
+        }
+
+        if (Index < state.Contents.Length - 1) {
+            return NpcTalkButton.Next;
+        }
+
         return NpcTalkButton.Close;
     }
 
@@ -162,14 +165,32 @@ public class NpcScriptContext {
         Session.Send(NpcTalkPacket.OpenDialog(name, tags));
     }
 
-    public void RewardItem(params (int Id, byte Rarity, int Amount)[] items) {
+    public bool RewardItem(PythonList list) {
+        var rewards = new List<(int Id, int Rarity, int Amount)>();
+        foreach (PythonTuple tuple in list) {
+            if (tuple.Count != 3 || tuple[0] is not int itemId || tuple[1] is not int rarity || tuple[2] is not int amount) {
+                return false;
+            }
+
+            rewards.Add((itemId, rarity, amount));
+        }
+
         var results = new List<Item>();
-        foreach ((int id, byte rarity, int amount) in items) {
+        foreach ((int id, int rarity, int amount) in rewards) {
             if (!Session.ItemMetadata.TryGet(id, out ItemMetadata? metadata)) {
                 continue;
             }
 
             results.Add(new Item(metadata, rarity, amount));
+        }
+
+        // Validate that reward is possible
+        foreach (IGrouping<InventoryType, Item> group in results.GroupBy(item => item.Inventory)) {
+            int requireSlots = group.Count();
+            int freeSlots = Session.Item.Inventory.FreeSlots(group.Key);
+            if (requireSlots > freeSlots) {
+                return false;
+            }
         }
 
         // TODO: We should send to mail if we can't add to inventory to guarantee reward.
@@ -184,6 +205,7 @@ public class NpcScriptContext {
             Session.Item.Inventory.Add(item);
         }
         Session.Send(NpcTalkPacket.RewardItem(created));
+        return true;
     }
 
     public void RewardExp(long exp) {
@@ -195,5 +217,9 @@ public class NpcScriptContext {
     public void RewardMeso(long mesos) {
         Session.Currency.Meso += mesos;
         Session.Send(NpcTalkPacket.RewardMeso(mesos));
+    }
+
+    public bool HasItem(int itemId, int rarity) {
+        return Session.Item.Inventory.Find(itemId, rarity).Any();
     }
 }
