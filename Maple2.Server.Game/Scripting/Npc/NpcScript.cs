@@ -1,4 +1,5 @@
-﻿using Maple2.Model.Enum;
+﻿using System;
+using Maple2.Model.Enum;
 
 namespace Maple2.Server.Game.Scripting.Npc;
 
