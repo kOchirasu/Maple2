@@ -111,6 +111,14 @@ public class NpcScriptContext {
             return content.ButtonType;
         }
 
+        if (content.Distractors.Length > 0) {
+            return NpcTalkButton.SelectableDistractor;
+        }
+
+        if (Index < state.Contents.Length - 1) {
+            return NpcTalkButton.Next;
+        }
+        
         switch (state.Type) {
             case ScriptStateType.Job:
                 switch (Npc.Value.Metadata.Basic.Kind) {
@@ -139,14 +147,6 @@ public class NpcScriptContext {
                 // return NpcTalkButton.QuestComplete;
                 // return NpcTalkButton.QuestProgress;
                 break;
-        }
-
-        if (content.Distractors.Length > 0) {
-            return NpcTalkButton.SelectableDistractor;
-        }
-
-        if (Index < state.Contents.Length - 1) {
-            return NpcTalkButton.Next;
         }
 
         return NpcTalkButton.Close;
@@ -221,5 +221,9 @@ public class NpcScriptContext {
 
     public bool HasItem(int itemId, int rarity) {
         return Session.Item.Inventory.Find(itemId, rarity).Any();
+    }
+
+    public bool HasMesos(long amount) {
+        return Session.Currency.Meso >= amount;
     }
 }
