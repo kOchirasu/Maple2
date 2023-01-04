@@ -102,14 +102,8 @@ public class NpcScriptContext {
         Metadata.States.TryGetValue(firstState, out ScriptState? scriptState);
 
         if (scriptState is not null) {
-            switch (Npc.Value.Metadata.Basic.Kind) {
-                case 1 or > 10 and < 20: // Shop
+            if (Npc.Value.Metadata.Basic.Kind is 1 or > 10 and < 20) {
                     TalkType |= NpcTalkType.Select | NpcTalkType.Talk;
-                    return;
-                case >= 100 and <= 104:
-                case >= 105 and <= 107:
-                case 108:
-                    TalkType |= NpcTalkType.Dialog;
                     return;
             }
 
