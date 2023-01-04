@@ -11,6 +11,7 @@ public record ScriptMetadata(
 public record ScriptState(
     int Id,
     ScriptStateType Type,
+    bool RandomPick,
     CinematicContent[] Contents);
 
 public record CinematicContent(

@@ -1,4 +1,6 @@
 ﻿using Maple2.Database.Storage;
+using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -91,13 +93,14 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
         }
 
         if (!ScriptMetadata.TryGet(npc.Value.Id, out ScriptMetadata? metadata)) {
+            session.Send(NpcTalkPacket.Respond(npc, NpcTalkType.None, default));
             return;
         }
 
         var scriptContext = new NpcScriptContext(session, npc, metadata);
         session.NpcScript = scriptLoader.Get(npc.Value.Id, scriptContext);
         if (session.NpcScript == null) {
-            session.Send(NpcTalkPacket.Close());
+            session.Send(NpcTalkPacket.Respond(npc, NpcTalkType.None, default));
             return;
         }
 

@@ -39,6 +39,29 @@ public class NpcScriptContext {
             501 => NpcTalkType.Dialog, // TODO: Roulette
             _ => NpcTalkType.None,
         };
+
+        // Get first script. Will need to determine based on NPC's job, any available/on-going quests, and if there is a ScriptStateType.Script available.
+        var scriptScript = Metadata.States.Values.FirstOrDefault(scriptState => scriptState is {Type: ScriptStateType.Script, RandomPick: true});
+
+        if (scriptScript is not null) {
+            switch (Npc.Value.Metadata.Basic.Kind) {
+                case 1 or > 10 and < 20: // Shop
+                    TalkType |= NpcTalkType.Select | NpcTalkType.Talk;
+                    return;
+                case >= 100 and <= 104:
+                case >= 105 and <= 107:
+                case 108:
+                    TalkType |= NpcTalkType.Dialog;
+                    return;
+            }
+
+            if (scriptScript.Type == ScriptStateType.Job) {
+                TalkType |= NpcTalkType.Dialog;
+                return;
+            }
+
+            TalkType |= NpcTalkType.Talk;
+        }
     }
 
     public int NextState(int pick) {
@@ -75,7 +98,6 @@ public class NpcScriptContext {
         }
 
         State = state;
-        GetTalkType();
         var dialogue = new NpcDialogue(state, 0, GetButton());
         Session.Send(NpcTalkPacket.Respond(Npc, TalkType, dialogue));
         return true;
@@ -158,42 +180,6 @@ public class NpcScriptContext {
         }
 
         return NpcTalkButton.Close;
-    }
-
-    public NpcTalkType GetTalkType() {
-
-        if (!Metadata.States.TryGetValue(State, out ScriptState? state)) {
-            return NpcTalkType.None;
-        }
-
-        CinematicContent? content = state.Contents.ElementAtOrDefault(Index);
-        if (content == null) {
-            return NpcTalkType.None;
-        }
-
-        if (state.Type == ScriptStateType.Select) {
-
-            // Add options if there are scripts
-            if (Metadata.States.Any(scriptState => scriptState.Value.Type == ScriptStateType.Script)) {
-                switch (Npc.Value.Metadata.Basic.Kind) {
-                    case 1 or > 10 and < 20: // Shop
-                        TalkType |= NpcTalkType.Select | NpcTalkType.Talk;
-                        return TalkType;
-                    case >= 100 and <= 104:
-                    case >= 105 and <= 107:
-                    case 108:
-                        TalkType |= NpcTalkType.Dialog;
-                        return TalkType;
-                }
-            }
-        }
-        
-        if (state.Type == ScriptStateType.Job) {
-            TalkType |= NpcTalkType.Dialog;
-        } else {
-            TalkType |= NpcTalkType.Talk;
-        }
-        return TalkType;
     }
 
     public bool MovePlayer(int portalId) {
