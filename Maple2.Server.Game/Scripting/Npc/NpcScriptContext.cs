@@ -26,42 +26,6 @@ public class NpcScriptContext {
         Session = session;
         Npc = npc;
         Metadata = metadata;
-
-        TalkType = npc.Value.Metadata.Basic.Kind switch {
-            1 or > 10 and < 20 => NpcTalkType.Dialog, // Shop
-            >= 30 and < 40 => NpcTalkType.Dialog, // Beauty
-            2 => NpcTalkType.Dialog, // Storage
-            86 => NpcTalkType.Dialog, // TODO: BlackMarket
-            88 => NpcTalkType.Dialog, // TODO: Birthday
-            >= 100 and <= 104 => NpcTalkType.Dialog, // TODO: Sky Fortress
-            >= 105 and <= 107 => NpcTalkType.Dialog, // TODO: Kritias
-            108 => NpcTalkType.Dialog, // TODO: Humanitas
-            501 => NpcTalkType.Dialog, // TODO: Roulette
-            _ => NpcTalkType.None,
-        };
-
-        // Get first script. Will need to determine based on NPC's job, any available/on-going quests, and if there is a ScriptStateType.Script available.
-        var scriptScript = Metadata.States.Values.FirstOrDefault(scriptState => scriptState is {Type: ScriptStateType.Script, RandomPick: true});
-
-        if (scriptScript is not null) {
-            switch (Npc.Value.Metadata.Basic.Kind) {
-                case 1 or > 10 and < 20: // Shop
-                    TalkType |= NpcTalkType.Select | NpcTalkType.Talk;
-                    return;
-                case >= 100 and <= 104:
-                case >= 105 and <= 107:
-                case 108:
-                    TalkType |= NpcTalkType.Dialog;
-                    return;
-            }
-
-            if (scriptScript.Type == ScriptStateType.Job) {
-                TalkType |= NpcTalkType.Dialog;
-                return;
-            }
-
-            TalkType |= NpcTalkType.Talk;
-        }
     }
 
     public int NextState(int pick) {
@@ -119,6 +83,43 @@ public class NpcScriptContext {
         var dialogue = new NpcDialogue(State, Index, GetButton());
         Session.Send(NpcTalkPacket.Continue(TalkType, dialogue, questId));
         return true;
+    }
+
+    public void SetTalkTypeFlags(int firstState) {
+        TalkType = Npc.Value.Metadata.Basic.Kind switch {
+            1 or > 10 and < 20 => NpcTalkType.Dialog, // Shop
+            >= 30 and < 40 => NpcTalkType.Dialog, // Beauty
+            2 => NpcTalkType.Dialog, // Storage
+            86 => NpcTalkType.Dialog, // TODO: BlackMarket
+            88 => NpcTalkType.Dialog, // TODO: Birthday
+            >= 100 and <= 104 => NpcTalkType.Dialog, // TODO: Sky Fortress
+            >= 105 and <= 107 => NpcTalkType.Dialog, // TODO: Kritias
+            108 => NpcTalkType.Dialog, // TODO: Humanitas
+            501 => NpcTalkType.Dialog, // TODO: Roulette
+            _ => NpcTalkType.None,
+        };
+
+        Metadata.States.TryGetValue(firstState, out ScriptState? scriptState);
+
+        if (scriptState is not null) {
+            switch (Npc.Value.Metadata.Basic.Kind) {
+                case 1 or > 10 and < 20: // Shop
+                    TalkType |= NpcTalkType.Select | NpcTalkType.Talk;
+                    return;
+                case >= 100 and <= 104:
+                case >= 105 and <= 107:
+                case 108:
+                    TalkType |= NpcTalkType.Dialog;
+                    return;
+            }
+
+            if (scriptState.Type == ScriptStateType.Job) {
+                TalkType |= NpcTalkType.Dialog;
+                return;
+            }
+
+            TalkType |= NpcTalkType.Talk;
+        }
     }
 
     private NpcTalkButton GetButton() {

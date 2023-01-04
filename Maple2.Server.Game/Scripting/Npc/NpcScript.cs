@@ -13,6 +13,7 @@ public class NpcScript {
     }
 
     public bool Begin() {
+        context.SetTalkTypeFlags(script.first());
         if (context.TalkType.HasFlag(NpcTalkType.Select)) {
             return context.Respond(script.select());
         }
