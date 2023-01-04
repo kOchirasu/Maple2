@@ -24,14 +24,12 @@ public class ScriptMapper : TypeMapper<ScriptMetadata> {
                 states.Add(script.job.id, new ScriptState(
                     Id: script.job.id,
                     Type: ScriptStateType.Job,
-                    RandomPick: false,
                     Contents: ParseCinematicContents(script.job.content)));
             }
             foreach (TalkScript select in script.select) {
                 states.Add(select.id, new ScriptState(
                     Id: select.id,
                     Type: ScriptStateType.Select,
-                    RandomPick: false,
                     Contents: ParseCinematicContents(select.content)));
             }
             foreach (ConditionTalkScript select in script.script) {
@@ -39,7 +37,6 @@ public class ScriptMapper : TypeMapper<ScriptMetadata> {
                 states.Add(select.id, new ScriptState(
                     Id: select.id,
                     Type: ScriptStateType.Script,
-                    RandomPick: select.randomPick,
                     Contents: ParseCinematicContents(select.content)));
             }
             if (states.Count == 0) {
@@ -55,7 +52,6 @@ public class ScriptMapper : TypeMapper<ScriptMetadata> {
                 states.Add(talk.id, new ScriptState(
                     Id: talk.id,
                     Type: ScriptStateType.Select,
-                    RandomPick: false,
                     Contents: ParseCinematicContents(talk.content)));
             }
             if (states.Count == 0) {
