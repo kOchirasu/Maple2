@@ -14,8 +14,6 @@ public class NpcScriptLoader {
     public NpcScriptLoader() {
         engine = Python.CreateEngine();
         ICollection<string> paths = engine.GetSearchPaths();
-        paths.Add(@"C:\Users\adria\OneDrive\Documents\MapleStory2\IronPython");
-        paths.Add(@"C:\Users\Adrian\Documents\MapleStory 2\IronPython");
         foreach (string dir in Directory.GetDirectories("Scripts/")) {
             paths.Add(dir);
         }
