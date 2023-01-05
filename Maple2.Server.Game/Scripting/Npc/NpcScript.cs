@@ -10,6 +10,7 @@ public class NpcScript {
     public NpcScript(NpcScriptContext context, dynamic script) {
         this.context = context;
         this.script = script;
+        context.SetTalkTypeFlags(script.first());
     }
 
     public bool Begin() {

@@ -18,7 +18,7 @@ public class NpcScriptContext {
     public readonly FieldNpc Npc;
     public readonly ScriptMetadata Metadata;
 
-    public readonly NpcTalkType TalkType;
+    public NpcTalkType TalkType;
     public int State { get; private set; } = -1;
     public int Index { get; private set; } = 0;
 
@@ -26,19 +26,6 @@ public class NpcScriptContext {
         Session = session;
         Npc = npc;
         Metadata = metadata;
-
-        TalkType = npc.Value.Metadata.Basic.Kind switch {
-            1 or > 10 and < 20 => NpcTalkType.Dialog, // Shop
-            >= 30 and < 40 => NpcTalkType.Dialog, // Beauty
-            2 => NpcTalkType.Dialog, // Storage
-            86 => NpcTalkType.Dialog, // TODO: BlackMarket
-            88 => NpcTalkType.Dialog, // TODO: Birthday
-            >= 100 and <= 104 => NpcTalkType.Dialog, // TODO: Sky Fortress
-            >= 105 and <= 107 => NpcTalkType.Dialog, // TODO: Kritias
-            108 => NpcTalkType.Dialog, // TODO: Humanitas
-            501 => NpcTalkType.Dialog, // TODO: Roulette
-            _ => NpcTalkType.Talk,
-        };
     }
 
     public int NextState(int pick) {
@@ -98,6 +85,42 @@ public class NpcScriptContext {
         return true;
     }
 
+    public void SetTalkTypeFlags(int firstState) {
+
+        int options = 0;
+        switch (Npc.Value.Metadata.Basic.Kind) {
+            case 1 or > 10 and < 20: // Shop
+                TalkType |= NpcTalkType.Dialog;
+                options++;
+                break;
+            case >= 30 and < 40: // Beauty
+            case 2: // Storage
+            case 86: // TODO: BlackMarket
+            case 88: // TODO: Birthday
+            case >= 100 and <= 104: // TODO: Sky Fortress
+            case >= 105 and <= 107: // TODO: Kritias
+            case 108: // TODO: Humanitas
+            case 501: // TODO: Roulette
+                TalkType |= NpcTalkType.Dialog;
+                break;
+        }
+        
+        // TODO: Add quests
+
+        if (Metadata.States.TryGetValue(firstState, out ScriptState? scriptState)) {
+            if (scriptState.Type == ScriptStateType.Job) {
+                TalkType |= NpcTalkType.Dialog;
+            } else {
+                TalkType |= NpcTalkType.Talk;
+                options++;
+            }
+        }
+
+        if (options > 1) {
+            TalkType |= NpcTalkType.Select;
+        }
+    }
+
     private NpcTalkButton GetButton() {
         if (!Metadata.States.TryGetValue(State, out ScriptState? state)) {
             return NpcTalkButton.None;
@@ -109,6 +132,21 @@ public class NpcScriptContext {
         }
         if (content.ButtonType != NpcTalkButton.None) {
             return content.ButtonType;
+        }
+
+        if (content.Distractors.Length > 0) {
+            return NpcTalkButton.SelectableDistractor;
+        }
+
+        if (Index < state.Contents.Length - 1) {
+            return NpcTalkButton.Next;
+        }
+
+        if (TalkType.HasFlag(NpcTalkType.Select)) {
+            if (state.Contents.Length > 0) {
+                return NpcTalkButton.SelectableTalk;
+            }
+            return NpcTalkButton.None;
         }
 
         switch (state.Type) {
@@ -139,14 +177,6 @@ public class NpcScriptContext {
                 // return NpcTalkButton.QuestComplete;
                 // return NpcTalkButton.QuestProgress;
                 break;
-        }
-
-        if (content.Distractors.Length > 0) {
-            return NpcTalkButton.SelectableDistractor;
-        }
-
-        if (Index < state.Contents.Length - 1) {
-            return NpcTalkButton.Next;
         }
 
         return NpcTalkButton.Close;
@@ -221,5 +251,9 @@ public class NpcScriptContext {
 
     public bool HasItem(int itemId, int rarity) {
         return Session.Item.Inventory.Find(itemId, rarity).Any();
+    }
+
+    public bool HasMesos(long amount) {
+        return Session.Currency.Meso >= amount;
     }
 }
