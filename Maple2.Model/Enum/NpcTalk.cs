@@ -4,6 +4,7 @@ namespace Maple2.Model.Enum;
 
 [Flags]
 public enum NpcTalkType : byte {
+    None = 0,
     /// <summary>
     /// Simple NpcTalk without CinematicComponent, used for UIDialogs.
     ///     sub_649B00(uiTalkMgr, npcId, 1)
