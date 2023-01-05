@@ -86,33 +86,38 @@ public class NpcScriptContext {
     }
 
     public void SetTalkTypeFlags(int firstState) {
-        TalkType = Npc.Value.Metadata.Basic.Kind switch {
-            1 or > 10 and < 20 => NpcTalkType.Dialog, // Shop
-            >= 30 and < 40 => NpcTalkType.Dialog, // Beauty
-            2 => NpcTalkType.Dialog, // Storage
-            86 => NpcTalkType.Dialog, // TODO: BlackMarket
-            88 => NpcTalkType.Dialog, // TODO: Birthday
-            >= 100 and <= 104 => NpcTalkType.Dialog, // TODO: Sky Fortress
-            >= 105 and <= 107 => NpcTalkType.Dialog, // TODO: Kritias
-            108 => NpcTalkType.Dialog, // TODO: Humanitas
-            501 => NpcTalkType.Dialog, // TODO: Roulette
-            _ => NpcTalkType.None,
-        };
 
-        Metadata.States.TryGetValue(firstState, out ScriptState? scriptState);
+        int options = 0;
+        switch (Npc.Value.Metadata.Basic.Kind) {
+            case 1 or > 10 and < 20: // Shop
+                TalkType |= NpcTalkType.Dialog;
+                options++;
+                break;
+            case >= 30 and < 40: // Beauty
+            case 2: // Storage
+            case 86: // TODO: BlackMarket
+            case 88: // TODO: Birthday
+            case >= 100 and <= 104: // TODO: Sky Fortress
+            case >= 105 and <= 107: // TODO: Kritias
+            case 108: // TODO: Humanitas
+            case 501: // TODO: Roulette
+                TalkType |= NpcTalkType.Dialog;
+                break;
+        }
+        
+        // TODO: Add quests
 
-        if (scriptState is not null) {
-            if (Npc.Value.Metadata.Basic.Kind is 1 or > 10 and < 20) {
-                    TalkType |= NpcTalkType.Select | NpcTalkType.Talk;
-                    return;
-            }
-
+        if (Metadata.States.TryGetValue(firstState, out ScriptState? scriptState)) {
             if (scriptState.Type == ScriptStateType.Job) {
                 TalkType |= NpcTalkType.Dialog;
-                return;
+            } else {
+                TalkType |= NpcTalkType.Talk;
+                options++;
             }
+        }
 
-            TalkType |= NpcTalkType.Talk;
+        if (options > 1) {
+            TalkType |= NpcTalkType.Select;
         }
     }
 
