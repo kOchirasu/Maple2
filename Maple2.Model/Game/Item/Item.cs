@@ -178,9 +178,6 @@ public class Item : IByteSerializable, IByteDeserializable {
 
     private long GetExpiryTime() {
         long expirationTime = 0;
-        if (Metadata.Life == null) {
-            return expirationTime;
-        }
 
         if (Metadata.Life.ExpirationTimestamp > 0) {
             expirationTime = Metadata.Life.ExpirationTimestamp;

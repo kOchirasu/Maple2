@@ -7,7 +7,7 @@ public record ItemMetadata(
     string? Name,
     EquipSlot[] SlotNames,
     string Mesh,
-    ItemMetadataLife? Life,
+    ItemMetadataLife Life,
     ItemMetadataProperty Property,
     ItemMetadataLimit Limit,
     ItemMetadataSkill? Skill,
