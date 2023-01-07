@@ -18,10 +18,8 @@ public record ItemMetadata(
     ItemMetadataHousing? Housing) : ISearchResult;
 
 public record ItemMetadataLife(
-    int UsePeriod,
-    DateTime ExpirationPeriod,
-    ItemExpirationType ExpirationType,
-    int ExpirationTypeDuration);
+    long ExpirationDuration,
+    long ExpirationTimestamp);
 
 public record ItemMetadataProperty(
     bool IsSkin,

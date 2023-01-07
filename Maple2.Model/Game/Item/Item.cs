@@ -182,19 +182,11 @@ public class Item : IByteSerializable, IByteDeserializable {
             return expirationTime;
         }
 
-        if (Metadata.Life.ExpirationPeriod != default) {
-            expirationTime = (long) (Metadata.Life.ExpirationPeriod.ToUniversalTime() - DateTime.UnixEpoch).TotalSeconds;
-        } else if (Metadata.Life.UsePeriod > 0) {
-            expirationTime = (long) (DateTime.Now.ToUniversalTime() - DateTime.UnixEpoch).TotalSeconds + Metadata.Life.UsePeriod;
-        } else if (Metadata.Life.ExpirationType != ItemExpirationType.None) {
-            expirationTime = Metadata.Life.ExpirationType switch
-            {
-                ItemExpirationType.Months => Metadata.Life.ExpirationTypeDuration * 2628000 + (long) (DateTime.Now.ToUniversalTime() - DateTime.UnixEpoch).TotalSeconds,
-                ItemExpirationType.Weeks => Metadata.Life.ExpirationTypeDuration * 604800 + (long) (DateTime.Now.ToUniversalTime() - DateTime.UnixEpoch).TotalSeconds,
-                _ => expirationTime,
-            };
+        if (Metadata.Life.ExpirationTimestamp > 0) {
+            expirationTime = Metadata.Life.ExpirationTimestamp;
+        } else if (Metadata.Life.ExpirationDuration > 0) {
+            expirationTime = (long) (DateTime.Now.ToUniversalTime() - DateTime.UnixEpoch).TotalSeconds + Metadata.Life.ExpirationDuration;
         }
-
         return expirationTime;
     }
 
