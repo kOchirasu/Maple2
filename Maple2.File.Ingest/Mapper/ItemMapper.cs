@@ -1,11 +1,11 @@
 ﻿using M2dXmlGenerator;
+using Maple2.Database.Extensions;
 using Maple2.File.IO;
 using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.Item;
 using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
-using Maple2.Tools.Extensions;
 
 namespace Maple2.File.Ingest.Mapper;
 
@@ -35,6 +35,25 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
             if (FeatureLocaleFilter.FeatureEnabled("GlobalTransferTypeNA")) {
                 transferType = data.limit.globalTransferTypeNA ?? transferType;
                 tradableCount = data.property.globalTradableCountNA ?? tradableCount;
+            }
+
+            long expirationTimestamp = 0;
+            if (data.life.expirationPeriod.Length > 0) {
+                expirationTimestamp = new DateTime(data.life.expirationPeriod[0], data.life.expirationPeriod[1], data.life.expirationPeriod[2], data.life.expirationPeriod[3], data.life.expirationPeriod[4],
+                    data.life.expirationPeriod[5]).ToEpochSeconds();
+            }
+
+            long expirationDuration = 0;
+            if (data.life.expirationType > 0) {
+                expirationDuration = data.life.expirationType switch {
+                    1 => // Week
+                        DateTime.UnixEpoch.AddDays(7 * data.life.numberOfWeeksMonths).ToEpochSeconds(),
+                    2 => // Month
+                        DateTime.UnixEpoch.AddMonths(1 * data.life.numberOfWeeksMonths).ToEpochSeconds(),
+                    _ => 0
+                };
+            } else if (data.life.usePeriod > 0) {
+                expirationDuration = data.life.usePeriod;
             }
 
             ItemMetadataSkill? skill = data.skill.skillID == 0 && data.objectWeaponSkill.skillID == 0 ? null : new ItemMetadataSkill(
@@ -82,6 +101,10 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     .Select(slot => Enum.Parse<EquipSlot>(slot.name, true))
                     .ToArray(),
                 Mesh: data.ucc.mesh,
+                Life: new ItemMetadataLife(
+                    ExpirationDuration: expirationDuration,
+                    ExpirationTimestamp: expirationTimestamp
+                ),
                 Property: new ItemMetadataProperty(
                     IsSkin: data.property.skin,
                     SkinType: data.property.skinType,

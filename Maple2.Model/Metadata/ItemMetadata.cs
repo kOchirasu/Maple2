@@ -7,6 +7,7 @@ public record ItemMetadata(
     string? Name,
     EquipSlot[] SlotNames,
     string Mesh,
+    ItemMetadataLife Life,
     ItemMetadataProperty Property,
     ItemMetadataLimit Limit,
     ItemMetadataSkill? Skill,
@@ -14,6 +15,10 @@ public record ItemMetadata(
     ItemMetadataOption? Option,
     ItemMetadataMusic? Music,
     ItemMetadataHousing? Housing) : ISearchResult;
+
+public record ItemMetadataLife(
+    long ExpirationDuration,
+    long ExpirationTimestamp);
 
 public record ItemMetadataProperty(
     bool IsSkin,
