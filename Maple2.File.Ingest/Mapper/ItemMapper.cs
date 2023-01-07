@@ -6,7 +6,6 @@ using Maple2.File.Parser.Xml.Item;
 using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
-using Maple2.Tools.Extensions;
 
 namespace Maple2.File.Ingest.Mapper;
 
