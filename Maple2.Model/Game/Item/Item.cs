@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
@@ -69,6 +70,8 @@ public class Item : IByteSerializable, IByteDeserializable {
 
         Transfer = new ItemTransfer(GetTransferFlag(), Metadata.Property.TradableCount, Metadata.Property.RepackCount);
 
+        ExpiryTime = GetExpiryTime();
+        
         if (Metadata.Music != null) {
             RemainUses = Metadata.Music.PlayCount;
         }
@@ -171,6 +174,28 @@ public class Item : IByteSerializable, IByteDeserializable {
             default:
                 return TransferFlag.None;
         }
+    }
+
+    private long GetExpiryTime() {
+        long expirationTime = 0;
+        if (Metadata.Life == null) {
+            return expirationTime;
+        }
+
+        if (Metadata.Life.ExpirationPeriod != default) {
+            expirationTime = (long) (Metadata.Life.ExpirationPeriod.ToUniversalTime() - DateTime.UnixEpoch).TotalSeconds;
+        } else if (Metadata.Life.UsePeriod > 0) {
+            expirationTime = (long) (DateTime.Now.ToUniversalTime() - DateTime.UnixEpoch).TotalSeconds + Metadata.Life.UsePeriod;
+        } else if (Metadata.Life.ExpirationType != ItemExpirationType.None) {
+            expirationTime = Metadata.Life.ExpirationType switch
+            {
+                ItemExpirationType.Months => Metadata.Life.ExpirationTypeDuration * 2628000 + (long) (DateTime.Now.ToUniversalTime() - DateTime.UnixEpoch).TotalSeconds,
+                ItemExpirationType.Weeks => Metadata.Life.ExpirationTypeDuration * 604800 + (long) (DateTime.Now.ToUniversalTime() - DateTime.UnixEpoch).TotalSeconds,
+                _ => expirationTime,
+            };
+        }
+
+        return expirationTime;
     }
 
     public void WriteTo(IByteWriter writer) {

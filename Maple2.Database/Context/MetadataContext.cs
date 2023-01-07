@@ -1,4 +1,5 @@
 ﻿using Maple2.Database.Extensions;
+using Maple2.Database.Model;
 using Maple2.Database.Model.Metadata;
 using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
@@ -65,6 +66,7 @@ public sealed class MetadataContext : DbContext {
         builder.ToTable("item");
         builder.HasKey(item => item.Id);
         builder.Property(item => item.SlotNames).HasJsonConversion();
+        builder.Property(item => item.Life).HasJsonConversion();
         builder.Property(item => item.Property).HasJsonConversion();
         builder.Property(item => item.Limit).HasJsonConversion();
         builder.Property(item => item.Skill).HasJsonConversion();

@@ -1,4 +1,5 @@
-﻿using Maple2.Model.Enum;
+﻿using System;
+using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
 
@@ -7,6 +8,7 @@ public record ItemMetadata(
     string? Name,
     EquipSlot[] SlotNames,
     string Mesh,
+    ItemMetadataLife? Life,
     ItemMetadataProperty Property,
     ItemMetadataLimit Limit,
     ItemMetadataSkill? Skill,
@@ -14,6 +16,12 @@ public record ItemMetadata(
     ItemMetadataOption? Option,
     ItemMetadataMusic? Music,
     ItemMetadataHousing? Housing) : ISearchResult;
+
+public record ItemMetadataLife(
+    int UsePeriod,
+    DateTime ExpirationPeriod,
+    ItemExpirationType ExpirationType,
+    int ExpirationTypeDuration);
 
 public record ItemMetadataProperty(
     bool IsSkin,

@@ -37,6 +37,12 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                 tradableCount = data.property.globalTradableCountNA ?? tradableCount;
             }
 
+            DateTime expirationTime = default;
+            if (data.life._expirationPeriod != string.Empty) {
+                expirationTime = new DateTime(data.life.expirationPeriod[0], data.life.expirationPeriod[1], data.life.expirationPeriod[2], data.life.expirationPeriod[3], data.life.expirationPeriod[4],
+                    data.life.expirationPeriod[5]);
+            }
+
             ItemMetadataSkill? skill = data.skill.skillID == 0 && data.objectWeaponSkill.skillID == 0 ? null : new ItemMetadataSkill(
                 Id: data.skill.skillID,
                 Level: data.skill.skillID != 0 ? data.skill.skillLevel : (short) 0,
@@ -82,6 +88,12 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     .Select(slot => Enum.Parse<EquipSlot>(slot.name, true))
                     .ToArray(),
                 Mesh: data.ucc.mesh,
+                Life: new ItemMetadataLife(
+                    UsePeriod: data.life.usePeriod,
+                    ExpirationPeriod: expirationTime,
+                    ExpirationType: (ItemExpirationType) data.life.expirationType,
+                    ExpirationTypeDuration: data.life.numberOfWeeksMonths
+                ),
                 Property: new ItemMetadataProperty(
                     IsSkin: data.property.skin,
                     SkinType: data.property.skinType,
