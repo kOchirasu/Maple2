@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
@@ -69,6 +70,8 @@ public class Item : IByteSerializable, IByteDeserializable {
 
         Transfer = new ItemTransfer(GetTransferFlag(), Metadata.Property.TradableCount, Metadata.Property.RepackCount);
 
+        ExpiryTime = GetExpiryTime();
+        
         if (Metadata.Music != null) {
             RemainUses = Metadata.Music.PlayCount;
         }
@@ -171,6 +174,17 @@ public class Item : IByteSerializable, IByteDeserializable {
             default:
                 return TransferFlag.None;
         }
+    }
+
+    private long GetExpiryTime() {
+        long expirationTime = 0;
+
+        if (Metadata.Life.ExpirationTimestamp > 0) {
+            expirationTime = Metadata.Life.ExpirationTimestamp;
+        } else if (Metadata.Life.ExpirationDuration > 0) {
+            expirationTime = (long) (DateTime.Now.ToUniversalTime() - DateTime.UnixEpoch).TotalSeconds + Metadata.Life.ExpirationDuration;
+        }
+        return expirationTime;
     }
 
     public void WriteTo(IByteWriter writer) {
