@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model;
@@ -181,10 +182,10 @@ public partial class GameStorage {
             return Context.TrySaveChanges();
         }
 
-        public (IList<KeyBind>? KeyBinds, IList<QuickSlot[]>? HotBars, List<SkillMacro>?, List<Wardrobe>?, List<int>? FavoriteStickers, IDictionary<LapenshardSlot, int>? Lapenshards, IDictionary<BasicAttribute, int>?, SkillBook?) LoadCharacterConfig(long characterId) {
+        public (IList<KeyBind>? KeyBinds, IList<QuickSlot[]>? HotBars, List<SkillMacro>?, List<Wardrobe>?, List<int>? FavoriteStickers, List<int>? PremiumRewardsClaimed, IDictionary<LapenshardSlot, int>? Lapenshards, IDictionary<BasicAttribute, int>?, SkillBook?) LoadCharacterConfig(long characterId) {
             CharacterConfig? config = Context.CharacterConfig.Find(characterId);
             if (config == null) {
-                return (null, null, null, null, null, null, null, null);
+                return (null, null, null, null, null, null, null, null, null);
             }
 
             SkillBook? skillBook = config.SkillBook == null ? null : new SkillBook {
@@ -201,6 +202,7 @@ public partial class GameStorage {
                 config.SkillMacros?.Select<Model.SkillMacro, SkillMacro>(macro => macro).ToList(),
                 config.Wardrobes?.Select<Model.Wardrobe, Wardrobe>(wardrobe => wardrobe).ToList(),
                 config.FavoriteStickers?.Select(stickers => stickers).ToList(),
+                config.PremiumRewardsClaimed?.Select(reward => reward).ToList(),
                 config.Lapenshards,
                 config.StatAllocation,
                 skillBook

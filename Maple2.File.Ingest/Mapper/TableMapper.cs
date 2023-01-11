@@ -1,4 +1,6 @@
-﻿using System.Numerics;
+﻿using System.Globalization;
+using System.Numerics;
+using Maple2.Database.Extensions;
 using Maple2.File.Ingest.Utils;
 using Maple2.File.IO;
 using Maple2.File.Parser;
@@ -39,6 +41,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "masteryreceipe.xml", Table = ParseMasteryRecipe()};
         yield return new TableMetadata {Name = "mastery.xml", Table = ParseMasteryReward()};
         yield return new TableMetadata {Name = "guild*.xml", Table = ParseGuildTable() };
+        yield return new TableMetadata {Name = "vip*.xml", Table = ParsePremiumClubTable()};
         // Fishing
         yield return new TableMetadata {Name = "fishingspot.xml", Table = ParseFishingSpot()};
         yield return new TableMetadata {Name = "fish.xml", Table = ParseFish()};
@@ -830,5 +833,47 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
 
         return new ItemSocketScrollTable(results);
+    }
+
+    private PremiumClubTable ParsePremiumClubTable() {
+        var premiumClubBuffs = new Dictionary<int, PremiumClubTable.Buff>();
+        foreach ((int id, PremiumClubEffect buff) in parser.ParsePremiumClubEffect()) {
+            premiumClubBuffs.Add(id, new PremiumClubTable.Buff(
+                Id: buff.effectID,
+                Level: buff.effectLevel));
+        }
+
+        var premiumClubItems = new Dictionary<int, PremiumClubTable.Item>();
+        foreach ((int id, PremiumClubItem item) in parser.ParsePremiumClubItem()) {
+            premiumClubItems.Add(id, new PremiumClubTable.Item(
+                Id: item.itemID,
+                Amount: item.itemCount,
+                Rarity: item.itemRank,
+                Period: 0));
+        }
+
+        var premiumClubPackages = new Dictionary<int, PremiumClubTable.Package>();
+        foreach ((int id, PremiumClubPackage package) in parser.ParsePremiumClubPackage()) {
+            DateTime startTime = DateTime.TryParseExact(package.salesStartDate, "yyyy-MM-dd-HH-mm-ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out startTime) ? startTime : DateTime.MinValue;
+            DateTime endTime = DateTime.TryParseExact(package.salesEndDate, "yyyy-MM-dd-HH-mm-ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out endTime) ? endTime : DateTime.MinValue;
+            var items = new List<PremiumClubTable.Item>();
+            for (int item = 0; item < package.bonusItemID.Length; item++) {
+                items.Add(new PremiumClubTable.Item(
+                    Id: package.bonusItemID[item],
+                    Amount: package.bonusItemCount[item],
+                    Rarity: package.bonusItemRank[item],
+                    Period: package.bonusItemPeriod[item]));
+            }
+            premiumClubPackages.Add(id, new PremiumClubTable.Package(
+                Disabled: package.disable,
+                StartDate: startTime.ToEpochSeconds(),
+                EndDate: endTime.ToEpochSeconds(),
+                Period: package.vipPeriod,
+                Price: package.price,
+                SalePrice: package.salePrice,
+                BonusItems: items));
+        }
+
+        return new PremiumClubTable(premiumClubBuffs, premiumClubItems, premiumClubPackages);
     }
 }

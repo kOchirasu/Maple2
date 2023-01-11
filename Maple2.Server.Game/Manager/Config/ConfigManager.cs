@@ -24,6 +24,7 @@ public class ConfigManager {
     private IList<SkillMacro> skillMacros;
     private IList<Wardrobe> wardrobes;
     private IList<int> favoriteStickers;
+    private IList<int> premiumItemsClaimed;
     private readonly IDictionary<LapenshardSlot, int> lapenshards;
     private readonly StatAttributes statAttributes;
 
@@ -42,6 +43,7 @@ public class ConfigManager {
             IList<SkillMacro>? Macros,
             IList<Wardrobe>? Wardrobes,
             IList<int>? FavoriteStickers,
+            IList<int>? PremiumItemsClaimed,
             IDictionary<LapenshardSlot, int>? Lapenshards,
             IDictionary<BasicAttribute, int>? Allocation,
             SkillBook? SkillBook
@@ -88,6 +90,19 @@ public class ConfigManager {
         for (int i = 0; i < wardrobes.Count; i++) {
             session.Send(WardrobePacket.Load(i, wardrobes[i]));
         }
+    }
+
+    public void LoadPremiumClaimedItems() {
+        session.Send(PremiumCLubPacket.LoadItems(premiumItemsClaimed));
+    }
+
+    public bool TryAddPremiumItem(int id) {
+        if (premiumItemsClaimed.Contains(id)) {
+            return false;
+        }
+        
+        premiumItemsClaimed.Add(id);
+        return true;
     }
 
     #region ChatStickers

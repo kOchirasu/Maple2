@@ -23,6 +23,7 @@ public class Player {
 
 public class Unlock {
     public DateTime LastModified { get; init; }
+    public DateTime PremiumExpiration { get; init; }
 
     public IDictionary<InventoryType, short> Expand { get; init; } = new Dictionary<InventoryType, short>();
 
