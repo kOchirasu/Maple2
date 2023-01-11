@@ -216,6 +216,7 @@ public partial class GameStorage {
                 IEnumerable<SkillMacro> skillMacros,
                 IEnumerable<Wardrobe> wardrobes,
                 IList<int> favoriteStickers,
+                IList<int> premiumRewardsClaimed,
                 IDictionary<LapenshardSlot, int> lapenshards,
                 StatAttributes.PointAllocation allocation,
                 SkillBook skillBook) {
@@ -231,6 +232,7 @@ public partial class GameStorage {
             config.SkillMacros = skillMacros.Select<SkillMacro, Model.SkillMacro>(macro => macro).ToList();
             config.Wardrobes = wardrobes.Select<Wardrobe, Model.Wardrobe>(wardrobe => wardrobe).ToList();
             config.FavoriteStickers = favoriteStickers;
+            config.PremiumRewardsClaimed = premiumRewardsClaimed;
             config.Lapenshards = lapenshards;
             config.StatAllocation = allocation.Attributes.ToDictionary(
                 attribute => attribute,

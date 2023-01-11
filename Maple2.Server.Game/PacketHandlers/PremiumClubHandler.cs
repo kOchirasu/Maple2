@@ -65,8 +65,8 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
             return;
         }
         
-        Item item = new Item(itemMetadata, premiumMetadata.Rarity, premiumMetadata.Amount);
-        if (session.Item.Inventory.CanAdd(item)) {
+        var item = new Item(itemMetadata, premiumMetadata.Rarity, premiumMetadata.Amount);
+        if (!session.Item.Inventory.CanAdd(item)) {
             return;
         }
 
@@ -74,16 +74,42 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
             return;
         }
 
-        session.Item.Inventory.Add(item);
-        session.Send(PremiumCLubPacket.ClaimItem(benefitId));
+        session.Item.Inventory.Add(item, true);
+        session.Send(PremiumCubPacket.ClaimItem(benefitId));
     }
     
     private void HandleLoadPackages(GameSession session) {
-        session.Send(PremiumCLubPacket.LoadPackages());
+        session.Send(PremiumCubPacket.LoadPackages());
     }
 
     private void HandlePurchasePackage(GameSession session, IByteReader packet) {
-        int optionId = packet.ReadInt();
+        int packageId = packet.ReadInt();
+
+        if (!TableMetadata.PremiumClubTable.Packages.TryGetValue(packageId, out PremiumClubTable.Package? premiumMetadata)) {
+            return;
+        }
         
+        if (session.Currency.Meret < premiumMetadata.Price) {
+            return;
+        }
+        
+        session.Currency.Meret -= premiumMetadata.Price;
+
+        foreach (PremiumClubTable.Item item in premiumMetadata.BonusItems) {
+            if (!ItemMetadata.TryGet(item.Id, out ItemMetadata? itemMetadata)) {
+                continue;
+            }
+            
+            var bonusItem = new Item(itemMetadata, item.Rarity, item.Amount);
+            if (!session.Item.Inventory.CanAdd(bonusItem)) {
+                // Mail?
+                return;
+            }
+
+            session.Item.Inventory.Add(bonusItem, true);
+        }
+        
+        session.Send(PremiumCubPacket.PurchasePackage(packageId));
+        session.Config.ActivatePremium(premiumMetadata.Period);
     }
 }

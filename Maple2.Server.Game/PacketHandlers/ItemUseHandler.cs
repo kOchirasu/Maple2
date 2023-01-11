@@ -37,6 +37,10 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             return;
         }
 
+        if (item.Metadata.Limit.RequireVip && session.Player.Value.Unlock.PremiumExpiration < DateTime.Now) {
+            return;
+        }
+
         switch (item.Metadata.Function?.Type) {
             case ItemFunction.StoryBook:
                 HandleStoryBook(session, item);

@@ -869,8 +869,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 StartDate: startTime.ToEpochSeconds(),
                 EndDate: endTime.ToEpochSeconds(),
                 Period: package.vipPeriod,
-                Price: package.price,
-                SalePrice: package.salePrice,
+                Price: package.price < package.salePrice ? package.salePrice : package.price,
                 BonusItems: items));
         }
 

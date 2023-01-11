@@ -278,7 +278,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Send(RevivalPacket.Count(0)); // TODO: Consumed daily revivals?
         Send(RevivalPacket.Confirm(Player));
         Config.LoadStatAttributes();
-
+        Config.ActivatePremium();
         return true;
     }
 

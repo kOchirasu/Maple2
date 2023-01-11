@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Maple2.Database.Extensions;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
@@ -59,6 +60,7 @@ public class ConfigManager {
         skillMacros = load.Macros ?? new List<SkillMacro>();
         wardrobes = load.Wardrobes ?? new List<Wardrobe>();
         favoriteStickers = load.FavoriteStickers ?? new List<int>();
+        premiumItemsClaimed = load.PremiumItemsClaimed ?? new List<int>();
         lapenshards = load.Lapenshards ?? new Dictionary<LapenshardSlot, int>();
 
         statAttributes = new StatAttributes();
@@ -91,9 +93,10 @@ public class ConfigManager {
             session.Send(WardrobePacket.Load(i, wardrobes[i]));
         }
     }
-
+    
+    #region PremiumClub
     public void LoadPremiumClaimedItems() {
-        session.Send(PremiumCLubPacket.LoadItems(premiumItemsClaimed));
+        session.Send(PremiumCubPacket.LoadItems(premiumItemsClaimed));
     }
 
     public bool TryAddPremiumItem(int id) {
@@ -104,6 +107,16 @@ public class ConfigManager {
         premiumItemsClaimed.Add(id);
         return true;
     }
+
+    public void ActivatePremium(long addHours = 0) {
+        if (addHours > 0) {
+            session.Player.Value.Unlock.PremiumExpiration = session.Player.Value.Unlock.PremiumExpiration < DateTime.Now ? DateTime.Now.AddHours(addHours) : 
+                session.Player.Value.Unlock.PremiumExpiration.AddHours(addHours);
+        }
+        
+        session.Send(PremiumCubPacket.Activate(session.Player.ObjectId, session.Player.Value.Unlock.PremiumExpiration.ToEpochSeconds()));
+    }
+    #endregion
 
     #region ChatStickers
     public void LoadChatStickers() {
@@ -351,6 +364,7 @@ public class ConfigManager {
             skillMacros,
             wardrobes,
             favoriteStickers,
+            premiumItemsClaimed,
             lapenshards,
             statAttributes.Allocation,
             Skill.SkillBook

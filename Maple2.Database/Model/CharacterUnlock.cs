@@ -75,6 +75,7 @@ internal class CharacterUnlock {
 
         var unlock = new Maple2.Model.Game.Unlock {
             LastModified = other.LastModified,
+            PremiumExpiration = other.PremiumExpiration,
             Expand = new Dictionary<InventoryType, short> {
                 {InventoryType.Gear, other.Expand.Gear},
                 {InventoryType.Outfit, other.Expand.Outfit},
