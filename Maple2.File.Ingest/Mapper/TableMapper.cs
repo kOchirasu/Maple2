@@ -49,6 +49,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "itemremakescroll.xml", Table = ParseItemRemakeScrollTable()};
         yield return new TableMetadata {Name = "itemrepackingscroll.xml", Table = ParseItemRepackingScrollTable()};
         yield return new TableMetadata {Name = "itemsocketscroll.xml", Table = ParseItemSocketScrollTable()};
+        yield return new TableMetadata {Name = "itemexchangescrolltable.xml", Table = ParseItemExchangeScrollTable()};
         // ItemOption
         yield return new TableMetadata {Name = "itemoptionconstant.xml", Table = ParseItemOptionConstant()};
         yield return new TableMetadata {Name = "itemoptionrandom.xml", Table = ParseItemOptionRandom()};
@@ -548,10 +549,10 @@ public class TableMapper : TypeMapper<TableMetadata> {
         string[] idAndTag = ingredientArray[0].Split(":");
         int id = int.Parse(idAndTag[0]);
         string tag = idAndTag.Length > 1 ? idAndTag[1] : string.Empty;
-        if (short.TryParse(ingredientArray[1], out short rarity)) {
+        if (!short.TryParse(ingredientArray[1], out short rarity)) {
             rarity = 1;
         }
-        if (int.TryParse(ingredientArray[2], out int amount)) {
+        if (!int.TryParse(ingredientArray[2], out int amount)) {
             amount = 1;
         }
 
@@ -830,5 +831,44 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
 
         return new ItemSocketScrollTable(results);
+    }
+
+    private ItemExchangeScrollTable ParseItemExchangeScrollTable() {
+        var results = new Dictionary<int, ItemExchangeScrollMetadata>();
+        foreach ((int id, ItemExchangeScroll scroll) in parser.ParseItemExchangeScroll()) {
+            var requiredItems = new List<Ingredient>();
+            foreach (ItemExchangeScroll.Item item in scroll.require.item) {
+                string[] idAndTag = item.id[0].Split(":");
+                int requiredItemId = int.Parse(idAndTag[0]);
+                string requiredItemTag = idAndTag.Length > 1 ? idAndTag[1] : string.Empty;
+                if (!short.TryParse(item.id[1], out short rarity)) {
+                    rarity = 1;
+                }
+                if (!int.TryParse(item.id[2], out int amount)) {
+                    amount = 1;
+                }
+                requiredItems.Add(new Ingredient(
+                    ItemId: requiredItemId,
+                    Tag: string.IsNullOrWhiteSpace(requiredItemTag) ? ItemTag.None : Enum.Parse<ItemTag>(requiredItemTag),
+                    Rarity: rarity,
+                    Amount: amount));
+            }
+
+            results.Add(id, new ItemExchangeScrollMetadata(
+                RecipeScroll: new Ingredient(
+                    ItemId: scroll.receipe.id,
+                    Rarity: (short) scroll.receipe.rank,
+                    Amount: scroll.receipe.count,
+                    Tag: ItemTag.None),
+                RewardItem: new Ingredient(
+                    ItemId: scroll.exchange.id,
+                    Rarity: (short) scroll.exchange.rank,
+                    Amount: scroll.exchange.count,
+                    Tag: ItemTag.None),
+                TradeCountDeduction: scroll.tradableCountDeduction,
+                RequiredMeso: scroll.require.meso,
+                RequiredItems: requiredItems));
+        }
+        return new ItemExchangeScrollTable(results);
     }
 }

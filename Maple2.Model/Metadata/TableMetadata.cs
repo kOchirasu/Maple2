@@ -44,6 +44,7 @@ public class TableMetadata {
 [JsonDerivedType(typeof(LapenshardUpgradeTable), typeDiscriminator: "lapenshardupgrade")]
 [JsonDerivedType(typeof(ItemSocketTable), typeDiscriminator: "itemsocket")]
 [JsonDerivedType(typeof(ItemSocketScrollTable), typeDiscriminator: "itemsocketscroll")]
+[JsonDerivedType(typeof(ItemExchangeScrollTable), typeDiscriminator: "itemexchangescroll")]
 [JsonDerivedType(typeof(ChatStickerTable), typeDiscriminator: "chatsticker")]
 [JsonDerivedType(typeof(MasteryRecipeTable), typeDiscriminator: "masteryrecipe")]
 [JsonDerivedType(typeof(MasteryRewardTable), typeDiscriminator: "masteryreward")]

@@ -16,7 +16,14 @@ public record EnchantScrollMetadata(
 
 public record ItemExchangeScrollTable(IReadOnlyDictionary<int, ItemExchangeScrollMetadata> Entries) : Table;
 
-public record ItemExchangeScrollMetadata();
+public record ItemExchangeScrollMetadata(
+    Ingredient RecipeScroll,
+    Ingredient RewardItem,
+    int TradeCountDeduction,
+    long RequiredMeso,
+    IReadOnlyList<Ingredient> RequiredItems);
+
+public record Ingredient(int ItemId, short Rarity, int Amount, ItemTag Tag);
 
 
 public record ItemRemakeScrollTable(IReadOnlyDictionary<int, ItemRemakeScrollMetadata> Entries) : Table;
