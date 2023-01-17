@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 
 namespace Maple2.Model.Metadata;
 
@@ -17,14 +18,11 @@ public record EnchantScrollMetadata(
 public record ItemExchangeScrollTable(IReadOnlyDictionary<int, ItemExchangeScrollMetadata> Entries) : Table;
 
 public record ItemExchangeScrollMetadata(
-    Ingredient RecipeScroll,
-    Ingredient RewardItem,
+    ItemComponent RecipeScroll,
+    ItemComponent RewardItem,
     int TradeCountDeduction,
     long RequiredMeso,
-    IReadOnlyList<Ingredient> RequiredItems);
-
-public record Ingredient(int ItemId, short Rarity, int Amount, ItemTag Tag);
-
+    IReadOnlyList<ItemComponent> RequiredItems);
 
 public record ItemRemakeScrollTable(IReadOnlyDictionary<int, ItemRemakeScrollMetadata> Entries) : Table;
 

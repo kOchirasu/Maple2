@@ -5,10 +5,15 @@ using Maple2.File.Parser;
 using Maple2.File.Parser.Xml;
 using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Newtonsoft.Json;
+using ChatSticker = Maple2.File.Parser.Xml.Table.ChatSticker;
+using GuildBuff = Maple2.File.Parser.Xml.Table.GuildBuff;
+using GuildNpc = Maple2.File.Parser.Xml.Table.GuildNpc;
 using GuildNpcType = Maple2.Model.Enum.GuildNpcType;
 using InteractObject = Maple2.File.Parser.Xml.Table.InteractObject;
+using ItemSocket = Maple2.File.Parser.Xml.Table.ItemSocket;
 using JobTable = Maple2.Model.Metadata.JobTable;
 using MagicPath = Maple2.Model.Metadata.MagicPath;
 using MasteryType = Maple2.Model.Enum.MasteryType;
@@ -496,28 +501,28 @@ public class TableMapper : TypeMapper<TableMetadata> {
     private MasteryRecipeTable ParseMasteryRecipe() {
         var results = new Dictionary<int, MasteryRecipeTable.Entry>();
         foreach ((long id, MasteryRecipe recipe) in parser.ParseMasteryRecipe()) {
-            var requiredItems = new List<MasteryRecipeTable.Ingredient>();
-            MasteryRecipeTable.Ingredient? requiredItem1 = ParseMasteryIngredient(recipe.requireItem1);
+            var requiredItems = new List<ItemComponent>();
+            ItemComponent? requiredItem1 = ParseMasteryIngredient(recipe.requireItem1);
             if (requiredItem1 != null) requiredItems.Add(requiredItem1);
-            MasteryRecipeTable.Ingredient? requiredItem2 = ParseMasteryIngredient(recipe.requireItem2);
+            ItemComponent? requiredItem2 = ParseMasteryIngredient(recipe.requireItem2);
             if (requiredItem2 != null) requiredItems.Add(requiredItem2);
-            MasteryRecipeTable.Ingredient? requiredItem3 = ParseMasteryIngredient(recipe.requireItem3);
+            ItemComponent? requiredItem3 = ParseMasteryIngredient(recipe.requireItem3);
             if (requiredItem3 != null) requiredItems.Add(requiredItem3);
-            MasteryRecipeTable.Ingredient? requiredItem4 = ParseMasteryIngredient(recipe.requireItem4);
+            ItemComponent? requiredItem4 = ParseMasteryIngredient(recipe.requireItem4);
             if (requiredItem4 != null) requiredItems.Add(requiredItem4);
-            MasteryRecipeTable.Ingredient? requiredItem5 = ParseMasteryIngredient(recipe.requireItem5);
+            ItemComponent? requiredItem5 = ParseMasteryIngredient(recipe.requireItem5);
             if (requiredItem5 != null) requiredItems.Add(requiredItem5);
 
-            var rewardItems = new List<MasteryRecipeTable.Ingredient>();
-            MasteryRecipeTable.Ingredient? rewardItem1 = ParseMasteryIngredient(recipe.rewardItem1);
+            var rewardItems = new List<ItemComponent>();
+            ItemComponent? rewardItem1 = ParseMasteryIngredient(recipe.rewardItem1);
             if (rewardItem1 != null) rewardItems.Add(rewardItem1);
-            MasteryRecipeTable.Ingredient? rewardItem2 = ParseMasteryIngredient(recipe.rewardItem2);
+            ItemComponent? rewardItem2 = ParseMasteryIngredient(recipe.rewardItem2);
             if (rewardItem2 != null) rewardItems.Add(rewardItem2);
-            MasteryRecipeTable.Ingredient? rewardItem3 = ParseMasteryIngredient(recipe.rewardItem3);
+            ItemComponent? rewardItem3 = ParseMasteryIngredient(recipe.rewardItem3);
             if (rewardItem3 != null) rewardItems.Add(rewardItem3);
-            MasteryRecipeTable.Ingredient? rewardItem4 = ParseMasteryIngredient(recipe.rewardItem4);
+            ItemComponent? rewardItem4 = ParseMasteryIngredient(recipe.rewardItem4);
             if (rewardItem4 != null) rewardItems.Add(rewardItem4);
-            MasteryRecipeTable.Ingredient? rewardItem5 = ParseMasteryIngredient(recipe.rewardItem5);
+            ItemComponent? rewardItem5 = ParseMasteryIngredient(recipe.rewardItem5);
             if (rewardItem5 != null) rewardItems.Add(rewardItem5);
 
             var entry = new MasteryRecipeTable.Entry(
@@ -541,7 +546,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         return new MasteryRecipeTable(results);
     }
 
-    private static MasteryRecipeTable.Ingredient? ParseMasteryIngredient(IReadOnlyList<string> ingredientArray) {
+    private static ItemComponent? ParseMasteryIngredient(IReadOnlyList<string> ingredientArray) {
         if (ingredientArray.Count == 0 || ingredientArray[0] == "0") {
             return null;
         }
@@ -556,19 +561,19 @@ public class TableMapper : TypeMapper<TableMetadata> {
             amount = 1;
         }
 
-        return new MasteryRecipeTable.Ingredient(
+        return new ItemComponent(
             ItemId: id,
             Rarity: rarity,
             Amount: amount,
             Tag: string.IsNullOrWhiteSpace(tag) ? ItemTag.None : Enum.Parse<ItemTag>(tag));
     }
 
-    private static MasteryRecipeTable.Ingredient? ParseMasteryIngredient(IReadOnlyList<int> ingredientArray) {
+    private static ItemComponent? ParseMasteryIngredient(IReadOnlyList<int> ingredientArray) {
         if (ingredientArray.Count == 0 || ingredientArray[0] == 0) {
             return null;
         }
 
-        return new MasteryRecipeTable.Ingredient(
+        return new ItemComponent(
             ItemId: ingredientArray[0],
             Rarity: (short) ingredientArray[1],
             Amount: ingredientArray[2],
@@ -836,7 +841,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
     private ItemExchangeScrollTable ParseItemExchangeScrollTable() {
         var results = new Dictionary<int, ItemExchangeScrollMetadata>();
         foreach ((int id, ItemExchangeScroll scroll) in parser.ParseItemExchangeScroll()) {
-            var requiredItems = new List<Ingredient>();
+            var requiredItems = new List<ItemComponent>();
             foreach (ItemExchangeScroll.Item item in scroll.require.item) {
                 string[] idAndTag = item.id[0].Split(":");
                 int requiredItemId = int.Parse(idAndTag[0]);
@@ -847,7 +852,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 if (!int.TryParse(item.id[2], out int amount)) {
                     amount = 1;
                 }
-                requiredItems.Add(new Ingredient(
+                requiredItems.Add(new ItemComponent(
                     ItemId: requiredItemId,
                     Tag: string.IsNullOrWhiteSpace(requiredItemTag) ? ItemTag.None : Enum.Parse<ItemTag>(requiredItemTag),
                     Rarity: rarity,
@@ -855,12 +860,12 @@ public class TableMapper : TypeMapper<TableMetadata> {
             }
 
             results.Add(id, new ItemExchangeScrollMetadata(
-                RecipeScroll: new Ingredient(
+                RecipeScroll: new ItemComponent(
                     ItemId: scroll.receipe.id,
                     Rarity: (short) scroll.receipe.rank,
                     Amount: scroll.receipe.count,
                     Tag: ItemTag.None),
-                RewardItem: new Ingredient(
+                RewardItem: new ItemComponent(
                     ItemId: scroll.exchange.id,
                     Rarity: (short) scroll.exchange.rank,
                     Amount: scroll.exchange.count,

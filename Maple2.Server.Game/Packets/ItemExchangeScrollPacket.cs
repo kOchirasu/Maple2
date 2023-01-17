@@ -7,13 +7,13 @@ namespace Maple2.Server.Game.Packets;
 
 public static class ItemExchangeScrollPacket {
     private enum Command : byte {
-        Mode0 = 0,
+        Unknown0 = 0,
         Error = 2
     }
     
-    public static ByteWriter Mode0() {
+    public static ByteWriter Unknown0() {
         var pWriter = Packet.Of(SendOp.ItemExchange);
-        pWriter.Write<Command>(Command.Mode0);
+        pWriter.Write<Command>(Command.Unknown0);
         pWriter.WriteLong();
         pWriter.WriteLong();
         bool unk = true;

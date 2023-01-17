@@ -67,40 +67,12 @@ public class ItemExchangeScroll : PacketHandler<GameSession> {
                 return;
             }
             
-            // Check for ingredients
-            Dictionary<int, List<Item>> materialsById = scrollMetadata.RequiredItems.ToDictionary(
-                ingredient => ingredient.ItemId,
-                ingredient => session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList()
-            );
-            Dictionary<ItemTag, IList<Item>> materialsByTag = scrollMetadata.RequiredItems.ToDictionary(
-                ingredient => ingredient.Tag,
-                ingredient => session.Item.Inventory.Filter(item => item.Metadata.Property.Tag == ingredient.Tag)
-            );
-            
-            foreach (Ingredient ingredient in scrollMetadata.RequiredItems) {
-                int remaining = ingredient.Amount * quantity;
-                if (ingredient.Tag != ItemTag.None) {
-                    foreach (Item material in materialsByTag[ingredient.Tag]) {
-                        remaining -= material.Amount;
-                        if (remaining <= 0) {
-                            break;
-                        }
-                    }
-                } else {
-                    foreach (Item material in materialsById[ingredient.ItemId]) {
-                        remaining -= material.Amount;
-                        if (remaining <= 0) {
-                            break;
-                        }
-                    }
-                }
-
-                if (remaining > 0) {
-                    session.Send(ItemExchangeScrollPacket.Error(ItemExchangeScrollError.s_itemslot_exchange_count_invalid));
-                    return;
-                }
+            // Check and consume required items
+            if (!session.Item.Inventory.ConsumeItemComponents(scrollMetadata.RequiredItems, quantity)) {
+                session.Send(ItemExchangeScrollPacket.Error(ItemExchangeScrollError.s_itemslot_exchange_count_invalid));
+                return;
             }
-            
+
             // Consume scrolls
             int remainingScrolls = scrollMetadata.RecipeScroll.Amount * quantity;
             foreach (Item scroll in scrolls) {
@@ -108,38 +80,6 @@ public class ItemExchangeScroll : PacketHandler<GameSession> {
                 if (!session.Item.Inventory.Consume(scroll.Uid, consume)) {
                     Logger.Fatal("Failed to consume item {ItemUid}", scroll.Uid);
                     throw new InvalidOperationException($"Fatal: Consuming item: {scroll.Uid}");
-                }
-            }
-
-            // Consume ingredients
-            foreach (Ingredient ingredient in scrollMetadata.RequiredItems) {
-                int remainingIngredients = ingredient.Amount * quantity;
-                if (ingredient.Tag != ItemTag.None) {
-                    foreach (Item material in materialsByTag[ingredient.Tag]) {
-                        int consume = Math.Min(remainingIngredients, material.Amount);
-                        if (!session.Item.Inventory.Consume(material.Uid, consume)) {
-                            Logger.Fatal("Failed to consume item {ItemUid}", material.Uid);
-                            throw new InvalidOperationException($"Fatal: Consuming item: {material.Uid}");
-                        }
-
-                        remainingIngredients -= consume;
-                        if (remainingIngredients <= 0) {
-                            break;
-                        }
-                    }
-                } else {
-                    foreach (Item material in materialsById[ingredient.ItemId]) {
-                        int consume = Math.Min(remainingIngredients, material.Amount);
-                        if (!session.Item.Inventory.Consume(material.Uid, consume)) {
-                            Logger.Fatal("Failed to consume item {ItemUid}", material.Uid);
-                            throw new InvalidOperationException($"Fatal: Consuming item: {material.Uid}");
-                        }
-
-                        remainingIngredients -= consume;
-                        if (remainingIngredients <= 0) {
-                            break;
-                        }
-                    }
                 }
             }
         }

@@ -263,6 +263,76 @@ public class InventoryManager {
         }
     }
 
+    public bool ConsumeItemComponents(IReadOnlyList<ItemComponent> components, int quantityMultiplier = 1) {
+        lock (session.Item) {
+            
+            // Check for components
+            Dictionary<int, List<Item>> materialsById = components.ToDictionary(
+                ingredient => ingredient.ItemId,
+                ingredient => session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList()
+            );
+            Dictionary<ItemTag, IList<Item>> materialsByTag = components.ToDictionary(
+                ingredient => ingredient.Tag,
+                ingredient => session.Item.Inventory.Filter(item => item.Metadata.Property.Tag == ingredient.Tag)
+            );
+            
+            foreach (ItemComponent ingredient in components) {
+                int remaining = ingredient.Amount * quantityMultiplier;
+                if (ingredient.Tag != ItemTag.None) {
+                    foreach (Item material in materialsByTag[ingredient.Tag]) {
+                        remaining -= material.Amount;
+                        if (remaining <= 0) {
+                            break;
+                        }
+                    }
+                } else {
+                    foreach (Item material in materialsById[ingredient.ItemId]) {
+                        remaining -= material.Amount;
+                        if (remaining <= 0) {
+                            break;
+                        }
+                    }
+                }
+
+                if (remaining > 0) {
+                    return false;
+                }
+            }
+            
+            foreach (ItemComponent ingredient in components) {
+                int remainingIngredients = ingredient.Amount * quantityMultiplier;
+                if (ingredient.Tag != ItemTag.None) {
+                    foreach (Item material in materialsByTag[ingredient.Tag]) {
+                        int consume = Math.Min(remainingIngredients, material.Amount);
+                        if (!session.Item.Inventory.Consume(material.Uid, consume)) {
+                            Log.Fatal("Failed to consume item {ItemUid}", material.Uid);
+                            throw new InvalidOperationException($"Fatal: Consuming item: {material.Uid}");
+                        }
+
+                        remainingIngredients -= consume;
+                        if (remainingIngredients <= 0) {
+                            break;
+                        }
+                    }
+                } else {
+                    foreach (Item material in materialsById[ingredient.ItemId]) {
+                        int consume = Math.Min(remainingIngredients, material.Amount);
+                        if (!session.Item.Inventory.Consume(material.Uid, consume)) {
+                            Log.Fatal("Failed to consume item {ItemUid}", material.Uid);
+                            throw new InvalidOperationException($"Fatal: Consuming item: {material.Uid}");
+                        }
+
+                        remainingIngredients -= consume;
+                        if (remainingIngredients <= 0) {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
     public void Sort(InventoryType type, bool removeExpired = false) {
         lock (session.Item) {
             if (!tabs.TryGetValue(type, out ItemCollection? items)) {
