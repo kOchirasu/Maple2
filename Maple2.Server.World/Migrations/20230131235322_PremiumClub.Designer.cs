@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Maple2.Server.World.Migrations
 {
     [DbContext(typeof(Ms2Context))]
-    [Migration("20230110230511_PremiumClub")]
+    [Migration("20230131235322_PremiumClub")]
     partial class PremiumClub
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -51,6 +51,10 @@ namespace Maple2.Server.World.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(4);
+
+                    b.Property<string>("PremiumRewardsClaimed")
+                        .IsRequired()
+                        .HasColumnType("json");
 
                     b.Property<long>("PremiumTime")
                         .HasColumnType("bigint");
@@ -204,9 +208,6 @@ namespace Maple2.Server.World.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("PremiumRewardsClaimed")
-                        .HasColumnType("json");
-
                     b.Property<string>("SkillMacros")
                         .HasColumnType("json");
 
@@ -254,9 +255,6 @@ namespace Maple2.Server.World.Migrations
                     b.Property<string>("Pets")
                         .IsRequired()
                         .HasColumnType("json");
-
-                    b.Property<DateTime>("PremiumExpiration")
-                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Quests")
                         .IsRequired()

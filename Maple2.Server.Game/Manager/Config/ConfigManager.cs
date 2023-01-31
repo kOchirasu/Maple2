@@ -25,7 +25,6 @@ public class ConfigManager {
     private IList<SkillMacro> skillMacros;
     private IList<Wardrobe> wardrobes;
     private IList<int> favoriteStickers;
-    private IList<int> premiumItemsClaimed;
     private readonly IDictionary<LapenshardSlot, int> lapenshards;
     private readonly StatAttributes statAttributes;
 
@@ -44,7 +43,6 @@ public class ConfigManager {
             IList<SkillMacro>? Macros,
             IList<Wardrobe>? Wardrobes,
             IList<int>? FavoriteStickers,
-            IList<int>? PremiumItemsClaimed,
             IDictionary<LapenshardSlot, int>? Lapenshards,
             IDictionary<BasicAttribute, int>? Allocation,
             SkillBook? SkillBook
@@ -60,7 +58,6 @@ public class ConfigManager {
         skillMacros = load.Macros ?? new List<SkillMacro>();
         wardrobes = load.Wardrobes ?? new List<Wardrobe>();
         favoriteStickers = load.FavoriteStickers ?? new List<int>();
-        premiumItemsClaimed = load.PremiumItemsClaimed ?? new List<int>();
         lapenshards = load.Lapenshards ?? new Dictionary<LapenshardSlot, int>();
 
         statAttributes = new StatAttributes();
@@ -93,28 +90,18 @@ public class ConfigManager {
             session.Send(WardrobePacket.Load(i, wardrobes[i]));
         }
     }
-    
+
     #region PremiumClub
-    public void LoadPremiumClaimedItems() {
-        session.Send(PremiumCubPacket.LoadItems(premiumItemsClaimed));
-    }
-
-    public bool TryAddPremiumItem(int id) {
-        if (premiumItemsClaimed.Contains(id)) {
-            return false;
+    public void UpdatePremiumTime(long hours) {
+        if (session.Player.Value.Account.PremiumTime < DateTime.Now.ToEpochSeconds()) {
+            session.Player.Value.Account.PremiumTime = DateTime.Now.AddHours(hours).ToEpochSeconds();
+            session.Send(NoticePacket.Notice(NoticePacket.Flags.Message | NoticePacket.Flags.Alert, StringCode.s_vip_coupon_new_msg));
+        } else {
+            session.Player.Value.Account.PremiumTime = Math.Min(session.Player.Value.Account.PremiumTime.FromEpochSeconds().AddHours(hours).ToEpochSeconds(), long.MaxValue);
+            session.Send(NoticePacket.Notice(NoticePacket.Flags.Message | NoticePacket.Flags.Alert, StringCode.s_vip_coupon_extend_msg));
         }
-        
-        premiumItemsClaimed.Add(id);
-        return true;
-    }
 
-    public void ActivatePremium(long addHours = 0) {
-        if (addHours > 0) {
-            session.Player.Value.Unlock.PremiumExpiration = session.Player.Value.Unlock.PremiumExpiration < DateTime.Now ? DateTime.Now.AddHours(addHours) : 
-                session.Player.Value.Unlock.PremiumExpiration.AddHours(addHours);
-        }
-        
-        session.Send(PremiumCubPacket.Activate(session.Player.ObjectId, session.Player.Value.Unlock.PremiumExpiration.ToEpochSeconds()));
+        session.Send(PremiumCubPacket.Activate(session.Player.ObjectId, session.Player.Value.Account.PremiumTime));
     }
     #endregion
 
@@ -364,7 +351,6 @@ public class ConfigManager {
             skillMacros,
             wardrobes,
             favoriteStickers,
-            premiumItemsClaimed,
             lapenshards,
             statAttributes.Allocation,
             Skill.SkillBook

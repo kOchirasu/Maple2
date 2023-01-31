@@ -50,6 +50,10 @@ namespace Maple2.Server.World.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(4);
 
+                    b.Property<string>("PremiumRewardsClaimed")
+                        .IsRequired()
+                        .HasColumnType("json");
+
                     b.Property<long>("PremiumTime")
                         .HasColumnType("bigint");
 
@@ -202,9 +206,6 @@ namespace Maple2.Server.World.Migrations
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("PremiumRewardsClaimed")
-                        .HasColumnType("json");
-
                     b.Property<string>("SkillMacros")
                         .HasColumnType("json");
 
@@ -252,9 +253,6 @@ namespace Maple2.Server.World.Migrations
                     b.Property<string>("Pets")
                         .IsRequired()
                         .HasColumnType("json");
-
-                    b.Property<DateTime>("PremiumExpiration")
-                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Quests")
                         .IsRequired()

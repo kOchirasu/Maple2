@@ -21,7 +21,6 @@ internal class CharacterUnlock {
     public required IList<FishEntry> FishAlbum { get; set; }
     public required IList<Quest> Quests { get; set; }
     public required InventoryExpand Expand { get; set; }
-    public DateTime PremiumExpiration { get; set; }
     public DateTime LastModified { get; init; }
 
     public static implicit operator CharacterUnlock(Maple2.Model.Game.Unlock? other) {
@@ -38,7 +37,6 @@ internal class CharacterUnlock {
             Expand = new InventoryExpand(),
         } : new CharacterUnlock {
             LastModified = other.LastModified,
-            PremiumExpiration = other.PremiumExpiration,
             Expand = new InventoryExpand {
                 Gear = other.Expand.GetValueOrDefault(InventoryType.Gear),
                 Outfit = other.Expand.GetValueOrDefault(InventoryType.Outfit),
@@ -75,7 +73,6 @@ internal class CharacterUnlock {
 
         var unlock = new Maple2.Model.Game.Unlock {
             LastModified = other.LastModified,
-            PremiumExpiration = other.PremiumExpiration,
             Expand = new Dictionary<InventoryType, short> {
                 {InventoryType.Gear, other.Expand.Gear},
                 {InventoryType.Outfit, other.Expand.Outfit},

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Maple2.Database.Extensions;
 using Maple2.Database.Storage;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
@@ -50,13 +51,13 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
     }
 
     private void HandleLoadClaimedItems(GameSession session) {
-        session.Config.LoadPremiumClaimedItems();
+        session.Send(PremiumCubPacket.LoadItems(session.Player.Value.Account.PremiumRewardsClaimed));
     }
 
     private void HandleClaimItem(GameSession session, IByteReader packet) {
         int benefitId = packet.ReadInt();
 
-        if (session.Player.Value.Unlock.PremiumExpiration < DateTime.Now) {
+        if (session.Player.Value.Account.PremiumTime < DateTime.Now.ToEpochSeconds()) {
             return;
         }
 
@@ -70,9 +71,11 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (!session.Config.TryAddPremiumItem(benefitId)) {
+        if (session.Player.Value.Account.PremiumRewardsClaimed.Contains(benefitId)) {
             return;
         }
+        
+        session.Player.Value.Account.PremiumRewardsClaimed.Add(benefitId);
 
         session.Item.Inventory.Add(item, true);
         session.Send(PremiumCubPacket.ClaimItem(benefitId));
@@ -110,6 +113,6 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
         }
         
         session.Send(PremiumCubPacket.PurchasePackage(packageId));
-        session.Config.ActivatePremium(premiumMetadata.Period);
+        session.Config.UpdatePremiumTime(premiumMetadata.Period);
     }
 }

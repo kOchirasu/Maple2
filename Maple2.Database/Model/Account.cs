@@ -18,6 +18,7 @@ internal class Account {
     public long PrestigeExp { get; set; }
     public Trophy Trophy { get; set; }
     public long PremiumTime { get; set; }
+    public IList<int> PremiumRewardsClaimed { get; set; } // TODO: clear list on daily reset
     public required AccountCurrency Currency { get; set; }
     public required MarketLimits MarketLimits { get; set; }
 
@@ -38,6 +39,7 @@ internal class Account {
             PrestigeExp = other.PrestigeExp,
             Trophy = other.Trophy,
             PremiumTime = other.PremiumTime,
+            PremiumRewardsClaimed = other.PremiumRewardsClaimed,
             Currency = new AccountCurrency(),
             MarketLimits = new MarketLimits {
                 MesoListed = other.MesoMarketListed,
@@ -62,6 +64,7 @@ internal class Account {
             PrestigeExp = other.PrestigeExp,
             Trophy = other.Trophy,
             PremiumTime = other.PremiumTime,
+            PremiumRewardsClaimed = other.PremiumRewardsClaimed,
             MesoMarketListed = other.MarketLimits.MesoListed,
             MesoMarketPurchased = other.MarketLimits.MesoPurchased,
         };
@@ -78,6 +81,7 @@ internal class Account {
         builder.Property(account => account.Trophy).HasJsonConversion().IsRequired();
         builder.Property(account => account.Currency).HasJsonConversion().IsRequired();
         builder.Property(account => account.MarketLimits).HasJsonConversion().IsRequired();
+        builder.Property(account => account.PremiumRewardsClaimed).HasJsonConversion();
 
         builder.Property(account => account.LastModified).IsRowVersion();
         IMutableProperty creationTime = builder.Property(account => account.CreationTime)

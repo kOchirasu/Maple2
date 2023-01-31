@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Maple2.Database.Extensions;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
@@ -37,7 +38,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (item.Metadata.Limit.RequireVip && session.Player.Value.Unlock.PremiumExpiration < DateTime.Now) {
+        if (item.Metadata.Limit.RequireVip && session.Player.Value.Account.PremiumTime < DateTime.Now.ToEpochSeconds()) {
             return;
         }
 
@@ -68,6 +69,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
                 break;
             case ItemFunction.ChangeCharName:
                 HandleChangeCharacterName(session, packet, item);
+                break;
+            case ItemFunction.VIPCoupon:
+                HandlePremiumClubCoupon(session, item);
                 break;
             default:
                 Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
@@ -253,7 +257,8 @@ public class ItemUseHandler : PacketHandler<GameSession> {
                 CharacterId = receiverInfo.CharacterId,
                 MailId = receiverMail.Id,
             });
-        } catch { /* ignored */ }
+        } catch { /* ignored */
+        }
 
         session.Item.Inventory.Add(selfBadge, true);
         session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_mail_send_partner, receiverInfo.Name)));
@@ -273,12 +278,12 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
     private void HandleChangeCharacterName(GameSession session, IByteReader packet, Item item) {
         string newName = packet.ReadUnicodeString();
-        
+
         if (newName.Length < Constant.CharacterNameLengthMin) {
             session.Send(CharacterListPacket.CreateError(s_char_err_name));
             return;
         }
-        
+
         if (newName.Length > Constant.CharacterNameLengthMax) {
             session.Send(CharacterListPacket.CreateError(s_char_err_system));
             return;
@@ -303,5 +308,19 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             Name = newName,
         });
         session.Send(CharacterListPacket.NameChanged(session.CharacterId, newName));
+    }
+
+    private void HandlePremiumClubCoupon(GameSession session, Item item) {
+        Dictionary<string, string> parameters = XmlParseUtil.GetParameters(item.Metadata.Function?.Parameters);
+
+        if (!parameters.ContainsKey("period") || !int.TryParse(parameters["period"], out int hours)) {
+            return;
+        }
+
+        if (!session.Item.Inventory.Consume(item.Uid, 1)) {
+            return;
+        }
+
+        session.Config.UpdatePremiumTime(hours);
     }
 }
