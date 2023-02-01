@@ -22,7 +22,7 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
         LoadPackages = 3,
         PurchasePackage = 4
     }
-    
+
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
     public required ItemMetadataStorage ItemMetadata { private get; init; }
@@ -59,11 +59,11 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (!TableMetadata.PremiumClubTable.Items.TryGetValue(benefitId, out PremiumClubTable.Item? premiumMetadata) || 
+        if (!TableMetadata.PremiumClubTable.Items.TryGetValue(benefitId, out PremiumClubTable.Item? premiumMetadata) ||
             !ItemMetadata.TryGet(premiumMetadata.Id, out ItemMetadata? itemMetadata)) {
             return;
         }
-        
+
         var item = new Item(itemMetadata, premiumMetadata.Rarity, premiumMetadata.Amount);
         if (!session.Item.Inventory.CanAdd(item)) {
             return;
@@ -72,13 +72,13 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
         if (session.Player.Value.Account.PremiumRewardsClaimed.Contains(benefitId)) {
             return;
         }
-        
+
         session.Player.Value.Account.PremiumRewardsClaimed.Add(benefitId);
 
         session.Item.Inventory.Add(item, true);
         session.Send(PremiumCubPacket.ClaimItem(benefitId));
     }
-    
+
     private void HandleLoadPackages(GameSession session) {
         session.Send(PremiumCubPacket.LoadPackages());
     }
@@ -89,15 +89,15 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
         if (!TableMetadata.PremiumClubTable.Packages.TryGetValue(packageId, out PremiumClubTable.Package? premiumMetadata)) {
             return;
         }
-        
+
         if (premiumMetadata.Disabled) {
             return;
         }
-        
+
         if (DateTime.Now.ToEpochSeconds() < premiumMetadata.StartDate || DateTime.Now.ToEpochSeconds() > premiumMetadata.EndDate) {
             return;
         }
-        
+
         if (session.Currency.Meret < premiumMetadata.Price) {
             session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert | NoticePacket.Flags.Message, StringCode.s_err_lack_merat));
             return;
@@ -109,7 +109,7 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
             if (!ItemMetadata.TryGet(item.Id, out ItemMetadata? itemMetadata)) {
                 continue;
             }
-            
+
             var bonusItem = new Item(itemMetadata, item.Rarity, item.Amount);
             if (!session.Item.Inventory.CanAdd(bonusItem)) {
                 // Mail?
@@ -118,7 +118,7 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
 
             session.Item.Inventory.Add(bonusItem, true);
         }
-        
+
         session.Send(PremiumCubPacket.PurchasePackage(packageId));
         session.Config.UpdatePremiumTime(premiumMetadata.Period);
     }
