@@ -73,7 +73,7 @@ public class MasteryHandler : PacketHandler<GameSession> {
         }
 
         session.Player.Value.Unlock.MasteryRewardsClaimed.Add(rewardBoxDetails, true);
-        session.Send(MasteryPacket.ClaimReward(rewardBoxDetails, new List<MasteryRecipeTable.Ingredient>() {
+        session.Send(MasteryPacket.ClaimReward(rewardBoxDetails, new List<ItemComponent>() {
             new(entry.ItemId, (short) entry.ItemRarity, entry.ItemRarity, ItemTag.None),
         }));
     }
@@ -96,70 +96,9 @@ public class MasteryHandler : PacketHandler<GameSession> {
             return;
         }
 
-        Dictionary<int, List<Item>> materialsById = entry.RequiredItems.ToDictionary(
-            ingredient => ingredient.ItemId,
-            ingredient => session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList()
-        );
-        Dictionary<ItemTag, IList<Item>> materialsByTag = entry.RequiredItems.ToDictionary(
-            ingredient => ingredient.Tag,
-            ingredient => session.Item.Inventory.Filter(item => item.Metadata.Property.Tag == ingredient.Tag)
-        );
-
-        lock (session.Item) {
-            foreach (MasteryRecipeTable.Ingredient ingredient in entry.RequiredItems) {
-                int remaining = ingredient.Amount;
-                if (ingredient.Tag != ItemTag.None) {
-                    foreach (Item material in materialsByTag[ingredient.Tag]) {
-                        remaining -= material.Amount;
-                        if (remaining <= 0) {
-                            break;
-                        }
-                    }
-                } else {
-                    foreach (Item material in materialsById[ingredient.ItemId]) {
-                        remaining -= material.Amount;
-                        if (remaining <= 0) {
-                            break;
-                        }
-                    }
-                }
-
-                if (remaining > 0) {
-                    session.Send(MasteryPacket.Error(MasteryError.s_mastery_error_lack_item));
-                    return;
-                }
-            }
-
-            foreach (MasteryRecipeTable.Ingredient ingredient in entry.RequiredItems) {
-                int remaining = ingredient.Amount;
-                if (ingredient.Tag != ItemTag.None) {
-                    foreach (Item material in materialsByTag[ingredient.Tag]) {
-                        int consume = Math.Min(remaining, material.Amount);
-                        if (!session.Item.Inventory.Consume(material.Uid, consume)) {
-                            Logger.Fatal("Failed to consume item {ItemUid}", material.Uid);
-                            throw new InvalidOperationException($"Fatal: Consuming item: {material.Uid}");
-                        }
-
-                        remaining -= consume;
-                        if (remaining <= 0) {
-                            break;
-                        }
-                    }
-                } else {
-                    foreach (Item material in materialsById[ingredient.ItemId]) {
-                        int consume = Math.Min(remaining, material.Amount);
-                        if (!session.Item.Inventory.Consume(material.Uid, consume)) {
-                            Logger.Fatal("Failed to consume item {ItemUid}", material.Uid);
-                            throw new InvalidOperationException($"Fatal: Consuming item: {material.Uid}");
-                        }
-
-                        remaining -= consume;
-                        if (remaining <= 0) {
-                            break;
-                        }
-                    }
-                }
-            }
+        if (!session.Item.Inventory.ConsumeItemComponents(entry.RequiredItems)) {
+            session.Send(MasteryPacket.Error(MasteryError.s_mastery_error_lack_item));
+            return;
         }
 
         session.Currency.Meso -= entry.RequiredMeso;
@@ -168,7 +107,7 @@ public class MasteryHandler : PacketHandler<GameSession> {
             session.Mastery[entry.Type] += entry.RewardMastery;
         }
 
-        foreach (MasteryRecipeTable.Ingredient rewardItem in entry.RewardItems) {
+        foreach (ItemComponent rewardItem in entry.RewardItems) {
             if (!ItemMetadata.TryGet(rewardItem.ItemId, out ItemMetadata? itemMetadata)) {
                 continue;
             }
@@ -179,7 +118,7 @@ public class MasteryHandler : PacketHandler<GameSession> {
             }
             session.Item.Inventory.Add(item, true);
         }
-        session.Send(MasteryPacket.GetCraftedItem(entry.Type, (ICollection<MasteryRecipeTable.Ingredient>) entry.RewardItems));
+        session.Send(MasteryPacket.GetCraftedItem(entry.Type, (ICollection<ItemComponent>) entry.RewardItems));
 
     }
 }

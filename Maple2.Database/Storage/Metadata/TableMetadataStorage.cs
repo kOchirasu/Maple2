@@ -29,6 +29,7 @@ public class TableMetadataStorage {
     private readonly Lazy<ItemRemakeScrollTable> itemRemakeScrollTable;
     private readonly Lazy<ItemRepackingScrollTable> itemRepackingScrollTable;
     private readonly Lazy<ItemSocketScrollTable> itemSocketScrollTable;
+    private readonly Lazy<ItemExchangeScrollTable> itemExchangeScrollTable;
 
     private readonly Lazy<ItemOptionConstantTable> itemOptionConstantTable;
     private readonly Lazy<ItemOptionRandomTable> itemOptionRandomTable;
@@ -64,6 +65,7 @@ public class TableMetadataStorage {
     public ItemRemakeScrollTable ItemRemakeScrollTable => itemRemakeScrollTable.Value;
     public ItemRepackingScrollTable ItemRepackingScrollTable => itemRepackingScrollTable.Value;
     public ItemSocketScrollTable ItemSocketScrollTable => itemSocketScrollTable.Value;
+    public ItemExchangeScrollTable ItemExchangeScrollTable => itemExchangeScrollTable.Value;
 
     public ItemOptionConstantTable ItemOptionConstantTable => itemOptionConstantTable.Value;
     public ItemOptionRandomTable ItemOptionRandomTable => itemOptionRandomTable.Value;
@@ -99,6 +101,7 @@ public class TableMetadataStorage {
         itemRemakeScrollTable = Retrieve<ItemRemakeScrollTable>(context, "itemremakescroll.xml");
         itemRepackingScrollTable = Retrieve<ItemRepackingScrollTable>(context, "itemrepackingscroll.xml");
         itemSocketScrollTable = Retrieve<ItemSocketScrollTable>(context, "itemsocketscroll.xml");
+        itemExchangeScrollTable = Retrieve<ItemExchangeScrollTable>(context, "itemexchangescrolltable.xml");
         itemOptionConstantTable = Retrieve<ItemOptionConstantTable>(context, "itemoptionconstant.xml");
         itemOptionRandomTable = Retrieve<ItemOptionRandomTable>(context, "itemoptionrandom.xml");
         itemOptionStaticTable = Retrieve<ItemOptionStaticTable>(context, "itemoptionstatic.xml");

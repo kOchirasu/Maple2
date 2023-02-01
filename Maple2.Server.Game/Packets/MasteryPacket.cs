@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -26,27 +27,27 @@ public static class MasteryPacket {
         return pWriter;
     }
 
-    public static ByteWriter ClaimReward(int rewardBoxDetails, ICollection<MasteryRecipeTable.Ingredient> items) {
+    public static ByteWriter ClaimReward(int rewardBoxDetails, ICollection<ItemComponent> items) {
         var pWriter = Packet.Of(SendOp.Mastery);
         pWriter.Write<Command>(Command.ClaimReward);
         pWriter.WriteInt(rewardBoxDetails);
         pWriter.WriteInt(items.Count);
-        foreach (MasteryRecipeTable.Ingredient item in items) {
+        foreach (ItemComponent item in items) {
             pWriter.WriteInt(item.ItemId);
-            pWriter.WriteShort(item.Rarity);
+            pWriter.WriteShort((short) item.Rarity);
         }
 
         return pWriter;
     }
 
-    public static ByteWriter GetCraftedItem(MasteryType type, ICollection<MasteryRecipeTable.Ingredient> items) {
+    public static ByteWriter GetCraftedItem(MasteryType type, ICollection<ItemComponent> items) {
         var pWriter = Packet.Of(SendOp.Mastery);
         pWriter.Write<Command>(Command.GetCraftedItem);
         pWriter.WriteShort((short) type);
         pWriter.WriteInt(items.Count);
-        foreach (MasteryRecipeTable.Ingredient item in items) {
+        foreach (ItemComponent item in items) {
             pWriter.WriteInt(item.ItemId);
-            pWriter.WriteShort(item.Rarity);
+            pWriter.WriteShort((short) item.Rarity);
         }
 
         return pWriter;
