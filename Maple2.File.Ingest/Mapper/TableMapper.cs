@@ -880,7 +880,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         return new ItemExchangeScrollTable(results);
     }
 
-	private PremiumClubTable ParsePremiumClubTable() {
+    private PremiumClubTable ParsePremiumClubTable() {
         var premiumClubBuffs = new Dictionary<int, PremiumClubTable.Buff>();
         foreach ((int id, PremiumClubEffect buff) in parser.ParsePremiumClubEffect()) {
             premiumClubBuffs.Add(id, new PremiumClubTable.Buff(

@@ -55,7 +55,7 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
     private void HandleClaimItem(GameSession session, IByteReader packet) {
         int benefitId = packet.ReadInt();
 
-        if (session.Player.Value.Account.PremiumTime < DateTime.Now.ToEpochSeconds()) {
+        if (session.Player.Value.Account.PremiumTime < DateTimeOffset.UtcNow.ToUnixTimeSeconds()) {
             return;
         }
 
@@ -94,7 +94,7 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (DateTime.Now.ToEpochSeconds() < premiumMetadata.StartDate || DateTime.Now.ToEpochSeconds() > premiumMetadata.EndDate) {
+        if (DateTimeOffset.UtcNow.ToUnixTimeSeconds() < premiumMetadata.StartDate || DateTimeOffset.UtcNow.ToUnixTimeSeconds() > premiumMetadata.EndDate) {
             return;
         }
 

@@ -38,7 +38,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (item.Metadata.Limit.RequireVip && session.Player.Value.Account.PremiumTime < DateTime.Now.ToEpochSeconds()) {
+        if (item.Metadata.Limit.RequireVip && session.Player.Value.Account.PremiumTime < DateTimeOffset.UtcNow.ToUnixTimeSeconds()) {
             return;
         }
 
