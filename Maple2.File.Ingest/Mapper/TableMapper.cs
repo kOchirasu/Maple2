@@ -879,7 +879,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
         return new ItemExchangeScrollTable(results);
     }
-	
+
 	private PremiumClubTable ParsePremiumClubTable() {
         var premiumClubBuffs = new Dictionary<int, PremiumClubTable.Buff>();
         foreach ((int id, PremiumClubEffect buff) in parser.ParsePremiumClubEffect()) {
@@ -918,6 +918,6 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 BonusItems: items));
         }
 
-        return new PremiumClubTable(premiumClubBuffs, premiumClubItems, premiumClubPackages);
-		}
+        return new PremiumClubTable(premiumClubBuffs, premiumClubItems, premiumClubPackages); 
+    }
 }
