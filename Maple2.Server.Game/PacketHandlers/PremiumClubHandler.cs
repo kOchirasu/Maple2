@@ -1,17 +1,15 @@
 ﻿using System;
-using System.Numerics;
 using Maple2.Database.Extensions;
 using Maple2.Database.Storage;
-using Maple2.Model.Error;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
-using Maple2.Server.Game.Model;
+using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using static Maple2.Model.Error.BuddyEmoteError;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -92,10 +90,19 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
             return;
         }
         
-        if (session.Currency.Meret < premiumMetadata.Price) {
+        if (premiumMetadata.Disabled) {
             return;
         }
         
+        if (DateTime.Now.ToEpochSeconds() < premiumMetadata.StartDate || DateTime.Now.ToEpochSeconds() > premiumMetadata.EndDate) {
+            return;
+        }
+        
+        if (session.Currency.Meret < premiumMetadata.Price) {
+            session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert | NoticePacket.Flags.Message, StringCode.s_err_lack_merat));
+            return;
+        }
+
         session.Currency.Meret -= premiumMetadata.Price;
 
         foreach (PremiumClubTable.Item item in premiumMetadata.BonusItems) {
