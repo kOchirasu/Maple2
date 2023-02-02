@@ -1,11 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model;
 using Maple2.Model.Enum;
+using Maple2.Model.Game.Event;
 using Maple2.Model.Metadata;
 using Item = Maple2.Model.Game.Item;
 using PetConfig = Maple2.Model.Game.PetConfig;
+using TrafficOptimizer = Maple2.Model.Game.Event.TrafficOptimizer;
 using UgcItemLook = Maple2.Model.Game.UgcItemLook;
 
 namespace Maple2.Database.Storage;
@@ -17,6 +20,37 @@ public partial class GameStorage {
             model.OwnerId = ownerId;
             model.Id = 0;
             Context.Item.Add(model);
+
+
+            GameEvent gameEvent = new GameEvent() {
+                BeginTime = DateTime.UtcNow.ToEpochSeconds(),
+                EndTime = DateTime.UtcNow.AddDays(30).ToEpochSeconds(),
+                EventInfo = new TrafficOptimizer() {
+                    GuideObjectSyncInterval = 300,
+                    LinearMovementInterval = 300,
+                    RideSyncInterval = 300,
+                    UserSyncInterval = 300,
+                    Name = nameof(TrafficOptimizer),
+                },
+                Name = nameof(TrafficOptimizer),
+            };
+
+            Model.Event.GameEvent gamemodel = gameEvent;
+            Context.GameEvent.Add(gamemodel);
+            Context.TrySaveChanges();
+
+            GameEvent fieldPopup = new GameEvent {
+                BeginTime = DateTime.UtcNow.ToEpochSeconds(),
+                EndTime = DateTime.UtcNow.AddDays(30).ToEpochSeconds(),
+                EventInfo = new EventFieldPopup() {
+                    MapId = 63000055,
+                    Name = nameof(EventFieldPopup),
+                },
+                Name = nameof(EventFieldPopup),
+            };
+            Model.Event.GameEvent fieldPopupModel = fieldPopup;
+            Context.GameEvent.Add(fieldPopupModel);
+            Context.TrySaveChanges();
 
             return Context.TrySaveChanges() ? ToItem(model) : null;
         }

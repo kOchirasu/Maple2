@@ -1,16 +1,29 @@
 ﻿using Maple2.PacketLib.Tools;
 using Maple2.Tools;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game.Event;
 
-public abstract class GameEvent : IByteSerializable {
-    public readonly string Name;
-
-    protected GameEvent(string name) {
-        Name = name;
-    }
-
+public class GameEvent {
+    public int Id { get; init; }
+    public string Name { get; init; }
+    public long BeginTime { get; init; }
+    public long EndTime { get; init; }
+    public GameEventInfo EventInfo { get; init; }
+    
     public virtual void WriteTo(IByteWriter writer) {
         writer.WriteUnicodeString(Name);
+    }
+}
+
+public abstract class GameEventInfo : IByteSerializable {
+    public int Id;
+    public string Name;
+    protected GameEventInfo(string name) {
+        Name = name;
+    }
+    
+    public virtual void WriteTo(IByteWriter writer) {
+        writer.WriteClass<GameEventInfo>(this);
     }
 }
