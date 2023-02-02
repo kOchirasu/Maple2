@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Maple2.Database.Extensions;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
@@ -89,6 +90,20 @@ public class ConfigManager {
             session.Send(WardrobePacket.Load(i, wardrobes[i]));
         }
     }
+
+    #region PremiumClub
+    public void UpdatePremiumTime(long hours) {
+        if (session.Player.Value.Account.PremiumTime < DateTime.Now.ToEpochSeconds()) {
+            session.Player.Value.Account.PremiumTime = DateTime.Now.AddHours(hours).ToEpochSeconds();
+            session.Send(NoticePacket.Notice(NoticePacket.Flags.Message | NoticePacket.Flags.Alert, StringCode.s_vip_coupon_new_msg));
+        } else {
+            session.Player.Value.Account.PremiumTime = Math.Min(session.Player.Value.Account.PremiumTime.FromEpochSeconds().AddHours(hours).ToEpochSeconds(), long.MaxValue);
+            session.Send(NoticePacket.Notice(NoticePacket.Flags.Message | NoticePacket.Flags.Alert, StringCode.s_vip_coupon_extend_msg));
+        }
+
+        session.Send(PremiumCubPacket.Activate(session.Player.ObjectId, session.Player.Value.Account.PremiumTime));
+    }
+    #endregion
 
     #region ChatStickers
     public void LoadChatStickers() {

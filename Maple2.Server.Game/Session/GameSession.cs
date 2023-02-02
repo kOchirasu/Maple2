@@ -278,7 +278,8 @@ public sealed partial class GameSession : Core.Network.Session {
         Send(RevivalPacket.Count(0)); // TODO: Consumed daily revivals?
         Send(RevivalPacket.Confirm(Player));
         Config.LoadStatAttributes();
-
+        Send(PremiumCubPacket.Activate(Player.ObjectId, Player.Value.Account.PremiumTime));
+        Send(PremiumCubPacket.LoadItems(Player.Value.Account.PremiumRewardsClaimed));
         return true;
     }
 
