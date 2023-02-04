@@ -10,7 +10,7 @@ public class GameEvent {
     public long BeginTime { get; init; }
     public long EndTime { get; init; }
     public GameEventInfo EventInfo { get; init; }
-    
+
     public virtual void WriteTo(IByteWriter writer) {
         writer.WriteUnicodeString(Name);
     }
@@ -22,8 +22,6 @@ public abstract class GameEventInfo : IByteSerializable {
     protected GameEventInfo() {
         Name = this.GetType().Name;
     }
-    
-    public virtual void WriteTo(IByteWriter writer) {
-        writer.WriteClass<GameEventInfo>(this);
-    }
+
+    public abstract void WriteTo(IByteWriter writer);
 }
