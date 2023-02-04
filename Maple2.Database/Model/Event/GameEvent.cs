@@ -33,21 +33,7 @@ internal class GameEvent {
             Name = other.Name,
             BeginTime = other.BeginTime.ToEpochSeconds(),
             EndTime = other.EndTime.ToEpochSeconds(),
-            EventInfo = other.EventInfo switch {
-                TrafficOptimizer trafficOptimizer => new Maple2.Model.Game.Event.TrafficOptimizer {
-                    Id = trafficOptimizer.Id,
-                    Name = trafficOptimizer.Name,
-                    GuideObjectSyncInterval = trafficOptimizer.GuideObjectSyncInterval,
-                    RideSyncInterval = trafficOptimizer.RideSyncInterval,
-                    UserSyncInterval = trafficOptimizer.UserSyncInterval,
-                    LinearMovementInterval = trafficOptimizer.LinearMovementInterval,
-                },
-                EventFieldPopup fieldPopup => new Maple2.Model.Game.Event.EventFieldPopup {
-                    Id = fieldPopup.Id,
-                    Name = fieldPopup.Name,
-                    MapId = fieldPopup.MapId,
-                },
-            },
+            EventInfo = other.EventInfo,
         };
     }
     
@@ -87,8 +73,6 @@ internal abstract class GameEventInfo {
     
     [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator Maple2.Model.Game.Event.GameEventInfo?(GameEventInfo? other) {
-        
-        // switch expression of GameEventInfo type
         return other switch {
             TrafficOptimizer trafficOptimizer => new Maple2.Model.Game.Event.TrafficOptimizer {
                 Id = trafficOptimizer.Id,
@@ -104,61 +88,6 @@ internal abstract class GameEventInfo {
                 MapId = fieldPopup.MapId,
             },
             _ => null,
-        };
-    }
-}
-
-// TODO: Move this over to its own separate cs file
-
-internal class TrafficOptimizer : GameEventInfo {
-    public int GuideObjectSyncInterval { get; set; }
-    public int RideSyncInterval { get; set; }
-    public int LinearMovementInterval { get; set; }
-    public int UserSyncInterval { get; set; }
-    
-    [return: NotNullIfNotNull(nameof(other))]
-    public static implicit operator TrafficOptimizer?(Maple2.Model.Game.Event.TrafficOptimizer? other) {
-        return other == null ? null : new TrafficOptimizer {
-            Id = other.Id,
-            Name = other.Name,
-            GuideObjectSyncInterval = other.GuideObjectSyncInterval,
-            RideSyncInterval = other.RideSyncInterval,
-            LinearMovementInterval = other.LinearMovementInterval,
-            UserSyncInterval = other.UserSyncInterval,
-        };
-    }
-    
-    [return: NotNullIfNotNull(nameof(other))]
-    public static implicit operator Maple2.Model.Game.Event.TrafficOptimizer?(TrafficOptimizer? other) {
-        return other == null ? null : new Maple2.Model.Game.Event.TrafficOptimizer {
-            Id = other.Id,
-            Name = other.Name,
-            GuideObjectSyncInterval = other.GuideObjectSyncInterval,
-            RideSyncInterval = other.RideSyncInterval,
-            LinearMovementInterval = other.LinearMovementInterval,
-            UserSyncInterval = other.UserSyncInterval,
-        };
-    }
-}
-
-internal class EventFieldPopup : GameEventInfo {
-    public int MapId { get; set; }
-    
-    [return: NotNullIfNotNull(nameof(other))]
-    public static implicit operator EventFieldPopup?(Maple2.Model.Game.Event.EventFieldPopup? other) {
-        return other == null ? null : new EventFieldPopup {
-            Id = other.Id,
-            Name = other.Name,
-            MapId = other.MapId,
-        };
-    }
-    
-    [return: NotNullIfNotNull(nameof(other))]
-    public static implicit operator Maple2.Model.Game.Event.EventFieldPopup?(EventFieldPopup? other) {
-        return other == null ? null : new Maple2.Model.Game.Event.EventFieldPopup {
-            Id = other.Id,
-            Name = other.Name,
-            MapId = other.MapId,
         };
     }
 }

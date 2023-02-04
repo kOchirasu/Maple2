@@ -10,8 +10,6 @@ public class TrafficOptimizer : GameEventInfo {
     public int RideSyncInterval;
     public int LinearMovementInterval;
     public int UserSyncInterval;
-    
-    public TrafficOptimizer() : base(nameof(TrafficOptimizer)) { }
 
     public override void WriteTo(IByteWriter writer) {
         writer.WriteInt(Id);

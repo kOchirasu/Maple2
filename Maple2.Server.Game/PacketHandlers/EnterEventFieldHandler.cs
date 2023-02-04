@@ -15,14 +15,14 @@ public class EnterEventFieldHandler : PacketHandler<GameSession> {
     
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
-    public required GameStorage GameStorage { get; init; }
+    public required GameStorage GameStorage { private get; init; }
     // ReSharper restore All
     #endregion
     
     public override void Handle(GameSession session, IByteReader packet) {
         using GameStorage.Request db = GameStorage.Context();
         GameEvent? gameEvent = db.FindEvent(nameof(EventFieldPopup));
-        if (gameEvent is not {EventInfo: EventFieldPopup fieldPopup}) {
+        if (gameEvent?.EventInfo is not EventFieldPopup fieldPopup) {
             session.Send(ChatPacket.Alert(StringCode.s_err_timeevent_move_field));
             return;
         }

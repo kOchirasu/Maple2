@@ -32,6 +32,7 @@ public static class GameEventPacket {
         pWriter.Write<Command>(Command.Unknown1);
         pWriter.WriteInt(gameEvents.Count);
         foreach (GameEvent gameEvent in gameEvents) {
+            pWriter.WriteUnicodeString(gameEvent.Name);
             pWriter.WriteClass<GameEventInfo>(gameEvent.EventInfo);
         }
 
@@ -54,6 +55,7 @@ public static class GameEventPacket {
         pWriter.Write<Command>(Command.Unknown3);
         pWriter.WriteInt(gameEvents.Count);
         foreach (GameEvent gameEvent in gameEvents) {
+            pWriter.WriteUnicodeString(gameEvent.Name);
             pWriter.WriteClass<GameEventInfo>(gameEvent.EventInfo);
         }
 

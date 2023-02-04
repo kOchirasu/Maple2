@@ -7,8 +7,6 @@ namespace Maple2.Model.Game.Event;
 /// </summary>
 public class EventFieldPopup : GameEventInfo {
     public int MapId;
-    
-    public EventFieldPopup() : base(nameof(EventFieldPopup)){ }
 
     public override void WriteTo(IByteWriter writer) {
         writer.WriteInt(Id);

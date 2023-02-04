@@ -19,8 +19,8 @@ public class GameEvent {
 public abstract class GameEventInfo : IByteSerializable {
     public int Id;
     public string Name;
-    protected GameEventInfo(string name) {
-        Name = name;
+    protected GameEventInfo() {
+        Name = this.GetType().Name;
     }
     
     public virtual void WriteTo(IByteWriter writer) {
