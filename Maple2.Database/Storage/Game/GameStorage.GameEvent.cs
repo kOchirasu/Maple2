@@ -8,7 +8,7 @@ namespace Maple2.Database.Storage;
 public partial class GameStorage {
     public partial class Request {
         public IEnumerable<GameEvent> GetEvents() {
-            var results = Context.GameEvent.Where(model => model.BeginTime <= DateTime.UtcNow && model.EndTime >= DateTime.UtcNow);
+            var results = Context.GameEvent.Where(model => model.BeginTime <= DateTimeOffset.UtcNow && model.EndTime >= DateTimeOffset.UtcNow);
             foreach (Model.Event.GameEvent model in results) {
                 GameEvent result = model;
                 result.EventInfo.Id = model.Id;
@@ -18,7 +18,7 @@ public partial class GameStorage {
         }
 
         public GameEvent? FindEvent(string name) {
-            return Context.GameEvent.FirstOrDefault(@event => @event.BeginTime <= DateTime.UtcNow && @event.EndTime >= DateTime.UtcNow && @event.Name == name);
+            return Context.GameEvent.FirstOrDefault(@event => @event.BeginTime <= DateTimeOffset.UtcNow && @event.EndTime >= DateTimeOffset.UtcNow && @event.Name == name);
         }
     }
 }

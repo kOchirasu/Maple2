@@ -21,37 +21,6 @@ public partial class GameStorage {
             model.Id = 0;
             Context.Item.Add(model);
 
-
-            GameEvent gameEvent = new GameEvent() {
-                BeginTime = DateTime.UtcNow.ToEpochSeconds(),
-                EndTime = DateTime.UtcNow.AddDays(30).ToEpochSeconds(),
-                EventInfo = new TrafficOptimizer() {
-                    GuideObjectSyncInterval = 300,
-                    LinearMovementInterval = 300,
-                    RideSyncInterval = 300,
-                    UserSyncInterval = 300,
-                    Name = nameof(TrafficOptimizer),
-                },
-                Name = nameof(TrafficOptimizer),
-            };
-
-            Model.Event.GameEvent gamemodel = gameEvent;
-            Context.GameEvent.Add(gamemodel);
-            Context.TrySaveChanges();
-
-            GameEvent fieldPopup = new GameEvent {
-                BeginTime = DateTime.UtcNow.ToEpochSeconds(),
-                EndTime = DateTime.UtcNow.AddDays(30).ToEpochSeconds(),
-                EventInfo = new EventFieldPopup() {
-                    MapId = 63000055,
-                    Name = nameof(EventFieldPopup),
-                },
-                Name = nameof(EventFieldPopup),
-            };
-            Model.Event.GameEvent fieldPopupModel = fieldPopup;
-            Context.GameEvent.Add(fieldPopupModel);
-            Context.TrySaveChanges();
-
             return Context.TrySaveChanges() ? ToItem(model) : null;
         }
 
