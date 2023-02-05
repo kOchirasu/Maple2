@@ -8,12 +8,14 @@ namespace Maple2.Database.Storage;
 public partial class GameStorage {
     public partial class Request {
         public IList<GameEvent> GetEvents() {
-            return Context.GameEvent.Where(model => model.BeginTime <= DateTimeOffset.UtcNow && model.EndTime >= DateTimeOffset.UtcNow).Select(@event => new GameEvent {
-                    Name = @event.Name,
-                    Id = @event.Id,
-                    EventInfo = @event.EventInfo,
-                })
-                .ToList();
+            var results = new List<GameEvent>();
+            foreach(Model.Event.GameEvent @event in Context.GameEvent.Where(model => model.BeginTime <= DateTimeOffset.UtcNow && model.EndTime >= DateTimeOffset.UtcNow)) {
+                GameEvent result = @event;
+                result.EventInfo.Id = @event.Id;
+                result.EventInfo.Name = @event.Name;
+                results.Add(result);
+            }
+            return results;
         }
 
         public GameEvent? FindEvent(string name) {

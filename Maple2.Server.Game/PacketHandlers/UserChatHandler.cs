@@ -1,10 +1,15 @@
-﻿using Grpc.Core;
+﻿using System;
+using System.Linq;
+using Grpc.Core;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Model.Game.Event;
+using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
+using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using WorldClient = Maple2.Server.World.Service.World.WorldClient;
@@ -135,6 +140,24 @@ public class UserChatHandler : PacketHandler<GameSession> {
     }
 
     private void HandleWorld(GameSession session, string message) {
+        var voucher = session.Item.Inventory.Filter(item => item.Metadata.Property.Tag == ItemTag.FreeWorldChatCoupon).FirstOrDefault();
+        if (voucher != null) {
+            session.Item.Inventory.Consume(voucher.Uid, 1);
+            session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert | NoticePacket.Flags.Message, StringCode.s_worldchat_use_coupon));
+        } else {
+            int meretCost = Constant.MeretConsumeWorldChat;
+            using GameStorage.Request db = GameStorage.Context();
+            if (db.FindEvent(nameof(SaleChat))?.EventInfo is SaleChat gameEvent) {
+                meretCost -= (int) (meretCost * Convert.ToSingle(gameEvent.WorldChatDiscount) / 10000);
+            }
+
+            if (session.Currency.Meret < meretCost) {
+                session.Send(ChatPacket.Alert(StringCode.s_err_lack_merat));
+                return;
+            }
+            session.Currency.Meret -= meretCost;
+        }
+
         var request = new ChatRequest {
             AccountId = session.AccountId,
             CharacterId = session.CharacterId,

@@ -2,7 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using Maple2.Database.Extensions;
-using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -47,6 +46,10 @@ internal class GameEvent {
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "!")]
 [JsonDerivedType(typeof(TrafficOptimizer), typeDiscriminator: nameof(TrafficOptimizer))]
 [JsonDerivedType(typeof(EventFieldPopup), typeDiscriminator: nameof(EventFieldPopup))]
+[JsonDerivedType(typeof(StringBoard), typeDiscriminator: nameof(StringBoard))]
+[JsonDerivedType(typeof(StringBoardLink), typeDiscriminator: nameof(StringBoardLink))]
+[JsonDerivedType(typeof(MeratMarketNotice), typeDiscriminator: nameof(MeratMarketNotice))]
+[JsonDerivedType(typeof(SaleChat), typeDiscriminator: nameof(SaleChat))]
 internal abstract class GameEventInfo {
     public int Id { get; set; }
     public string Name { get; set; }
@@ -67,6 +70,28 @@ internal abstract class GameEventInfo {
                 Name = fieldPopup.Name,
                 MapId = fieldPopup.MapId,
             },
+            Maple2.Model.Game.Event.StringBoard stringBoard => new StringBoard {
+                Id = stringBoard.Id,
+                Name = stringBoard.Name,
+                StringId = stringBoard.StringId,
+                String = stringBoard.String,
+            },
+            Maple2.Model.Game.Event.StringBoardLink stringBoardLink => new StringBoardLink {
+                Id = stringBoardLink.Id,
+                Name = stringBoardLink.Name,
+                Url = stringBoardLink.Url,
+            },
+            Maple2.Model.Game.Event.MeratMarketNotice meratMarketNotice => new MeratMarketNotice {
+                Id = meratMarketNotice.Id,
+                Name = meratMarketNotice.Name,
+                Message = meratMarketNotice.Message,
+            },
+            Maple2.Model.Game.Event.SaleChat saleChat => new SaleChat {
+                Id = saleChat.Id,
+                Name = saleChat.Name,
+                WorldChatDiscount = saleChat.WorldChatDiscount,
+                ChannelChatDiscount = saleChat.ChannelChatDiscount,
+            },
             _ => null,
         };
     }
@@ -86,6 +111,28 @@ internal abstract class GameEventInfo {
                 Id = fieldPopup.Id,
                 Name = fieldPopup.Name,
                 MapId = fieldPopup.MapId,
+            },
+            StringBoard stringBoard => new Maple2.Model.Game.Event.StringBoard {
+                Id = stringBoard.Id,
+                Name = stringBoard.Name,
+                StringId = stringBoard.StringId,
+                String = stringBoard.String,
+            },
+            StringBoardLink stringBoardLink => new Maple2.Model.Game.Event.StringBoardLink {
+                Id = stringBoardLink.Id,
+                Name = stringBoardLink.Name,
+                Url = stringBoardLink.Url,
+            },
+            MeratMarketNotice meratMarketNotice => new Maple2.Model.Game.Event.MeratMarketNotice {
+                Id = meratMarketNotice.Id,
+                Name = meratMarketNotice.Name,
+                Message = meratMarketNotice.Message,
+            },
+            SaleChat saleChat => new Maple2.Model.Game.Event.SaleChat {
+                Id = saleChat.Id,
+                Name = saleChat.Name,
+                WorldChatDiscount = saleChat.WorldChatDiscount,
+                ChannelChatDiscount = saleChat.ChannelChatDiscount,
             },
             _ => null,
         };
