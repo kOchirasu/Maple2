@@ -142,7 +142,10 @@ public class UserChatHandler : PacketHandler<GameSession> {
     private void HandleWorld(GameSession session, string message) {
         var voucher = session.Item.Inventory.Filter(item => item.Metadata.Property.Tag == ItemTag.FreeWorldChatCoupon).FirstOrDefault();
         if (voucher != null) {
-            session.Item.Inventory.Consume(voucher.Uid, 1);
+            if (!session.Item.Inventory.Consume(voucher.Uid, 1)) {
+                session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert | NoticePacket.Flags.Message, StringCode.s_err_invalid_item));
+                return;
+            }
             session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert | NoticePacket.Flags.Message, StringCode.s_worldchat_use_coupon));
         } else {
             int meretCost = Constant.MeretConsumeWorldChat;

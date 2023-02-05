@@ -9,10 +9,6 @@ public class GameEvent {
     public long BeginTime { get; init; }
     public long EndTime { get; init; }
     public GameEventInfo EventInfo { get; init; }
-
-    public virtual void WriteTo(IByteWriter writer) {
-        writer.WriteUnicodeString(Name);
-    }
 }
 
 public abstract class GameEventInfo : IByteSerializable {
