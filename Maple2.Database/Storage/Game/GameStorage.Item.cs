@@ -20,20 +20,6 @@ public partial class GameStorage {
             model.Id = 0;
             Context.Item.Add(model);
 
-            GameEvent gameEvent = new GameEvent() {
-                BeginTime = DateTime.UtcNow.ToEpochSeconds(),
-                EndTime = DateTime.UtcNow.AddDays(30).ToEpochSeconds(),
-                EventInfo = new SaleChat() {
-                    Name = nameof(SaleChat),
-                    WorldChatDiscount = 9000,
-                    ChannelChatDiscount = 9000,
-                },
-                Name = nameof(SaleChat),
-            };
-            Model.Event.GameEvent gamemodel = gameEvent;
-            Context.GameEvent.Add(gamemodel);
-            Context.TrySaveChanges();
-            
             return Context.TrySaveChanges() ? ToItem(model) : null;
         }
 
