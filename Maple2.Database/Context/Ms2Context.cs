@@ -1,4 +1,5 @@
 ﻿using Maple2.Database.Model;
+using Maple2.Database.Model.Event;
 using Microsoft.EntityFrameworkCore;
 
 namespace Maple2.Database.Context;
@@ -24,6 +25,7 @@ public sealed class Ms2Context : DbContext {
     internal DbSet<Mail> Mail { get; set; } = null!;
     internal DbSet<MesoListing> MesoMarket { get; set; } = null!;
     internal DbSet<SoldMesoListing> MesoMarketSold { get; set; } = null!;
+    internal DbSet<GameEvent> GameEvent { get; set; } = null!;
 
     public Ms2Context(DbContextOptions options) : base(options) { }
 
@@ -50,5 +52,7 @@ public sealed class Ms2Context : DbContext {
 
         modelBuilder.Entity<MesoListing>(MesoListing.Configure);
         modelBuilder.Entity<SoldMesoListing>(SoldMesoListing.Configure);
+
+        modelBuilder.Entity<GameEvent>(Maple2.Database.Model.Event.GameEvent.Configure);
     }
 }

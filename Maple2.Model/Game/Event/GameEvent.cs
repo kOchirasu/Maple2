@@ -3,14 +3,20 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game.Event;
 
-public abstract class GameEvent : IByteSerializable {
-    public readonly string Name;
+public class GameEvent {
+    public int Id { get; init; }
+    public string Name { get; init; }
+    public long BeginTime { get; init; }
+    public long EndTime { get; init; }
+    public GameEventInfo EventInfo { get; init; }
+}
 
-    protected GameEvent(string name) {
-        Name = name;
+public abstract class GameEventInfo : IByteSerializable {
+    public int Id;
+    public string Name;
+    protected GameEventInfo() {
+        Name = this.GetType().Name;
     }
 
-    public virtual void WriteTo(IByteWriter writer) {
-        writer.WriteUnicodeString(Name);
-    }
+    public abstract void WriteTo(IByteWriter writer);
 }
