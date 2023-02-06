@@ -18,7 +18,6 @@ public class GameServer : Server<GameSession> {
     private readonly FieldManager.Factory fieldFactory;
     private readonly HashSet<GameSession> connectingSessions;
     private readonly Dictionary<long, GameSession> sessions;
-    private readonly List<GameEvent> gameEvents;
 
     public int Channel => Target.GameChannel;
 
@@ -27,7 +26,6 @@ public class GameServer : Server<GameSession> {
         this.fieldFactory = fieldFactory;
         connectingSessions = new HashSet<GameSession>();
         sessions = new Dictionary<long, GameSession>();
-        gameEvents = new List<GameEvent> {new TrafficOptimizer(300, 300, 300, 300)};
     }
 
     public override void OnConnected(GameSession session) {
@@ -57,10 +55,6 @@ public class GameServer : Server<GameSession> {
 
         Logger.Information("Game client connecting: {Session}", session);
         session.Start();
-    }
-
-    public IList<GameEvent> GetGameEvents() {
-        return gameEvents;
     }
 
     public override Task StopAsync(CancellationToken cancellationToken) {

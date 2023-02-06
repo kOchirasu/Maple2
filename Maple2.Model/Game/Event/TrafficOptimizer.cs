@@ -5,21 +5,14 @@ namespace Maple2.Model.Game.Event;
 /// <summary>
 /// Causes USER_SYNC packets to be set less often (~300ms)
 /// </summary>
-public class TrafficOptimizer : GameEvent {
+public class TrafficOptimizer : GameEventInfo {
     public int GuideObjectSyncInterval;
     public int RideSyncInterval;
     public int LinearMovementInterval;
     public int UserSyncInterval;
-    public TrafficOptimizer(int guideObjectSyncInterval, int rideSyncInterval, int linearMovementInterval, int userSyncInterval) : base(nameof(TrafficOptimizer)) {
-        GuideObjectSyncInterval = guideObjectSyncInterval;
-        RideSyncInterval = rideSyncInterval;
-        LinearMovementInterval = linearMovementInterval;
-        UserSyncInterval = userSyncInterval;
-    }
 
     public override void WriteTo(IByteWriter writer) {
-        base.WriteTo(writer);
-        writer.WriteInt(1);
+        writer.WriteInt(Id);
         writer.WriteInt(GuideObjectSyncInterval);
         writer.WriteInt(RideSyncInterval);
         writer.WriteInt(100);
