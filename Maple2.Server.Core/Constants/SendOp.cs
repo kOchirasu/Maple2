@@ -229,7 +229,7 @@ public enum SendOp : ushort {
     ShadowExpedition = 0x00E3,
     ItemSocketScroll = 0x00E5,
     ItemSocketExpansionScroll = 0x00E6, // Also repackage...
-    DiceGame = 0x00E7,
+    Mapleopoly = 0x00E7,
     BypassKey = 0x00E8,
     NpcNotice = 0x00EA,
     LocalCamera = 0x00EB,

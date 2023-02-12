@@ -1,8 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model;
 using Maple2.Model.Enum;
+using Maple2.Model.Game.Event;
 using Maple2.Model.Metadata;
 using Item = Maple2.Model.Game.Item;
 using PetConfig = Maple2.Model.Game.PetConfig;
@@ -17,6 +19,26 @@ public partial class GameStorage {
             model.OwnerId = ownerId;
             model.Id = 0;
             Context.Item.Add(model);
+            
+            GameEvent gameEvent = new GameEvent() {
+                BeginTime = DateTime.UtcNow.ToEpochSeconds(),
+                EndTime = DateTime.UtcNow.AddDays(30).ToEpochSeconds(),
+                EventInfo = new BlueMarble() {
+                    Name = nameof(BlueMarble),
+                    Entries = new List<BlueMarbleEntry>() {
+                        new BlueMarbleEntry(1, new BlueMarbleItem(30000940, 1, 5)),
+                        new BlueMarbleEntry(2, new BlueMarbleItem(30001119, 4, 1)),
+                    },
+                    Tiles = new List<BlueMarbleTile>() {
+                        new BlueMarbleTile(1, BlueMarbleTileType.Start, 0, null),
+                        new BlueMarbleTile(2, BlueMarbleTileType.RollAgain, 0, null),
+                        },
+                },
+                Name = nameof(BlueMarble),
+            };
+            Model.Event.GameEvent gamemodel = gameEvent;
+            Context.GameEvent.Add(gamemodel);
+            Context.TrySaveChanges();
 
             return Context.TrySaveChanges() ? ToItem(model) : null;
         }
