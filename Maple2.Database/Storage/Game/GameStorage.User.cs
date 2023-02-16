@@ -196,6 +196,10 @@ public partial class GameStorage {
                     .Select<Model.SkillTab, SkillTab>(tab => tab)
                     .ToList(),
             };
+            
+            var eventValues = Context.GameEventUserValue.Where(value => value.CharacterId == characterId)
+                .Select<Model.GameEventUserValue, GameEventUserValue>(value => value)
+                .ToDictionary(value => value.Type, value => value);
 
             return (
                 config.KeyBinds,
@@ -204,7 +208,7 @@ public partial class GameStorage {
                 config.Wardrobes?.Select<Model.Wardrobe, Wardrobe>(wardrobe => wardrobe).ToList(),
                 config.FavoriteStickers?.Select(stickers => stickers).ToList(),
                 config.Lapenshards,
-                config.GameEventValues,
+                eventValues,
                 config.StatAllocation,
                 skillBook
             );
@@ -234,7 +238,6 @@ public partial class GameStorage {
             config.Wardrobes = wardrobes.Select<Wardrobe, Model.Wardrobe>(wardrobe => wardrobe).ToList();
             config.FavoriteStickers = favoriteStickers;
             config.Lapenshards = lapenshards;
-            config.GameEventValues = gameEventValues;
             config.StatAllocation = allocation.Attributes.ToDictionary(
                 attribute => attribute,
                 attribute => allocation[attribute]);
@@ -245,7 +248,8 @@ public partial class GameStorage {
             Context.CharacterConfig.Update(config);
             
             foreach (GameEventUserValue gameEventValue in gameEventValues.Values) {
-                Context.GameEventUserValue.Update(gameEventValue);
+                Model.GameEventUserValue model = gameEventValue;
+                Context.GameEventUserValue.Update(model);
             }
 
             foreach (SkillTab skillTab in skillBook.SkillTabs) {

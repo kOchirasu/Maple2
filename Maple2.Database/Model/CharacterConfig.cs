@@ -44,7 +44,6 @@ internal class CharacterConfig {
             .HasForeignKey<SkillBook>(skillBook => skillBook.ActiveSkillTabId);
         builder.Property(config => config.FavoriteStickers).HasJsonConversion();
         builder.Property(config => config.Lapenshards).HasJsonConversion();
-        builder.Property(config => config.GameEventValues).HasJsonConversion();
 
         builder.Property(unlock => unlock.LastModified).IsRowVersion();
     }
@@ -124,6 +123,7 @@ internal class SkillBook {
 }
 
 internal class GameEventUserValue {
+    public long CharacterId { get; set; }
     public GameEventUserValueType Type { get; set; }
     public string Value { get; set; }
     public int EventId { get; set; } // TODO: Check if we really need to store this. Technically only one event can be active at a time.
@@ -145,5 +145,10 @@ internal class GameEventUserValue {
             EventId = other.EventId,
             ExpirationTime = other.ExpirationTime,
         };
+    }
+    
+    public static void Configure(EntityTypeBuilder<GameEventUserValue> builder) {
+        builder.ToTable("game-event-user-value");
+        builder.HasKey(config => config.CharacterId);
     }
 }
