@@ -1,7 +1,6 @@
 ﻿namespace Maple2.Model.Enum;
 
-public enum BlueMarbleTileType : short
-{
+public enum BlueMarbleTileType : short {
     Item = 0,
     Lose = 1,
     Backtrack = 2,

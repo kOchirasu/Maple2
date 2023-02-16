@@ -21,10 +21,10 @@ public static class MapleopolyPacket {
     public static ByteWriter Load(IList<BlueMarbleTile> tiles) {
         var pWriter = Packet.Of(SendOp.Mapleopoly);
         pWriter.Write<Command>(Command.Load);
-        pWriter.WriteInt();
-        pWriter.WriteInt();
-        pWriter.WriteInt();
-        pWriter.WriteInt();
+        pWriter.WriteInt(); // total tile count
+        pWriter.WriteInt(); // free roll amount
+        pWriter.WriteInt(); // token item id
+        pWriter.WriteInt(); // player token amount
         pWriter.WriteInt(tiles.Count);
 
         foreach (BlueMarbleTile tile in tiles) {

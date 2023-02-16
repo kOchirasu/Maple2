@@ -26,6 +26,7 @@ public class ConfigManager {
     private IList<Wardrobe> wardrobes;
     private IList<int> favoriteStickers;
     private readonly IDictionary<LapenshardSlot, int> lapenshards;
+    private readonly IDictionary<GameEventUserValueType, GameEventUserValue> gameEventUserValues;
     private readonly StatAttributes statAttributes;
 
     public readonly SkillManager Skill;
@@ -44,6 +45,7 @@ public class ConfigManager {
             IList<Wardrobe>? Wardrobes,
             IList<int>? FavoriteStickers,
             IDictionary<LapenshardSlot, int>? Lapenshards,
+            IDictionary<GameEventUserValueType, GameEventUserValue> GameEventValues,
             IDictionary<BasicAttribute, int>? Allocation,
             SkillBook? SkillBook
             ) load = db.LoadCharacterConfig(session.CharacterId);
@@ -352,6 +354,7 @@ public class ConfigManager {
             wardrobes,
             favoriteStickers,
             lapenshards,
+            gameEventUserValues,
             statAttributes.Allocation,
             Skill.SkillBook
         );

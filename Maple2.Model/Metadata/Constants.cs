@@ -87,6 +87,8 @@ public static class Constant {
     public const float NorthEast = 90;
     public const float NorthWest = 180;
     public const float SouthWest = 270;
+    public const int MapleopolyTicketItemId = 30001445;
+    public const int MapleopolyTicketCostCount = 2;
     #endregion
 
     #region table/constants.xml

@@ -40,11 +40,14 @@ public class BlueMarbleTile : IByteSerializable {
     public void WriteTo(IByteWriter writer) {
         writer.Write<BlueMarbleTileType>(Type);
         writer.WriteInt(MoveAmount);
-        //writer.Write<BlueMarbleItem>(Item);
+        writer.Write<BlueMarbleItem>(Item ?? BlueMarbleItem.Default);
     }
 }
 
+[StructLayout(LayoutKind.Sequential, Pack = 1, Size = 13)]
 public readonly record struct BlueMarbleEntry(int TripAmount, BlueMarbleItem Item);
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 9)]
-public readonly record struct BlueMarbleItem(int ItemId, byte ItemRarity, int ItemAmount);
+public readonly record struct BlueMarbleItem(int ItemId, byte ItemRarity, int ItemAmount) {
+    public static readonly BlueMarbleItem Default = new BlueMarbleItem(0, 0, 0);
+}

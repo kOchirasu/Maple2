@@ -19,6 +19,7 @@ internal class CharacterConfig {
     public SkillBook? SkillBook { get; set; }
     public IList<int>? FavoriteStickers { get; set; }
     public IDictionary<LapenshardSlot, int>? Lapenshards { get; set; }
+    public IDictionary<GameEventUserValueType, GameEventUserValue>? GameEventValues { get; set; }
 
     public DateTime LastModified { get; set; }
 
@@ -43,6 +44,7 @@ internal class CharacterConfig {
             .HasForeignKey<SkillBook>(skillBook => skillBook.ActiveSkillTabId);
         builder.Property(config => config.FavoriteStickers).HasJsonConversion();
         builder.Property(config => config.Lapenshards).HasJsonConversion();
+        builder.Property(config => config.GameEventValues).HasJsonConversion();
 
         builder.Property(unlock => unlock.LastModified).IsRowVersion();
     }
@@ -119,4 +121,29 @@ internal class Wardrobe {
 internal class SkillBook {
     public int MaxSkillTabs { get; set; }
     public long ActiveSkillTabId { get; set; }
+}
+
+internal class GameEventUserValue {
+    public GameEventUserValueType Type { get; set; }
+    public string Value { get; set; }
+    public int EventId { get; set; } // TODO: Check if we really need to store this. Technically only one event can be active at a time.
+    public long ExpirationTime { get; set; }
+    
+    public static implicit operator GameEventUserValue?(Maple2.Model.Game.GameEventUserValue? other) {
+        return other == null ? null : new GameEventUserValue {
+            Type = other.Type,
+            Value = other.Value,
+            EventId = other.EventId,
+            ExpirationTime = other.ExpirationTime,
+        };
+    }
+
+    public static implicit operator Maple2.Model.Game.GameEventUserValue?(GameEventUserValue? other) {
+        return other == null ? null : new Maple2.Model.Game.GameEventUserValue {
+            Type = other.Type,
+            Value = other.Value,
+            EventId = other.EventId,
+            ExpirationTime = other.ExpirationTime,
+        };
+    }
 }

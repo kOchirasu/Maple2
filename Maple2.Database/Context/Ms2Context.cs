@@ -26,6 +26,7 @@ public sealed class Ms2Context : DbContext {
     internal DbSet<MesoListing> MesoMarket { get; set; } = null!;
     internal DbSet<SoldMesoListing> MesoMarketSold { get; set; } = null!;
     internal DbSet<GameEvent> GameEvent { get; set; } = null!;
+    internal DbSet<GameEventUserValue> GameEventUserValue { get; set; } = null!;
 
     public Ms2Context(DbContextOptions options) : base(options) { }
 
@@ -54,5 +55,6 @@ public sealed class Ms2Context : DbContext {
         modelBuilder.Entity<SoldMesoListing>(SoldMesoListing.Configure);
 
         modelBuilder.Entity<GameEvent>(Maple2.Database.Model.Event.GameEvent.Configure);
+        modelBuilder.Entity<GameEventUserValue>(Maple2.Database.Model.GameEventUserValue.Configure);
     }
 }
