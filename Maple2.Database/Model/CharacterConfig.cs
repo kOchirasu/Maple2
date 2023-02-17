@@ -126,7 +126,7 @@ internal class GameEventUserValue {
     public long CharacterId { get; set; }
     public GameEventUserValueType Type { get; set; }
     public string Value { get; set; }
-    public int EventId { get; set; } // TODO: Check if we really need to store this. Technically only one event can be active at a time.
+    public int EventId { get; set; }
     public long ExpirationTime { get; set; }
     
     public static implicit operator GameEventUserValue?(Maple2.Model.Game.GameEventUserValue? other) {
@@ -149,6 +149,9 @@ internal class GameEventUserValue {
     
     public static void Configure(EntityTypeBuilder<GameEventUserValue> builder) {
         builder.ToTable("game-event-user-value");
-        builder.HasKey(config => config.CharacterId);
+        builder.HasOne<Character>()
+            .WithMany()
+            .HasForeignKey(listing => listing.CharacterId)
+            .IsRequired();
     }
 }
