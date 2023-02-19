@@ -23,6 +23,7 @@ if (ms2Root == null) {
 
 string xmlPath = Path.Combine(ms2Root, "appdata/Data/Xml.m2d");
 string exportedPath = Path.Combine(ms2Root, @"appdata/Data/Resource/Exported.m2d");
+string terrainPath = Path.Combine(ms2Root, @"appdata/Data/Resource/PrecomputedTerrain.m2d");
 
 string? dataDbConnection = Environment.GetEnvironmentVariable("DATA_DB_CONNECTION");
 if (dataDbConnection == null) {
@@ -31,6 +32,7 @@ if (dataDbConnection == null) {
 
 using var xmlReader = new M2dReader(xmlPath);
 using var exportedReader = new M2dReader(exportedPath);
+using var terrainReader = new M2dReader(terrainPath);
 
 DbContextOptions options = new DbContextOptionsBuilder()
     .UseMySql(dataDbConnection, ServerVersion.AutoDetect(dataDbConnection)).Options;
@@ -60,6 +62,7 @@ UpdateDatabase(metadataContext, new SkillMapper(xmlReader));
 UpdateDatabase(metadataContext, new TableMapper(xmlReader));
 
 UpdateDatabase(metadataContext, new MapEntityMapper(metadataContext, exportedReader));
+UpdateDatabase(metadataContext, new NavMeshMapper(terrainReader));
 
 // new MusicScoreParser(xmlReader).Parse().ToList();
 // new ScriptParser(xmlReader).ParseNpc().ToList();
