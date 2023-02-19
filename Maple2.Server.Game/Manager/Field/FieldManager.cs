@@ -11,6 +11,9 @@ using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
+using Maple2.PathEngine;
+using Maple2.PathEngine.Interface;
+using Maple2.PathEngine.Types;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
@@ -41,6 +44,7 @@ public sealed partial class FieldManager : IDisposable {
 
     public readonly MapMetadata Metadata;
     public readonly MapEntityMetadata Entities;
+    public readonly Navigation Navigation;
     private readonly UgcMapMetadata ugcMetadata;
 
     private readonly ConcurrentBag<SpawnPointNPC> npcSpawns = new();
@@ -65,6 +69,8 @@ public sealed partial class FieldManager : IDisposable {
         FieldActor = new FieldActor(this);
         cancel = new CancellationTokenSource();
         thread = new Thread(Sync);
+
+        Navigation = new Navigation(metadata.XBlock, entities.NavMesh?.Data);
     }
 
     // Init is separate from constructor to allow properties to be injected first.
@@ -304,5 +310,6 @@ public sealed partial class FieldManager : IDisposable {
         cancel.Cancel();
         cancel.Dispose();
         thread.Join();
+        Navigation.Dispose();
     }
 }

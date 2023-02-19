@@ -57,7 +57,12 @@ public partial class TriggerContext {
                 continue;
             }
 
-            FieldNpc fieldNpc = Field.SpawnNpc(npc, spawn.Position, spawn.Rotation);
+            FieldNpc? fieldNpc = Field.SpawnNpc(npc, spawn.Position, spawn.Rotation);
+            if (fieldNpc == null) {
+                logger.Error("[SpawnMonster] Failed to spawn npcId:{NpcId}", npcId);
+                continue;
+            }
+
             fieldNpc.SpawnPointId = spawnId;
 
             Field.Broadcast(FieldPacket.AddNpc(fieldNpc));

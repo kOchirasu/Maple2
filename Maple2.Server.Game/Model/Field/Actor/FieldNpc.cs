@@ -3,6 +3,7 @@ using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
+using Maple2.PathEngine;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Packets;
 using Maple2.Tools.Collision;
@@ -19,6 +20,7 @@ public class FieldNpc : Actor<Npc> {
         Value.Metadata.Property.Capsule.Height
     );
 
+    public Agent Agent;
     public NpcState StateData;
     public int SpawnPointId = -1;
 
@@ -38,7 +40,8 @@ public class FieldNpc : Actor<Npc> {
     public override Stats Stats { get; }
     public int TargetId = 0;
 
-    public FieldNpc(FieldManager field, int objectId, Npc npc) : base (field, objectId, npc) {
+    public FieldNpc(FieldManager field, int objectId, Agent agent, Npc npc) : base (field, objectId, npc) {
+        Agent = agent;
         StateData = new NpcState();
         Stats = new Stats(npc.Metadata.Stat);
         SequenceId = -1;
