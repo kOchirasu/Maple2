@@ -67,5 +67,6 @@ public enum ItemFunction {
     VIPCoupon = 61,
     WeddingExpItem = 62,
     RecallWedding = 63,
-    WeddingChat = 64
+    WeddingChat = 64,
+    PetStudy = 65,
 }
