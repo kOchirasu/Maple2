@@ -12,6 +12,7 @@ using Maple2.Server.Game.Model.State;
 using Maple2.Server.Game.Packets;
 using Maple2.Tools;
 using Maple2.Tools.Collision;
+using Maple2.Tools.Extensions;
 using NpcAction = Maple2.Server.Game.Model.Action.NpcAction;
 
 namespace Maple2.Server.Game.Model;
@@ -21,6 +22,7 @@ public class FieldNpc : Actor<Npc> {
     private const int CONTROL_TICK_INTERVAL = 1000;
 
     public Vector3 Velocity { get; set; }
+    public required Vector3 Origin { get; init; }
 
     public FieldMobSpawn? Owner { get; init; }
     public override IPrism Shape => new Prism(
@@ -114,15 +116,23 @@ public class FieldNpc : Actor<Npc> {
             //     break;
             // case "Jump_B":
             //     break;
-            case { } when actionName.StartsWith("Idle_"):
+            case { } when actionName.Contains("Idle_"):
                 return new DelayAction(this, sequence.Id, sequence.Time);
-            case { } when actionName.StartsWith("Bore_"):
-                return new RotateAction(this) {
-                    NextAction = () => new DelayAction(this, sequence.Id, sequence.Time + 1f),
-                };
+            case { } when actionName.Contains("Bore_"):
+                return new DelayAction(this, sequence.Id, sequence.Time + 1f);
             case { } when actionName.StartsWith("Walk_"):
-                return new RotateAction(this) {
-                    NextAction = () => MoveAction.Walk(this, sequence.Id, distance: 150),
+                (Vector3 start, Vector3 end) = Field.Navigation.FindPath(Agent, Origin, Value.Metadata.Action.MoveArea, maxHeight: 5);
+                if (start == end) {
+                    // No valid path:
+                    // 1. Npc is obstructed in all directions
+                    // 2. Randomly generated position had too great of a height difference
+                    return new DelayAction(this, IdleSequence.Id, sequence.Time);
+                }
+
+                Position = start; // Force position to start position
+                Vector3 newRotation = start.Angle2D(end) * Vector3.UnitZ;
+                return new RotateAction(this, newRotation - Rotation) {
+                    NextAction = () => MoveAction.Walk(this, sequence.Id, distance: (int) Vector3.Distance(start, end)),
                 };
             case { } when actionName.StartsWith("Run_"):
                 return MoveAction.Run(this, sequence.Id, sequence.Time + 1f);

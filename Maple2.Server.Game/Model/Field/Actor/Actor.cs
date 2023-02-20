@@ -33,7 +33,7 @@ public abstract class ActorBase<T> : IActor<T> {
     public virtual Stats Stats { get; } = new(0, 0);
 
     public int ObjectId { get; }
-    public Vector3 Position { get; set; }
+    public virtual Vector3 Position { get; set; }
     public Vector3 Rotation { get; set; }
 
     public virtual bool IsDead { get; protected set; }

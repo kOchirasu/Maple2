@@ -11,8 +11,7 @@ public class RotateAction : NpcAction {
 
     public RotateAction(FieldNpc npc) : this(npc, Random.Shared.Next(-90, 90) * Vector3.UnitZ) { }
 
-    // TODO: Handle cancel mid-rotation
     public override void OnCompleted() {
-
+        // TODO: Handle cancel mid-rotation
     }
 }
