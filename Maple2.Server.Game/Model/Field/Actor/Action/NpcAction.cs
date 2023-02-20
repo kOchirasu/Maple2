@@ -31,6 +31,10 @@ public abstract class NpcAction {
     }
 
     public virtual void OnCompleted() {
+        if (Completed) {
+            return;
+        }
+
         Completed = true;
         // Force Idle on completion
         Npc.SequenceId = Npc.IdleSequence.Id;

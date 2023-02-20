@@ -39,9 +39,12 @@ public class MoveAction : NpcAction {
     }
 
     public override void OnCompleted() {
-        if (!Completed) {
-            Npc.Velocity = default;
+        if (Completed) {
+            return;
         }
+
         base.OnCompleted();
+        Npc.Position = Npc.Field.Navigation.UpdateAgent(Npc.Agent, Npc.Position);
+        Npc.Velocity = default;
     }
 }

@@ -39,7 +39,7 @@ public sealed class Navigation : IDisposable {
     public Agent? AddAgent(NpcMetadata npc, Vector3 origin, int distance = 1) {
         // Using radius for width for now
         Shape shape = GetShape((int) npc.Property.Capsule.Radius, (int) npc.Property.Capsule.Height);
-        if (!TryFindPosition(shape, origin, distance, out Position? position)) {
+        if (!TryFindPosition(shape, ToPosition(origin), distance, out Position? position)) {
             return null;
         }
 
@@ -48,11 +48,66 @@ public sealed class Navigation : IDisposable {
         return agent;
     }
 
+    public Vector3 UpdateAgent(Agent agent, Vector3 vector) {
+        Position position = mesh.positionNear3DPoint((int) vector.X, (int) vector.Y, (int) vector.Z, horizontalRange: 500, verticalRange: 50);
+        if (!mesh.positionIsValid(position)) {
+            Logger.Error("Failed to find valid position from {Source} => {Position}", vector, position);
+            return vector;
+        }
+
+        agent.moveTo(position);
+        return FromPosition(position);
+    }
+
     public void RemoveAgent(Agent agent) {
         context.removeAgent(agent);
     }
 
-    public Vector3 ResolvePosition(Position position) {
+    public (Vector3 Start, Vector3 End) FindPath(Agent agent, Vector3 origin, int maxDistance, int maxHeight = 1) {
+        Position start = agent.findClosestUnobstructedPosition(context, 50);
+        if (!mesh.positionIsValid(start)) {
+            return default;
+        }
+
+        Position target = mesh.generateRandomPositionLocally(ToPosition(origin), maxDistance);
+        int startZ = mesh.heightAtPosition(start);
+        int targetZ = mesh.heightAtPosition(target);
+        if (Math.Abs(startZ - targetZ) > maxHeight) {
+            return default;
+        }
+
+        agent.moveTo(start);
+        using Path? path = agent.findShortestPathTo(context, target);
+        if (path == null || path.size() <= 1) {
+            return default;
+        }
+
+        // Only keep first section of path, the rest will be re-generated when needed.
+        return (FromPosition(path.position(0)), FromPosition(path.position(1)));
+    }
+
+    private bool TryFindPosition(Shape? shape, Position origin, int distance, [NotNullWhen(true)] out Position? position) {
+        position = origin;
+        if (!mesh.positionIsValid(origin)) {
+            return false;
+        }
+
+        if (distance > 1) {
+            position = mesh.generateRandomPositionLocally((Position) position, distance);
+            position = mesh.findClosestUnobstructedPosition(shape, context, (Position) position, distance);
+        }
+        if (!mesh.positionIsValid((Position) position)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public Position ToPosition(Vector3 vector) {
+        return mesh.positionNear3DPoint((int) vector.X, (int) vector.Y, (int) vector.Z, horizontalRange: 25, verticalRange: 5);
+    }
+
+    public Vector3 FromPosition(Position position) {
         if (!mesh.positionIsValid(position)) {
             return default;
         }
@@ -61,27 +116,13 @@ public sealed class Navigation : IDisposable {
         return new Vector3(position.X, position.Y, z);
     }
 
-    private bool TryFindPosition(Shape shape, Vector3 origin, int distance, [NotNullWhen(true)] out Position? position) {
-        Position point = mesh.positionNear3DPoint((int) origin.X, (int) origin.Y, (int) origin.Z, horizontalRange: 50, verticalRange: 50);
-        if (distance > 1) {
-            point = mesh.generateRandomPositionLocally(point, distance);
-            point = mesh.findClosestUnobstructedPosition(shape, context, point, distance);
-        }
-        if (!mesh.positionIsValid(point)) {
-            position = null;
-            return false;
-        }
-
-        position = point;
-        return true;
-    }
-
     private Shape GetShape(int width, int height) {
         if (ShapeCache.TryGetValue((width, height), out Shape? shape)) {
             return shape;
         }
 
-        int halfWidth = Math.Max(width / 2, 1);
+        // TODO: Using a small width for now to prevent Npcs from getting stuck
+        int halfWidth = 5;//Math.Max(width / 2, 1);
         int halfHeight = Math.Max(height / 2, 1);
         List<Point> vertices = new() {
             new Point(-halfWidth, -halfHeight),

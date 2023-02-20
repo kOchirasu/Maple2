@@ -7,7 +7,8 @@ namespace Maple2.Tools.Extensions;
 
 public static class VectorExtensions {
     public const int BLOCK_SIZE = 150;
-    private const float RAD_TO_DEG = MathF.PI / 180f;
+    private const float DEG_TO_RAD = MathF.PI / 180f;
+    private const float RAD_TO_DEG = 180f / MathF.PI;
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Vector3 Align(this in Vector3 position, float interval = BLOCK_SIZE) {
@@ -57,9 +58,9 @@ public static class VectorExtensions {
     public static Vector3 Rotate(this in Vector3 magnitude, in Vector3 eulerAngle) {
         // Extra MathF.PI on X/Z are because Y-axis is mirrored.
         var rotation = Quaternion.CreateFromYawPitchRoll(
-            MathF.PI - eulerAngle.X * RAD_TO_DEG,
-            eulerAngle.Y * RAD_TO_DEG,
-            MathF.PI - eulerAngle.Z * RAD_TO_DEG
+            MathF.PI - eulerAngle.X * DEG_TO_RAD,
+            eulerAngle.Y * DEG_TO_RAD,
+            MathF.PI - eulerAngle.Z * DEG_TO_RAD
         );
 
         return Vector3.Transform(magnitude, rotation);
