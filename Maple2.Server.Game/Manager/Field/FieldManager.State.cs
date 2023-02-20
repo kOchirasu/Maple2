@@ -83,7 +83,8 @@ public partial class FieldManager {
             return null;
         }
 
-        var fieldNpc = new FieldNpc(this, NextLocalId(), agent, new Npc(npc)) {
+        AnimationMetadata? animation = NpcMetadata.GetAnimation(npc.Model);
+        var fieldNpc = new FieldNpc(this, NextLocalId(), agent, new Npc(npc, animation)) {
             Owner = owner,
             Position = Navigation.ResolvePosition(agent.getPosition()),
             Rotation = rotation,
@@ -110,7 +111,8 @@ public partial class FieldManager {
 
         // We use GlobalId if there is an owner because players can move between maps.
         int objectId = player != null ? NextGlobalId() : NextLocalId();
-        var fieldPet = new FieldPet(this, objectId, agent, new Npc(npc), pet, player) {
+        AnimationMetadata? animation = NpcMetadata.GetAnimation(npc.Model);
+        var fieldPet = new FieldPet(this, objectId, agent, new Npc(npc, animation), pet, player) {
             Owner = owner,
             Position = Navigation.ResolvePosition(agent.getPosition()),
             Rotation = rotation,
