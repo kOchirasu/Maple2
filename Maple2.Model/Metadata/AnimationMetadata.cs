@@ -4,8 +4,8 @@ namespace Maple2.Model.Metadata;
 
 public record AnimationMetadata(
     string Model,
-    Dictionary<int, AnimationSequence> Sequences);
+    IReadOnlyDictionary<string, AnimationSequence> Sequences);
 
 public record AnimationSequence(
-    string Name,
+    short Id,
     float Time);

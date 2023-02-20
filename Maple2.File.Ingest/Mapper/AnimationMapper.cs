@@ -15,15 +15,23 @@ public class AnimationMapper : TypeMapper<AnimationMetadata> {
     protected override IEnumerable<AnimationMetadata> Map() {
         foreach (AnimationData data in parser.Parse()) {
             foreach (KeyFrameMotion kfm in data.kfm) {
-                IEnumerable<(int Id, AnimationSequence Sequence)> sequences = kfm.seq.Select(sequence => (
-                    sequence.id,
+                IEnumerable<(string Name, AnimationSequence Sequence)> sequences = kfm.seq.Select(sequence => (
+                    sequence.name,
                     new AnimationSequence(
-                        Name: sequence.name,
+                        Id: (short) sequence.id,
                         Time: (float) (sequence.key.FirstOrDefault(key => key.name == "end")?.time ?? default))
                 ));
-                yield return new AnimationMetadata(
-                    kfm.name,
-                    sequences.ToDictionary(entry => entry.Id, entry => entry.Sequence));
+                var lookup = new Dictionary<string, AnimationSequence>();
+                foreach ((string name, AnimationSequence sequence) in sequences) {
+                    if (lookup.ContainsKey(name)) {
+                        Console.WriteLine($"Ignore Duplicate: {name} for {kfm.name}");
+                        continue;
+                    }
+
+                    lookup.Add(name, sequence);
+                }
+
+                yield return new AnimationMetadata(kfm.name, lookup);
             }
         }
     }
