@@ -15,6 +15,7 @@ public class GameEventUserValue : IByteSerializable {
     public GameEventUserValue() {
         Value = string.Empty;
     }
+
     public GameEventUserValue(GameEventUserValueType type, GameEvent gameEvent) {
         Value = string.Empty;
         Type = type;

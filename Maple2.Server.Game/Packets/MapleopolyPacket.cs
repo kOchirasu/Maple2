@@ -28,7 +28,7 @@ public static class MapleopolyPacket {
         pWriter.WriteInt(tiles.Count);
 
         foreach (BlueMarbleTile tile in tiles) {
-            pWriter.WriteClass(tile);
+            pWriter.WriteClass<BlueMarbleTile>(tile);
         }
 
         return pWriter;
@@ -53,7 +53,7 @@ public static class MapleopolyPacket {
         pWriter.WriteInt(tile.MoveAmount);
         pWriter.WriteInt(totalTileCount);
         pWriter.WriteInt(freeRollAmount);
-        pWriter.Write<BlueMarbleItem>(tile.Item ?? BlueMarbleItem.Default);
+        pWriter.Write<BlueMarbleItem>(tile.Item);
 
         return pWriter;
     }

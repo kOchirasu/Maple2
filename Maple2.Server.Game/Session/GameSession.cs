@@ -140,7 +140,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Guild.Load();
         // Club
         Buddy.Load();
-
+        
         Send(TimeSyncPacket.Reset(DateTimeOffset.UtcNow));
         Send(TimeSyncPacket.Set(DateTimeOffset.UtcNow));
 

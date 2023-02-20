@@ -13,6 +13,11 @@ namespace Maple2.Model.Game.Event;
 public class BlueMarble : GameEventInfo {
     public IList<BlueMarbleEntry> Entries { get; set; }
     public IList<BlueMarbleTile> Tiles { get; set; }
+    
+    public BlueMarble() {
+        Entries = new List<BlueMarbleEntry>();
+        Tiles = new List<BlueMarbleTile>();
+    }
 
     public override void WriteTo(IByteWriter writer) {
         writer.WriteInt(Id);
@@ -24,13 +29,12 @@ public class BlueMarble : GameEventInfo {
 }
 
 public class BlueMarbleTile : IByteSerializable {
-    public int Position { get; set; }
-    public BlueMarbleTileType Type { get; set; }
-    public int MoveAmount { get; set; }
-    public BlueMarbleItem? Item { get; set; }
+    public int Position {get; init;}
+    public BlueMarbleTileType Type {get; init;}
+    public int MoveAmount {get; init;}
+    public BlueMarbleItem Item {get; init;}
     
-    [JsonConstructor]
-    public BlueMarbleTile(int position, BlueMarbleTileType type, int moveAmount, BlueMarbleItem? item) {
+    public BlueMarbleTile(int position, BlueMarbleTileType type, int moveAmount, BlueMarbleItem item) {
         Position = position;
         Type = type;
         MoveAmount = moveAmount;
@@ -40,7 +44,7 @@ public class BlueMarbleTile : IByteSerializable {
     public void WriteTo(IByteWriter writer) {
         writer.Write<BlueMarbleTileType>(Type);
         writer.WriteInt(MoveAmount);
-        writer.Write<BlueMarbleItem>(Item ?? BlueMarbleItem.Default);
+        writer.Write<BlueMarbleItem>(Item);
     }
 }
 
@@ -48,6 +52,4 @@ public class BlueMarbleTile : IByteSerializable {
 public readonly record struct BlueMarbleEntry(int TripAmount, BlueMarbleItem Item);
 
 [StructLayout(LayoutKind.Sequential, Pack = 1, Size = 9)]
-public readonly record struct BlueMarbleItem(int ItemId, byte ItemRarity, int ItemAmount) {
-    public static readonly BlueMarbleItem Default = new BlueMarbleItem(0, 0, 0);
-}
+public readonly record struct BlueMarbleItem(int ItemId, byte ItemRarity, int ItemAmount);

@@ -356,7 +356,7 @@ public class ConfigManager {
     }
     
     public GameEventUserValue GetGameEventUserValue(GameEventUserValueType type, GameEvent gameEvent) {
-        if (!gameEventUserValues.TryGetValue(type, out GameEventUserValue value)) {
+        if (!gameEventUserValues.TryGetValue(type, out GameEventUserValue? value)) {
             value = new GameEventUserValue(type, gameEvent);
             gameEventUserValues[type] = value;
         }
