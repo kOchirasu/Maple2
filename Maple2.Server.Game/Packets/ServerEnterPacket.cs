@@ -47,9 +47,9 @@ public static class ServerEnterPacket {
         }
         pWriter.WriteLong();
         pWriter.WriteUnicodeString();
+        pWriter.WriteUnicodeString("http://127.0.0.1:8080");
         pWriter.WriteUnicodeString();
-        pWriter.WriteUnicodeString();
-        pWriter.WriteUnicodeString();
+        pWriter.WriteUnicodeString("^https?://127\\.0\\.0\\.1(:\\d+)?");
         pWriter.WriteUnicodeString();
 
         return pWriter;
