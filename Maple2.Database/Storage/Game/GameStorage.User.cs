@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model;
@@ -197,8 +196,8 @@ public partial class GameStorage {
                     .ToList(),
             };
             
-            var eventValues = Context.GameEventUserValue.Where(value => value.CharacterId == characterId)
-                .Select<Model.GameEventUserValue, GameEventUserValue>(value => value)
+            Dictionary<GameEventUserValueType, GameEventUserValue> eventValues = Context.GameEventUserValue.Where(value => value.CharacterId == characterId)
+                .Select<Model.Event.GameEventUserValue, GameEventUserValue>(value => value)
                 .ToDictionary(value => value.Type, value => value);
 
             return (
@@ -248,7 +247,8 @@ public partial class GameStorage {
             Context.CharacterConfig.Update(config);
             
             foreach (GameEventUserValue gameEventValue in gameEventValues.Values) {
-                Model.GameEventUserValue model = gameEventValue;
+                Model.Event.GameEventUserValue model = gameEventValue;
+                model.CharacterId = characterId;
                 Context.GameEventUserValue.Update(model);
             }
 

@@ -185,6 +185,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Config.LoadKeyTable();
         // GuideRecord
         // DailyWonder*
+        Config.LoadGameEventUserValues();
         Send(GameEventPacket.Load(db.GetEvents()));
         // BannerList
         // RoomDungeon

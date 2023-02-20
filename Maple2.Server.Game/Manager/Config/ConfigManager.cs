@@ -6,6 +6,7 @@ using Maple2.Database.Extensions;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Model.Game.Event;
 using Maple2.Model.Metadata;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Manager.Items;
@@ -37,6 +38,7 @@ public class ConfigManager {
         hotBars = new List<HotBar>();
         skillMacros = new List<SkillMacro>();
         lapenshards = new Dictionary<LapenshardSlot, int>();
+        gameEventUserValues = new Dictionary<GameEventUserValueType, GameEventUserValue>();
 
         (
             IList<KeyBind>? KeyBinds,
@@ -61,6 +63,7 @@ public class ConfigManager {
         wardrobes = load.Wardrobes ?? new List<Wardrobe>();
         favoriteStickers = load.FavoriteStickers ?? new List<int>();
         lapenshards = load.Lapenshards ?? new Dictionary<LapenshardSlot, int>();
+        gameEventUserValues = load.GameEventValues;
 
         statAttributes = new StatAttributes();
         if (load.Allocation != null) {
@@ -344,6 +347,33 @@ public class ConfigManager {
         session.Send(LapenshardPacket.Unequip(slot));
         return true;
     }
+    #endregion
+    
+    #region GameEventUserValue
+    
+    public void LoadGameEventUserValues() {
+        session.Send(GameEventUserValuePacket.Load(gameEventUserValues.Values.ToList()));
+    }
+    
+    public GameEventUserValue GetGameEventUserValue(GameEventUserValueType type, GameEvent gameEvent) {
+        if (!gameEventUserValues.TryGetValue(type, out GameEventUserValue value)) {
+            value = new GameEventUserValue(type, gameEvent);
+            gameEventUserValues[type] = value;
+        }
+
+        return gameEventUserValues[type];
+    }
+
+    public void UpdateGameEventUserValue(GameEventUserValueType type, dynamic newValue) {
+        if (!gameEventUserValues.TryGetValue(type, out GameEventUserValue? gameEventUserValue)) {
+            // TODO: Log error
+            return;
+        }
+
+        gameEventUserValue.Value = newValue.ToString();
+        session.Send(GameEventUserValuePacket.Update(gameEventUserValue));
+    }
+    
     #endregion
 
     public void Save(GameStorage.Request db) {

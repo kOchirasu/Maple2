@@ -4,7 +4,6 @@ using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model;
 using Maple2.Model.Enum;
-using Maple2.Model.Game.Event;
 using Maple2.Model.Metadata;
 using Item = Maple2.Model.Game.Item;
 using PetConfig = Maple2.Model.Game.PetConfig;
@@ -19,52 +18,6 @@ public partial class GameStorage {
             model.OwnerId = ownerId;
             model.Id = 0;
             Context.Item.Add(model);
-            
-            GameEvent gameEvent = new GameEvent() {
-                BeginTime = DateTime.UtcNow.ToEpochSeconds(),
-                EndTime = DateTime.UtcNow.AddDays(30).ToEpochSeconds(),
-                EventInfo = new BlueMarble() {
-                    Name = nameof(BlueMarble),
-                    Entries = new List<BlueMarbleEntry>() {
-                        new BlueMarbleEntry(1, new BlueMarbleItem(30000940, 1, 5)),
-                        new BlueMarbleEntry(2, new BlueMarbleItem(30001119, 4, 1)),
-                    },
-                    Tiles = new List<BlueMarbleTile>() {
-                        new BlueMarbleTile(1, BlueMarbleTileType.Start, 0, null),
-                        new BlueMarbleTile(2, BlueMarbleTileType.Item, 0, new(20001130, 1, 10)),
-                        new BlueMarbleTile(3, BlueMarbleTileType.Item, 0, new(20301360, 3, 3)),
-                        new BlueMarbleTile(4, BlueMarbleTileType.MoveForward, 5, null),
-                        new BlueMarbleTile(5, BlueMarbleTileType.Item, 0, new(40100023, 1, 300)),
-                        new BlueMarbleTile(6, BlueMarbleTileType.Item, 0, new(20000279, 1, 2)),
-                        new BlueMarbleTile(7, BlueMarbleTileType.Item, 0, new(20301360, 3, 3)),
-                        new BlueMarbleTile(8, BlueMarbleTileType.TreasureTrove, 0, new(20000569, 1, 1)),
-                        new BlueMarbleTile(9, BlueMarbleTileType.Item, 0, new(40100036, 1, 300)),
-                        new BlueMarbleTile(10, BlueMarbleTileType.Item, 0, new(40100037, 1, 300)),
-                        new BlueMarbleTile(11, BlueMarbleTileType.GoToStart, 0, null),
-                        new BlueMarbleTile(12, BlueMarbleTileType.Item, 0, new(20001130, 1, 10)),
-                        new BlueMarbleTile(13, BlueMarbleTileType.Item, 0, new(20300855, 1, 1)),
-                        new BlueMarbleTile(14, BlueMarbleTileType.Item, 0, new(20301493, 1, 5)),
-                        new BlueMarbleTile(15, BlueMarbleTileType.RoundTrip, 0, null),
-                        new BlueMarbleTile(16, BlueMarbleTileType.Item, 0, new(40100037, 1, 300)),
-                        new BlueMarbleTile(17, BlueMarbleTileType.Backtrack, 5, null),
-                        new BlueMarbleTile(18, BlueMarbleTileType.Item, 0, new(20302777, 1, 10)),
-                        new BlueMarbleTile(19, BlueMarbleTileType.Item, 0, new(40100036, 1, 300)),
-                        new BlueMarbleTile(20, BlueMarbleTileType.Item, 0, new(20000280, 1, 2)),
-                        new BlueMarbleTile(21, BlueMarbleTileType.MoveForward, 3, null),
-                        new BlueMarbleTile(22, BlueMarbleTileType.TreasureTrove, 0, new(20000569, 1, 1)),
-                        new BlueMarbleTile(23, BlueMarbleTileType.Item, 0, new(40100037, 3, 300)),
-                        new BlueMarbleTile(24, BlueMarbleTileType.Item, 0, new(20001130, 1, 10)),
-                        new BlueMarbleTile(25, BlueMarbleTileType.Item, 0, new(20300078, 1, 10)),
-                        new BlueMarbleTile(26, BlueMarbleTileType.Backtrack, 3, null),
-                        new BlueMarbleTile(27, BlueMarbleTileType.Item, 0, new(20301360, 3, 5)),
-                        new BlueMarbleTile(28, BlueMarbleTileType.Item, 0, new(40100037, 1, 300)),
-                        },
-                },
-                Name = nameof(BlueMarble),
-            };
-            Model.Event.GameEvent gamemodel = gameEvent;
-            Context.GameEvent.Add(gamemodel);
-            Context.TrySaveChanges();
 
             return Context.TrySaveChanges() ? ToItem(model) : null;
         }

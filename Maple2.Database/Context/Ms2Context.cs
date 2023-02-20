@@ -55,6 +55,6 @@ public sealed class Ms2Context : DbContext {
         modelBuilder.Entity<SoldMesoListing>(SoldMesoListing.Configure);
 
         modelBuilder.Entity<GameEvent>(Maple2.Database.Model.Event.GameEvent.Configure);
-        modelBuilder.Entity<GameEventUserValue>(Maple2.Database.Model.GameEventUserValue.Configure);
+        modelBuilder.Entity<GameEventUserValue>(Maple2.Database.Model.Event.GameEventUserValue.Configure);
     }
 }
