@@ -1,4 +1,6 @@
 ﻿using System;
+using Maple2.Model.Enum;
+using Maple2.Server.Game.Model.State;
 
 namespace Maple2.Server.Game.Model.Action;
 
@@ -38,5 +40,8 @@ public abstract class NpcAction {
         Completed = true;
         // Force Idle on completion
         Npc.SequenceId = Npc.IdleSequence.Id;
+        if (Npc.StateData.State != ActorState.Idle) {
+            Npc.StateData = new NpcState();
+        }
     }
 }

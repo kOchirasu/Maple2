@@ -23,7 +23,7 @@ public sealed class Navigation : IDisposable {
     private readonly Mesh mesh;
     private readonly CollisionContext context;
 
-    private readonly ConcurrentDictionary<(int, int), Shape> ShapeCache = new();
+    private readonly ConcurrentDictionary<(int, int), Shape> shapeCache = new();
 
     public Navigation(string name, byte[]? data = null) {
         Name = name;
@@ -64,26 +64,36 @@ public sealed class Navigation : IDisposable {
     }
 
     public (Vector3 Start, Vector3 End) FindPath(Agent agent, Vector3 origin, int maxDistance, int maxHeight = 1) {
-        Position start = agent.findClosestUnobstructedPosition(context, 50);
-        if (!mesh.positionIsValid(start)) {
+        Position source = agent.findClosestUnobstructedPosition(context, 50);
+        if (!mesh.positionIsValid(source)) {
             return default;
         }
 
-        Position target = mesh.generateRandomPositionLocally(ToPosition(origin), maxDistance);
-        int startZ = mesh.heightAtPosition(start);
-        int targetZ = mesh.heightAtPosition(target);
-        if (Math.Abs(startZ - targetZ) > maxHeight) {
-            return default;
-        }
-
-        agent.moveTo(start);
-        using Path? path = agent.findShortestPathTo(context, target);
+        Position destination = mesh.generateRandomPositionLocally(ToPosition(origin), maxDistance);
+        agent.moveTo(source);
+        using Path? path = agent.findShortestPathTo(context, destination);
         if (path == null || path.size() <= 1) {
             return default;
         }
 
+        Position start = path.position(0);
+        Position end = path.position(1);
+        int startZ = mesh.heightAtPosition(start);
+        int endZ = mesh.heightAtPosition(end);
+        if (Math.Abs(startZ - endZ) > maxHeight) {
+            return default;
+        }
+
+        // if (Math.Abs(startZ - endZ) > 1) {
+        //     Logger.Information("Path result:");
+        //     for (int i = 0; i < path.size(); i++) {
+        //         Position position = path.position(i);
+        //         Logger.Information("> {Position}|{HeightAtPosition}, {ConnectionIndex}", position, mesh.heightAtPosition(position), path.connectionIndex(i));
+        //     }
+        // }
+
         // Only keep first section of path, the rest will be re-generated when needed.
-        return (FromPosition(path.position(0)), FromPosition(path.position(1)));
+        return (FromPosition(start), FromPosition(end));
     }
 
     private bool TryFindPosition(Shape? shape, Position origin, int distance, [NotNullWhen(true)] out Position? position) {
@@ -117,12 +127,12 @@ public sealed class Navigation : IDisposable {
     }
 
     private Shape GetShape(int width, int height) {
-        if (ShapeCache.TryGetValue((width, height), out Shape? shape)) {
+        if (shapeCache.TryGetValue((width, height), out Shape? shape)) {
             return shape;
         }
 
         // TODO: Using a small width for now to prevent Npcs from getting stuck
-        int halfWidth = 5;//Math.Max(width / 2, 1);
+        int halfWidth = 5; // Math.Max(width / 2, 1);
         int halfHeight = Math.Max(height / 2, 1);
         List<Point> vertices = new() {
             new Point(-halfWidth, -halfHeight),
@@ -134,7 +144,7 @@ public sealed class Navigation : IDisposable {
         shape = PathEngine.newShape(vertices);
         mesh.generateUnobstructedSpaceFor(shape, true);
         mesh.generatePathfindPreprocessFor(shape);
-        ShapeCache.TryAdd((width, height), shape);
+        shapeCache.TryAdd((width, height), shape);
         return shape;
     }
 
