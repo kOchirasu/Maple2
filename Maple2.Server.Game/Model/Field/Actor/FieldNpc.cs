@@ -32,10 +32,11 @@ public class FieldNpc : Actor<Npc> {
     );
 
     public readonly AnimationSequence IdleSequence;
+    public readonly AnimationSequence? JumpSequence;
     private readonly WeightedSet<string> defaultActions;
 
     public readonly Agent Agent;
-    public NpcState StateData { get; protected set; }
+    public NpcState StateData { get; set; }
     private NpcAction CurrentAction { get; set; }
     public int SpawnPointId = -1;
 
@@ -60,6 +61,7 @@ public class FieldNpc : Actor<Npc> {
 
     public FieldNpc(FieldManager field, int objectId, Agent agent, Npc npc) : base (field, objectId, npc) {
         IdleSequence = npc.Animations.GetValueOrDefault("Idle_A") ?? new AnimationSequence(-1, 1f);
+        JumpSequence = npc.Animations.GetValueOrDefault("Jump_A");
         defaultActions = new WeightedSet<string>();
         foreach (Maple2.Model.Metadata.NpcAction action in Value.Metadata.Action.Actions) {
             defaultActions.Add(action.Name, action.Probability);
@@ -112,15 +114,34 @@ public class FieldNpc : Actor<Npc> {
         }
 
         switch (actionName) {
-            // case "Jump_A":
-            //     break;
-            // case "Jump_B":
-            //     break;
+            case "Jump_A" or "Jump_B": {
+                (Vector3 start, Vector3 end) = Field.Navigation.FindPath(Agent, Origin, Value.Metadata.Action.MoveArea, maxHeight: 2);
+                if (start == end) {
+                    // No valid path:
+                    // 1. Npc is obstructed in all directions
+                    // 2. Randomly generated position had too great of a height difference
+                    return new DelayAction(this, IdleSequence.Id, sequence.Time);
+                }
+
+                Position = start; // Force position to start position
+                Vector3 newRotation = start.Angle2D(end) * Vector3.UnitZ;
+                switch (actionName) {
+                    case "Jump_A":
+                        return new RotateAction(this, newRotation - Rotation) {
+                            NextAction = () => JumpAction.PositionA(this, end, sequence.Time),
+                        };
+                    case "Jump_B":
+                        return new RotateAction(this, newRotation - Rotation) {
+                            NextAction = () => JumpAction.PositionB(this, end, sequence.Time),
+                        };
+                }
+                break;
+            }
             case { } when actionName.Contains("Idle_"):
                 return new DelayAction(this, sequence.Id, sequence.Time);
             case { } when actionName.Contains("Bore_"):
                 return new DelayAction(this, sequence.Id, sequence.Time + 1f);
-            case { } when actionName.StartsWith("Walk_"):
+            case { } when actionName.StartsWith("Walk_"): {
                 (Vector3 start, Vector3 end) = Field.Navigation.FindPath(Agent, Origin, Value.Metadata.Action.MoveArea, maxHeight: 5);
                 if (start == end) {
                     // No valid path:
@@ -134,8 +155,9 @@ public class FieldNpc : Actor<Npc> {
                 return new RotateAction(this, newRotation - Rotation) {
                     NextAction = () => MoveAction.Walk(this, sequence.Id, distance: (int) Vector3.Distance(start, end)),
                 };
+            }
             case { } when actionName.StartsWith("Run_"):
-                return MoveAction.Run(this, sequence.Id, sequence.Time + 1f);
+                return MoveAction.Run(this, sequence.Id, sequence.Time);
         }
 
         Logger.Warning("Unhandled action: {Action} for npc {NpcId}", actionName, Value.Metadata.Id);

@@ -2,11 +2,11 @@ using System.Numerics;
 using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
-using Maple2.Server.Game.Model.State;
 
-namespace Maple2.Server.Game.Model;
+namespace Maple2.Server.Game.Model.State;
 
 public sealed class StateJumpNpc : NpcState {
+    public readonly bool IsAbsolute;
     public readonly Vector3 StartPosition;
     public readonly Vector3 EndPosition;
     public readonly float Duration;
@@ -27,21 +27,31 @@ public sealed class StateJumpNpc : NpcState {
         State = ActorState.Jump;
         SubState = ActorSubState.Jump_Jump; // Not sure, seems to be None
 
+        IsAbsolute = true;
         StartPosition = startPosition;
         EndPosition = endPosition;
         Duration = duration;
         Height = height;
     }
 
-    // Also has a relative format
-    // endPosition
-    // duration = 1
-    // height = 0.45
+    public StateJumpNpc(in Vector3 endPosition) {
+        State = ActorState.Jump;
+        SubState = ActorSubState.Jump_Jump; // Not sure, seems to be None
+
+        EndPosition = endPosition;
+        Duration = 1f;
+        Height = 0.45f;
+    }
+
     public override void WriteTo(IByteWriter writer) {
-        writer.WriteBool(true);
-        writer.Write<Vector3>(StartPosition);
-        writer.Write<Vector3>(EndPosition);
-        writer.WriteFloat(Duration);
-        writer.WriteFloat(Height);
+        writer.WriteBool(IsAbsolute);
+        if (IsAbsolute) {
+            writer.Write<Vector3>(StartPosition);
+            writer.Write<Vector3>(EndPosition);
+            writer.WriteFloat(Duration);
+            writer.WriteFloat(Height);
+        } else {
+            writer.Write<Vector3>(EndPosition);
+        }
     }
 }

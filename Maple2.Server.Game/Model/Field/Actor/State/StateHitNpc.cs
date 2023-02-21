@@ -1,8 +1,7 @@
 using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
-using Maple2.Server.Game.Model.State;
 
-namespace Maple2.Server.Game.Model;
+namespace Maple2.Server.Game.Model.State;
 
 public sealed class StateHitNpc : NpcState {
     public readonly float UnknownF1;
