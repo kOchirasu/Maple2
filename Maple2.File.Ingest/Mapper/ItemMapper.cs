@@ -6,8 +6,6 @@ using Maple2.File.Parser.Xml.Item;
 using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
 
 namespace Maple2.File.Ingest.Mapper;
 
@@ -27,10 +25,8 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
 
         Dictionary<int, List<int>> itemSetBonuses = new();
 
-        foreach ((int id, SetItemInfo info) in tableParser.ParseSetItemInfo())
-        {
-            foreach (int itemId in info.itemIDs)
-            {
+        foreach ((int id, SetItemInfo info) in tableParser.ParseSetItemInfo()) {
+            foreach (int itemId in info.itemIDs) {
                 itemSetBonuses.TryAdd(itemId, new());
                 itemSetBonuses[itemId].Add(id);
             }
@@ -136,7 +132,7 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     DisableDrop: data.property.disableDrop,
                     SocketId: data.property.socketDataId,
                     IsFragment: data.property.functionTags == "piece",
-                    SetOptionIds: FetchItemSetBonuses(id, itemSetBonuses)
+                    SetOptionIds: itemSetBonuses.GetValueOrDefault(id)?.ToArray() ?? Array.Empty<int>()
                 ),
                 Limit: new ItemMetadataLimit(
                     Gender: (Gender) data.limit.genderLimit,
@@ -160,15 +156,5 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                 Housing: housing
             );
         }
-    }
-
-    private int[] FetchItemSetBonuses(int itemId, Dictionary<int, List<int>> itemSetBonuses)
-    {
-        if (itemSetBonuses.TryGetValue(itemId, out List<int>? setBonuses))
-        {
-            return setBonuses.ToArray();
-        }
-
-        return new int[0];
     }
 }

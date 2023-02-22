@@ -2,8 +2,7 @@
 
 namespace Maple2.Model.Enum;
 
-public enum InvokeEffectType : byte
-{
+public enum InvokeEffectType : byte {
     ReduceCooldown = 1,
     IncreaseSkillDamage = 2,
     IncreaseEffectDuration = 3,
@@ -18,5 +17,5 @@ public enum InvokeEffectType : byte
     // 40 (90050827)
     ReduceSpiritCost = 56, // flame wave 0 spirit cost? value=0, rate=2 on 10300250. subtract rate from cost (10500201, rate=20%)
     // 57 (90050351)
-    IncreaseHealing = 58
+    IncreaseHealing = 58,
 }

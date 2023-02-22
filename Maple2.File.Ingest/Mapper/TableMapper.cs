@@ -462,46 +462,38 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
     }
 
-    private static void AddEntry<KeyType, Type>(Dictionary<KeyType, Type> dictionary, KeyType key, Type value) where Type : notnull where KeyType : notnull
-    {
-        if (!value.Equals(default))
-        {
+    private static void AddEntry<KeyType, Type>(Dictionary<KeyType, Type> dictionary, KeyType key, Type value) where Type : notnull where KeyType : notnull {
+        if (!value.Equals(default)) {
             dictionary[key] = value;
         }
     }
 
-    private SetItemOptionTable ParseSetItemOption()
-    {
-        Dictionary<int, SetItemOptionMetadata> options = new();
-        foreach ((int id, SetItemOption option) in parser.ParseSetItemOption())
-        {
-            List<SetBonusMetadata> parts = new();
+    private SetItemOptionTable ParseSetItemOption() {
+        var options = new Dictionary<int, SetItemOptionMetadata>();
+        foreach ((int id, SetItemOption option) in parser.ParseSetItemOption()) {
+            var parts = new List<SetBonusMetadata>();
             
-            foreach (SetItemOption.Part part in option.part)
-            {
-                Dictionary<BasicAttribute, long> values = new();
-                Dictionary<BasicAttribute, float> rates = new();
-                Dictionary<SpecialAttribute, float> specialValues = new();
-                Dictionary<SpecialAttribute, float> specialRates = new();
+            foreach (SetItemOption.Part part in option.part) {
+                var values = new Dictionary<BasicAttribute, long>();
+                var rates = new Dictionary<BasicAttribute, float>();
+                var specialValues = new Dictionary<SpecialAttribute, float>();
+                var specialRates = new Dictionary<SpecialAttribute, float>();
 
-                foreach (BasicAttribute attribute in Enum.GetValues<BasicAttribute>())
-                {
+                foreach (BasicAttribute attribute in Enum.GetValues<BasicAttribute>()) {
                     AddEntry(values, attribute, part.StatValue((byte)attribute));
                     AddEntry(rates, attribute, part.StatRate((byte)attribute));
                 }
 
-                foreach (SpecialAttribute attribute in Enum.GetValues<SpecialAttribute>())
-                {
+                foreach (SpecialAttribute attribute in Enum.GetValues<SpecialAttribute>()) {
                     byte attributeOption = attribute.OptionIndex();
 
-                    if (attributeOption <= 175)
-                    {
+                    if (attributeOption <= 175) {
                         AddEntry(specialValues, attribute, part.SpecialValue(attributeOption));
                         AddEntry(specialRates, attribute, part.SpecialRate(attributeOption));
                     }
                 }
 
-                parts.Add(new(
+                parts.Add(new SetBonusMetadata(
                     Count: part.count,
                     AdditionalEffectIds: part.additionalEffectID,
                     AdditionalEffectLevels: part.additionalEffectLevel,
@@ -513,26 +505,25 @@ public class TableMapper : TypeMapper<TableMetadata> {
                     SgiBossTarget: part.sgi_boss_target));
             }
 
-            options[id] = new(
+            options[id] = new SetItemOptionMetadata(
                 Id: id,
                 Parts: parts.ToArray());
         }
 
-        Dictionary<int, SetItemOptionTable.Entry> results = new();
+        var results = new Dictionary<int, SetItemOptionTable.Entry>();
 
-        foreach ((int id, SetItemInfo info) in parser.ParseSetItemInfo())
-        {
+        foreach ((int id, SetItemInfo info) in parser.ParseSetItemInfo()) {
             Debug.Assert(options.ContainsKey(info.optionID));
 
-            results[id] = new(
-                Info: new(
+            results[id] = new SetItemOptionTable.Entry(
+                Info: new SetItemInfoMetadata(
                     Id: id,
                     ItemIds: info.itemIDs,
                     OptionId: info.optionID),
                 Option: options[info.optionID]);
         }
 
-        return new(results);
+        return new SetItemOptionTable(results);
     }
 
     private LapenshardUpgradeTable ParseLapenshardUpgradeTable() {

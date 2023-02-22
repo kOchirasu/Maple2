@@ -3,7 +3,7 @@ using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.AdditionalEffect;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Maple2.File.Ingest.Mapper;
 
@@ -40,10 +40,10 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                     Update: Convert(data),
                     Status: Convert(data.StatusProperty, data.OffensiveProperty, data.DefensiveProperty),
                     Offensive: new AdditionalEffectMetadataOffensive(
-                        AlwaysCrit: data.OffensiveProperty.attackSuccessCritical == 1,
+                        AlwaysCrit: data.OffensiveProperty.attackSuccessCritical != 0,
                         ImmuneBreak: data.OffensiveProperty.hitImmuneBreak),
                     Defensive: new AdditionalEffectMetadataDefensive(
-                        Invincible: data.DefensiveProperty.invincible == 1),
+                        Invincible: data.DefensiveProperty.invincible != 0),
                     Recovery: Convert(data.RecoveryProperty),
                     Dot: new AdditionalEffectMetadataDot(
                         Damage: Convert(data.DotDamageProperty),
@@ -80,38 +80,32 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
             Duration: modifyDuration);
     }
 
-    private static void AddEntry<KeyType, Type>(Dictionary<KeyType, Type> dictionary, KeyType key, Type value) where Type : notnull where KeyType : notnull
-    {
-        if (!value.Equals(default))
-        {
+    private static void AddEntry<KeyType, Type>(Dictionary<KeyType, Type> dictionary, KeyType key, Type value) where Type : notnull where KeyType : notnull {
+        if (!value.Equals(default)) {
             dictionary[key] = value;
         }
     }
 
-    private static AdditionalEffectMetadataStatus Convert(StatusProperty status, OffensiveProperty offensive, DefensiveProperty defensive)
-    {
-        Dictionary<BasicAttribute, long> values = new();
-        Dictionary<BasicAttribute, float> rates = new();
-        Dictionary<SpecialAttribute, float> specialValues = new();
-        Dictionary<SpecialAttribute, float> specialRates = new();
+    private static AdditionalEffectMetadataStatus Convert(StatusProperty status, OffensiveProperty offensive, DefensiveProperty defensive) {
+        var values = new Dictionary<BasicAttribute, long>();
+        var rates = new Dictionary<BasicAttribute, float>();
+        var  specialValues = new Dictionary<SpecialAttribute, float>();
+        var specialRates = new Dictionary<SpecialAttribute, float>();
         
-        if (status.Stat is not null)
-        {
-            foreach (BasicAttribute attribute in Enum.GetValues<BasicAttribute>())
-            {
+        if (status.Stat is not null) {
+            foreach (BasicAttribute attribute in Enum.GetValues<BasicAttribute>()) {
                 AddEntry(values, attribute, status.Stat.Value((byte)attribute));
                 AddEntry(rates, attribute, status.Stat.Rate((byte)attribute));
             }
         }
 
-        if (status.SpecialAbility is not null)
-        {
-            foreach (SpecialAttribute attribute in Enum.GetValues<SpecialAttribute>())
-            {
-                if ((byte)attribute <= 175)
-                {
-                    AddEntry(specialValues, attribute, status.SpecialAbility.Value((byte)attribute));
-                    AddEntry(specialRates, attribute, status.SpecialAbility.Rate((byte)attribute));
+        if (status.SpecialAbility is not null) {
+            foreach (SpecialAttribute attribute in Enum.GetValues<SpecialAttribute>()) {
+                byte attributeIndex = attribute.OptionIndex();
+
+                if (attributeIndex != byte.MaxValue) {
+                    AddEntry(specialValues, attribute, status.SpecialAbility.Value(attributeIndex));
+                    AddEntry(specialRates, attribute, status.SpecialAbility.Rate(attributeIndex));
                 }
             }
         }
@@ -133,15 +127,13 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
 
         CompulsionEventType compulsionEventType = CompulsionEventType.None;
 
-        if (status.compulsionEventTypes.Length > 0)
-        {
+        if (status.compulsionEventTypes.Length > 0) {
             compulsionEventType = (CompulsionEventType)status.compulsionEventTypes[0];
         }
 
         float compulsionEventRate = 0;
 
-        if (status.compulsionEventRate.Length > 0)
-        {
+        if (status.compulsionEventRate.Length > 0) {
             compulsionEventRate = status.compulsionEventRate[0];
         }
 
@@ -211,12 +203,12 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
         return new AdditionalEffectMetadataShield(HpValue: shield.hpValue, HpByTargetMaxHp: shield.hpByTargetMaxHP);
     }
 
-    private static AdditionalEffectMetadataInvokeEffect? Convert(InvokeEffectProperty? invokeEffect)
-    {
-        if (invokeEffect is null)
-        {
+    [return: NotNullIfNotNull(nameof(invokeEffect))]
+    private static AdditionalEffectMetadataInvokeEffect? Convert (InvokeEffectProperty? invokeEffect) {
+        if (invokeEffect is null) {
             return null;
         }
+
         return new AdditionalEffectMetadataInvokeEffect(
             Values: invokeEffect.values,
             Rates: invokeEffect.rates,
