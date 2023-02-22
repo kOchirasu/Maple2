@@ -68,6 +68,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public MasteryManager Mastery { get; set; }
     public StatsManager Stats { get; set; }
     public ItemEnchantManager ItemEnchant { get; set; }
+    public GameEventUserValueManager GameEventUserValue { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
 
@@ -112,6 +113,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Housing = new HousingManager(this);
         Mail = new MailManager(this);
         ItemEnchant = new ItemEnchantManager(this, Lua);
+        GameEventUserValue = new GameEventUserValueManager(this);
 
         Guild = new GuildManager(this);
         Config = new ConfigManager(db, this);
@@ -185,7 +187,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Config.LoadKeyTable();
         // GuideRecord
         // DailyWonder*
-        Config.LoadGameEventUserValues();
+        GameEventUserValue.Load();
         Send(GameEventPacket.Load(db.GetEvents()));
         // BannerList
         // RoomDungeon
@@ -368,6 +370,7 @@ public sealed partial class GameSession : Core.Network.Session {
                 Config.Save(db);
                 Item.Save(db);
                 Housing.Save(db);
+                GameEventUserValue.Save(db);
             }
 
             base.Dispose(disposing);

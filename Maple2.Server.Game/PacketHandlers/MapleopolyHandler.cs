@@ -56,8 +56,8 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
 
         blueMarble.Tiles = blueMarble.Tiles.OrderBy(tile => tile.Position).ToList();
 
-        int.TryParse(session.Config.GetGameEventUserValue(GameEventUserValueType.MapleopolyFreeRollAmount, gameEvent).Value, out int freeRollValue);
-        int.TryParse(session.Config.GetGameEventUserValue(GameEventUserValueType.MapleopolyTotalTileCount, gameEvent).Value, out int totalTileValue);
+        int.TryParse(session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyFreeRollAmount, gameEvent).Value, out int freeRollValue);
+        int.TryParse(session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyTotalTileCount, gameEvent).Value, out int totalTileValue);
         int ticketAmount = session.Item.Inventory.Find(Constant.MapleopolyTicketItemId)
             .Sum(ticket => ticket.Amount);
 
@@ -72,8 +72,8 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
             return;
         }
 
-        int.TryParse(session.Config.GetGameEventUserValue(GameEventUserValueType.MapleopolyFreeRollAmount, gameEvent).Value, out int freeRollValue);
-        int.TryParse(session.Config.GetGameEventUserValue(GameEventUserValueType.MapleopolyTotalTileCount, gameEvent).Value, out int totalTileValue);
+        int.TryParse(session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyFreeRollAmount, gameEvent).Value, out int freeRollValue);
+        int.TryParse(session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyTotalTileCount, gameEvent).Value, out int totalTileValue);
 
         if (freeRollValue > 0) {
             freeRollValue--;
@@ -98,8 +98,8 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
             freeRollValue++;
         }
 
-        session.Config.UpdateGameEventUserValue(GameEventUserValueType.MapleopolyFreeRollAmount, freeRollValue);
-        session.Config.UpdateGameEventUserValue(GameEventUserValueType.MapleopolyTotalTileCount, totalTileValue);
+        session.GameEventUserValue[GameEventUserValueType.MapleopolyFreeRollAmount] = freeRollValue;
+        session.GameEventUserValue[GameEventUserValueType.MapleopolyTotalTileCount] = totalTileValue;
         session.Send(MapleopolyPacket.Roll(totalTileValue, dice1, dice2));
     }
 
@@ -111,8 +111,8 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
             return;
         }
 
-        int.TryParse(session.Config.GetGameEventUserValue(GameEventUserValueType.MapleopolyFreeRollAmount, gameEvent).Value, out int freeRollValue);
-        int.TryParse(session.Config.GetGameEventUserValue(GameEventUserValueType.MapleopolyTotalTileCount, gameEvent).Value, out int totalTileValue);
+        int.TryParse(session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyFreeRollAmount, gameEvent).Value, out int freeRollValue);
+        int.TryParse(session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyTotalTileCount, gameEvent).Value, out int totalTileValue);
 
         int currentTilePosition = totalTileValue % blueMarble.Tiles.Count;
 
@@ -153,7 +153,7 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
                 break;
         }
 
-        GameEventUserValue totalTrips = session.Config.GetGameEventUserValue(GameEventUserValueType.MapleopolyTotalTrips, gameEvent);
+        GameEventUserValue totalTrips = session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyTotalTrips, gameEvent);
         int.TryParse(totalTrips.Value, out int trips);
         int totalNewTrips = totalTileValue / blueMarble.Tiles.Count;
 
@@ -183,9 +183,9 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
                 }
             }
 
-            session.Config.UpdateGameEventUserValue(GameEventUserValueType.MapleopolyTotalTrips, trips);
+            session.GameEventUserValue[GameEventUserValueType.MapleopolyTotalTrips] = trips;
         }
-        session.Config.UpdateGameEventUserValue(GameEventUserValueType.MapleopolyTotalTileCount, totalTileValue);
+        session.GameEventUserValue[GameEventUserValueType.MapleopolyTotalTileCount] = totalTileValue;
         session.Send(MapleopolyPacket.Result(tile, totalTileValue, freeRollValue));
     }
 }

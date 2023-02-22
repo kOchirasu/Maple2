@@ -182,10 +182,10 @@ public partial class GameStorage {
             return Context.TrySaveChanges();
         }
 
-        public (IList<KeyBind>? KeyBinds, IList<QuickSlot[]>? HotBars, List<SkillMacro>?, List<Wardrobe>?, List<int>? FavoriteStickers, IDictionary<LapenshardSlot, int>? Lapenshards, IDictionary<GameEventUserValueType, GameEventUserValue>? GameEventValues, IDictionary<BasicAttribute, int>?, SkillBook?) LoadCharacterConfig(long characterId) {
+        public (IList<KeyBind>? KeyBinds, IList<QuickSlot[]>? HotBars, List<SkillMacro>?, List<Wardrobe>?, List<int>? FavoriteStickers, IDictionary<LapenshardSlot, int>? Lapenshards, IDictionary<BasicAttribute, int>?, SkillBook?) LoadCharacterConfig(long characterId) {
             CharacterConfig? config = Context.CharacterConfig.Find(characterId);
             if (config == null) {
-                return (null, null, null, null, null, null, null, null, null);
+                return (null, null, null, null, null, null, null, null);
             }
 
             SkillBook? skillBook = config.SkillBook == null ? null : new SkillBook {
@@ -207,7 +207,6 @@ public partial class GameStorage {
                 config.Wardrobes?.Select<Model.Wardrobe, Wardrobe>(wardrobe => wardrobe).ToList(),
                 config.FavoriteStickers?.Select(stickers => stickers).ToList(),
                 config.Lapenshards,
-                eventValues,
                 config.StatAllocation,
                 skillBook
             );
@@ -221,7 +220,6 @@ public partial class GameStorage {
                 IEnumerable<Wardrobe> wardrobes,
                 IList<int> favoriteStickers,
                 IDictionary<LapenshardSlot, int> lapenshards,
-                IDictionary<GameEventUserValueType, GameEventUserValue> gameEventValues,
                 StatAttributes.PointAllocation allocation,
                 SkillBook skillBook) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
@@ -245,12 +243,6 @@ public partial class GameStorage {
                 ActiveSkillTabId = skillBook.ActiveSkillTabId,
             };
             Context.CharacterConfig.Update(config);
-            
-            foreach (GameEventUserValue gameEventValue in gameEventValues.Values) {
-                Model.Event.GameEventUserValue model = gameEventValue;
-                model.CharacterId = characterId;
-                Context.GameEventUserValue.Update(model);
-            }
 
             foreach (SkillTab skillTab in skillBook.SkillTabs) {
                 Model.SkillTab model = skillTab;
