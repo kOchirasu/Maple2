@@ -115,7 +115,7 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
         AddEntry(specialValues, SpecialAttribute.OffensivePhysicalDamage, offensive.papDamageV);
         AddEntry(specialRates, SpecialAttribute.OffensivePhysicalDamage, offensive.papDamageR);
 
-        Dictionary<BasicAttribute, float> resistances = new();
+        var resistances = new Dictionary<BasicAttribute, float>();
 
         AddEntry(resistances, BasicAttribute.MaxWeaponAtk, status.resWapR);
         AddEntry(resistances, BasicAttribute.BonusAtk, status.resBapR);

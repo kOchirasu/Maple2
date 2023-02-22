@@ -23,11 +23,11 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
         Dictionary<int, int> itemExtractionTryCount = tableParser.ParseItemExtraction()
             .ToDictionary(entry => entry.Id, entry => entry.Extraction.TryCount);
 
-        Dictionary<int, List<int>> itemSetBonuses = new();
+        var itemSetBonuses = new Dictionary<int, List<int>>();
 
         foreach ((int id, SetItemInfo info) in tableParser.ParseSetItemInfo()) {
             foreach (int itemId in info.itemIDs) {
-                itemSetBonuses.TryAdd(itemId, new());
+                itemSetBonuses.TryAdd(itemId, new List<int>());
                 itemSetBonuses[itemId].Add(id);
             }
         }
