@@ -6,6 +6,8 @@ using Maple2.File.Parser.Xml.Item;
 using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace Maple2.File.Ingest.Mapper;
 
@@ -22,6 +24,17 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
         IEnumerable<(int Id, ItemExtraction Extraction)> itemExtractionData = tableParser.ParseItemExtraction();
         Dictionary<int, int> itemExtractionTryCount = tableParser.ParseItemExtraction()
             .ToDictionary(entry => entry.Id, entry => entry.Extraction.TryCount);
+
+        Dictionary<int, List<int>> itemSetBonuses = new();
+
+        foreach ((int id, SetItemInfo info) in tableParser.ParseSetItemInfo())
+        {
+            foreach (int itemId in info.itemIDs)
+            {
+                itemSetBonuses.TryAdd(itemId, new());
+                itemSetBonuses[itemId].Add(id);
+            }
+        }
 
         foreach ((int id, string name, ItemData data) in parser.Parse()) {
             int transferType = data.limit.transferType;
@@ -122,7 +135,8 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     RepackCount: data.property.rePackingLimitCount,
                     DisableDrop: data.property.disableDrop,
                     SocketId: data.property.socketDataId,
-                    IsFragment: data.property.functionTags == "piece"
+                    IsFragment: data.property.functionTags == "piece",
+                    SetOptionIds: FetchItemSetBonuses(id, itemSetBonuses)
                 ),
                 Limit: new ItemMetadataLimit(
                     Gender: (Gender) data.limit.genderLimit,
@@ -146,5 +160,15 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                 Housing: housing
             );
         }
+    }
+
+    private int[] FetchItemSetBonuses(int itemId, Dictionary<int, List<int>> itemSetBonuses)
+    {
+        if (itemSetBonuses.TryGetValue(itemId, out List<int>? setBonuses))
+        {
+            return setBonuses.ToArray();
+        }
+
+        return new int[0];
     }
 }

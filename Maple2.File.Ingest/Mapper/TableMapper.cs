@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using System.Numerics;
 using Maple2.Database.Extensions;
 using Maple2.File.Ingest.Utils;
@@ -67,6 +68,8 @@ public class TableMapper : TypeMapper<TableMetadata> {
         foreach ((string type, ItemEquipVariationTable table) in ParseItemEquipVariation()) {
             yield return new TableMetadata {Name = $"itemoptionvariation_{type}.xml", Table = table};
         }
+        // SetItemOption
+        yield return new TableMetadata { Name = "setitem*.xml", Table = ParseSetItemOption() };
     }
 
     private ChatStickerTable ParseChatSticker() {
@@ -457,6 +460,79 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
             yield return (type, new ItemEquipVariationTable(values, rates, specialValues, specialRates));
         }
+    }
+
+    private static void AddEntry<KeyType, Type>(Dictionary<KeyType, Type> dictionary, KeyType key, Type value) where Type : notnull where KeyType : notnull
+    {
+        if (!value.Equals(default))
+        {
+            dictionary[key] = value;
+        }
+    }
+
+    private SetItemOptionTable ParseSetItemOption()
+    {
+        Dictionary<int, SetItemOptionMetadata> options = new();
+        foreach ((int id, SetItemOption option) in parser.ParseSetItemOption())
+        {
+            List<SetBonusMetadata> parts = new();
+            
+            foreach (SetItemOption.Part part in option.part)
+            {
+                Dictionary<BasicAttribute, long> values = new();
+                Dictionary<BasicAttribute, float> rates = new();
+                Dictionary<SpecialAttribute, float> specialValues = new();
+                Dictionary<SpecialAttribute, float> specialRates = new();
+
+                foreach (BasicAttribute attribute in Enum.GetValues<BasicAttribute>())
+                {
+                    AddEntry(values, attribute, part.StatValue((byte)attribute));
+                    AddEntry(rates, attribute, part.StatRate((byte)attribute));
+                }
+
+                foreach (SpecialAttribute attribute in Enum.GetValues<SpecialAttribute>())
+                {
+                    byte attributeOption = attribute.OptionIndex();
+
+                    if (attributeOption <= 175)
+                    {
+                        AddEntry(specialValues, attribute, part.SpecialValue(attributeOption));
+                        AddEntry(specialRates, attribute, part.SpecialRate(attributeOption));
+                    }
+                }
+
+                parts.Add(new(
+                    Count: part.count,
+                    AdditionalEffectIds: part.additionalEffectID,
+                    AdditionalEffectLevels: part.additionalEffectLevel,
+                    Values: values,
+                    Rates: rates,
+                    SpecialValues: specialValues,
+                    SpecialRates: specialRates,
+                    SgiTarget: part.sgi_target,
+                    SgiBossTarget: part.sgi_boss_target));
+            }
+
+            options[id] = new(
+                Id: id,
+                Parts: parts.ToArray());
+        }
+
+        Dictionary<int, SetItemOptionTable.Entry> results = new();
+
+        foreach ((int id, SetItemInfo info) in parser.ParseSetItemInfo())
+        {
+            Debug.Assert(options.ContainsKey(info.optionID));
+
+            results[id] = new(
+                Info: new(
+                    Id: id,
+                    ItemIds: info.itemIDs,
+                    OptionId: info.optionID),
+                Option: options[info.optionID]);
+        }
+
+        return new(results);
     }
 
     private LapenshardUpgradeTable ParseLapenshardUpgradeTable() {

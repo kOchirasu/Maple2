@@ -3,6 +3,7 @@ using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.AdditionalEffect;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Maple2.File.Ingest.Mapper;
 
@@ -37,11 +38,18 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                         HpRate: data.ConsumeProperty.hpRate,
                         SpRate: data.ConsumeProperty.spRate),
                     Update: Convert(data),
+                    Status: Convert(data.StatusProperty, data.OffensiveProperty, data.DefensiveProperty),
+                    Offensive: new AdditionalEffectMetadataOffensive(
+                        AlwaysCrit: data.OffensiveProperty.attackSuccessCritical == 1,
+                        ImmuneBreak: data.OffensiveProperty.hitImmuneBreak),
+                    Defensive: new AdditionalEffectMetadataDefensive(
+                        Invincible: data.DefensiveProperty.invincible == 1),
                     Recovery: Convert(data.RecoveryProperty),
                     Dot: new AdditionalEffectMetadataDot(
                         Damage: Convert(data.DotDamageProperty),
                         Buff: Convert(data.DotBuffProperty)),
                     Shield: Convert(data.ShieldProperty),
+                    InvokeEffect: Convert(data.InvokeEffectProperty),
                     Skills: data.conditionSkill.Concat(data.splashSkill).Select(skill => skill.Convert()).ToArray());
             }
         }
@@ -70,6 +78,83 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
             ImmuneCategories: data.ImmuneEffectProperty.immuneBuffCategories,
             ResetCooldown: data.ResetSkillCoolDownTimeProperty.skillCodes,
             Duration: modifyDuration);
+    }
+
+    private static void AddEntry<KeyType, Type>(Dictionary<KeyType, Type> dictionary, KeyType key, Type value) where Type : notnull where KeyType : notnull
+    {
+        if (!value.Equals(default))
+        {
+            dictionary[key] = value;
+        }
+    }
+
+    private static AdditionalEffectMetadataStatus Convert(StatusProperty status, OffensiveProperty offensive, DefensiveProperty defensive)
+    {
+        Dictionary<BasicAttribute, long> values = new();
+        Dictionary<BasicAttribute, float> rates = new();
+        Dictionary<SpecialAttribute, float> specialValues = new();
+        Dictionary<SpecialAttribute, float> specialRates = new();
+        
+        if (status.Stat is not null)
+        {
+            foreach (BasicAttribute attribute in Enum.GetValues<BasicAttribute>())
+            {
+                AddEntry(values, attribute, status.Stat.Value((byte)attribute));
+                AddEntry(rates, attribute, status.Stat.Rate((byte)attribute));
+            }
+        }
+
+        if (status.SpecialAbility is not null)
+        {
+            foreach (SpecialAttribute attribute in Enum.GetValues<SpecialAttribute>())
+            {
+                if ((byte)attribute <= 175)
+                {
+                    AddEntry(specialValues, attribute, status.SpecialAbility.Value((byte)attribute));
+                    AddEntry(specialRates, attribute, status.SpecialAbility.Rate((byte)attribute));
+                }
+            }
+        }
+
+        AddEntry(specialValues, SpecialAttribute.OffensiveMagicalDamage, offensive.mapDamageV);
+        AddEntry(specialRates, SpecialAttribute.OffensiveMagicalDamage, offensive.mapDamageR);
+        AddEntry(specialValues, SpecialAttribute.OffensivePhysicalDamage, offensive.papDamageV);
+        AddEntry(specialRates, SpecialAttribute.OffensivePhysicalDamage, offensive.papDamageR);
+
+        Dictionary<BasicAttribute, float> resistances = new();
+
+        AddEntry(resistances, BasicAttribute.MaxWeaponAtk, status.resWapR);
+        AddEntry(resistances, BasicAttribute.BonusAtk, status.resBapR);
+        AddEntry(resistances, BasicAttribute.CriticalDamage, status.resCadR);
+        AddEntry(resistances, BasicAttribute.Accuracy, status.resAtpR);
+        AddEntry(resistances, BasicAttribute.Evasion, status.resEvpR);
+        AddEntry(resistances, BasicAttribute.Piercing, status.resPenR);
+        AddEntry(resistances, BasicAttribute.AttackSpeed, status.resAspR);
+
+        CompulsionEventType compulsionEventType = CompulsionEventType.None;
+
+        if (status.compulsionEventTypes.Length > 0)
+        {
+            compulsionEventType = (CompulsionEventType)status.compulsionEventTypes[0];
+        }
+
+        float compulsionEventRate = 0;
+
+        if (status.compulsionEventRate.Length > 0)
+        {
+            compulsionEventRate = status.compulsionEventRate[0];
+        }
+
+        return new AdditionalEffectMetadataStatus(
+            Values: values,
+            Rates: rates,
+            SpecialValues: specialValues,
+            SpecialRates: specialRates,
+            DeathResistanceHp: status.deathResistanceHP,
+            Resistances: resistances,
+            CompulsionEventType: compulsionEventType,
+            CompulsionEventRate: compulsionEventRate,
+            CompulsionEventSkillcodes: status.compulsionEventSkillCodes);
     }
 
     private static AdditionalEffectMetadataRecovery? Convert(RecoveryProperty recovery) {
@@ -124,5 +209,21 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
         }
 
         return new AdditionalEffectMetadataShield(HpValue: shield.hpValue, HpByTargetMaxHp: shield.hpByTargetMaxHP);
+    }
+
+    private static AdditionalEffectMetadataInvokeEffect? Convert(InvokeEffectProperty? invokeEffect)
+    {
+        if (invokeEffect is null)
+        {
+            return null;
+        }
+        return new AdditionalEffectMetadataInvokeEffect(
+            Values: invokeEffect.values,
+            Rates: invokeEffect.rates,
+            Types: invokeEffect.types.Select(type => (InvokeEffectType)type).ToArray(),
+            EffectId: invokeEffect.effectID,
+            EffectGroupId: invokeEffect.effectGroupID,
+            SkillId: invokeEffect.skillID,
+            SkillGroupId: invokeEffect.skillGroupID);
     }
 }
