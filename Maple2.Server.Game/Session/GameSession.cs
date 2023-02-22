@@ -9,6 +9,7 @@ using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Game.Event;
 using Maple2.Model.Metadata;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
@@ -303,6 +304,10 @@ public sealed partial class GameSession : Core.Network.Session {
         Send(PrepareField(mapId, position: position)
             ? FieldEnterPacket.Request(Player)
             : FieldEnterPacket.Error(MigrationError.s_move_err_default));
+    }
+    
+    public GameEvent? FindEvent<T>() where T : GameEventInfo {
+        return server.FindEvent<T>();
     }
 
     public bool Temp() {

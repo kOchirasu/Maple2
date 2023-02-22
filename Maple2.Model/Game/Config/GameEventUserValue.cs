@@ -23,6 +23,14 @@ public class GameEventUserValue : IByteSerializable {
         EventId = gameEvent.Id;
     }
 
+    public int Int() => int.TryParse(Value, out int result) ? result : 0;
+
+    public long Long() => long.TryParse(Value, out long result) ? result : 0;
+
+    public string String() => Value;
+
+    public bool Bool() => bool.TryParse(Value, out bool result) && result;
+
     public void WriteTo(IByteWriter writer) {
         writer.Write<GameEventUserValueType>(Type);
         writer.WriteInt(EventId);

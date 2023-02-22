@@ -25,12 +25,12 @@ public sealed class GameEventUserValueManager {
         eventValues = db.GetEventUserValues(session.CharacterId);
     }
 
-    public dynamic this[GameEventUserValueType type] {
+    public object this[GameEventUserValueType type] {
         set {
             if (!eventValues.TryGetValue(type, out GameEventUserValue? gameEventUserValue)) {
                 throw new ArgumentOutOfRangeException(nameof(type), type, "Invalid event value type.");
             }
-            gameEventUserValue.Value = value.ToString();
+            gameEventUserValue.Value = value.ToString() ?? throw new InvalidOperationException("Invalid new value");
             session.Send(GameEventUserValuePacket.Update(gameEventUserValue));
         }
     }

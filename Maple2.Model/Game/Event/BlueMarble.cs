@@ -33,14 +33,7 @@ public class BlueMarbleTile : IByteSerializable {
     public BlueMarbleTileType Type {get; init;}
     public int MoveAmount {get; init;}
     public BlueMarbleItem Item {get; init;}
-    
-    public BlueMarbleTile(int position, BlueMarbleTileType type, int moveAmount, BlueMarbleItem item) {
-        Position = position;
-        Type = type;
-        MoveAmount = moveAmount;
-        Item = item;
-    }
-    
+
     public void WriteTo(IByteWriter writer) {
         writer.Write<BlueMarbleTileType>(Type);
         writer.WriteInt(MoveAmount);

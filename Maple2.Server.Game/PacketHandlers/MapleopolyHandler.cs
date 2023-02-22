@@ -47,17 +47,16 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
     }
 
     private void HandleLoad(GameSession session) {
-        using GameStorage.Request db = GameStorage.Context();
-        GameEvent? gameEvent = db.FindEvent(nameof(BlueMarble));
-        if (gameEvent?.EventInfo is not BlueMarble blueMarble) {
-            // TODO: Find error to state event is not active
+        GameEvent? gameEvent = session.FindEvent<BlueMarble>();
+        if (gameEvent == null) {
             return;
         }
+        BlueMarble blueMarble = (gameEvent.EventInfo as BlueMarble)!;
 
         blueMarble.Tiles = blueMarble.Tiles.OrderBy(tile => tile.Position).ToList();
 
-        int.TryParse(session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyFreeRollAmount, gameEvent).Value, out int freeRollValue);
-        int.TryParse(session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyTotalTileCount, gameEvent).Value, out int totalTileValue);
+        int freeRollValue = session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyFreeRollAmount, gameEvent).Int();
+        int totalTileValue = session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyTotalTileCount, gameEvent).Int();
         int ticketAmount = session.Item.Inventory.Find(Constant.MapleopolyTicketItemId)
             .Sum(ticket => ticket.Amount);
 
@@ -65,15 +64,13 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
     }
 
     private void HandleRoll(GameSession session) {
-        using GameStorage.Request db = GameStorage.Context();
-        GameEvent? gameEvent = db.FindEvent(nameof(BlueMarble));
-        if (gameEvent is null) {
-            // TODO: Find error to state event is not active
+        GameEvent? gameEvent = session.FindEvent<BlueMarble>();
+        if (gameEvent == null) {
             return;
         }
 
-        int.TryParse(session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyFreeRollAmount, gameEvent).Value, out int freeRollValue);
-        int.TryParse(session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyTotalTileCount, gameEvent).Value, out int totalTileValue);
+        int freeRollValue = session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyFreeRollAmount, gameEvent).Int();
+        int totalTileValue = session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyTotalTileCount, gameEvent).Int();
 
         if (freeRollValue > 0) {
             freeRollValue--;
@@ -104,15 +101,14 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
     }
 
     private void HandleResult(GameSession session) {
-        using GameStorage.Request db = GameStorage.Context();
-        GameEvent? gameEvent = db.FindEvent(nameof(BlueMarble));
-        if (gameEvent?.EventInfo is not BlueMarble blueMarble) {
-            // TODO: Find error to state event is not active
+        GameEvent? gameEvent = session.FindEvent<BlueMarble>();
+        if (gameEvent == null) {
             return;
         }
+        BlueMarble blueMarble = (gameEvent.EventInfo as BlueMarble)!;
 
-        int.TryParse(session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyFreeRollAmount, gameEvent).Value, out int freeRollValue);
-        int.TryParse(session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyTotalTileCount, gameEvent).Value, out int totalTileValue);
+        int freeRollValue = session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyFreeRollAmount, gameEvent).Int();
+        int totalTileValue = session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyTotalTileCount, gameEvent).Int();
 
         int currentTilePosition = totalTileValue % blueMarble.Tiles.Count;
 
@@ -153,39 +149,38 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
                 break;
         }
 
-        GameEventUserValue totalTrips = session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyTotalTrips, gameEvent);
-        int.TryParse(totalTrips.Value, out int trips);
         int totalNewTrips = totalTileValue / blueMarble.Tiles.Count;
+        RewardNewTrips(session, gameEvent, totalNewTrips);
 
-        if (totalNewTrips > trips) {
-            int difference = totalNewTrips - trips;
+        session.GameEventUserValue[GameEventUserValueType.MapleopolyTotalTileCount] = totalTileValue;
+        session.Send(MapleopolyPacket.Result(tile, totalTileValue, freeRollValue));
+    }
 
-            for (int tripCount = 0; tripCount < difference; tripCount++) {
-                trips++;
+    private void RewardNewTrips(GameSession session, GameEvent gameEvent, int totalNewTrips) {
+        int trips = session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyTotalTrips, gameEvent).Int();
+        var blueMarble = (gameEvent.EventInfo as BlueMarble)!;
+        while (trips < totalNewTrips) {
+            trips++;
 
-                // Check if there's any item to give for every 1 trip
-                var entry1 = blueMarble.Entries.FirstOrDefault(entry => entry.TripAmount == 0);
-                if (entry1 != default && ItemMetadata.TryGet(entry1.Item.ItemId, out ItemMetadata? trip0Metadata)) {
-                    var trip0Item = new Item(trip0Metadata, entry1.Item.ItemRarity, entry1.Item.ItemAmount);
-                    if (!session.Item.Inventory.Add(trip0Item, true)) {
-                        // TODO: mail to player
-                    }
+            // Check if there's any item to give for every 1 trip
+            var entry1 = blueMarble.Entries.FirstOrDefault(entry => entry.TripAmount == 0);
+            if (entry1 != default && ItemMetadata.TryGet(entry1.Item.ItemId, out ItemMetadata? trip0Metadata)) {
+                var trip0Item = new Item(trip0Metadata, entry1.Item.ItemRarity, entry1.Item.ItemAmount);
+                if (!session.Item.Inventory.Add(trip0Item, true)) {
+                    // TODO: mail to player
                 }
+            }
 
-                // Check if there's any other item to give for hitting a specific number of trips
-                var entry2 = blueMarble.Entries.FirstOrDefault(entry => entry.TripAmount == trips);
-                if (entry2 == default || !ItemMetadata.TryGet(entry2.Item.ItemId, out ItemMetadata? tripMetadata)) {
-                    continue;
-                }
+            // Check if there's any other item to give for hitting a specific number of trips
+            var entry2 = blueMarble.Entries.FirstOrDefault(entry => entry.TripAmount == trips);
+            if (entry2 != default && ItemMetadata.TryGet(entry2.Item.ItemId, out ItemMetadata? tripMetadata)) {
                 var tripItem = new Item(tripMetadata, entry2.Item.ItemRarity, entry2.Item.ItemAmount);
                 if (!session.Item.Inventory.Add(tripItem, true)) {
                     // TODO: mail to player
                 }
             }
-
-            session.GameEventUserValue[GameEventUserValueType.MapleopolyTotalTrips] = trips;
         }
-        session.GameEventUserValue[GameEventUserValueType.MapleopolyTotalTileCount] = totalTileValue;
-        session.Send(MapleopolyPacket.Result(tile, totalTileValue, freeRollValue));
+
+        session.GameEventUserValue[GameEventUserValueType.MapleopolyTotalTrips] = trips;
     }
 }

@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
+using Maple2.Database.Storage;
 using Maple2.Model.Game;
 using Maple2.Model.Game.Event;
 using Maple2.Server.Core.Constants;
@@ -18,14 +19,22 @@ public class GameServer : Server<GameSession> {
     private readonly FieldManager.Factory fieldFactory;
     private readonly HashSet<GameSession> connectingSessions;
     private readonly Dictionary<long, GameSession> sessions;
+    private readonly Dictionary<string, GameEvent> eventCache = new();
 
     public int Channel => Target.GameChannel;
+    
+    #region Autofac Autowired
+    // ReSharper disable MemberCanBePrivate.Global
+    public required GameStorage gameStorage { private get; init; }
+    // ReSharper restore All
+    #endregion
 
     public GameServer(FieldManager.Factory fieldFactory, PacketRouter<GameSession> router, IComponentContext context)
             : base(Target.GamePort, router, context) {
         this.fieldFactory = fieldFactory;
         connectingSessions = new HashSet<GameSession>();
         sessions = new Dictionary<long, GameSession>();
+        gameStorage = context.Resolve<GameStorage>();
     }
 
     public override void OnConnected(GameSession session) {
@@ -55,6 +64,18 @@ public class GameServer : Server<GameSession> {
 
         Logger.Information("Game client connecting: {Session}", session);
         session.Start();
+    }
+    
+    public GameEvent? FindEvent<T>() where T : GameEventInfo {
+        if (!eventCache.TryGetValue(typeof(T).Name, out GameEvent? gameEvent)) {
+            using GameStorage.Request db = gameStorage.Context();
+            gameEvent = db.FindEvent(typeof(T).Name);
+            if (gameEvent != null) {
+                eventCache[typeof(T).Name] = gameEvent;
+            }
+        }
+
+        return gameEvent;
     }
 
     public override Task StopAsync(CancellationToken cancellationToken) {
