@@ -8,6 +8,7 @@ using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.PathEngine;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
@@ -76,11 +77,19 @@ public partial class FieldManager {
         return fieldPlayer;
     }
 
-    public FieldNpc SpawnNpc(NpcMetadata npc, Vector3 position, Vector3 rotation, FieldMobSpawn? owner = null) {
-        var fieldNpc = new FieldNpc(this, NextLocalId(), new Npc(npc)) {
+    public FieldNpc? SpawnNpc(NpcMetadata npc, Vector3 position, Vector3 rotation, int distance = 1, FieldMobSpawn? owner = null) {
+        Agent? agent = Navigation.AddAgent(npc, position, distance);
+        if (agent == null) {
+            return null;
+        }
+
+        AnimationMetadata? animation = NpcMetadata.GetAnimation(npc.Model);
+        Vector3 spawnPosition = Navigation.FromPosition(agent.getPosition());
+        var fieldNpc = new FieldNpc(this, NextLocalId(), agent, new Npc(npc, animation)) {
             Owner = owner,
-            Position = position,
+            Position = spawnPosition,
             Rotation = rotation,
+            Origin = owner?.Position ?? spawnPosition,
         };
 
         if (npc.Basic.Friendly > 0) {
@@ -92,17 +101,25 @@ public partial class FieldManager {
         return fieldNpc;
     }
 
-    public FieldPet? SpawnPet(Item pet, Vector3 position, Vector3 rotation, FieldMobSpawn? owner = null, FieldPlayer? player = null) {
+    public FieldPet? SpawnPet(Item pet, Vector3 position, Vector3 rotation, int distance = 1, FieldMobSpawn? owner = null, FieldPlayer? player = null) {
         if (!NpcMetadata.TryGet(pet.Metadata.Property.PetId, out NpcMetadata? npc)) {
+            return null;
+        }
+
+        Agent? agent = Navigation.AddAgent(npc, position, distance);
+        if (agent == null) {
             return null;
         }
 
         // We use GlobalId if there is an owner because players can move between maps.
         int objectId = player != null ? NextGlobalId() : NextLocalId();
-        var fieldPet = new FieldPet(this, objectId, new Npc(npc), pet, player) {
+        AnimationMetadata? animation = NpcMetadata.GetAnimation(npc.Model);
+        Vector3 spawnPosition = Navigation.FromPosition(agent.getPosition());
+        var fieldPet = new FieldPet(this, objectId, agent, new Npc(npc, animation), pet, player) {
             Owner = owner,
-            Position = position,
+            Position = Navigation.FromPosition(agent.getPosition()),
             Rotation = rotation,
+            Origin = owner?.Position ?? spawnPosition,
         };
         Pets[fieldPet.ObjectId] = fieldPet;
 
@@ -382,20 +399,22 @@ public partial class FieldManager {
     }
 
     public bool RemoveNpc(int objectId) {
-        if (!Mobs.TryRemove(objectId, out _) && !Npcs.TryRemove(objectId, out _)) {
+        if (!Mobs.TryRemove(objectId, out FieldNpc? npc) && !Npcs.TryRemove(objectId, out npc)) {
             return false;
         }
 
+        Navigation.RemoveAgent(npc.Agent);
         Broadcast(FieldPacket.RemoveNpc(objectId));
         Broadcast(ProxyObjectPacket.RemoveNpc(objectId));
         return true;
     }
 
     public bool RemovePet(int objectId) {
-        if (!Pets.TryRemove(objectId, out _)) {
+        if (!Pets.TryRemove(objectId, out FieldPet? pet)) {
             return false;
         }
 
+        Navigation.RemoveAgent(pet.Agent);
         Broadcast(FieldPacket.RemovePet(objectId));
         Broadcast(ProxyObjectPacket.RemovePet(objectId));
         return true;

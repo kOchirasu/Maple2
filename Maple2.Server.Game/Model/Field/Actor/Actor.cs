@@ -33,7 +33,7 @@ public abstract class ActorBase<T> : IActor<T> {
     public virtual Stats Stats { get; } = new(0, 0);
 
     public int ObjectId { get; }
-    public Vector3 Position { get; set; }
+    public virtual Vector3 Position { get; set; }
     public Vector3 Rotation { get; set; }
 
     public virtual bool IsDead { get; protected set; }
@@ -52,7 +52,10 @@ public abstract class ActorBase<T> : IActor<T> {
     public virtual void AddBuff(IActor caster, int id, short level, bool notifyField = true) { }
     public virtual void TargetAttack(SkillRecord record) { }
 
-    public virtual void Sync() { }
+    // Returns true when completed
+    public virtual bool Sync() {
+        return false;
+    }
 }
 
 /// <summary>
@@ -160,22 +163,23 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
         }
     }
 
-    public override void Sync() {
+    public override bool Sync() {
         Scheduler.InvokeAll();
 
         if (IsDead) {
-            return;
+            return true;
         }
 
         if (Stats[BasicAttribute.Health].Current <= 0) {
             IsDead = true;
             OnDeath();
-            return;
+            return true;
         }
 
         foreach (Buff buff in Buffs.Values) {
             buff.Sync();
         }
+        return false;
     }
 
     public virtual void Dispose() {

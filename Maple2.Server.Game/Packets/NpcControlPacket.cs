@@ -4,6 +4,7 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Model;
+using Maple2.Server.Game.Model.State;
 using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.Packets;
@@ -40,25 +41,28 @@ public static class NpcControlPacket {
         return pWriter;
     }
 
-    private static void PetBuffer(this PoolByteWriter buffer, FieldPet pet, float sequenceSpeed = 1) {
+    // TODO: Might be able to merge this with NpcBuffer
+    private static void PetBuffer(this PoolByteWriter buffer, FieldPet pet, float sequenceSpeed = 1f) {
         buffer.WriteInt(pet.ObjectId);
         buffer.WriteByte(); // Flags bit-1, bit-2
         buffer.Write<Vector3S>(pet.Position);
         buffer.WriteShort((short) (pet.Rotation.Z * 10));
-        buffer.Write<Vector3S>(default); // XYZ Speed
+        buffer.Write<Vector3S>(pet.Velocity.Rotate(pet.Rotation));
         buffer.WriteShort((short) (sequenceSpeed * 100));
 
         if (pet.Value.IsBoss) {
-            buffer.WriteInt(); // TargetId
+            buffer.WriteInt(pet.TargetId);
         }
 
-        byte flag = 1;
-        buffer.WriteByte(flag);
-        buffer.WriteShort(-1);
-        buffer.WriteShort(1);
+        buffer.Write<ActorState>(pet.State);
+        buffer.WriteShort(pet.SequenceId);
+        buffer.WriteShort(pet.SequenceCounter);
+
+        // Set -1 to continue previous animation
+        pet.SequenceId = -1;
     }
 
-    private static void NpcBuffer(this PoolByteWriter buffer, FieldNpc npc, float sequenceSpeed = 1) {
+    private static void NpcBuffer(this PoolByteWriter buffer, FieldNpc npc, float sequenceSpeed = 1f) {
         buffer.WriteInt(npc.ObjectId);
         buffer.WriteByte(2); // Flags bit-1 (AdditionalEffectRelated), bit-2 (UIHpBarRelated)
         buffer.Write<Vector3S>(npc.Position);
@@ -75,16 +79,16 @@ public static class NpcControlPacket {
         buffer.WriteShort(npc.SequenceCounter);
 
         // Animation (-2 = Jump_A, -3 = Jump_B)
-        if (npc.SequenceId is ANI_JUMP_A or ANI_JUMP_B && npc.StateData is NpcStateJump jump) {
-            buffer.WriteClass<NpcStateJump>(jump);
+        if (npc.SequenceId is ANI_JUMP_A or ANI_JUMP_B && npc.StateData is StateJumpNpc jump) {
+            buffer.WriteClass<StateJumpNpc>(jump);
         }
 
         switch (npc.StateData) {
-            case NpcStateHit hit:
-                buffer.WriteClass<NpcStateHit>(hit);
+            case StateHitNpc hit:
+                buffer.WriteClass<StateHitNpc>(hit);
                 break;
-            case NpcStateSpawn spawn:
-                buffer.WriteClass<NpcStateSpawn>(spawn);
+            case StateSpawn spawn:
+                buffer.WriteClass<StateSpawn>(spawn);
                 break;
         }
 

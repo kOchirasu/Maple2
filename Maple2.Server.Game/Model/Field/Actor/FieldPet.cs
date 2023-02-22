@@ -4,6 +4,7 @@ using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
+using Maple2.PathEngine;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
@@ -22,7 +23,7 @@ public sealed class FieldPet : FieldNpc {
     public short TamingRank; // (0-70=green, 70-95=yellow, 95-100=red)
     public int TamingPoint = 1000;
 
-    public FieldPet(FieldManager field, int objectId, Npc npc, Item pet, FieldPlayer? owner = null) : base(field, objectId, npc) {
+    public FieldPet(FieldManager field, int objectId, Agent agent, Npc npc, Item pet, FieldPlayer? owner = null) : base(field, objectId, agent, npc) {
         this.owner = owner;
         Pet = pet;
 
@@ -69,7 +70,10 @@ public sealed class FieldPet : FieldNpc {
         damage.Targets.Add(targetRecord);
     }
 
-    protected override ByteWriter Control() => NpcControlPacket.ControlPet(this);
+    protected override ByteWriter Control() {
+        SequenceCounter++; // Not sure if this even matters
+        return NpcControlPacket.ControlPet(this);
+    }
 
     protected override void Remove() => Field.RemovePet(ObjectId);
 

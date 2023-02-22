@@ -46,8 +46,8 @@ public class FieldPlayer : Actor<Player> {
         }
     }
 
-    public override void Sync() {
-        base.Sync();
+    public override bool Sync() {
+        return base.Sync();
     }
 
     protected override void OnDeath() {

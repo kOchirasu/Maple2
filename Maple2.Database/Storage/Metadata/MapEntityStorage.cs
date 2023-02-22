@@ -118,6 +118,7 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                 RegionSkills = regionSkills,
                 Taxi = taxi,
                 BoundingBox = bounding ?? LargeBoundingBox,
+                NavMesh = Context.NavMesh.Find(xblock),
                 BreakableActors = breakableActors,
                 Interacts = interacts,
                 TriggerModels = triggerModels,

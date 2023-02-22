@@ -15,7 +15,7 @@ namespace Maple2.Server.Game.Model;
 /// </summary>
 public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
     private const int FORCE_SPAWN_MULTIPLIER = 2;
-    private const int PET_SPAWN_RADIUS = 150;
+    private const int SPAWN_DISTANCE = 250;
     private const int PET_SPAWN_RATE_TOTAL = 10000;
 
     private readonly WeightedSet<NpcMetadata> npcs;
@@ -68,7 +68,11 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
 
         spawnTick = int.MaxValue;
         for (int i = spawnedMobs.Count; i < Value.Population; i++) {
-            FieldNpc fieldNpc = Field.SpawnNpc(npcs.Get(), GetRandomSpawn(), Rotation, owner: this);
+            FieldNpc? fieldNpc = Field.SpawnNpc(npcs.Get(), Position, Rotation, SPAWN_DISTANCE, owner: this);
+            if (fieldNpc == null) {
+                continue;
+            }
+
             spawnedMobs.Add(fieldNpc.ObjectId);
 
             Field.Broadcast(FieldPacket.AddNpc(fieldNpc));
@@ -82,7 +86,7 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
         if (Random.Shared.Next(PET_SPAWN_RATE_TOTAL) < Value.PetSpawnRate) {
             // Any stats are computed after pet is captured since that's when rarity is determined.
             var pet = new Item(pets.Get());
-            FieldPet? fieldPet = Field.SpawnPet(pet, GetRandomSpawn(), Rotation, owner: this);
+            FieldPet? fieldPet = Field.SpawnPet(pet, Position, Rotation, SPAWN_DISTANCE, owner: this);
             if (fieldPet == null) {
                 return;
             }
@@ -92,11 +96,5 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
             Field.Broadcast(FieldPacket.AddPet(fieldPet));
             Field.Broadcast(ProxyObjectPacket.AddPet(fieldPet));
         }
-    }
-
-    private Vector3 GetRandomSpawn() {
-        int spawnX = Random.Shared.Next((int) Position.X - PET_SPAWN_RADIUS, (int) Position.X + PET_SPAWN_RADIUS);
-        int spawnY = Random.Shared.Next((int) Position.Y - PET_SPAWN_RADIUS, (int) Position.Y + PET_SPAWN_RADIUS);
-        return new Vector3(spawnX, spawnY, Position.Z);
     }
 }
