@@ -10,6 +10,7 @@ namespace Maple2.Database.Model.Shop;
 
 internal class ShopItem {
     public int Id { get; set; }
+    public int ShopId { get; set; }
     public int ItemId { get; set; }
     public ShopCurrencyType CurrencyType { get; set; }
     public int CurrencyItemId { get; set; }
@@ -31,27 +32,38 @@ internal class ShopItem {
     public int RequireFameGrade { get; set; }
     public bool AutoPreviewEquip { get; set; }
 
-    /*[return: NotNullIfNotNull(nameof(other))]
-    public static implicit operator FishEntry?(Maple2.Model.Game.FishEntry? other) {
-        return other == null ? null : new FishEntry {
-            Id = other.Id,
-            TotalCaught = other.TotalCaught,
-            TotalPrizeFish = other.TotalPrizeFish,
-            LargestSize = other.LargestSize,
+    [return: NotNullIfNotNull(nameof(other))]
+    public static implicit operator Maple2.Model.Game.Shop.ShopItem?(ShopItem? other) {
+        return other == null ? null : new Maple2.Model.Game.Shop.ShopItem(other.Id) {
+            ItemId = other.ItemId,
+            Cost = new Maple2.Model.Game.Shop.ShopCost(
+                other.CurrencyType,
+                other.CurrencyItemId,
+                other.Price,
+                other.SalePrice),
+            Rarity = other.Rarity,
+            StockCount = other.StockCount,
+            StockPurchased = other.StockPurchased,
+            RequireAchievementId = other.RequireAchievementId,
+            RequireAchievementRank = other.RequireAchievementRank,
+            RequireChampionshipGrade = other.RequireChampionshipGrade,
+            RequireChampionshipJoinCount = other.RequireChampionshipJoinCount,
+            RequireGuildMerchantType = other.RequireGuildMerchantType,
+            RequireGuildMerchantLevel = other.RequireGuildMerchantLevel,
+            Quantity = other.Quantity,
+            Label = other.Label,
+            CurrencyIdString = other.CurrencyIdString,
+            RequireQuestAllianceId = other.RequireQuestAllianceId,
+            RequireFameGrade = other.RequireFameGrade,
+            AutoPreviewEquip = other.AutoPreviewEquip,
         };
     }
-
-    [return: NotNullIfNotNull(nameof(other))]
-    public static implicit operator Maple2.Model.Game.FishEntry?(FishEntry? other) {
-        return other == null ? null : new Maple2.Model.Game.FishEntry(other.Id) {
-            TotalCaught = other.TotalCaught,
-            TotalPrizeFish = other.TotalPrizeFish,
-            LargestSize = other.LargestSize,
-        };
-    }*/
     
     public static void Configure(EntityTypeBuilder<ShopItem> builder) {
         builder.ToTable("shop-item");
         builder.HasKey(shop => shop.Id);
+        builder.HasOne<Shop>()
+            .WithMany()
+            .HasForeignKey(item => item.ShopId);
     }
 }

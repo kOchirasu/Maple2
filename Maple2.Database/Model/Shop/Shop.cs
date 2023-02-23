@@ -1,4 +1,5 @@
-﻿using Maple2.Model.Enum;
+﻿using System.Diagnostics.CodeAnalysis;
+using Maple2.Model.Enum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -27,24 +28,33 @@ internal class Shop {
     public bool DisableInstantRestock { get; set; }
     public bool PersistantInventory { get; set; }
 
-    /*[return: NotNullIfNotNull(nameof(other))]
-    public static implicit operator FishEntry?(Maple2.Model.Game.FishEntry? other) {
-        return other == null ? null : new FishEntry {
-            Id = other.Id,
-            TotalCaught = other.TotalCaught,
-            TotalPrizeFish = other.TotalPrizeFish,
-            LargestSize = other.LargestSize,
+    [return: NotNullIfNotNull(nameof(other))]
+    public static implicit operator Maple2.Model.Game.Shop.Shop?(Shop? other) {
+        return other == null ? null : new Maple2.Model.Game.Shop.Shop(other.Id) {
+            CategoryId = other.CategoryId,
+            Name = other.Name,
+            Skin = other.Skin,
+            HideUnuseable = other.HideUnuseable,
+            HideStats = other.HideStats,
+            DisableBuyback = other.DisableBuyback,
+            OpenWallet = other.OpenWallet,
+            DisplayNew = other.DisplayNew,
+            RandomizeOrder = other.RandomizeOrder,
+            CanRestock = other.CanRestock,
+            RestockTime = other.RestockTime,
+            RestockData = new Maple2.Model.Game.Shop.ShopRestockData {
+                Interval = other.RestockInterval,
+                CurrencyType = other.RestockCurrencyType,
+                ExcessCurrencyType = other.ExcessRestockCurrencyType,
+                RestockCost = other.RestockCost,
+                EnableRestockCostMultiplier = other.EnableRestockCostMultiplier,
+                TotalRestockCount = other.TotalRestockCount,
+                DisableInstantRestock = other.DisableInstantRestock,
+                PersistantInventory = other.PersistantInventory,
+            },
+            
         };
     }
-
-    [return: NotNullIfNotNull(nameof(other))]
-    public static implicit operator Maple2.Model.Game.FishEntry?(FishEntry? other) {
-        return other == null ? null : new Maple2.Model.Game.FishEntry(other.Id) {
-            TotalCaught = other.TotalCaught,
-            TotalPrizeFish = other.TotalPrizeFish,
-            LargestSize = other.LargestSize,
-        };
-    }*/
     
     public static void Configure(EntityTypeBuilder<Shop> builder) {
         builder.ToTable("shop");

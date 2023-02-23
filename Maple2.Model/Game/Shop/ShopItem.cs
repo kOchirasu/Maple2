@@ -27,6 +27,10 @@ public class ShopItem : IByteSerializable {
     public int RequireFameGrade { get; init; }
     public bool AutoPreviewEquip { get; init; }
     public Item? Item;
+    
+    public ShopItem(int id) {
+        Id = id;
+    }
 
     public virtual void WriteTo(IByteWriter writer) {
         writer.WriteInt(Id);

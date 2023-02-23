@@ -20,6 +20,10 @@ public class Shop : IByteSerializable {
     public bool CanRestock  { get; init; }
     public long RestockTime  { get; init; }
     public ShopRestockData RestockData { get; init; }
+    
+    public Shop(int id) {
+        Id = id;
+    }
 
     public virtual void WriteTo(IByteWriter writer) {
         writer.WriteInt(NpcId);
