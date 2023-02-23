@@ -222,7 +222,9 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
     private InteractObjectTable ParseInteractObject(bool isMastery) {
         var results = new Dictionary<int, InteractObjectMetadata>();
-        foreach ((int id, InteractObject info) in isMastery ? parser.ParseInteractObjectMastery() : parser.ParseInteractObject()) {
+        IEnumerable<(int Id, InteractObject Info)> data = isMastery ? parser.ParseInteractObjectMastery()
+            : parser.ParseInteractObject().Select(entry => (entry.Id, entry.Info));
+        foreach ((int id, InteractObject info) in data) {
             var spawn = new InteractObjectMetadataSpawn[info.spawn.code.Length];
             for (int i = 0; i < spawn.Length; i++) {
                 spawn[i] = new InteractObjectMetadataSpawn(
@@ -710,7 +712,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
             habitats.Add(id, habitatMaps);
         }
 
-        foreach ((int id, Fish fish) in parser.ParseFish()) {
+        foreach ((int id, string name, Fish fish) in parser.ParseFish()) {
             if (!habitats.TryGetValue(id, out IReadOnlyList<int>? habitatList)) {
                 habitatList = new List<int>();
             }
@@ -918,6 +920,6 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 BonusItems: items));
         }
 
-        return new PremiumClubTable(premiumClubBuffs, premiumClubItems, premiumClubPackages); 
+        return new PremiumClubTable(premiumClubBuffs, premiumClubItems, premiumClubPackages);
     }
 }
