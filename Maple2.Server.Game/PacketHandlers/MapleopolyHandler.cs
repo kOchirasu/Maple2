@@ -21,7 +21,6 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
     public required ItemMetadataStorage ItemMetadata { private get; init; }
-    public required GameStorage GameStorage { private get; init; }
     // ReSharper restore All
     #endregion
 
@@ -51,8 +50,7 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
         if (gameEvent == null) {
             return;
         }
-        BlueMarble blueMarble = (gameEvent.EventInfo as BlueMarble)!;
-
+        var blueMarble = (gameEvent.EventInfo as BlueMarble)!;
         blueMarble.Tiles = blueMarble.Tiles.OrderBy(tile => tile.Position).ToList();
 
         int freeRollValue = session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyFreeRollAmount, gameEvent).Int();
@@ -105,7 +103,7 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
         if (gameEvent == null) {
             return;
         }
-        BlueMarble blueMarble = (gameEvent.EventInfo as BlueMarble)!;
+        var blueMarble = (gameEvent.EventInfo as BlueMarble)!;
 
         int freeRollValue = session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyFreeRollAmount, gameEvent).Int();
         int totalTileValue = session.GameEventUserValue.Get(GameEventUserValueType.MapleopolyTotalTileCount, gameEvent).Int();
@@ -113,7 +111,6 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
         int currentTilePosition = totalTileValue % blueMarble.Tiles.Count;
 
         BlueMarbleTile tile = blueMarble.Tiles[currentTilePosition];
-
         switch (tile.Type) {
             case BlueMarbleTileType.Item:
             case BlueMarbleTileType.TreasureTrove:
@@ -163,7 +160,7 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
             trips++;
 
             // Check if there's any item to give for every 1 trip
-            var entry1 = blueMarble.Entries.FirstOrDefault(entry => entry.TripAmount == 0);
+            BlueMarbleEntry entry1 = blueMarble.Entries.FirstOrDefault(entry => entry.TripAmount == 0);
             if (entry1 != default && ItemMetadata.TryGet(entry1.Item.ItemId, out ItemMetadata? trip0Metadata)) {
                 var trip0Item = new Item(trip0Metadata, entry1.Item.ItemRarity, entry1.Item.ItemAmount);
                 if (!session.Item.Inventory.Add(trip0Item, true)) {
@@ -172,7 +169,7 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
             }
 
             // Check if there's any other item to give for hitting a specific number of trips
-            var entry2 = blueMarble.Entries.FirstOrDefault(entry => entry.TripAmount == trips);
+            BlueMarbleEntry entry2 = blueMarble.Entries.FirstOrDefault(entry => entry.TripAmount == trips);
             if (entry2 != default && ItemMetadata.TryGet(entry2.Item.ItemId, out ItemMetadata? tripMetadata)) {
                 var tripItem = new Item(tripMetadata, entry2.Item.ItemRarity, entry2.Item.ItemAmount);
                 if (!session.Item.Inventory.Add(tripItem, true)) {

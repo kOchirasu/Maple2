@@ -9,9 +9,8 @@ namespace Maple2.Server.Game.Packets;
 
 public static class GameEventUserValuePacket {
     private enum Command : byte {
-        Load = 1,
-        Update = 2,
-        Error = 3,
+        Load = 0,
+        Update = 1,
     }
 
     public static ByteWriter Load(IList<GameEventUserValue> userValues) {
@@ -25,7 +24,7 @@ public static class GameEventUserValuePacket {
 
         return pWriter;
     }
-    
+
     public static ByteWriter Update(GameEventUserValue userValue) {
         var pWriter = Packet.Of(SendOp.GameEventUserValue);
         pWriter.Write<Command>(Command.Update);
