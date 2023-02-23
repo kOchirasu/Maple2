@@ -20,21 +20,16 @@ public class GameServer : Server<GameSession> {
     private readonly HashSet<GameSession> connectingSessions;
     private readonly Dictionary<long, GameSession> sessions;
     private readonly Dictionary<string, GameEvent> eventCache = new();
+    private readonly GameStorage gameStorage;
 
     public int Channel => Target.GameChannel;
-    
-    #region Autofac Autowired
-    // ReSharper disable MemberCanBePrivate.Global
-    public required GameStorage gameStorage { private get; init; }
-    // ReSharper restore All
-    #endregion
 
-    public GameServer(FieldManager.Factory fieldFactory, PacketRouter<GameSession> router, IComponentContext context)
+    public GameServer(FieldManager.Factory fieldFactory, PacketRouter<GameSession> router, IComponentContext context, GameStorage gameStorage)
             : base(Target.GamePort, router, context) {
         this.fieldFactory = fieldFactory;
         connectingSessions = new HashSet<GameSession>();
         sessions = new Dictionary<long, GameSession>();
-        gameStorage = context.Resolve<GameStorage>();
+        this.gameStorage = gameStorage;
     }
 
     public override void OnConnected(GameSession session) {

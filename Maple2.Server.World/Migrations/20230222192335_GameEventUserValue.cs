@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -13,8 +12,6 @@ namespace Maple2.Server.World.Migrations
                 name: "game-event-user-value",
                 columns: table => new
                 {
-                    Id = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
                     CharacterId = table.Column<long>(type: "bigint", nullable: false),
                     Type = table.Column<int>(type: "int", nullable: false),
                     Value = table.Column<string>(type: "longtext", nullable: false)
@@ -24,7 +21,7 @@ namespace Maple2.Server.World.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_game-event-user-value", x => x.Id);
+                    table.PrimaryKey("PK_game-event-user-value", x => new { x.CharacterId, x.Type });
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
         }

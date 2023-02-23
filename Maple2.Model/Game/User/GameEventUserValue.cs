@@ -6,11 +6,10 @@ using Maple2.Tools;
 namespace Maple2.Model.Game;
 
 public class GameEventUserValue : IByteSerializable {
-    public long Id;
-    public GameEventUserValueType Type;
+    public GameEventUserValueType Type { get; init; }
     public string Value;
-    public int EventId;
-    public long ExpirationTime;
+    public int EventId { get; init; }
+    public long ExpirationTime { get; init; }
 
     public GameEventUserValue() {
         Value = string.Empty;

@@ -351,14 +351,13 @@ namespace Maple2.Server.World.Migrations
                     b.ToTable("game-event", (string)null);
                 });
 
-            modelBuilder.Entity("Maple2.Database.Model.GameEventUserValue", b =>
+            modelBuilder.Entity("Maple2.Database.Model.Event.GameEventUserValue", b =>
                 {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
                     b.Property<long>("CharacterId")
                         .HasColumnType("bigint");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
 
                     b.Property<int>("EventId")
                         .HasColumnType("int");
@@ -366,14 +365,11 @@ namespace Maple2.Server.World.Migrations
                     b.Property<long>("ExpirationTime")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
                     b.Property<string>("Value")
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.HasKey("Id");
+                    b.HasKey("CharacterId", "Type");
 
                     b.ToTable("game-event-user-value", (string)null);
                 });
