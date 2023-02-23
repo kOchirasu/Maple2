@@ -1,9 +1,6 @@
 ﻿using Maple2.Model.Enum;
-using System;
 using System.Diagnostics.CodeAnalysis;
-using Maple2.Database.Extensions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Maple2.Database.Model.Shop;
