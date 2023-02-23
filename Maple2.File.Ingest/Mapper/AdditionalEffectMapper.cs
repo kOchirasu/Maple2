@@ -3,6 +3,8 @@ using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.AdditionalEffect;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
+using Maple2.Tools.Extensions;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace Maple2.File.Ingest.Mapper;
@@ -40,7 +42,6 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                     Update: Convert(data),
                     Status: Convert(data.StatusProperty, data.OffensiveProperty, data.DefensiveProperty),
                     Offensive: new AdditionalEffectMetadataOffensive(
-                        AlwaysCrit: data.OffensiveProperty.attackSuccessCritical != 0,
                         ImmuneBreak: data.OffensiveProperty.hitImmuneBreak),
                     Defensive: new AdditionalEffectMetadataDefensive(
                         Invincible: data.DefensiveProperty.invincible != 0),
@@ -89,13 +90,13 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
     private static AdditionalEffectMetadataStatus Convert(StatusProperty status, OffensiveProperty offensive, DefensiveProperty defensive) {
         var values = new Dictionary<BasicAttribute, long>();
         var rates = new Dictionary<BasicAttribute, float>();
-        var  specialValues = new Dictionary<SpecialAttribute, float>();
+        var specialValues = new Dictionary<SpecialAttribute, float>();
         var specialRates = new Dictionary<SpecialAttribute, float>();
         
         if (status.Stat is not null) {
             foreach (BasicAttribute attribute in Enum.GetValues<BasicAttribute>()) {
-                AddEntry(values, attribute, status.Stat.Value((byte)attribute));
-                AddEntry(rates, attribute, status.Stat.Rate((byte)attribute));
+                values.AddIfNotDefault(attribute, status.Stat.Value((byte)attribute));
+                rates.AddIfNotDefault(attribute, status.Stat.Rate((byte)attribute));
             }
         }
 
@@ -104,28 +105,31 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                 byte attributeIndex = attribute.OptionIndex();
 
                 if (attributeIndex != byte.MaxValue) {
-                    AddEntry(specialValues, attribute, status.SpecialAbility.Value(attributeIndex));
-                    AddEntry(specialRates, attribute, status.SpecialAbility.Rate(attributeIndex));
+                    specialValues.AddIfNotDefault(attribute, status.SpecialAbility.Value(attributeIndex));
+                    specialRates.AddIfNotDefault(attribute, status.SpecialAbility.Rate(attributeIndex));
                 }
             }
         }
 
-        AddEntry(specialValues, SpecialAttribute.OffensiveMagicalDamage, offensive.mapDamageV);
-        AddEntry(specialRates, SpecialAttribute.OffensiveMagicalDamage, offensive.mapDamageR);
-        AddEntry(specialValues, SpecialAttribute.OffensivePhysicalDamage, offensive.papDamageV);
-        AddEntry(specialRates, SpecialAttribute.OffensivePhysicalDamage, offensive.papDamageR);
+        specialValues.AddIfNotDefault(SpecialAttribute.OffensiveMagicalDamage, offensive.mapDamageV);
+        specialRates.AddIfNotDefault(SpecialAttribute.OffensiveMagicalDamage, offensive.mapDamageR);
+        specialValues.AddIfNotDefault(SpecialAttribute.OffensivePhysicalDamage, offensive.papDamageV);
+        specialRates.AddIfNotDefault(SpecialAttribute.OffensivePhysicalDamage, offensive.papDamageR);
 
         var resistances = new Dictionary<BasicAttribute, float>();
 
-        AddEntry(resistances, BasicAttribute.MaxWeaponAtk, status.resWapR);
-        AddEntry(resistances, BasicAttribute.BonusAtk, status.resBapR);
-        AddEntry(resistances, BasicAttribute.CriticalDamage, status.resCadR);
-        AddEntry(resistances, BasicAttribute.Accuracy, status.resAtpR);
-        AddEntry(resistances, BasicAttribute.Evasion, status.resEvpR);
-        AddEntry(resistances, BasicAttribute.Piercing, status.resPenR);
-        AddEntry(resistances, BasicAttribute.AttackSpeed, status.resAspR);
+        resistances.AddIfNotDefault(BasicAttribute.MaxWeaponAtk, status.resWapR);
+        resistances.AddIfNotDefault(BasicAttribute.BonusAtk, status.resBapR);
+        resistances.AddIfNotDefault(BasicAttribute.CriticalDamage, status.resCadR);
+        resistances.AddIfNotDefault(BasicAttribute.Accuracy, status.resAtpR);
+        resistances.AddIfNotDefault(BasicAttribute.Evasion, status.resEvpR);
+        resistances.AddIfNotDefault(BasicAttribute.Piercing, status.resPenR);
+        resistances.AddIfNotDefault(BasicAttribute.AttackSpeed, status.resAspR);
 
         CompulsionEventType compulsionEventType = CompulsionEventType.None;
+
+        Debug.Assert(status.compulsionEventTypes.Length < 2);
+        Debug.Assert(status.compulsionEventRate.Length < 2);
 
         if (status.compulsionEventTypes.Length > 0) {
             compulsionEventType = (CompulsionEventType)status.compulsionEventTypes[0];
@@ -146,7 +150,7 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
             Resistances: resistances,
             CompulsionEventType: compulsionEventType,
             CompulsionEventRate: compulsionEventRate,
-            CompulsionEventSkillcodes: status.compulsionEventSkillCodes);
+            CompulsionEventSkillIds: status.compulsionEventSkillCodes);
     }
 
     private static AdditionalEffectMetadataRecovery? Convert(RecoveryProperty recovery) {

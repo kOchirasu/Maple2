@@ -8,7 +8,8 @@ namespace Maple2.Model.Metadata;
 public record SetItemInfoMetadata(
     int Id,
     int[] ItemIds,
-    int OptionId);
+    int OptionId,
+    string Name);
 
 public record SetItemOptionMetadata(
     int Id,

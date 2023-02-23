@@ -10,6 +10,7 @@ using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.Tools.Extensions;
 using Newtonsoft.Json;
 using ChatSticker = Maple2.File.Parser.Xml.Table.ChatSticker;
 using GuildBuff = Maple2.File.Parser.Xml.Table.GuildBuff;
@@ -462,12 +463,6 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
     }
 
-    private static void AddEntry<KeyType, Type>(Dictionary<KeyType, Type> dictionary, KeyType key, Type value) where Type : notnull where KeyType : notnull {
-        if (!value.Equals(default)) {
-            dictionary[key] = value;
-        }
-    }
-
     private SetItemOptionTable ParseSetItemOption() {
         var options = new Dictionary<int, SetItemOptionMetadata>();
         foreach ((int id, SetItemOption option) in parser.ParseSetItemOption()) {
@@ -480,16 +475,16 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 var specialRates = new Dictionary<SpecialAttribute, float>();
 
                 foreach (BasicAttribute attribute in Enum.GetValues<BasicAttribute>()) {
-                    AddEntry(values, attribute, part.StatValue((byte)attribute));
-                    AddEntry(rates, attribute, part.StatRate((byte)attribute));
+                    values.AddIfNotDefault(attribute, part.StatValue((byte)attribute));
+                    rates.AddIfNotDefault(attribute, part.StatRate((byte)attribute));
                 }
 
                 foreach (SpecialAttribute attribute in Enum.GetValues<SpecialAttribute>()) {
                     byte attributeOption = attribute.OptionIndex();
 
-                    if (attributeOption <= 175) {
-                        AddEntry(specialValues, attribute, part.SpecialValue(attributeOption));
-                        AddEntry(specialRates, attribute, part.SpecialRate(attributeOption));
+                    if (attributeOption != byte.MaxValue) {
+                        specialValues.AddIfNotDefault(attribute, part.SpecialValue(attributeOption));
+                        specialRates.AddIfNotDefault(attribute, part.SpecialRate(attributeOption));
                     }
                 }
 
@@ -512,14 +507,15 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
         var results = new Dictionary<int, SetItemOptionTable.Entry>();
 
-        foreach ((int id, SetItemInfo info) in parser.ParseSetItemInfo()) {
+        foreach ((int id, string name, SetItemInfo info) in parser.ParseSetItemInfo()) {
             Debug.Assert(options.ContainsKey(info.optionID));
 
             results[id] = new SetItemOptionTable.Entry(
                 Info: new SetItemInfoMetadata(
                     Id: id,
                     ItemIds: info.itemIDs,
-                    OptionId: info.optionID),
+                    OptionId: info.optionID,
+                    Name: name),
                 Option: options[info.optionID]);
         }
 

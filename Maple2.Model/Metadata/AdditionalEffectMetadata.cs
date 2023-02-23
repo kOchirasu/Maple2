@@ -58,10 +58,9 @@ public record AdditionalEffectMetadataStatus(
     IReadOnlyDictionary<BasicAttribute, float> Resistances,
     CompulsionEventType CompulsionEventType,
     float CompulsionEventRate,
-    int[] CompulsionEventSkillcodes);
+    int[] CompulsionEventSkillIds);
 
 public record AdditionalEffectMetadataOffensive(
-    bool AlwaysCrit,
     int ImmuneBreak);
 
 public record AdditionalEffectMetadataDefensive(

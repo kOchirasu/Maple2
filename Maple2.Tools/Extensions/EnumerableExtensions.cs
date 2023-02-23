@@ -89,4 +89,12 @@ public static class EnumerableExtensions {
 
         return nested.GetValueOrDefault(key2) ?? defaultValue;
     }
+
+    public static void AddIfNotDefault<KeyType, Type>(this IDictionary<KeyType, Type> dictionary, KeyType key, Type value) where Type : notnull where KeyType : notnull
+    {
+        if (!value.Equals(default))
+        {
+            dictionary[key] = value;
+        }
+    }
 }
