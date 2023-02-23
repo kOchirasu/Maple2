@@ -142,7 +142,7 @@ public enum RecvOp : ushort {
     Tutorial = 0x008B,
     ItemSocketScroll = 0x008C,
     ItemRepack = 0x008D,
-    DiceGame = 0x008E,
+    Mapleopoly = 0x008E,
     PremiumClub = 0x008F,
     HomeGame = 0x0091,
     Mastery = 0x0093,

@@ -9,6 +9,7 @@ using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Game.Event;
 using Maple2.Model.Metadata;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
@@ -68,6 +69,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public MasteryManager Mastery { get; set; }
     public StatsManager Stats { get; set; }
     public ItemEnchantManager ItemEnchant { get; set; }
+    public GameEventUserValueManager GameEventUserValue { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
 
@@ -112,6 +114,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Housing = new HousingManager(this);
         Mail = new MailManager(this);
         ItemEnchant = new ItemEnchantManager(this, Lua);
+        GameEventUserValue = new GameEventUserValueManager(this);
 
         Guild = new GuildManager(this);
         Config = new ConfigManager(db, this);
@@ -140,7 +143,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Guild.Load();
         // Club
         Buddy.Load();
-
+        
         Send(TimeSyncPacket.Reset(DateTimeOffset.UtcNow));
         Send(TimeSyncPacket.Set(DateTimeOffset.UtcNow));
 
@@ -185,6 +188,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Config.LoadKeyTable();
         // GuideRecord
         // DailyWonder*
+        GameEventUserValue.Load();
         Send(GameEventPacket.Load(db.GetEvents()));
         // BannerList
         // RoomDungeon
@@ -301,6 +305,10 @@ public sealed partial class GameSession : Core.Network.Session {
             ? FieldEnterPacket.Request(Player)
             : FieldEnterPacket.Error(MigrationError.s_move_err_default));
     }
+    
+    public GameEvent? FindEvent<T>() where T : GameEventInfo {
+        return server.FindEvent<T>();
+    }
 
     public bool Temp() {
         // -> RequestMoveField
@@ -367,6 +375,7 @@ public sealed partial class GameSession : Core.Network.Session {
                 Config.Save(db);
                 Item.Save(db);
                 Housing.Save(db);
+                GameEventUserValue.Save(db);
             }
 
             base.Dispose(disposing);
