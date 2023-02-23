@@ -51,7 +51,6 @@ public sealed class GameEventUserValueManager {
     }
 
     public void Save(GameStorage.Request db) {
-        bool result = db.SaveGameEventUserValues(session.CharacterId, eventValues.Values.ToList());
-        Console.WriteLine(result);
+        db.SaveGameEventUserValues(session.CharacterId, eventValues.Values.ToList());
     }
 }
