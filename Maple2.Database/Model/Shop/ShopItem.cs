@@ -33,11 +33,12 @@ internal class ShopItem {
     public static implicit operator Maple2.Model.Game.Shop.ShopItem?(ShopItem? other) {
         return other == null ? null : new Maple2.Model.Game.Shop.ShopItem(other.Id) {
             ItemId = other.ItemId,
-            Cost = new Maple2.Model.Game.Shop.ShopCost(
-                other.CurrencyType,
-                other.CurrencyItemId,
-                other.Price,
-                other.SalePrice),
+            Cost = new Maple2.Model.Game.Shop.ShopCost {
+                Type = other.CurrencyType,
+                ItemId = other.CurrencyItemId,
+                Amount = other.Price,
+                SaleAmount = other.SalePrice,
+            },
             Rarity = other.Rarity,
             StockCount = other.StockCount,
             StockPurchased = other.StockPurchased,
@@ -58,7 +59,7 @@ internal class ShopItem {
     
     public static void Configure(EntityTypeBuilder<ShopItem> builder) {
         builder.ToTable("shop-item");
-        builder.HasKey(shop => shop.Id);
+        builder.HasKey(item => item.Id);
         builder.HasOne<Shop>()
             .WithMany()
             .HasForeignKey(item => item.ShopId);

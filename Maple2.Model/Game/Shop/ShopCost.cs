@@ -5,21 +5,17 @@ using Maple2.Tools;
 namespace Maple2.Model.Game.Shop;
 
 public class ShopCost : IByteSerializable {
-    public static ShopCost Zero = new(ShopCurrencyType.Meso, 0, 0, 0);
+    public static readonly ShopCost Zero = new() {
+        Type = ShopCurrencyType.Meso,
+        ItemId = 0,
+        Amount = 0,
+        SaleAmount = 0,
+    };
 
-    public readonly ShopCurrencyType Type;
-    public readonly int ItemId;
-    public readonly int Amount;
-    public readonly int SaleAmount;
-
-    public ShopCost(ShopCurrencyType type, int itemId, int amount, int saleAmount) {
-        Type = type;
-        ItemId = itemId;
-        Amount = amount;
-        SaleAmount = saleAmount;
-    }
-    public ShopCost() {
-    }
+    public ShopCurrencyType Type { get; init; }
+    public int ItemId { get; init; }
+    public int Amount { get; init; }
+    public int SaleAmount { get; init; }
 
     public void WriteTo(IByteWriter writer) {
         writer.Write<ShopCurrencyType>(Type);

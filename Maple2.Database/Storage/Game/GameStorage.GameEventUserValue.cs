@@ -9,9 +9,18 @@ namespace Maple2.Database.Storage;
 
 public partial class GameStorage {
     public partial class Request {
-        public IDictionary<GameEventUserValueType, GameEventUserValue> GetEventUserValues(long characterId) {
-            return Context.GameEventUserValue.Where(model => model.CharacterId == characterId)
-                .ToDictionary(model => model.Type, model => (GameEventUserValue) model);
+        public Dictionary<int, Dictionary<GameEventUserValueType, GameEventUserValue>> GetEventUserValues(long characterId) {
+            var results = new Dictionary<int, Dictionary<GameEventUserValueType, GameEventUserValue>>();
+            foreach (GameEventUserValue value in Context.GameEventUserValue.Where(model => model.CharacterId == characterId)) {
+                if (results.TryGetValue(value.EventId, out Dictionary<GameEventUserValueType, GameEventUserValue>? result)) {
+                    result.Add(value.Type, value);
+                } else {
+                    results.Add(value.EventId, new Dictionary<GameEventUserValueType, GameEventUserValue> {
+                        {value.Type, value}
+                    });
+                }
+            }
+            return results;
         }
 
         public bool SaveGameEventUserValues(long characterId, IList<GameEventUserValue> values) {

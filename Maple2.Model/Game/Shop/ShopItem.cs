@@ -6,7 +6,7 @@ using Maple2.Tools.Extensions;
 namespace Maple2.Model.Game.Shop;
 
 public class ShopItem : IByteSerializable {
-    public int Id;
+    public readonly int Id;
     public int ItemId { get; init; }
     public ShopCost Cost { get; init; } = ShopCost.Zero;
     public byte Rarity { get; init; }
