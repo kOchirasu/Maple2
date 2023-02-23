@@ -79,7 +79,7 @@ public class NpcMapper : TypeMapper<NpcMetadata> {
                     WalkSpeed: data.speed.walk,
                     RunSpeed: data.speed.run,
                     Actions: data.normal.action.Zip(data.normal.prob, (action, prob) => new NpcAction(action, prob)).ToArray(),
-                    MoveArea: data.normal.movearea == 0 ? 200 : data.normal.movearea,
+                    MoveArea: data.normal.movearea,
                     MaidExpired: data.normal.maidExpired),
                 Dead: new NpcMetadataDead(
                     Time: data.dead.time,
