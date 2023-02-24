@@ -1,4 +1,5 @@
 ﻿using Maple2.Model.Game;
+using Maple2.Model.Game.Shop;
 using Maple2.Server.Game.Manager;
 using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Manager.Items;
@@ -32,6 +33,8 @@ public partial class GameSession {
     public readonly SkillQueue ActiveSkills = new();
 
     public NpcScript? NpcScript;
+
+    public Shop? Shop;
 
     public bool FishingMiniGameActive;
 
