@@ -26,7 +26,7 @@ public class ShopItem : IByteSerializable {
     public short RequireQuestAllianceId { get; init; }
     public int RequireFameGrade { get; init; }
     public bool AutoPreviewEquip { get; init; }
-    public Item? Item;
+    public Item Item;
     
     public ShopItem(int id) {
         Id = id;

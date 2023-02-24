@@ -19,7 +19,7 @@ public class Shop : IByteSerializable {
     public bool RandomizeOrder  { get; init; }
     public bool CanRestock  { get; init; }
     public long RestockTime  { get; init; }
-    public ShopRestockData RestockData { get; init; }
+    public ShopRestockData? RestockData { get; init; }
     
     public Shop(int id) {
         Id = id;
@@ -34,7 +34,7 @@ public class Shop : IByteSerializable {
         writer.WriteInt(CategoryId);
         writer.WriteBool(OpenWallet);
         writer.WriteBool(DisableBuyback);
-        writer.WriteBool(CanRestock);
+        writer.WriteBool(RestockData != null);
         writer.WriteBool(RandomizeOrder);
         writer.Write<ShopSkin>(Skin);
         writer.Write(HideUnuseable);
@@ -42,7 +42,7 @@ public class Shop : IByteSerializable {
         writer.WriteBool(false);
         writer.WriteBool(DisplayNew);
         writer.WriteUnicodeString(Name);
-        if (CanRestock) {
+        if (RestockData != null) {
             writer.WriteClass<ShopRestockData>(RestockData);
         }
     }

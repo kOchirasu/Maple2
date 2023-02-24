@@ -9,7 +9,6 @@ using Maple2.Model.Game.Event;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Extensions;
-using Microsoft.Scripting.Utils;
 
 namespace Maple2.Server.Game.Manager;
 
@@ -26,33 +25,30 @@ public sealed class GameEventUserValueManager {
         eventValues = db.GetEventUserValues(session.CharacterId);
     }
 
-    public void Set(GameEventUserValueType type, int gameEventId, object value) {
+    public void Set(int gameEventId, GameEventUserValueType type, object value) {
         if (!eventValues.TryGetValue(gameEventId, out Dictionary<GameEventUserValueType, GameEventUserValue>? eventDictionary)) {
             throw new ArgumentOutOfRangeException("gameEventId", gameEventId, "Invalid game event id.");
         }
         if (!eventDictionary.TryGetValue(type, out GameEventUserValue? gameEventUserValue)) {
             throw new ArgumentOutOfRangeException("gameEventId", gameEventId, "Invalid game event id.");
         }
-        
-        gameEventUserValue.Value = value.ToString() ?? throw new InvalidOperationException("Invalid new value");
+
+        gameEventUserValue.Value = value.ToString() ?? throw new ArgumentException("Invalid new value");
         session.Send(GameEventUserValuePacket.Update(gameEventUserValue));
     }
 
     public void Load() {
-        IList<GameEventUserValue> values = new List<GameEventUserValue>();
-        foreach (Dictionary<GameEventUserValueType, GameEventUserValue> dict in eventValues.Values) {
-            values.AddRange(dict.Values);
-        }
-
-        foreach (ImmutableList<GameEventUserValue> batch in values.Batch(BATCH_SIZE)) {
+        foreach (ImmutableList<GameEventUserValue> batch in eventValues.Values.SelectMany(dict => dict.Values).Batch(BATCH_SIZE)) {
             session.Send(GameEventUserValuePacket.Load(batch));
         }
     }
 
     public GameEventUserValue Get(GameEventUserValueType type, GameEvent gameEvent) {
         if (!eventValues.TryGetValue(gameEvent.Id, out Dictionary<GameEventUserValueType, GameEventUserValue>? valueDict)) {
-            eventValues.Add(gameEvent.Id, new Dictionary<GameEventUserValueType, GameEventUserValue>{
-                {type, new GameEventUserValue(type, gameEvent)},
+            eventValues.Add(gameEvent.Id, new Dictionary<GameEventUserValueType, GameEventUserValue> {
+                {
+                    type, new GameEventUserValue(type, gameEvent)
+                },
             });
         } else {
             if (!valueDict.ContainsKey(type)) {
@@ -64,6 +60,6 @@ public sealed class GameEventUserValueManager {
     }
 
     public void Save(GameStorage.Request db) {
-        db.SaveGameEventUserValues(session.CharacterId,eventValues.Values.SelectMany(value => value.Values).ToList());
+        db.SaveGameEventUserValues(session.CharacterId, eventValues.Values.SelectMany(value => value.Values).ToList());
     }
 }
