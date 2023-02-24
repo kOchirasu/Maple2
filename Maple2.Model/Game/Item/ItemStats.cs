@@ -31,9 +31,6 @@ public sealed class ItemStats : IByteSerializable, IByteDeserializable {
         for (int i = 0; i < TYPE_COUNT; i++) {
             options[i] = new Option();
         }
-        for (int i = 0; i < TYPE_COUNT; i++) {
-            options[i].Special[SpecialAttribute.TonicDropRate] = new SpecialOption(0.4f, 0.8f);
-        }
     }
 
     public ItemStats(Dictionary<BasicAttribute, BasicOption>[] basicOption, Dictionary<SpecialAttribute, SpecialOption>[] specialOption) {
@@ -43,9 +40,6 @@ public sealed class ItemStats : IByteSerializable, IByteDeserializable {
             options[i] = new Option(
                 basicOption.ElementAtOrDefault(i, () => new Dictionary<BasicAttribute, BasicOption>()),
                 specialOption.ElementAtOrDefault(i, () => new Dictionary<SpecialAttribute, SpecialOption>()));
-        }
-        for (int i = 0; i < TYPE_COUNT; i++) {
-            options[i].Special[SpecialAttribute.TonicDropRate] = new SpecialOption(0.4f, 0.8f);
         }
     }
 
