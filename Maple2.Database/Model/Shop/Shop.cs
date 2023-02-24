@@ -16,7 +16,6 @@ internal class Shop {
     public bool OpenWallet { get; set; }
     public bool DisplayNew { get; set; }
     public bool RandomizeOrder { get; set; }
-    public bool CanRestock { get; set; }
     public long RestockTime { get; set; }
     public ShopRestockInterval RestockInterval { get; set; }
     public ShopCurrencyType RestockCurrencyType { get; set; }
@@ -39,7 +38,6 @@ internal class Shop {
             OpenWallet = other.OpenWallet,
             DisplayNew = other.DisplayNew,
             RandomizeOrder = other.RandomizeOrder,
-            CanRestock = other.CanRestock,
             RestockTime = other.RestockTime,
             RestockData = new Maple2.Model.Game.Shop.ShopRestockData {
                 Interval = other.RestockInterval,

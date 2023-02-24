@@ -16,7 +16,7 @@ namespace Maple2.Server.World.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.11")
+                .HasAnnotation("ProductVersion", "7.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("Maple2.Database.Model.Account", b =>
@@ -774,9 +774,6 @@ namespace Maple2.Server.World.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    b.Property<bool>("CanRestock")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
@@ -1107,7 +1104,7 @@ namespace Maple2.Server.World.Migrations
 
                             b1.HasOne("Maple2.Database.Model.SkillTab", null)
                                 .WithOne()
-                                .HasForeignKey("Maple2.Database.Model.SkillBook", "ActiveSkillTabId")
+                                .HasForeignKey("Maple2.Database.Model.CharacterConfig.SkillBook#Maple2.Database.Model.SkillBook", "ActiveSkillTabId")
                                 .HasPrincipalKey("Maple2.Database.Model.SkillTab", "Id")
                                 .OnDelete(DeleteBehavior.Cascade)
                                 .IsRequired();
@@ -1152,6 +1149,15 @@ namespace Maple2.Server.World.Migrations
                         .IsRequired();
 
                     b.Navigation("Character");
+                });
+
+            modelBuilder.Entity("Maple2.Database.Model.Event.GameEventUserValue", b =>
+                {
+                    b.HasOne("Maple2.Database.Model.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Maple2.Database.Model.Guild", b =>

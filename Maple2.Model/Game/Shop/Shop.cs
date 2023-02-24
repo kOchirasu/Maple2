@@ -17,7 +17,6 @@ public class Shop : IByteSerializable {
     public bool OpenWallet  { get; init; }
     public bool DisplayNew  { get; init; }
     public bool RandomizeOrder  { get; init; }
-    public bool CanRestock  { get; init; }
     public long RestockTime  { get; init; }
     public ShopRestockData? RestockData { get; init; }
     

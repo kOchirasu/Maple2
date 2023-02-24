@@ -5,8 +5,10 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace Maple2.Server.World.Migrations
 {
+    /// <inheritdoc />
     public partial class Shop : Migration
     {
+        /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -25,7 +27,6 @@ namespace Maple2.Server.World.Migrations
                     OpenWallet = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     DisplayNew = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     RandomizeOrder = table.Column<bool>(type: "tinyint(1)", nullable: false),
-                    CanRestock = table.Column<bool>(type: "tinyint(1)", nullable: false),
                     RestockTime = table.Column<long>(type: "bigint", nullable: false),
                     RestockInterval = table.Column<byte>(type: "tinyint unsigned", nullable: false),
                     RestockCurrencyType = table.Column<byte>(type: "tinyint unsigned", nullable: false),
@@ -87,10 +88,23 @@ namespace Maple2.Server.World.Migrations
                 name: "IX_shop-item_ShopId",
                 table: "shop-item",
                 column: "ShopId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_game-event-user-value_Character_CharacterId",
+                table: "game-event-user-value",
+                column: "CharacterId",
+                principalTable: "Character",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
         }
 
+        /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_game-event-user-value_Character_CharacterId",
+                table: "game-event-user-value");
+
             migrationBuilder.DropTable(
                 name: "shop-item");
 
