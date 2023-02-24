@@ -16,7 +16,7 @@ public sealed class GameEventUserValueManager {
 
     private const int BATCH_SIZE = 10;
     private readonly GameSession session;
-    private readonly IDictionary<GameEventUserValueType, GameEventUserValue> eventValues;
+    private readonly Dictionary<int, Dictionary<GameEventUserValueType, GameEventUserValue>> eventValues;
 
     public GameEventUserValueManager(GameSession session) {
         this.session = session;
@@ -25,32 +25,41 @@ public sealed class GameEventUserValueManager {
         eventValues = db.GetEventUserValues(session.CharacterId);
     }
 
-    public object this[GameEventUserValueType type] {
-        set {
-            if (!eventValues.TryGetValue(type, out GameEventUserValue? gameEventUserValue)) {
-                throw new ArgumentOutOfRangeException(nameof(type), type, "Invalid event value type.");
-            }
-            gameEventUserValue.Value = value.ToString() ?? throw new InvalidOperationException("Invalid new value");
-            session.Send(GameEventUserValuePacket.Update(gameEventUserValue));
+    public void Set(int gameEventId, GameEventUserValueType type, object value) {
+        if (!eventValues.TryGetValue(gameEventId, out Dictionary<GameEventUserValueType, GameEventUserValue>? eventDictionary)) {
+            throw new ArgumentOutOfRangeException("gameEventId", gameEventId, "Invalid game event id.");
         }
+        if (!eventDictionary.TryGetValue(type, out GameEventUserValue? gameEventUserValue)) {
+            throw new ArgumentOutOfRangeException("gameEventId", gameEventId, "Invalid game event id.");
+        }
+
+        gameEventUserValue.Value = value.ToString() ?? throw new ArgumentException("Invalid new value");
+        session.Send(GameEventUserValuePacket.Update(gameEventUserValue));
     }
 
     public void Load() {
-        foreach (ImmutableList<GameEventUserValue> batch in eventValues.Values.Batch(BATCH_SIZE)) {
+        foreach (ImmutableList<GameEventUserValue> batch in eventValues.Values.SelectMany(dict => dict.Values).Batch(BATCH_SIZE)) {
             session.Send(GameEventUserValuePacket.Load(batch));
         }
     }
 
     public GameEventUserValue Get(GameEventUserValueType type, GameEvent gameEvent) {
-        if (!eventValues.TryGetValue(type, out GameEventUserValue? value)) {
-            value = new GameEventUserValue(type, gameEvent);
-            eventValues.Add(type, value);
+        if (!eventValues.TryGetValue(gameEvent.Id, out Dictionary<GameEventUserValueType, GameEventUserValue>? valueDict)) {
+            eventValues.Add(gameEvent.Id, new Dictionary<GameEventUserValueType, GameEventUserValue> {
+                {
+                    type, new GameEventUserValue(type, gameEvent)
+                },
+            });
+        } else {
+            if (!valueDict.ContainsKey(type)) {
+                valueDict.Add(type, new GameEventUserValue(type, gameEvent));
+            }
         }
 
-        return eventValues[type];
+        return eventValues[gameEvent.Id][type];
     }
 
     public void Save(GameStorage.Request db) {
-        db.SaveGameEventUserValues(session.CharacterId, eventValues.Values.ToList());
+        db.SaveGameEventUserValues(session.CharacterId, eventValues.Values.SelectMany(value => value.Values).ToList());
     }
 }

@@ -93,8 +93,8 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
             freeRollValue++;
         }
 
-        session.GameEventUserValue[GameEventUserValueType.MapleopolyFreeRollAmount] = freeRollValue;
-        session.GameEventUserValue[GameEventUserValueType.MapleopolyTotalTileCount] = totalTileValue;
+        session.GameEventUserValue.Set(gameEvent.Id, GameEventUserValueType.MapleopolyFreeRollAmount, freeRollValue);
+        session.GameEventUserValue.Set(gameEvent.Id, GameEventUserValueType.MapleopolyTotalTileCount, totalTileValue);
         session.Send(MapleopolyPacket.Roll(totalTileValue, dice1, dice2));
     }
 
@@ -149,7 +149,7 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
         int totalNewTrips = totalTileValue / blueMarble.Tiles.Count;
         RewardNewTrips(session, gameEvent, totalNewTrips);
 
-        session.GameEventUserValue[GameEventUserValueType.MapleopolyTotalTileCount] = totalTileValue;
+        session.GameEventUserValue.Set(gameEvent.Id, GameEventUserValueType.MapleopolyTotalTrips, totalTileValue);
         session.Send(MapleopolyPacket.Result(tile, totalTileValue, freeRollValue));
     }
 
@@ -178,6 +178,6 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
             }
         }
 
-        session.GameEventUserValue[GameEventUserValueType.MapleopolyTotalTrips] = trips;
+        session.GameEventUserValue.Set(gameEvent.Id, GameEventUserValueType.MapleopolyTotalTrips, trips);
     }
 }
