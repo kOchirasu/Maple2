@@ -88,11 +88,11 @@ public static class ChatPacket {
         return pWriter;
     }
 
-    public static ByteWriter Alert(StringCode code) {
+    public static ByteWriter Alert(StringCode code, string parameter = "") {
         var pWriter = Packet.Of(SendOp.UserChat);
         pWriter.WriteLong();
         pWriter.WriteLong();
-        pWriter.WriteUnicodeString();
+        pWriter.WriteUnicodeString(parameter);
         pWriter.WriteBool(true);
         pWriter.Write<StringCode>(code);
         pWriter.Write<ChatType>(ChatType.NoticeAlert);

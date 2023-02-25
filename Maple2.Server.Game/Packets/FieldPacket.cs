@@ -294,7 +294,7 @@ public static class FieldPacket {
         writer.WriteByte();
         writer.WriteBool(false);
         writer.WriteLong(); // Birthday
-        writer.WriteInt();
+        writer.WriteInt(character.SuperChatId);
         writer.WriteInt();
         writer.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
         writer.WriteInt(account.PrestigeLevel); // PrestigeLevel
