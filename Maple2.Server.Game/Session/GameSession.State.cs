@@ -38,6 +38,9 @@ public partial class GameSession {
 
     public bool FishingMiniGameActive;
 
+    public int SuperChatId;
+    public int SuperChatItemId;
+
     public bool CanHold() {
         return GuideObject == null
                && Ride == null
