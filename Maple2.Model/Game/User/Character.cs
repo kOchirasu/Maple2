@@ -44,6 +44,4 @@ public class Character {
     public string GuildName = string.Empty;
     public long GuildId;
     public required Mastery Mastery;
-
-    public int SuperChatId;
 }
