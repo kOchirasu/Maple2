@@ -11,12 +11,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Account = Maple2.Model.Game.Account;
 using Character = Maple2.Model.Game.Character;
-using Home = Maple2.Database.Model.Home;
 using SkillMacro = Maple2.Model.Game.SkillMacro;
 using SkillBook = Maple2.Model.Game.SkillBook;
 using SkillTab = Maple2.Model.Game.SkillTab;
 using Wardrobe = Maple2.Model.Game.Wardrobe;
 using GameEventUserValue = Maple2.Model.Game.GameEventUserValue;
+using Home = Maple2.Model.Game.Home;
 
 namespace Maple2.Database.Storage;
 
@@ -80,6 +80,27 @@ public partial class GameStorage {
                 .FirstOrDefault();
         }
 
+        public Home? GetHome(long ownerId) {
+            Model.Home? model = Context.Home.Find(ownerId);
+            if (model == null) {
+                return null;
+            }
+
+            Home home = model;
+            UgcMap[] ugcMaps = Context.UgcMap
+                .Where(map => map.OwnerId == ownerId)
+                .ToArray();
+            PlotInfo? indoor = ToPlotInfo(ugcMaps.FirstOrDefault(map => map.Indoor));
+            if (indoor == null) {
+                Logger.LogError("Home does not have a indoor entry: {OwnerId}", ownerId);
+                return null;
+            }
+
+            home.Indoor = indoor;
+            home.Outdoor = ToPlotInfo(ugcMaps.FirstOrDefault(map => !map.Indoor));
+            return home;
+        }
+
         // We pass in objectId only for Player initialization.
         public Player? LoadPlayer(long accountId, long characterId, int objectId) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
@@ -105,20 +126,10 @@ public partial class GameStorage {
                     (member, guild) => new Tuple<long, string>(guild.Id, guild.Name))
                 .FirstOrDefault() ?? new Tuple<long, string>(0, string.Empty);
 
-            Home? home = Context.Home.Find(accountId);
+            Home? home = GetHome(accountId);
             if (home == null) {
                 return null;
             }
-
-            UgcMap[] ugcMaps = Context.UgcMap
-                .Where(map => map.OwnerId == accountId)
-                .ToArray();
-            PlotInfo? indoor = ToPlotInfo(ugcMaps.FirstOrDefault(map => map.Indoor));
-            if (indoor == null) {
-                Logger.LogError("Account does not have a home entry: {AccountId}", accountId);
-                return null;
-            }
-            PlotInfo? outdoor = ToPlotInfo(ugcMaps.FirstOrDefault(map => !map.Indoor));
 
             var player = new Player(account, character, objectId) {
                 Currency = new Currency{
@@ -142,8 +153,6 @@ public partial class GameStorage {
 
             player.Character.GuildId = guild.Item1;
             player.Character.GuildName = guild.Item2;
-            player.Home.Indoor = indoor;
-            player.Home.Outdoor = outdoor;
 
             return player;
         }
@@ -195,7 +204,7 @@ public partial class GameStorage {
                     .Select<Model.SkillTab, SkillTab>(tab => tab)
                     .ToList(),
             };
-            
+
             Dictionary<GameEventUserValueType, GameEventUserValue> eventValues = Context.GameEventUserValue.Where(value => value.CharacterId == characterId)
                 .Select<Model.Event.GameEventUserValue, GameEventUserValue>(value => value)
                 .ToDictionary(value => value.Type, value => value);

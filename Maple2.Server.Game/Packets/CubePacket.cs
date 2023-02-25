@@ -74,11 +74,11 @@ public static class CubePacket {
         return pWriter;
     }
 
-    public static ByteWriter HoldCube(GameSession session) {
+    public static ByteWriter HoldCube(int objectId, HeldCube cube) {
         var pWriter = Packet.Of(SendOp.ResponseCube);
         pWriter.Write<Command>(Command.HoldCube);
-        pWriter.WriteInt(session.Player.ObjectId);
-        pWriter.WriteClass<HeldCube>(session.HeldCube ?? HeldCube.Default);
+        pWriter.WriteInt(objectId);
+        pWriter.WriteClass<HeldCube>(cube);
 
         return pWriter;
     }

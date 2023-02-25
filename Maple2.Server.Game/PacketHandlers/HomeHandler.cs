@@ -56,7 +56,8 @@ public class HomeHandler : PacketHandler<GameSession> {
 
         int type = packet.ReadInt(); // -1 = none
 
-        session.Send(session.PrepareField(homeMapId)
+        long ownerId = session.Player.Value.Home.Indoor.OwnerId;
+        session.Send(session.PrepareField(homeMapId, ownerId: ownerId)
             ? FieldEnterPacket.Request(session.Player)
             : FieldEnterPacket.Error(MigrationError.s_move_err_default));
     }

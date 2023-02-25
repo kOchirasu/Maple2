@@ -23,7 +23,7 @@
         <PackageReference Include="Grpc.Net.Client" Version="2.51.0" />
         <PackageReference Include="IronPython" Version="3.4.0" />
         <PackageReference Include="IronPython.StdLib" Version="3.4.0">
-            <ExcludeAssets>contentFiles</ExcludeAssets>
+<!--            <ExcludeAssets>contentFiles</ExcludeAssets>-->
         </PackageReference>
         <PackageReference Include="Maple2.Lua" Version="2.0.0" />
         <PackageReference Include="Maple2.PathEngine" Version="5.36.5" />

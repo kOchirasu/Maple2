@@ -35,6 +35,7 @@ public static class GuideObjectPacket {
         buffer.Write<SendOp>(SendOp.GuideObject);
         buffer.Write<Command>(Command.Sync);
         buffer.WriteInt(guideObjectId);
+        buffer.WriteByte((byte) syncStates.Length);
         foreach (StateSync entry in syncStates) {
             buffer.WriteClass<StateSync>(entry);
         }
