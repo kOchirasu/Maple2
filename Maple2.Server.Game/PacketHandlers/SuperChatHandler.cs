@@ -1,11 +1,9 @@
 ﻿using System.Linq;
 using Maple2.Database.Storage;
-using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
-using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -13,12 +11,6 @@ namespace Maple2.Server.Game.PacketHandlers;
 
 public class SuperChatHandler : PacketHandler<GameSession> {
     public override RecvOp OpCode => RecvOp.SuperWorldChat;
-
-    #region Autofac Autowired
-    // ReSharper disable MemberCanBePrivate.Global
-    public required ItemMetadataStorage ItemMetadata { private get; init; }
-    // ReSharper restore All
-    #endregion
 
     private enum Command : byte {
         Select = 0,

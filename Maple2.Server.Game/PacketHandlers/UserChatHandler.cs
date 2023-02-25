@@ -188,10 +188,10 @@ public class UserChatHandler : PacketHandler<GameSession> {
         if (superChatItem == null) {
             session.Player.Value.Character.SuperChatId = 0;
             session.Send(SuperChatPacket.Deselect(session.Player.ObjectId));
-            session.Send(ChatPacket.Alert(StringCode.s_err_lack_super_coupon, session.PlayerName));
+            session.Send(ChatPacket.Alert(StringCode.s_err_lack_super_coupon));
             return;
         }
-        
+
         var request = new ChatRequest {
             AccountId = session.AccountId,
             CharacterId = session.CharacterId,
