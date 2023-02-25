@@ -33,7 +33,7 @@ public class SuperChatHandler : PacketHandler<GameSession> {
     private static void HandleSelect(GameSession session, IByteReader packet) {
         int itemId = packet.ReadInt();
 
-        Item? superChatItem = session.Item.Inventory.Find(itemId).First();
+        Item? superChatItem = session.Item.Inventory.Find(itemId).FirstOrDefault();
         if (superChatItem.Metadata.Function?.Type != ItemFunction.SuperWorldChat || 
             !int.TryParse(superChatItem.Metadata.Function?.Parameters.Split(",").First(), out int superChatId)) {
             return;
@@ -46,6 +46,7 @@ public class SuperChatHandler : PacketHandler<GameSession> {
 
     private static void HandleDeselect(GameSession session) {
         session.SuperChatId = 0;
+        session.SuperChatItemId = 0;
         session.Send(SuperChatPacket.Deselect(session.Player.ObjectId));
     }
 }
