@@ -143,7 +143,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Guild.Load();
         // Club
         Buddy.Load();
-        
+
         Send(TimeSyncPacket.Reset(DateTimeOffset.UtcNow));
         Send(TimeSyncPacket.Set(DateTimeOffset.UtcNow));
 
@@ -231,8 +231,13 @@ public sealed partial class GameSession : Core.Network.Session {
         }
     }
 
-    public bool PrepareField(int mapId, int portalId = -1, in Vector3 position = default, in Vector3 rotation = default) {
-        FieldManager? newField = FieldFactory.Get(mapId);
+    public bool PrepareField(int mapId, int portalId = -1, long ownerId = 0, in Vector3 position = default, in Vector3 rotation = default) {
+        // If entering home without instanceKey set, default to own home.
+        if (mapId == Player.Value.Home.Indoor.MapId && ownerId == 0) {
+            ownerId = AccountId;
+        }
+
+        FieldManager? newField = FieldFactory.Get(mapId, ownerId);
         if (newField == null) {
             return false;
         }
@@ -305,7 +310,7 @@ public sealed partial class GameSession : Core.Network.Session {
             ? FieldEnterPacket.Request(Player)
             : FieldEnterPacket.Error(MigrationError.s_move_err_default));
     }
-    
+
     public GameEvent? FindEvent<T>() where T : GameEventInfo {
         return server.FindEvent<T>();
     }

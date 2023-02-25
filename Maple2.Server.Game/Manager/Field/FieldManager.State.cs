@@ -430,6 +430,17 @@ public partial class FieldManager {
         added.Session.Send(InteractObjectPacket.Load(fieldInteracts.Values));
         foreach (FieldPlayer fieldPlayer in Players.Values) {
             added.Session.Send(FieldPacket.AddPlayer(fieldPlayer.Session));
+            if (fieldPlayer.Session.GuideObject != null) {
+                added.Session.Send(GuideObjectPacket.Create(fieldPlayer.Session.GuideObject));
+            }
+            switch (fieldPlayer.Session.HeldCube) {
+                case PlotCube plotCube:
+                    added.Session.Send(SetCraftModePacket.Plot(fieldPlayer.ObjectId, plotCube));
+                    break;
+                case LiftableCube liftableCube:
+                    added.Session.Send(SetCraftModePacket.Liftable(fieldPlayer.ObjectId, liftableCube));
+                    break;
+            }
         }
         Broadcast(FieldPacket.AddPlayer(added.Session), added.Session);
         Broadcast(ProxyObjectPacket.AddPlayer(added), added.Session);
