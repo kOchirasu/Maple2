@@ -6,6 +6,7 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
+using Maple2.Server.Game.Util;
 using Maple2.Tools;
 using Serilog;
 
@@ -24,11 +25,16 @@ public class Buff : IByteSerializable {
 
     public int StartTick { get; private set; }
     public int EndTick { get; private set; }
-    public int NextTick { get; private set; }
+    public int IntervalTick { get; private set; }
+    public int NextProcTick { get; protected set; }
     public int ProcCount { get; private set; }
     public int Stacks { get; private set; }
 
-    public bool Enabled => EndTick == StartTick || NextTick <= EndTick || Environment.TickCount <= EndTick;
+    public bool Enabled { get; private set; }
+
+    private bool activated;
+    private readonly bool canExpire;
+    private bool canProc;
 
     private readonly ILogger logger = Log.ForContext<Buff>();
 
@@ -40,9 +46,17 @@ public class Buff : IByteSerializable {
         Caster = caster;
         Owner = owner;
 
+        // Buffs with IntervalTick=0 will just proc a single time
+        IntervalTick = metadata.Property.IntervalTick > 0 ? metadata.Property.IntervalTick : metadata.Property.DurationTick + 1000;
+
         // Initialize
         Stack();
-        NextTick = StartTick + this.metadata.Property.DelayTick + this.metadata.Property.IntervalTick;
+        NextProcTick = StartTick + this.metadata.Property.DelayTick + this.metadata.Property.IntervalTick;
+        UpdateEnabled(false);
+        // Buffs with KeepCondition == 99 will not proc?
+        canProc = metadata.Property.KeepCondition != 99;
+        // Buffs with a duration of 0 are permanent.
+        canExpire = EndTick > StartTick;
     }
 
     public void Stack() {
@@ -51,26 +65,64 @@ public class Buff : IByteSerializable {
         EndTick = StartTick + metadata.Property.DurationTick;
     }
 
+    private void Activate() {
+        if (metadata.Update.Cancel != null) {
+            foreach (int id in metadata.Update.Cancel.Ids) {
+                if (metadata.Update.Cancel.CheckSameCaster && Owner.ObjectId != Caster.ObjectId) {
+                    continue;
+                }
+
+                if (Owner.Buffs.TryGetValue(id, out Buff? buff)) {
+                    buff.Remove();
+                }
+            }
+        }
+
+        activated = true;
+    }
+
+    private bool UpdateEnabled(bool notifyField = true) {
+        bool enabled = metadata.Condition.Check(Caster, Owner, Owner);
+        if (Enabled != enabled) {
+            Enabled = enabled;
+            if (notifyField) {
+                field.Broadcast(BuffPacket.Update(this));
+            }
+        }
+
+        return enabled;
+    }
+
     public void Remove() {
         if (Owner.Buffs.Remove(Id, out _)) {
             field.Broadcast(BuffPacket.Remove(this));
         }
     }
 
-    public void Sync() {
+    public virtual void Sync() {
+        if (!activated) {
+            Activate();
+        }
+
         int tickNow = Environment.TickCount;
-        if (EndTick > StartTick && tickNow > EndTick && NextTick > EndTick) {
+        if (canExpire && !canProc && tickNow > EndTick) {
             Remove();
             return;
         }
-        // Buffs with KeepCondition == 99 will not proc.
-        if (metadata.Property.KeepCondition == 99) {
-            return;
-        }
-        if (tickNow < NextTick) {
+
+        // TODO: Check conditions less frequently
+        if (!UpdateEnabled()) {
             return;
         }
 
+        if (!canProc || tickNow < NextProcTick) {
+            return;
+        }
+
+        Proc();
+    }
+
+    private void Proc() {
         ProcCount++;
 
         ApplyRecovery();
@@ -79,17 +131,13 @@ public class Buff : IByteSerializable {
 
         foreach (SkillEffectMetadata effect in metadata.Skills) {
             if (effect.Condition != null) {
-                IActor skillOwner = effect.Condition.Owner switch {
-                    SkillEntity.Caster => Caster,
-                    _ => Owner,
-                };
                 // logger.Error("Buff Condition-Effect unimplemented from {Id} on {Owner}", Id, Owner.ObjectId);
                 switch (effect.Condition.Target) {
                     case SkillEntity.Target:
-                        Owner.ApplyEffect(skillOwner, effect);
+                        Owner.ApplyEffect(Caster, Owner, effect);
                         break;
                     case SkillEntity.Caster:
-                        Caster.ApplyEffect(skillOwner, effect);
+                        Caster.ApplyEffect(Caster, Owner, effect);
                         break;
                     default:
                         logger.Error("Invalid Buff Target: {Target}", effect.Condition.Target);
@@ -100,11 +148,9 @@ public class Buff : IByteSerializable {
             }
         }
 
-        // Buffs with IntervalTick=0 will just proc a single time
-        if (metadata.Property.IntervalTick == 0) {
-            NextTick = int.MaxValue;
-        } else {
-            NextTick += metadata.Property.IntervalTick;
+        NextProcTick += IntervalTick;
+        if (NextProcTick > EndTick) {
+            canProc = false;
         }
     }
 
@@ -175,9 +221,9 @@ public class Buff : IByteSerializable {
 
         AdditionalEffectMetadataDot.DotBuff dotBuff = metadata.Dot.Buff;
         if (dotBuff.Target == SkillEntity.Target) {
-            Owner.AddBuff(Caster, dotBuff.Id, dotBuff.Level);
+            Owner.AddBuff(Caster, Owner, dotBuff.Id, dotBuff.Level);
         } else {
-            Caster.AddBuff(Caster, dotBuff.Id, dotBuff.Level);
+            Caster.AddBuff(Caster, Owner, dotBuff.Id, dotBuff.Level);
         }
     }
 
