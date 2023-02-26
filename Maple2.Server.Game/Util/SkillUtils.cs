@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
+using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
@@ -65,5 +67,56 @@ public static class SkillUtils {
                 }
             }
         }
+    }
+
+    public static bool Check(this BeginCondition condition, IActor caster, IActor owner, IActor target) {
+        if (caster is FieldPlayer player) {
+            if (player.Value.Character.Level < condition.Level) {
+                return false;
+            }
+            if (player.Session.Currency.Meso < condition.Mesos) {
+                return false;
+            }
+            if (condition.Gender != Gender.All && player.Value.Character.Gender != condition.Gender) {
+                return false;
+            }
+            if (condition.JobCode.Length > 0 && !condition.JobCode.Contains(player.Value.Character.Job.Code())) {
+                return false;
+            }
+        }
+
+        return condition.Caster.Check(caster) && condition.Owner.Check(owner) && condition.Target.Check(target);
+    }
+
+    private static bool Check(this BeginConditionTarget? condition, IActor target) {
+        if (condition == null) {
+            return true;
+        }
+
+        foreach ((int id, short level, bool owned, int count, CompareType compare) in condition.Buff) {
+            if (!target.Buffs.TryGetValue(id, out Buff? buff)) {
+                return false;
+            }
+            if (buff.Level < level) {
+                return false;
+            }
+            if (owned && buff.Owner.ObjectId == 0) {
+                return false;
+            }
+
+            bool compareResult = compare switch {
+                CompareType.Equals => buff.Stacks == count,
+                CompareType.Less => buff.Stacks < count,
+                CompareType.LessEquals => buff.Stacks <= count,
+                CompareType.Greater => buff.Stacks > count,
+                CompareType.GreaterEquals => buff.Stacks >= count,
+                _ => true,
+            };
+            if (!compareResult) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

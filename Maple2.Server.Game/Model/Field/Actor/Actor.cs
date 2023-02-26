@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
 using System.Threading;
 using Maple2.Model.Enum;
@@ -47,9 +46,9 @@ public abstract class ActorBase<T> : IActor<T> {
         Value = value;
     }
 
-    public virtual void ApplyEffect(IActor caster, SkillEffectMetadata effect) { }
+    public virtual void ApplyEffect(IActor caster, IActor owner, SkillEffectMetadata effect) { }
     public virtual void ApplyDamage(IActor caster, DamageRecord damage, SkillMetadataAttack attack) { }
-    public virtual void AddBuff(IActor caster, int id, short level, bool notifyField = true) { }
+    public virtual void AddBuff(IActor caster, IActor owner, int id, short level, bool notifyField = true) { }
     public virtual void TargetAttack(SkillRecord record) { }
 
     // Returns true when completed
@@ -71,11 +70,11 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
         Scheduler = new EventQueue();
     }
 
-    public override void ApplyEffect(IActor caster, SkillEffectMetadata effect) {
+    public override void ApplyEffect(IActor caster, IActor owner, SkillEffectMetadata effect) {
         Debug.Assert(effect.Condition != null);
 
         foreach (SkillEffectMetadata.Skill skill in effect.Skills) {
-            AddBuff(caster, skill.Id, skill.Level);
+            AddBuff(caster, owner, skill.Id, skill.Level);
         }
     }
 
@@ -102,7 +101,7 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
         }
     }
 
-    public override void AddBuff(IActor caster, int id, short level, bool notifyField = true) {
+    public override void AddBuff(IActor caster, IActor owner, int id, short level, bool notifyField = true) {
         if (Buffs.TryGetValue(id, out Buff? existing)) {
             existing.Stack();
             if (notifyField) {
@@ -115,6 +114,11 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
             Logger.Error("Invalid buff: {SkillId},{Level}", id, level);
             return;
         }
+
+        // if (!SkillUtils.CheckCondition(additionalEffect.Condition, caster, owner, this)) {
+        //     Console.WriteLine($"Ignore buff {id}");
+        //     return;
+        // }
 
         var buff = new Buff(Field, additionalEffect, NextLocalId(), caster, this);
         if (!Buffs.TryAdd(id, buff)) {
@@ -155,7 +159,7 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
         foreach (SkillEffectMetadata effect in record.Attack.Skills) {
             if (effect.Condition != null) {
                 foreach (IActor actor in record.Targets) {
-                    actor.ApplyEffect(this, effect);
+                    actor.ApplyEffect(record.Caster, this, effect);
                 }
             } else if (effect.Splash != null) {
                 // Handled by SplashAttack?
