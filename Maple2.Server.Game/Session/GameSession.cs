@@ -356,6 +356,7 @@ public sealed partial class GameSession : Core.Network.Session {
                 CharacterId = CharacterId,
                 MapId = 0,
                 Channel = 0,
+                Async = true,
             });
         }
 
