@@ -7,6 +7,7 @@ using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.Server.Channel.Service;
 using Maple2.Tools.Extensions;
 using ChannelClient = Maple2.Server.Channel.Service.Channel.ChannelClient;
@@ -55,7 +56,7 @@ public class GuildManager : IDisposable {
             return GuildError.s_guild_err_null_member;
         }
         GuildRank? rank = Guild.Ranks.ElementAtOrDefault(requestor.Rank);
-        if (rank == null || (rank.Permission & GuildPermission.InviteMembers) == default) {
+        if (rank == null || rank.Permission.HasFlag(GuildPermission.InviteMembers)) {
             return GuildError.s_guild_err_no_authority;
         }
         if (Guild.Members.Count >= Guild.Capacity) {
@@ -120,7 +121,7 @@ public class GuildManager : IDisposable {
             return GuildError.s_guild_err_null_member;
         }
         GuildRank? rank = Guild.Ranks.ElementAtOrDefault(requestor.Rank);
-        if (rank == null || (rank.Permission & GuildPermission.ExpelMembers) == default) {
+        if (rank == null || !rank.Permission.HasFlag(GuildPermission.ExpelMembers)) {
             return GuildError.s_guild_err_no_authority;
         }
         if (characterId == Guild.LeaderCharacterId) {
@@ -167,6 +168,54 @@ public class GuildManager : IDisposable {
                 CharacterId = member.CharacterId,
             },
         });
+        return GuildError.none;
+    }
+
+    public GuildError UpdateMember(long requestorId, long characterId, byte? rankId, string? message) {
+        if (!Guild.Members.TryGetValue(requestorId, out GuildMember? requestor)) {
+            return GuildError.s_guild_err_null_member;
+        }
+        if (!Guild.Members.TryGetValue(characterId, out GuildMember? member)) {
+            return GuildError.s_guild_err_null_member;
+        }
+
+        if (rankId != null) {
+            if (member.Rank == rankId) {
+                return GuildError.s_guild_err_set_grade_failed;
+            }
+
+            if (requestorId != Guild.LeaderCharacterId) {
+                return GuildError.s_guild_err_no_authority;
+            }
+            GuildRank? newRank = Guild.Ranks.ElementAtOrDefault((byte) rankId);
+            if (newRank == null) {
+                return GuildError.s_guild_err_invalid_grade_index;
+            }
+
+            member.Rank = (byte) rankId;
+            Broadcast(new GuildRequest {
+                UpdateMember = new GuildRequest.Types.UpdateMember {
+                    RequestorId = requestor.CharacterId,
+                    CharacterId = member.CharacterId,
+                    Rank = member.Rank,
+                },
+            });
+        }
+        if (message != null) {
+            if (message.Length > Constant.MaxMottoLength) {
+                return GuildError.s_guild_err_none;
+            }
+
+            member.Message = message;
+            Broadcast(new GuildRequest {
+                UpdateMember = new GuildRequest.Types.UpdateMember {
+                    RequestorId = requestor.CharacterId,
+                    CharacterId = member.CharacterId,
+                    Message = member.Message,
+                },
+            });
+        }
+
         return GuildError.none;
     }
 

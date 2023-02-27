@@ -31,6 +31,8 @@ public partial class WorldService {
                 return Task.FromResult(LeaveGuild(request.RequestorId, request.Leave));
             case GuildRequest.GuildOneofCase.Expel:
                 return Task.FromResult(ExpelGuild(request.RequestorId, request.Expel));
+            case GuildRequest.GuildOneofCase.UpdateMember:
+                return Task.FromResult(UpdateMember(request.RequestorId, request.UpdateMember));
             default:
                 return Task.FromResult(new GuildResponse {Error = (int) GuildError.s_guild_err_none});
         }
@@ -136,6 +138,21 @@ public partial class WorldService {
         }
 
         return new GuildResponse {GuildId = expel.GuildId};
+    }
+
+    private GuildResponse UpdateMember(long requestorId, GuildRequest.Types.UpdateMember update) {
+        if (!guildLookup.TryGet(update.GuildId, out GuildManager? manager)) {
+            return new GuildResponse {Error = (int) GuildError.s_guild_err_null_guild};
+        }
+
+        byte? rankId = update.HasRank ? (byte) update.Rank : null;
+        string? message = update.HasMessage ? update.Message : null;
+        GuildError error = manager.UpdateMember(requestorId, update.CharacterId, rankId, message);
+        if (error != GuildError.none) {
+            return new GuildResponse {Error = (int) error};
+        }
+
+        return new GuildResponse {GuildId = update.GuildId};
     }
 
     private static GuildInfo ToGuildInfo(Guild guild) {

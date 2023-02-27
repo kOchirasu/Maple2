@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
@@ -364,8 +366,7 @@ public class GuildHandler : PacketHandler<GameSession> {
         }
 
         string playerName = packet.ReadUnicodeString();
-        GuildMember? member = session.Guild.Guild.Members.Values
-            .FirstOrDefault(member => member.Name == playerName);
+        GuildMember? member = session.Guild.GetMember(playerName);
         if (member == null) {
             session.Send(GuildPacket.Error(GuildError.s_guild_err_null_member));
             return;
@@ -391,12 +392,71 @@ public class GuildHandler : PacketHandler<GameSession> {
     }
 
     private void HandleUpdateMemberRank(GameSession session, IByteReader packet) {
+        if (session.Guild.Guild == null) {
+            return; // Not in a guild.
+        }
+
         string playerName = packet.ReadUnicodeString();
         byte rankId = packet.ReadByte();
+
+        // Only leader is allowed to change ranks
+        if (session.CharacterId != session.Guild.Guild.LeaderCharacterId) {
+            session.Send(GuildPacket.Error(GuildError.s_guild_err_no_authority));
+            return;
+        }
+
+        GuildMember? member = session.Guild.GetMember(playerName);
+        if (member == null) {
+            session.Send(GuildPacket.Error(GuildError.s_guild_err_null_member));
+            return;
+        }
+
+        try {
+            var request = new GuildRequest {
+                RequestorId = session.CharacterId,
+                UpdateMember = new GuildRequest.Types.UpdateMember {
+                    GuildId = session.Guild.Id,
+                    CharacterId = member.CharacterId,
+                    Rank = rankId,
+                },
+            };
+
+            GuildResponse response = World.Guild(request);
+            var error = (GuildError) response.Error;
+            if (error != GuildError.none) {
+                session.Send(GuildPacket.Error(error));
+                return;
+            }
+
+            session.Send(GuildPacket.UpdateMemberRank(playerName, rankId));
+        } catch (RpcException) { /* ignored */ }
     }
 
     private void HandleUpdateMemberMessage(GameSession session, IByteReader packet) {
+        if (session.Guild.Guild == null) {
+            return; // Not in a guild.
+        }
+
         string message = packet.ReadUnicodeString();
+        try {
+            var request = new GuildRequest {
+                RequestorId = session.CharacterId,
+                UpdateMember = new GuildRequest.Types.UpdateMember {
+                    GuildId = session.Guild.Id,
+                    CharacterId = session.CharacterId,
+                    Message = message,
+                },
+            };
+
+            GuildResponse response = World.Guild(request);
+            var error = (GuildError) response.Error;
+            if (error != GuildError.none) {
+                session.Send(GuildPacket.Error(error));
+                return;
+            }
+
+            session.Send(GuildPacket.UpdateMemberMessage(message));
+        } catch (RpcException) { /* ignored */ }
     }
 
     private void HandleCheckIn(GameSession session) {
