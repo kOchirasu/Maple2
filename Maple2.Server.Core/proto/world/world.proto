@@ -146,6 +146,12 @@ message GuildRequest {
     int64 guild_id = 1;
     int64 receiver_id = 2;
   }
+  message UpdateMember {
+    int64 guild_id = 1;
+    int64 character_id = 2;
+    optional int32 rank = 3;
+    optional string message = 4;
+  }
 
   int64 requestor_id = 4;
   oneof guild {
@@ -155,6 +161,7 @@ message GuildRequest {
     RespondInvite respond_invite = 5;
     Leave leave = 7;
     Expel expel = 8;
+    UpdateMember update_member = 9;
   }
 }
 

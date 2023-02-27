@@ -177,6 +177,49 @@ public class GuildManager : IDisposable {
         return true;
     }
 
+    public bool UpdateMemberRank(long requestorId, long characterId, byte rankId) {
+        GuildMember? requestor = GetMember(requestorId);
+        GuildMember? member = GetMember(characterId);
+        if (requestor == null || member == null) {
+            return false;
+        }
+
+        member.Rank = rankId;
+        session.Send(GuildPacket.NotifyUpdateMemberRank(requestor.Name, member.Name, rankId));
+        return true;
+    }
+
+    public bool UpdateMemberMessage(long characterId, string message) {
+        GuildMember? member = GetMember(characterId);
+        if (member == null) {
+            return false;
+        }
+
+        member.Message = message;
+        session.Send(GuildPacket.NotifyUpdateMemberMessage(member));
+        return true;
+    }
+
+    public GuildRank? GetRank(long characterId) {
+        if (Guild == null || !Guild.Members.TryGetValue(characterId, out GuildMember? member)) {
+            return null;
+        }
+
+        return Guild.Ranks.ElementAtOrDefault(member.Rank);
+    }
+
+    public GuildMember? GetMember(string name) {
+        return Guild?.Members.Values.FirstOrDefault(member => member.Name == name);
+    }
+
+    public GuildMember? GetMember(long characterId) {
+        if (Guild?.Members.TryGetValue(characterId, out GuildMember? member) == true) {
+            return member;
+        }
+
+        return null;
+    }
+
     [MemberNotNull(nameof(properties))]
     private void UpdateProperties() {
         int experience = Guild?.Experience ?? 0;

@@ -22,7 +22,7 @@ public static class GuildPacket {
         Expelled = 8,
         NotifyExpel = 9,
         UpdateMemberRank = 10,
-        Unknown11 = 11,
+        UpdateMemberMessage = 11,
         UpdateMemberName = 12,
         Unknown14 = 14,
         CheckedIn = 15,
@@ -30,7 +30,7 @@ public static class GuildPacket {
         NotifyLeave = 19,
         NotifyExpelMember = 20,
         NotifyUpdateMemberRank = 21,
-        UpdateMemberMessage = 22,
+        NotifyUpdateMemberMessage = 22,
         NotifyLogin = 23,
         NotifyLogout = 24,
         NotifyUpdateLeader = 25,
@@ -179,19 +179,19 @@ public static class GuildPacket {
         return pWriter;
     }
 
-    public static ByteWriter UpdateMemberRank(string playerName, GuildRank rank) {
+    public static ByteWriter UpdateMemberRank(string playerName, byte rankId) {
         var pWriter = Packet.Of(SendOp.Guild);
         pWriter.Write<Command>(Command.UpdateMemberRank);
         pWriter.WriteUnicodeString(playerName);
-        pWriter.WriteByte(rank.Id);
+        pWriter.WriteByte(rankId);
 
         return pWriter;
     }
 
-    public static ByteWriter Unknown11(string unknown) {
+    public static ByteWriter UpdateMemberMessage(string message) {
         var pWriter = Packet.Of(SendOp.Guild);
-        pWriter.Write<Command>(Command.Unknown11);
-        pWriter.WriteUnicodeString(unknown);
+        pWriter.Write<Command>(Command.UpdateMemberMessage);
+        pWriter.WriteUnicodeString(message);
 
         return pWriter;
     }
@@ -261,19 +261,19 @@ public static class GuildPacket {
     // - {0} is now the rank of [{1}].
     // s_guild_notify_change_member_grade_me
     // - Updated to the rank of [{0}] in the guild.
-    public static ByteWriter NotifyUpdateMemberRank(string requestorName, string playerName, GuildRank rank) {
+    public static ByteWriter NotifyUpdateMemberRank(string requestorName, string playerName, byte rankId) {
         var pWriter = Packet.Of(SendOp.Guild);
         pWriter.Write<Command>(Command.NotifyUpdateMemberRank);
         pWriter.WriteUnicodeString(requestorName);
         pWriter.WriteUnicodeString(playerName);
-        pWriter.WriteByte(rank.Id);
+        pWriter.WriteByte(rankId);
 
         return pWriter;
     }
 
-    public static ByteWriter UpdateMemberMessage(GuildMember member) {
+    public static ByteWriter NotifyUpdateMemberMessage(GuildMember member) {
         var pWriter = Packet.Of(SendOp.Guild);
-        pWriter.Write<Command>(Command.UpdateMemberMessage);
+        pWriter.Write<Command>(Command.NotifyUpdateMemberMessage);
         pWriter.WriteUnicodeString(member.Name);
         pWriter.WriteUnicodeString(member.Message);
 
