@@ -24,6 +24,8 @@ internal class Account {
 
     public DateTime CreationTime { get; set; }
     public DateTime LastModified { get; set; }
+    
+    public bool Online { get; set; }
 
     public ICollection<Character>? Characters { get; set; }
 
@@ -45,6 +47,7 @@ internal class Account {
                 MesoListed = other.MesoMarketListed,
                 MesoPurchased = other.MesoMarketPurchased,
             },
+            Online = other.Online,
         };
     }
 
@@ -67,6 +70,7 @@ internal class Account {
             PremiumRewardsClaimed = other.PremiumRewardsClaimed,
             MesoMarketListed = other.MarketLimits.MesoListed,
             MesoMarketPurchased = other.MarketLimits.MesoPurchased,
+            Online = other.Online,
         };
     }
 

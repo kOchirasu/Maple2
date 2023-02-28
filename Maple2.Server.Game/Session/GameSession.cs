@@ -98,7 +98,7 @@ public sealed partial class GameSession : Core.Network.Session {
         using GameStorage.Request db = GameStorage.Context();
         db.BeginTransaction();
         int objectId = FieldManager.NextGlobalId();
-        Player? player = db.LoadPlayer(AccountId, CharacterId, objectId);
+        Player? player = db.LoadPlayer(AccountId, CharacterId, objectId, (short) Channel);
         if (player == null) {
             Logger.Warning("Failed to load player from database: {AccountId}, {CharacterId}", AccountId, CharacterId);
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
@@ -106,7 +106,6 @@ public sealed partial class GameSession : Core.Network.Session {
         }
         db.Commit();
 
-        player.Character.Channel = (short) Channel;
         Player = new FieldPlayer(this, player);
         Currency = new CurrencyManager(this);
         Mastery = new MasteryManager(this);
@@ -364,6 +363,8 @@ public sealed partial class GameSession : Core.Network.Session {
             Scheduler.Stop();
             server.OnDisconnected(this);
             LeaveField();
+            Player.Value.Character.Channel = 0;
+            Player.Value.Account.Online = false;
             State = SessionState.Disconnected;
             Complete();
         } finally {
