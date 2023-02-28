@@ -166,7 +166,7 @@ public enum SendOp : ushort {
     SystemShop = 0x00A3,
     AutoRevive = 0x00A4,
     PlayerKillNotice = 0x00A5,
-    DailyWonder = 0x00A6,
+    Attendance = 0x00A6,
     PcBangBonus = 0x00A7,
     DeadUser = 0x00A8,
     DynamicChannel = 0x00A9,

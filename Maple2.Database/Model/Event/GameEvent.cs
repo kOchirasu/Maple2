@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text.Json.Serialization;
 using Maple2.Database.Extensions;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +52,7 @@ internal class GameEvent {
 [JsonDerivedType(typeof(MeratMarketNotice), typeDiscriminator: nameof(MeratMarketNotice))]
 [JsonDerivedType(typeof(SaleChat), typeDiscriminator: nameof(SaleChat))]
 [JsonDerivedType(typeof(BlueMarble), typeDiscriminator: nameof(BlueMarble))]
+[JsonDerivedType(typeof(AttendGift), typeDiscriminator: nameof(AttendGift))]
 internal abstract class GameEventInfo {
     public int Id { get; set; }
     public string Name { get; set; }
@@ -99,6 +101,25 @@ internal abstract class GameEventInfo {
                 Entries = blueMarble.Entries,
                 Tiles = blueMarble.Tiles,
             },
+            Maple2.Model.Game.Event.AttendGift attendGift => new AttendGift {
+                Id = attendGift.Id,
+                Name = attendGift.Name,
+                AttendanceName = attendGift.AttendanceName,
+                Days = attendGift.Days.Select(day => new AttendGift.AttendanceDayItem {
+                    Day = day.Day,
+                    ItemRarity = day.ItemRarity,
+                    ItemId = day.ItemId,
+                    ItemAmount = day.ItemAmount,
+                }).ToArray(),
+                DisableClaimButton = attendGift.DisableClaimButton,
+                SkipDayCost = attendGift.SkipDayCost,
+                SkipDayCurrencyType = attendGift.SkipDayCurrencyType,
+                SkipDaysAllowed = attendGift.SkipDaysAllowed,
+                TimeRequired = attendGift.TimeRequired,
+                Url = attendGift.Url,
+                BeginTime = attendGift.BeginTime,
+                EndTime = attendGift.EndTime,
+            },
             _ => null,
         };
     }
@@ -146,6 +167,25 @@ internal abstract class GameEventInfo {
                 Name = blueMarble.Name,
                 Entries = blueMarble.Entries,
                 Tiles = blueMarble.Tiles,
+            },
+            AttendGift attendGift => new Maple2.Model.Game.Event.AttendGift {
+                Id = attendGift.Id,
+                Name = attendGift.Name,
+                AttendanceName = attendGift.AttendanceName,
+                BeginTime = attendGift.BeginTime,
+                EndTime = attendGift.EndTime,
+                Days = attendGift.Days.Select(day => new Maple2.Model.Game.Event.AttendGift.AttendanceDayItem {
+                    Day = day.Day,
+                    ItemRarity = day.ItemRarity,
+                    ItemId = day.ItemId,
+                    ItemAmount = day.ItemAmount,
+                }).ToArray(),
+                DisableClaimButton = attendGift.DisableClaimButton,
+                SkipDayCost = attendGift.SkipDayCost,
+                SkipDayCurrencyType = attendGift.SkipDayCurrencyType,
+                SkipDaysAllowed = attendGift.SkipDaysAllowed,
+                TimeRequired = attendGift.TimeRequired,
+                Url = attendGift.Url,
             },
             _ => null,
         };

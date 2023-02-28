@@ -34,7 +34,7 @@ internal class GameEventUserValue {
     
     public static void Configure(EntityTypeBuilder<GameEventUserValue> builder) {
         builder.ToTable("game-event-user-value");
-        builder.HasKey(value => new {value.CharacterId, value.Type}); 
+        builder.HasKey(value => new {value.CharacterId, value.EventId, value.Type}); 
         builder.HasOne<Character>()
             .WithMany()
             .HasForeignKey(value => value.CharacterId);

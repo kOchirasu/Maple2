@@ -4,6 +4,7 @@ using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model;
 using Maple2.Model.Enum;
+using Maple2.Model.Game.Event;
 using Maple2.Model.Metadata;
 using Item = Maple2.Model.Game.Item;
 using PetConfig = Maple2.Model.Game.PetConfig;
@@ -18,6 +19,113 @@ public partial class GameStorage {
             model.OwnerId = ownerId;
             model.Id = 0;
             Context.Item.Add(model);
+
+            /*GameEvent gameEvent = new GameEvent() {
+                BeginTime = DateTime.Now.ToEpochSeconds(),
+                EndTime = DateTime.Now.AddDays(30).ToEpochSeconds(),
+                Name = nameof(AttendGift),
+                EventInfo = new AttendGift() {
+                    AttendanceName = "Emulator Attendance",
+                    BeginTime = DateTime.Now.ToEpochSeconds(),
+                    EndTime = DateTime.Now.AddDays(30).ToEpochSeconds(),
+                    Days = new List<AttendGift.AttendanceDayItem>() {
+                        new AttendGift.AttendanceDayItem {
+                            Day = 1,
+                            ItemRarity = 4,
+                            ItemId = 20600010,
+                            ItemAmount = 1,
+                        },
+                        new AttendGift.AttendanceDayItem {
+                            Day = 2,
+                            ItemRarity = 1,
+                            ItemId = 30001445,
+                            ItemAmount = 20,
+                        },
+                        new AttendGift.AttendanceDayItem {
+                            Day = 3,
+                            ItemRarity = 2,
+                            ItemId = 20800015,
+                            ItemAmount = 20,
+                        },
+                        new AttendGift.AttendanceDayItem {
+                            Day = 4,
+                            ItemRarity = 4,
+                            ItemId = 22001001,
+                            ItemAmount = 1,
+                        },
+                        new AttendGift.AttendanceDayItem {
+                            Day = 5,
+                            ItemRarity = 4,
+                            ItemId = 20500010,
+                            ItemAmount = 1,
+                        },
+                        new AttendGift.AttendanceDayItem {
+                            Day = 6,
+                            ItemRarity = 1,
+                            ItemId = 20303152,
+                            ItemAmount = 1,
+                        },
+                        new AttendGift.AttendanceDayItem {
+                            Day = 7,
+                            ItemRarity = 1,
+                            ItemId = 20302945,
+                            ItemAmount = 1,
+                        },
+                        new AttendGift.AttendanceDayItem {
+                            Day = 8,
+                            ItemRarity = 1,
+                            ItemId = 30001445,
+                            ItemAmount = 100,
+                        },
+                        new AttendGift.AttendanceDayItem {
+                            Day = 9,
+                            ItemRarity = 4,
+                            ItemId = 70600011,
+                            ItemAmount = 1,
+                        },
+                        new AttendGift.AttendanceDayItem {
+                            Day = 10,
+                            ItemRarity = 4,
+                            ItemId = 34000098,
+                            ItemAmount = 1,
+                        },
+                        new AttendGift.AttendanceDayItem {
+                            Day = 11,
+                            ItemRarity = 4,
+                            ItemId = 40400063,
+                            ItemAmount = 1,
+                        },
+                        new AttendGift.AttendanceDayItem {
+                            Day = 12,
+                            ItemRarity = 1,
+                            ItemId = 59400040,
+                            ItemAmount = 1,
+                        },
+                        new AttendGift.AttendanceDayItem {
+                            Day = 13,
+                            ItemRarity = 5,
+                            ItemId = 20000702,
+                            ItemAmount = 200,
+                        },
+                        new AttendGift.AttendanceDayItem {
+                            Day = 14,
+                            ItemRarity = 4,
+                            ItemId = 20200104,
+                            ItemAmount = 200,
+                        },
+                    },
+                    DisableClaimButton = true,
+                    Name = nameof(AttendGift),
+                    SkipDayCost = 500,
+                    SkipDayCurrencyType = AttendGiftCurrencyType.Meret,
+                    SkipDaysAllowed = 5,
+                    TimeRequired = 1800,
+                    Url = "https://google.com",
+                },
+            };
+            Model.Event.GameEvent gameModel = gameEvent;
+            Context.GameEvent.Add(gameModel);
+            Context.TrySaveChanges();*/
 
             return Context.TrySaveChanges() ? ToItem(model) : null;
         }

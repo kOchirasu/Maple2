@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Maple2.Database.Extensions;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
@@ -43,23 +44,32 @@ public sealed class GameEventUserValueManager {
         }
     }
 
-    public GameEventUserValue Get(GameEventUserValueType type, GameEvent gameEvent) {
-        if (!eventValues.TryGetValue(gameEvent.Id, out Dictionary<GameEventUserValueType, GameEventUserValue>? valueDict)) {
-            eventValues.Add(gameEvent.Id, new Dictionary<GameEventUserValueType, GameEventUserValue> {
+    public GameEventUserValue Get(GameEventUserValueType type, int eventId, long expirationTime) {
+        if (!eventValues.TryGetValue(eventId, out Dictionary<GameEventUserValueType, GameEventUserValue>? valueDict)) {
+            eventValues.Add(eventId, new Dictionary<GameEventUserValueType, GameEventUserValue> {
                 {
-                    type, new GameEventUserValue(type, gameEvent)
+                    type, new GameEventUserValue(type, expirationTime, eventId)
                 },
             });
         } else {
             if (!valueDict.ContainsKey(type)) {
-                valueDict.Add(type, new GameEventUserValue(type, gameEvent));
+                valueDict.Add(type, new GameEventUserValue(type, expirationTime, eventId));
             }
         }
+        
+        if (eventValues[eventId][type].ExpirationTime < DateTime.Now.ToEpochSeconds()) {
+            eventValues[eventId][type] = new GameEventUserValue(type, expirationTime, eventId);
+        }
 
-        return eventValues[gameEvent.Id][type];
+        return eventValues[eventId][type];
     }
 
     public void Save(GameStorage.Request db) {
+        // Update certain values upon log off
+        // TODO: Maybe update this to handle a list of other types that need to be updated upon logoff?
+        foreach (GameEventUserValue userValue in eventValues.Values.SelectMany(dict => dict.Values.Where(value => value.Type == GameEventUserValueType.AttendanceAccumulatedTime))) {
+            userValue.Value = (userValue.Long() + DateTime.Now.ToEpochSeconds() - session.Player.Value.Character.LastModified.ToEpochSeconds()).ToString();
+        }
         db.SaveGameEventUserValues(session.CharacterId, eventValues.Values.SelectMany(value => value.Values).ToList());
     }
 }
