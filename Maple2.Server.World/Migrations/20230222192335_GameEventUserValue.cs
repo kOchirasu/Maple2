@@ -21,7 +21,7 @@ namespace Maple2.Server.World.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_game-event-user-value", x => new { x.CharacterId, x.Type });
+                    table.PrimaryKey("PK_game-event-user-value", x => new { x.CharacterId, x.EventId, x.Type });
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
         }
