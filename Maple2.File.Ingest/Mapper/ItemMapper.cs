@@ -23,6 +23,14 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
         Dictionary<int, int> itemExtractionTryCount = tableParser.ParseItemExtraction()
             .ToDictionary(entry => entry.Id, entry => entry.Extraction.TryCount);
 
+        var itemSetBonuses = new Dictionary<int, List<int>>();
+        foreach ((int id, _, SetItemInfo info) in tableParser.ParseSetItemInfo()) {
+            foreach (int itemId in info.itemIDs) {
+                itemSetBonuses.TryAdd(itemId, new List<int>());
+                itemSetBonuses[itemId].Add(id);
+            }
+        }
+
         foreach ((int id, string name, ItemData data) in parser.Parse()) {
             int transferType = data.limit.transferType;
             int tradableCount = data.property.tradableCount;
@@ -122,7 +130,8 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     RepackCount: data.property.rePackingLimitCount,
                     DisableDrop: data.property.disableDrop,
                     SocketId: data.property.socketDataId,
-                    IsFragment: data.property.functionTags == "piece"
+                    IsFragment: data.property.functionTags == "piece",
+                    SetOptionIds: itemSetBonuses.GetValueOrDefault(id)?.ToArray() ?? Array.Empty<int>()
                 ),
                 Limit: new ItemMetadataLimit(
                     Gender: (Gender) data.limit.genderLimit,

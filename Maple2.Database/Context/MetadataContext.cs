@@ -52,9 +52,11 @@ public sealed class MetadataContext : DbContext {
         builder.Property(effect => effect.Property).HasJsonConversion();
         builder.Property(effect => effect.Consume).HasJsonConversion();
         builder.Property(effect => effect.Update).HasJsonConversion();
+        builder.Property(effect => effect.Status).HasJsonConversion();
         builder.Property(effect => effect.Recovery).HasJsonConversion();
         builder.Property(effect => effect.Dot).HasJsonConversion();
         builder.Property(effect => effect.Shield).HasJsonConversion();
+        builder.Property(effect => effect.InvokeEffect).HasJsonConversion();
         builder.Property(effect => effect.Skills).HasJsonConversion();
     }
 
