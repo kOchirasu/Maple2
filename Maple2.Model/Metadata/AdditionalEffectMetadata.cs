@@ -11,8 +11,6 @@ public record AdditionalEffectMetadata(
     AdditionalEffectMetadataConsume Consume,
     AdditionalEffectMetadataUpdate Update,
     AdditionalEffectMetadataStatus Status,
-    AdditionalEffectMetadataOffensive Offensive,
-    AdditionalEffectMetadataDefensive Defensive,
     AdditionalEffectMetadataRecovery? Recovery,
     AdditionalEffectMetadataDot Dot,
     AdditionalEffectMetadataShield? Shield,
@@ -54,17 +52,14 @@ public record AdditionalEffectMetadataStatus(
     IReadOnlyDictionary<BasicAttribute, float> Rates,
     IReadOnlyDictionary<SpecialAttribute, float> SpecialValues,
     IReadOnlyDictionary<SpecialAttribute, float> SpecialRates,
-    long DeathResistanceHp,
     IReadOnlyDictionary<BasicAttribute, float> Resistances,
-    CompulsionEventType CompulsionEventType,
-    float CompulsionEventRate,
-    int[] CompulsionEventSkillIds);
+    long DeathResistanceHp,
+    AdditionalEffectMetadataStatus.CompulsionEvent? Compulsion,
+    int ImmuneBreak,
+    bool Invincible) {
 
-public record AdditionalEffectMetadataOffensive(
-    int ImmuneBreak);
-
-public record AdditionalEffectMetadataDefensive(
-    bool Invincible);
+    public record CompulsionEvent(CompulsionEventType Type, float Rate, int[] SkillIds);
+}
 
 public record AdditionalEffectMetadataRecovery(
     float RecoveryRate,
@@ -106,9 +101,9 @@ public record AdditionalEffectMetadataShield(
     float HpByTargetMaxHp);
 
 public record AdditionalEffectMetadataInvokeEffect(
+    InvokeEffectType[] Types,
     float[] Values,
     float[] Rates,
-    InvokeEffectType[] Types,
     int EffectId,
     int EffectGroupId,
     int SkillId,

@@ -70,7 +70,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
             yield return new TableMetadata {Name = $"itemoptionvariation_{type}.xml", Table = table};
         }
         // SetItemOption
-        yield return new TableMetadata { Name = "setitem*.xml", Table = ParseSetItemOption() };
+        yield return new TableMetadata { Name = "setitem*.xml", Table = ParseSetItem() };
     }
 
     private ChatStickerTable ParseChatSticker() {
@@ -463,11 +463,10 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
     }
 
-    private SetItemOptionTable ParseSetItemOption() {
-        var options = new Dictionary<int, SetItemOptionMetadata>();
+    private SetItemTable ParseSetItem() {
+        var options = new Dictionary<int, SetBonusMetadata[]>();
         foreach ((int id, SetItemOption option) in parser.ParseSetItemOption()) {
             var parts = new List<SetBonusMetadata>();
-            
             foreach (SetItemOption.Part part in option.part) {
                 var values = new Dictionary<BasicAttribute, long>();
                 var rates = new Dictionary<BasicAttribute, float>();
@@ -479,47 +478,46 @@ public class TableMapper : TypeMapper<TableMetadata> {
                     rates.AddIfNotDefault(attribute, part.StatRate((byte)attribute));
                 }
 
+                // Since 4 is already "Boss" we can ignore sgi_boss_target
+                Debug.Assert(part.sgi_boss_target is 0 or 4);
                 foreach (SpecialAttribute attribute in Enum.GetValues<SpecialAttribute>()) {
                     byte attributeOption = attribute.OptionIndex();
 
                     if (attributeOption != byte.MaxValue) {
-                        specialValues.AddIfNotDefault(attribute, part.SpecialValue(attributeOption));
-                        specialRates.AddIfNotDefault(attribute, part.SpecialRate(attributeOption));
+                        SpecialAttribute fixAttribute = attribute.SgiTarget(part.sgi_target);
+                        specialValues.AddIfNotDefault(fixAttribute, part.SpecialValue(attributeOption));
+                        specialRates.AddIfNotDefault(fixAttribute, part.SpecialRate(attributeOption));
                     }
                 }
 
                 parts.Add(new SetBonusMetadata(
                     Count: part.count,
-                    AdditionalEffectIds: part.additionalEffectID,
-                    AdditionalEffectLevels: part.additionalEffectLevel,
+                    AdditionalEffects: part.additionalEffectID.Zip(part.additionalEffectLevel,
+                        (skillId, level) => new SetBonusAdditionalEffect(skillId, level)).ToArray(),
                     Values: values,
                     Rates: rates,
                     SpecialValues: specialValues,
-                    SpecialRates: specialRates,
-                    SgiTarget: part.sgi_target,
-                    SgiBossTarget: part.sgi_boss_target));
+                    SpecialRates: specialRates));
             }
 
-            options[id] = new SetItemOptionMetadata(
-                Id: id,
-                Parts: parts.ToArray());
+            options[id] = parts.ToArray();
         }
 
-        var results = new Dictionary<int, SetItemOptionTable.Entry>();
+        var results = new Dictionary<int, SetItemTable.Entry>();
 
         foreach ((int id, string name, SetItemInfo info) in parser.ParseSetItemInfo()) {
             Debug.Assert(options.ContainsKey(info.optionID));
 
-            results[id] = new SetItemOptionTable.Entry(
+            results[id] = new SetItemTable.Entry(
                 Info: new SetItemInfoMetadata(
                     Id: id,
+                    Name: name,
                     ItemIds: info.itemIDs,
-                    OptionId: info.optionID,
-                    Name: name),
-                Option: options[info.optionID]);
+                    OptionId: info.optionID),
+                Options: options[info.optionID]);
         }
 
-        return new SetItemOptionTable(results);
+        return new SetItemTable(results);
     }
 
     private LapenshardUpgradeTable ParseLapenshardUpgradeTable() {

@@ -54,5 +54,5 @@ public class TableMetadata {
 [JsonDerivedType(typeof(FishingRewardTable), typeDiscriminator: "fishingreward")]
 [JsonDerivedType(typeof(GuildTable), typeDiscriminator: "guild")]
 [JsonDerivedType(typeof(PremiumClubTable), typeDiscriminator: "vip")]
-[JsonDerivedType(typeof(SetItemOptionTable), typeDiscriminator: "setitemoption")]
+[JsonDerivedType(typeof(SetItemTable), typeDiscriminator: "setitem")]
 public abstract record Table;

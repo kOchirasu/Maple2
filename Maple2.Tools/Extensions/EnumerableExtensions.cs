@@ -81,7 +81,7 @@ public static class EnumerableExtensions {
         return nested.TryGetValue(key2, out value);
     }
 
-    public static TV? GetValueOrDefault<TK1, TK2, TV>(this IReadOnlyDictionary<TK1, IReadOnlyDictionary<TK2, TV>> dictionary,TK1 key1, TK2 key2,
+    public static TV? GetValueOrDefault<TK1, TK2, TV>(this IReadOnlyDictionary<TK1, IReadOnlyDictionary<TK2, TV>> dictionary, TK1 key1, TK2 key2,
                                                       TV? defaultValue = default) {
         if (!dictionary.TryGetValue(key1, out IReadOnlyDictionary<TK2, TV>? nested)) {
             return defaultValue;
@@ -90,10 +90,8 @@ public static class EnumerableExtensions {
         return nested.GetValueOrDefault(key2) ?? defaultValue;
     }
 
-    public static void AddIfNotDefault<KeyType, Type>(this IDictionary<KeyType, Type> dictionary, KeyType key, Type value) where Type : notnull where KeyType : notnull
-    {
-        if (!value.Equals(default))
-        {
+    public static void AddIfNotDefault<TK, TV>(this IDictionary<TK, TV> dictionary, TK key, TV value) where TK : notnull where TV : notnull {
+        if (!value.Equals(default)) {
             dictionary[key] = value;
         }
     }
