@@ -21,15 +21,15 @@ public partial class FieldManager {
         private readonly ILogger logger = Log.Logger.ForContext<Factory>();
 
         private readonly IComponentContext context;
-        private readonly ConcurrentDictionary<(int MapId, int InstanceId), FieldManager> fields;
+        private readonly ConcurrentDictionary<(int MapId, long OwnerId), FieldManager> fields;
 
         public Factory(IComponentContext context) {
             this.context = context;
 
-            fields = new ConcurrentDictionary<(int, int), FieldManager>();
+            fields = new ConcurrentDictionary<(int, long), FieldManager>();
         }
 
-        public FieldManager? Get(int mapId, int instanceId = 0) {
+        public FieldManager? Get(int mapId, long ownerId = 0) {
             var sw = new Stopwatch();
             sw.Start();
             if (!MapMetadata.TryGet(mapId, out MapMetadata? metadata)) {
@@ -42,19 +42,20 @@ public partial class FieldManager {
             }
 
             // ReSharper disable once HeapView.CanAvoidClosure, defer instantiation unless it's needed.
-            FieldManager field = fields.GetOrAdd((mapId, instanceId), _ => {
+            if (!fields.TryGetValue((mapId, ownerId), out FieldManager? field)) {
                 MapEntityMetadata? entities = MapEntities.Get(metadata.XBlock);
                 if (entities == null) {
                     throw new InvalidOperationException($"Failed to load entities for map: {mapId}");
                 }
 
-                var field = new FieldManager(metadata, ugcMetadata, entities);
+                field = new FieldManager(metadata, ugcMetadata, entities, ownerId);
                 context.InjectProperties(field);
                 field.Init();
-                return field;
-            });
 
-            logger.Debug("Field:{MapId} Instance:{InstanceId} initialized in {Time}ms", mapId, instanceId, sw.ElapsedMilliseconds);
+                fields[(mapId, ownerId)] = field;
+            }
+
+            logger.Debug("Field:{MapId} Instance:{InstanceId} initialized in {Time}ms", mapId, field.InstanceId, sw.ElapsedMilliseconds);
             return field;
         }
 

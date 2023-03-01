@@ -16,10 +16,17 @@ namespace Maple2.Database.Storage;
 
 public partial class GameStorage {
     public partial class Request {
-        public IList<Plot> LoadPlotsForMap(int mapId) {
-            return Context.UgcMap.Include(map => map.Cubes)
-                .Where(map => map.MapId == mapId)
-                .AsEnumerable()
+        public IList<Plot> LoadPlotsForMap(int mapId, long ownerId) {
+            IQueryable<UgcMap> query;
+            if (ownerId >= 0) {
+                query = Context.UgcMap.Include(map => map.Cubes)
+                    .Where(map => map.MapId == mapId && map.OwnerId == ownerId);
+            } else {
+                query = Context.UgcMap.Include(map => map.Cubes)
+                    .Where(map => map.MapId == mapId);
+            }
+
+            return query.AsEnumerable()
                 .Select(ToPlot)
                 .ToList()!;
         }

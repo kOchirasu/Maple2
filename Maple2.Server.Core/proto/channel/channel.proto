@@ -41,6 +41,12 @@ message GuildRequest {
     int64 character_id = 1;
     string requestor_name = 2;
   }
+  message UpdateMember {
+    int64 requestor_id = 1;
+    int64 character_id = 2;
+    optional int32 rank = 3;
+    optional string message = 4;
+  }
 
   int64 guild_id = 1;
   repeated int64 receiver_ids = 2;
@@ -49,6 +55,7 @@ message GuildRequest {
     InviteReply invite_reply = 4;
     AddMember add_member = 5;
     RemoveMember remove_member = 6;
+    UpdateMember update_member = 7;
   }
 }
 

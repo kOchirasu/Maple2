@@ -1,7 +1,12 @@
 ﻿using Maple2.Database.Storage;
+using Maple2.Model.Enum;
+using Maple2.Model.Error;
+using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
+using Maple2.Server.Core.Packets;
+using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.PacketHandlers;
@@ -22,6 +27,7 @@ public class MoveFieldHandler : PacketHandler<GameSession> {
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
     public required MapMetadataStorage MapMetadata { private get; init; }
+    public required GameStorage GameStorage { private get; init; }
     // ReSharper restore All
     #endregion
 
@@ -63,13 +69,33 @@ public class MoveFieldHandler : PacketHandler<GameSession> {
         packet.ReadInt();
         packet.ReadInt();
         packet.ReadUnicodeString();
-        packet.ReadUnicodeString();
+        string password = packet.ReadUnicodeString(); // Password for locked portals
 
         session.Field.UsePortal(session, portalId);
     }
 
     private void HandleVisitHome(GameSession session, IByteReader packet) {
+        packet.ReadInt();
+        packet.ReadInt();
+        packet.ReadInt();
+        long accountId = packet.ReadLong();
+        string passcode = packet.ReadUnicodeString();
 
+        using GameStorage.Request db = session.GameStorage.Context();
+        Home? home = db.GetHome(accountId);
+        if (home == null) {
+            session.Send(FieldEnterPacket.Error(MigrationError.s_move_err_no_server));
+            return;
+        }
+
+        if (home.Passcode != null && home.Passcode != passcode) {
+            session.Send(NoticePacket.MessageBox(StringCode.s_home_password_mismatch));
+            return;
+        }
+
+        session.Send(session.PrepareField(home.Indoor.MapId, ownerId: home.Indoor.OwnerId)
+            ? FieldEnterPacket.Request(session.Player)
+            : FieldEnterPacket.Error(MigrationError.s_move_err_default));
     }
 
     private void HandleReturn(GameSession session) {

@@ -92,6 +92,7 @@ public class SkillInfo : IByteSerializable {
 
                 var skill = new Skill(skillData.Main, subSkills.ToArray(), baseLevel, metadata.Property.MaxLevel);
                 Skills[(int) metadata.Property.Type, (int) rank].Add(skill.Id, skill);
+                Log.Information("+Skill[{Type}, {Rank}] = {Id} ({Name})", metadata.Property.Type, rank, skill.Id, metadata.Name);
             }
         }
 

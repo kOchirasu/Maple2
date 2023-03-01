@@ -1,4 +1,5 @@
 ﻿using Maple2.Model.Game;
+using Maple2.Model.Game.Shop;
 using Maple2.Server.Game.Manager;
 using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Manager.Items;
@@ -33,7 +34,12 @@ public partial class GameSession {
 
     public NpcScript? NpcScript;
 
+    public Shop? Shop;
+
     public bool FishingMiniGameActive;
+
+    public int SuperChatId;
+    public int SuperChatItemId;
 
     public bool CanHold() {
         return GuideObject == null

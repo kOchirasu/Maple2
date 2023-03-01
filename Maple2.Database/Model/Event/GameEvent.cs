@@ -50,6 +50,7 @@ internal class GameEvent {
 [JsonDerivedType(typeof(StringBoardLink), typeDiscriminator: nameof(StringBoardLink))]
 [JsonDerivedType(typeof(MeratMarketNotice), typeDiscriminator: nameof(MeratMarketNotice))]
 [JsonDerivedType(typeof(SaleChat), typeDiscriminator: nameof(SaleChat))]
+[JsonDerivedType(typeof(BlueMarble), typeDiscriminator: nameof(BlueMarble))]
 internal abstract class GameEventInfo {
     public int Id { get; set; }
     public string Name { get; set; }
@@ -92,6 +93,12 @@ internal abstract class GameEventInfo {
                 WorldChatDiscount = saleChat.WorldChatDiscount,
                 ChannelChatDiscount = saleChat.ChannelChatDiscount,
             },
+            Maple2.Model.Game.Event.BlueMarble blueMarble => new BlueMarble {
+                Id = blueMarble.Id,
+                Name = blueMarble.Name,
+                Entries = blueMarble.Entries,
+                Tiles = blueMarble.Tiles,
+            },
             _ => null,
         };
     }
@@ -133,6 +140,12 @@ internal abstract class GameEventInfo {
                 Name = saleChat.Name,
                 WorldChatDiscount = saleChat.WorldChatDiscount,
                 ChannelChatDiscount = saleChat.ChannelChatDiscount,
+            },
+            BlueMarble blueMarble => new Maple2.Model.Game.Event.BlueMarble {
+                Id = blueMarble.Id,
+                Name = blueMarble.Name,
+                Entries = blueMarble.Entries,
+                Tiles = blueMarble.Tiles,
             },
             _ => null,
         };

@@ -179,17 +179,36 @@ public class UserChatHandler : PacketHandler<GameSession> {
     }
 
     private void HandleSuper(GameSession session, string message) {
+        if (session.SuperChatId == 0) {
+            return;
+        }
+
+        Item? superChatItem = session.Item.Inventory.Find(session.SuperChatItemId).FirstOrDefault();
+        if (superChatItem == null) {
+            session.SuperChatId = 0;
+            session.SuperChatItemId = 0;
+            session.Send(SuperChatPacket.Deselect(session.Player.ObjectId));
+            session.Send(ChatPacket.Alert(StringCode.s_err_lack_super_coupon));
+            return;
+        }
+
         var request = new ChatRequest {
             AccountId = session.AccountId,
             CharacterId = session.CharacterId,
             Name = session.PlayerName,
             Message = message,
-            Super = new ChatRequest.Types.Super {ItemId = 0},
+            Super = new ChatRequest.Types.Super {ItemId = session.SuperChatId},
         };
 
-        try {
-            World.Chat(request);
-        } catch (RpcException) { }
+        if (session.Item.Inventory.Consume(superChatItem.Uid, 1)) {
+            try {
+                session.SuperChatId = 0;
+                session.SuperChatItemId = 0;
+                session.Send(SuperChatPacket.Deselect(session.Player.ObjectId));
+                World.Chat(request);
+            } catch (RpcException) { }
+        }
+
     }
 
     private void HandleClub(GameSession session, string message, long clubId) {

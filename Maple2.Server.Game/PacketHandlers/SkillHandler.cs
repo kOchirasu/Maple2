@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Numerics;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
@@ -115,7 +116,7 @@ public class SkillHandler : PacketHandler<GameSession> {
         session.Field?.Broadcast(SkillPacket.Use(record));
 
         foreach (SkillEffectMetadata effect in metadata.Data.Skills) {
-            session.Player.ApplyEffect(session.Player, effect);
+            session.Player.ApplyEffect(session.Player, session.Player, effect);
         }
     }
 

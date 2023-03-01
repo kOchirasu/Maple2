@@ -162,7 +162,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
         }
 
         session.HeldCube = cubeItem;
-        session.Field?.Broadcast(CubePacket.HoldCube(session));
+        session.Field?.Broadcast(CubePacket.HoldCube(session.Player.ObjectId, session.HeldCube));
     }
 
     private void HandleBuyPlot(GameSession session, IByteReader packet) {

@@ -52,7 +52,7 @@ public class SetCraftModeHandler : PacketHandler<GameSession> {
             return;
         }
 
-        var cubeItem = packet.ReadClass<HeldCube>();
+        var cubeItem = packet.ReadClass<PlotCube>();
         if (cubeItem.ItemId != Constant.ConstructionCubeItemId || cubeItem.Template != null) {
             return;
         }
@@ -61,6 +61,6 @@ public class SetCraftModeHandler : PacketHandler<GameSession> {
         session.HeldCube = cubeItem;
 
         session.Field.Broadcast(GuideObjectPacket.Create(session.GuideObject));
-        session.Field.Broadcast(SetCraftModePacket.Home(session.Player.ObjectId, cubeItem));
+        session.Field.Broadcast(SetCraftModePacket.Plot(session.Player.ObjectId, cubeItem));
     }
 }

@@ -344,11 +344,11 @@ public partial class TriggerContext {
 
         if (isPlayer) {
             foreach (IActor player in PlayersInBox(boxIds)) {
-                player.AddBuff(Field.FieldActor, buffId, level);
+                player.AddBuff(Field.FieldActor, player, buffId, level);
             }
         } else {
             foreach (IActor monster in MonstersInBox(boxIds)) {
-                monster.AddBuff(Field.FieldActor, buffId, level);
+                monster.AddBuff(Field.FieldActor, monster, buffId, level);
             }
         }
     }

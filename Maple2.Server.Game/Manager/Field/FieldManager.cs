@@ -11,9 +11,6 @@ using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
-using Maple2.PathEngine;
-using Maple2.PathEngine.Interface;
-using Maple2.PathEngine.Types;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
@@ -57,27 +54,36 @@ public sealed partial class FieldManager : IDisposable {
     private readonly ILogger logger = Log.Logger.ForContext<FieldManager>();
 
     public int MapId => Metadata.Id;
+    public readonly long OwnerId;
     public readonly int InstanceId;
 
-    public FieldManager(MapMetadata metadata, UgcMapMetadata ugcMetadata, MapEntityMetadata entities, int instanceId = 0) {
+    public FieldManager(MapMetadata metadata, UgcMapMetadata ugcMetadata, MapEntityMetadata entities, long ownerId) {
         Metadata = metadata;
         this.ugcMetadata = ugcMetadata;
         this.Entities = entities;
         TriggerObjects = new TriggerCollection(entities);
 
-        InstanceId = instanceId;
         FieldActor = new FieldActor(this);
         cancel = new CancellationTokenSource();
         thread = new Thread(Sync);
+        OwnerId = ownerId;
+        InstanceId = thread.ManagedThreadId;
 
         Navigation = new Navigation(metadata.XBlock, entities.NavMesh?.Data);
     }
 
     // Init is separate from constructor to allow properties to be injected first.
     private void Init() {
+        if (initialized) {
+            logger.Error("Init() called when map was already initialized");
+            return;
+        }
+
         if (ugcMetadata.Plots.Count > 0) {
             using GameStorage.Request db = GameStorage.Context();
-            foreach (Plot plot in db.LoadPlotsForMap(MapId)) {
+            // Type 3 = 62000000_ugc and 62900000_ugd
+            long plotOwnerId = Metadata.Property.Type == 3 ? OwnerId : -1;
+            foreach (Plot plot in db.LoadPlotsForMap(MapId, plotOwnerId)) {
                 Plots[plot.Number] = plot;
             }
         }
