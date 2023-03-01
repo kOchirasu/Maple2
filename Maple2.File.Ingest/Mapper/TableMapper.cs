@@ -47,6 +47,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "mastery.xml", Table = ParseMasteryReward()};
         yield return new TableMetadata {Name = "guild*.xml", Table = ParseGuildTable() };
         yield return new TableMetadata {Name = "vip*.xml", Table = ParsePremiumClubTable()};
+        yield return new TableMetadata {Name = "individualitemdrop*.xml", Table = ParseIndividualItemDropTable()};
         // Fishing
         yield return new TableMetadata {Name = "fishingspot.xml", Table = ParseFishingSpot()};
         yield return new TableMetadata {Name = "fish.xml", Table = ParseFish()};
@@ -64,6 +65,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "itemoptionstatic.xml", Table = ParseItemOptionStatic()};
         yield return new TableMetadata {Name = "itemoptionpick.xml", Table = ParseItemOptionPick()};
         yield return new TableMetadata {Name = "itemoptionvariation.xml", Table = ParseItemVariation()};
+        
         foreach ((string type, ItemEquipVariationTable table) in ParseItemEquipVariation()) {
             yield return new TableMetadata {Name = $"itemoptionvariation_{type}.xml", Table = table};
         }
@@ -921,5 +923,40 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
 
         return new PremiumClubTable(premiumClubBuffs, premiumClubItems, premiumClubPackages);
+    }
+    
+    private IndividualItemDropTable ParseIndividualItemDropTable() {
+        var results = new Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>>();
+        foreach ((int id, IndividualItemDrop drop) in parser.ParseIndividualItemDrop()) {
+
+            var itemIds = new List<int> {
+                drop.item,
+            };
+            if (drop.item2 > 0) {
+                itemIds.Add(drop.item2);
+            }
+            
+            var entry = new IndividualItemDropTable.Entry(
+                ItemIds: itemIds,
+                SmartGender: drop.isApplySmartGenderDrop,
+                MinCount: drop.minCount,
+                MaxCount: drop.maxCount);
+            
+            if (!results.ContainsKey(id)) {
+                results.Add(id, new Dictionary<byte, IList<IndividualItemDropTable.Entry>> {
+                    {drop.dropGroup, new List<IndividualItemDropTable.Entry> {
+                        entry,
+                    }},
+                });
+            } else if (!results[id].ContainsKey(drop.dropGroup)) {
+                results[id].Add(drop.dropGroup, new List<IndividualItemDropTable.Entry>() {
+                    entry,
+                });
+            } else {
+                results[id][drop.dropGroup].Add(entry);
+            }
+        }
+
+        return new IndividualItemDropTable(results);
     }
 }

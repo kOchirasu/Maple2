@@ -73,6 +73,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             case ItemFunction.VIPCoupon:
                 HandlePremiumClubCoupon(session, item);
                 break;
+            case ItemFunction.SelectItemBox:
+                HandleSelectItemBox(session, packet, item);
+                break;
             default:
                 Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
                 return;
@@ -321,5 +324,12 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         }
 
         session.Config.UpdatePremiumTime(hours);
+    }
+    
+    private void HandleSelectItemBox(GameSession session, IByteReader packet, Item item) {
+        short unknown = packet.ReadShort();
+        int index = packet.ReadInt() - 48;
+
+
     }
 }
