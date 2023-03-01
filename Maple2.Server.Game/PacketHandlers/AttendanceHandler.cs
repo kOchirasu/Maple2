@@ -27,7 +27,10 @@ public class AttendanceHandler : PacketHandler<GameSession> {
     private enum Command : byte {
         Claim = 0,
         BeginTimer = 1,
+        Unknown2 = 2,
+        Unknown3 = 3,
         EarlyParticipation = 4,
+        Unknown8 = 8,
     }
 
     public override void Handle(GameSession session, IByteReader packet) {
@@ -86,7 +89,7 @@ public class AttendanceHandler : PacketHandler<GameSession> {
         rewardsClaimed++;
         session.GameEventUserValue.Set(attendGift.Id, GameEventUserValueType.AttendanceRewardsClaimed, rewardsClaimed);
 
-        AttendGift.AttendanceDayItem? reward = attendGift.Days.FirstOrDefault(day => day.Day == rewardsClaimed);
+        AttendGift.Item? reward = attendGift.Days.FirstOrDefault(day => day.Day == rewardsClaimed);
         if (reward == null || !ItemMetadata.TryGet(reward.ItemId, out ItemMetadata? metadata)) {
             return;
         }

@@ -20,10 +20,10 @@ public class AttendGift : GameEventInfo {
     public AttendGiftCurrencyType SkipDayCurrencyType { get; init; }
     public int SkipDaysAllowed { get; init; }
     public long SkipDayCost { get; init; }
-    public IList<AttendanceDayItem> Days { get; set; }
+    public IList<Item> Days { get; set; }
 
     public AttendGift() {
-        Days = new List<AttendanceDayItem>();
+        Days = new List<Item>();
     }
 
     public override void WriteTo(IByteWriter writer) {
@@ -46,12 +46,12 @@ public class AttendGift : GameEventInfo {
         }
 
         writer.WriteInt(Days.Count);
-        foreach (AttendanceDayItem day in Days.OrderBy(day => day.Day)) {
-            writer.WriteClass<AttendanceDayItem>(day);
+        foreach (Item day in Days.OrderBy(day => day.Day)) {
+            writer.WriteClass<Item>(day);
         }
     }
-    
-    public class AttendanceDayItem : IByteSerializable{
+
+    public class Item : IByteSerializable {
         public int Day { get; init; }
         public short ItemRarity { get; init; }
         public int ItemId { get; init; }

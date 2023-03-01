@@ -15,7 +15,7 @@ internal class AttendGift : GameEventInfo {
     public AttendGiftCurrencyType SkipDayCurrencyType { get; set; }
     public int SkipDaysAllowed { get; set; }
     public long SkipDayCost { get; set; }
-    public IList<AttendanceDayItem> Days { get; set; }
+    public IList<Item> Days { get; set; }
     
     [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator AttendGift?(Maple2.Model.Game.Event.AttendGift? other) {
@@ -30,7 +30,7 @@ internal class AttendGift : GameEventInfo {
             SkipDayCurrencyType = other.SkipDayCurrencyType,
             SkipDaysAllowed = other.SkipDaysAllowed,
             SkipDayCost = other.SkipDayCost,
-            Days = other.Days.Select(day => new AttendanceDayItem {
+            Days = other.Days.Select(day => new Item {
                 Day = day.Day,
                 ItemRarity = day.ItemRarity,
                 ItemId = day.ItemId,
@@ -52,7 +52,7 @@ internal class AttendGift : GameEventInfo {
             SkipDayCurrencyType = other.SkipDayCurrencyType,
             SkipDaysAllowed = other.SkipDaysAllowed,
             SkipDayCost = other.SkipDayCost,
-            Days = other.Days.Select(day => new Maple2.Model.Game.Event.AttendGift.AttendanceDayItem {
+            Days = other.Days.Select(day => new Maple2.Model.Game.Event.AttendGift.Item {
                 Day = day.Day,
                 ItemRarity = day.ItemRarity,
                 ItemId = day.ItemId,
@@ -61,15 +61,15 @@ internal class AttendGift : GameEventInfo {
         };
     }
     
-    public class AttendanceDayItem {
+    public class Item {
         public int Day { get; set; }
         public short ItemRarity { get; set; }
         public int ItemId { get; set; }
         public int ItemAmount { get; set; }
         
         [return: NotNullIfNotNull(nameof(other))]
-        public static implicit operator AttendanceDayItem?(Maple2.Model.Game.Event.AttendGift.AttendanceDayItem? other) {
-            return other == null ? null : new AttendanceDayItem {
+        public static implicit operator Item?(Maple2.Model.Game.Event.AttendGift.Item? other) {
+            return other == null ? null : new Item {
                 Day = other.Day,
                 ItemRarity = other.ItemRarity,
                 ItemId = other.ItemId,
@@ -78,8 +78,8 @@ internal class AttendGift : GameEventInfo {
         }
         
         [return: NotNullIfNotNull(nameof(other))]
-        public static implicit operator Maple2.Model.Game.Event.AttendGift.AttendanceDayItem?(AttendanceDayItem? other) {
-            return other == null ? null : new Maple2.Model.Game.Event.AttendGift.AttendanceDayItem {
+        public static implicit operator Maple2.Model.Game.Event.AttendGift.Item?(Item? other) {
+            return other == null ? null : new Maple2.Model.Game.Event.AttendGift.Item {
                 Day = other.Day,
                 ItemRarity = other.ItemRarity,
                 ItemId = other.ItemId,

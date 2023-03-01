@@ -105,7 +105,7 @@ internal abstract class GameEventInfo {
                 Id = attendGift.Id,
                 Name = attendGift.Name,
                 AttendanceName = attendGift.AttendanceName,
-                Days = attendGift.Days.Select(day => new AttendGift.AttendanceDayItem {
+                Days = attendGift.Days.Select(day => new AttendGift.Item {
                     Day = day.Day,
                     ItemRarity = day.ItemRarity,
                     ItemId = day.ItemId,
@@ -174,7 +174,7 @@ internal abstract class GameEventInfo {
                 AttendanceName = attendGift.AttendanceName,
                 BeginTime = attendGift.BeginTime,
                 EndTime = attendGift.EndTime,
-                Days = attendGift.Days.Select(day => new Maple2.Model.Game.Event.AttendGift.AttendanceDayItem {
+                Days = attendGift.Days.Select(day => new Maple2.Model.Game.Event.AttendGift.Item {
                     Day = day.Day,
                     ItemRarity = day.ItemRarity,
                     ItemId = day.ItemId,
