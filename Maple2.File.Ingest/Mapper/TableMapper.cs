@@ -504,7 +504,6 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
 
         var results = new Dictionary<int, SetItemTable.Entry>();
-
         foreach ((int id, string name, SetItemInfo info) in parser.ParseSetItemInfo()) {
             Debug.Assert(options.ContainsKey(info.optionID));
 

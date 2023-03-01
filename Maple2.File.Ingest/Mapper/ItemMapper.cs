@@ -24,8 +24,7 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
             .ToDictionary(entry => entry.Id, entry => entry.Extraction.TryCount);
 
         var itemSetBonuses = new Dictionary<int, List<int>>();
-
-        foreach ((int id, string name, SetItemInfo info) in tableParser.ParseSetItemInfo()) {
+        foreach ((int id, _, SetItemInfo info) in tableParser.ParseSetItemInfo()) {
             foreach (int itemId in info.itemIDs) {
                 itemSetBonuses.TryAdd(itemId, new List<int>());
                 itemSetBonuses[itemId].Add(id);
