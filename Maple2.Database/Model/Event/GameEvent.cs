@@ -1,8 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Text.Json.Serialization;
 using Maple2.Database.Extensions;
+using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -36,7 +37,7 @@ internal class GameEvent {
             EventInfo = other.EventInfo,
         };
     }
-    
+
     public static void Configure(EntityTypeBuilder<GameEvent> builder) {
         builder.ToTable("game-event");
         builder.HasKey(@event => @event.Id);
@@ -105,12 +106,7 @@ internal abstract class GameEventInfo {
                 Id = attendGift.Id,
                 Name = attendGift.Name,
                 AttendanceName = attendGift.AttendanceName,
-                Days = attendGift.Days.Select(day => new AttendGift.Item {
-                    Day = day.Day,
-                    ItemRarity = day.ItemRarity,
-                    ItemId = day.ItemId,
-                    ItemAmount = day.ItemAmount,
-                }).ToArray(),
+                Rewards = new Dictionary<int, RewardItem>(attendGift.Rewards),
                 DisableClaimButton = attendGift.DisableClaimButton,
                 SkipDayCost = attendGift.SkipDayCost,
                 SkipDayCurrencyType = attendGift.SkipDayCurrencyType,
@@ -123,7 +119,7 @@ internal abstract class GameEventInfo {
             _ => null,
         };
     }
-    
+
     [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator Maple2.Model.Game.Event.GameEventInfo?(GameEventInfo? other) {
         return other switch {
@@ -174,12 +170,7 @@ internal abstract class GameEventInfo {
                 AttendanceName = attendGift.AttendanceName,
                 BeginTime = attendGift.BeginTime,
                 EndTime = attendGift.EndTime,
-                Days = attendGift.Days.Select(day => new Maple2.Model.Game.Event.AttendGift.Item {
-                    Day = day.Day,
-                    ItemRarity = day.ItemRarity,
-                    ItemId = day.ItemId,
-                    ItemAmount = day.ItemAmount,
-                }).ToArray(),
+                Rewards = new Dictionary<int, RewardItem>(attendGift.Rewards),
                 DisableClaimButton = attendGift.DisableClaimButton,
                 SkipDayCost = attendGift.SkipDayCost,
                 SkipDayCurrencyType = attendGift.SkipDayCurrencyType,

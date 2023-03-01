@@ -20,10 +20,10 @@ public class AttendGift : GameEventInfo {
     public AttendGiftCurrencyType SkipDayCurrencyType { get; init; }
     public int SkipDaysAllowed { get; init; }
     public long SkipDayCost { get; init; }
-    public IList<Item> Days { get; set; }
+    public IDictionary<int, RewardItem> Rewards { get; init; }
 
     public AttendGift() {
-        Days = new List<Item>();
+        Rewards = new Dictionary<int, RewardItem>();
     }
 
     public override void WriteTo(IByteWriter writer) {
@@ -32,7 +32,7 @@ public class AttendGift : GameEventInfo {
         writer.WriteLong(EndTime);
         writer.WriteUnicodeString(AttendanceName);
         writer.WriteString(Url);
-        writer.WriteByte();
+        writer.WriteBool(false);
         writer.WriteBool(DisableClaimButton);
         writer.WriteInt(TimeRequired);
         writer.WriteByte();
@@ -45,26 +45,9 @@ public class AttendGift : GameEventInfo {
             writer.WriteInt();
         }
 
-        writer.WriteInt(Days.Count);
-        foreach (Item day in Days.OrderBy(day => day.Day)) {
-            writer.WriteClass<Item>(day);
-        }
-    }
-
-    public class Item : IByteSerializable {
-        public int Day { get; init; }
-        public short ItemRarity { get; init; }
-        public int ItemId { get; init; }
-        public int ItemAmount { get; init; }
-
-        public void WriteTo(IByteWriter writer) {
-            writer.WriteInt(ItemId);
-            writer.WriteShort(ItemRarity);
-            writer.WriteInt(ItemAmount);
-            writer.WriteByte();
-            writer.WriteByte();
-            writer.WriteByte();
-            writer.WriteByte();
+        writer.WriteInt(Rewards.Count);
+        foreach ((_, RewardItem reward) in Rewards.OrderBy(entry => entry.Key)) {
+            writer.Write<RewardItem>(reward);
         }
     }
 }

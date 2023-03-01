@@ -13,6 +13,13 @@ public static class AttendancePacket {
         Error = 9,
     }
 
+    public static ByteWriter Unknown5() {
+        var pWriter = Packet.Of(SendOp.Attendance);
+        pWriter.Write<Command>(Command.Unknown5);
+
+        return pWriter;
+    }
+
     public static ByteWriter Unknown6() {
         var pWriter = Packet.Of(SendOp.Attendance);
         pWriter.Write<Command>(Command.Unknown6);

@@ -8,7 +8,7 @@ namespace Maple2.Server.Game.PacketHandlers;
 
 public class ShopHandler : PacketHandler<GameSession> {
     public override RecvOp OpCode => RecvOp.Shop;
-    
+
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
     public required GameStorage GameStorage { private get; init; }
@@ -25,8 +25,8 @@ public class ShopHandler : PacketHandler<GameSession> {
     }
 
     public override void Handle(GameSession session, IByteReader packet) {
-        var function = packet.Read<Command>();
-        switch (function) {
+        var command = packet.Read<Command>();
+        switch (command) {
             case Command.Buy:
                 HandleBuy(session, packet);
                 return;

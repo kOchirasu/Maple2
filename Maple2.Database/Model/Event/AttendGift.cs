@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 
 namespace Maple2.Database.Model.Event;
 
@@ -15,8 +16,8 @@ internal class AttendGift : GameEventInfo {
     public AttendGiftCurrencyType SkipDayCurrencyType { get; set; }
     public int SkipDaysAllowed { get; set; }
     public long SkipDayCost { get; set; }
-    public IList<Item> Days { get; set; }
-    
+    public IDictionary<int, RewardItem> Rewards { get; set; }
+
     [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator AttendGift?(Maple2.Model.Game.Event.AttendGift? other) {
         return other == null ? null : new AttendGift {
@@ -30,15 +31,10 @@ internal class AttendGift : GameEventInfo {
             SkipDayCurrencyType = other.SkipDayCurrencyType,
             SkipDaysAllowed = other.SkipDaysAllowed,
             SkipDayCost = other.SkipDayCost,
-            Days = other.Days.Select(day => new Item {
-                Day = day.Day,
-                ItemRarity = day.ItemRarity,
-                ItemId = day.ItemId,
-                ItemAmount = day.ItemAmount,
-            }).ToArray(),
+            Rewards = new Dictionary<int, RewardItem>(other.Rewards),
         };
     }
-    
+
     [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator Maple2.Model.Game.Event.AttendGift?(AttendGift? other) {
         return other == null ? null : new Maple2.Model.Game.Event.AttendGift {
@@ -52,39 +48,7 @@ internal class AttendGift : GameEventInfo {
             SkipDayCurrencyType = other.SkipDayCurrencyType,
             SkipDaysAllowed = other.SkipDaysAllowed,
             SkipDayCost = other.SkipDayCost,
-            Days = other.Days.Select(day => new Maple2.Model.Game.Event.AttendGift.Item {
-                Day = day.Day,
-                ItemRarity = day.ItemRarity,
-                ItemId = day.ItemId,
-                ItemAmount = day.ItemAmount,
-            }).ToArray(),
+            Rewards = new Dictionary<int, RewardItem>(other.Rewards),
         };
-    }
-    
-    public class Item {
-        public int Day { get; set; }
-        public short ItemRarity { get; set; }
-        public int ItemId { get; set; }
-        public int ItemAmount { get; set; }
-        
-        [return: NotNullIfNotNull(nameof(other))]
-        public static implicit operator Item?(Maple2.Model.Game.Event.AttendGift.Item? other) {
-            return other == null ? null : new Item {
-                Day = other.Day,
-                ItemRarity = other.ItemRarity,
-                ItemId = other.ItemId,
-                ItemAmount = other.ItemAmount,
-            };
-        }
-        
-        [return: NotNullIfNotNull(nameof(other))]
-        public static implicit operator Maple2.Model.Game.Event.AttendGift.Item?(Item? other) {
-            return other == null ? null : new Maple2.Model.Game.Event.AttendGift.Item {
-                Day = other.Day,
-                ItemRarity = other.ItemRarity,
-                ItemId = other.ItemId,
-                ItemAmount = other.ItemAmount,
-            };
-        }
     }
 }

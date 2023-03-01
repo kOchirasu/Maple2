@@ -34,8 +34,8 @@ public class AttendanceHandler : PacketHandler<GameSession> {
     }
 
     public override void Handle(GameSession session, IByteReader packet) {
-        var function = packet.Read<Command>();
-        switch (function) {
+        var command = packet.Read<Command>();
+        switch (command) {
             case Command.Claim:
                 HandleClaim(session);
                 return;
@@ -57,8 +57,8 @@ public class AttendanceHandler : PacketHandler<GameSession> {
         var attendGift = (gameEvent.EventInfo as AttendGift)!;
 
         // Verify that the player meets the time requirements of event
-        long accummulatedTimeValue = session.GameEventUserValue.Get(GameEventUserValueType.AttendanceAccumulatedTime, gameEvent.Id, DateTime.Now.AddDays(1).Date.ToEpochSeconds()).Long();
-        if (DateTime.Now.ToEpochSeconds() - session.Player.Value.Character.LastModified.ToEpochSeconds() + accummulatedTimeValue < attendGift.TimeRequired) {
+        long accumulatedTimeValue = session.GameEventUserValue.Get(GameEventUserValueType.AttendanceAccumulatedTime, gameEvent.Id, DateTime.Now.AddDays(1).Date.ToEpochSeconds()).Long();
+        if ((DateTime.Now.AddSeconds(accumulatedTimeValue) - session.Player.Value.Character.LastModified).Seconds < attendGift.TimeRequired) {
             return;
         }
 
@@ -89,8 +89,8 @@ public class AttendanceHandler : PacketHandler<GameSession> {
         rewardsClaimed++;
         session.GameEventUserValue.Set(attendGift.Id, GameEventUserValueType.AttendanceRewardsClaimed, rewardsClaimed);
 
-        AttendGift.Item? reward = attendGift.Days.FirstOrDefault(day => day.Day == rewardsClaimed);
-        if (reward == null || !ItemMetadata.TryGet(reward.ItemId, out ItemMetadata? metadata)) {
+        RewardItem reward = attendGift.Rewards.FirstOrDefault(entry => entry.Key == rewardsClaimed).Value;
+        if (default(RewardItem).Equals(reward) || !ItemMetadata.TryGet(reward.ItemId, out ItemMetadata? metadata)) {
             return;
         }
 
@@ -107,10 +107,9 @@ public class AttendanceHandler : PacketHandler<GameSession> {
         receiverMail = db.CreateMail(receiverMail);
         if (receiverMail == null) {
             throw new InvalidOperationException($"Failed to create mail for attendance reward to user {session.CharacterId}");
-            return;
         }
 
-        Item? item = db.CreateItem(receiverMail.Id, new Item(metadata, reward.ItemRarity, reward.ItemAmount));
+        Item? item = db.CreateItem(receiverMail.Id, new Item(metadata, reward.Rarity, reward.Amount));
         if (item == null) {
             throw new InvalidOperationException($"Failed to create reward item: {metadata.Id}");
         }
@@ -127,13 +126,13 @@ public class AttendanceHandler : PacketHandler<GameSession> {
 
     private void HandleEarlyParticipation(GameSession session, IByteReader packet) {
         int eventId = packet.ReadInt();
+        // packet.ReadLong();
         GameEvent? gameEvent = session.FindEvent<AttendGift>();
         if (gameEvent == null) {
             return;
         }
 
         var attendGift = (gameEvent.EventInfo as AttendGift)!;
-
         int skipsTotal = session.GameEventUserValue.Get(GameEventUserValueType.AttendanceEarlyParticipationRemaining, attendGift.Id, attendGift.EndTime).Int();
         if (skipsTotal >= attendGift.SkipDaysAllowed) {
             return;
