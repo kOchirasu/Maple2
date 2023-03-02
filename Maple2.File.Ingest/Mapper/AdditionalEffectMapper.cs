@@ -3,6 +3,9 @@ using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.AdditionalEffect;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
+using Maple2.Tools.Extensions;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Maple2.File.Ingest.Mapper;
 
@@ -37,11 +40,13 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                         HpRate: data.ConsumeProperty.hpRate,
                         SpRate: data.ConsumeProperty.spRate),
                     Update: Convert(data),
+                    Status: Convert(data.StatusProperty, data.OffensiveProperty, data.DefensiveProperty),
                     Recovery: Convert(data.RecoveryProperty),
                     Dot: new AdditionalEffectMetadataDot(
                         Damage: Convert(data.DotDamageProperty),
                         Buff: Convert(data.DotBuffProperty)),
                     Shield: Convert(data.ShieldProperty),
+                    InvokeEffect: Convert(data.InvokeEffectProperty),
                     Skills: data.conditionSkill.Concat(data.splashSkill).Select(skill => skill.Convert()).ToArray());
             }
         }
@@ -72,9 +77,78 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
             Duration: modifyDuration);
     }
 
+    private static AdditionalEffectMetadataStatus Convert(StatusProperty status, OffensiveProperty offensive, DefensiveProperty defensive) {
+        var values = new Dictionary<BasicAttribute, long>();
+        var rates = new Dictionary<BasicAttribute, float>();
+        var specialValues = new Dictionary<SpecialAttribute, float>();
+        var specialRates = new Dictionary<SpecialAttribute, float>();
+
+        if (status.Stat != null) {
+            foreach (BasicAttribute attribute in Enum.GetValues<BasicAttribute>()) {
+                values.AddIfNotDefault(attribute, status.Stat.Value((byte) attribute));
+                rates.AddIfNotDefault(attribute, status.Stat.Rate((byte) attribute));
+            }
+        }
+
+        if (status.SpecialAbility != null) {
+            foreach (SpecialAttribute attribute in Enum.GetValues<SpecialAttribute>()) {
+                byte attributeIndex = attribute.OptionIndex();
+                if (attributeIndex == byte.MaxValue) {
+                    continue;
+                }
+
+                specialValues.AddIfNotDefault(attribute, status.SpecialAbility.Value(attributeIndex));
+                specialRates.AddIfNotDefault(attribute, status.SpecialAbility.Rate(attributeIndex));
+            }
+        }
+
+        specialValues.AddIfNotDefault(SpecialAttribute.OffensiveMagicalDamage, offensive.mapDamageV);
+        specialRates.AddIfNotDefault(SpecialAttribute.OffensiveMagicalDamage, offensive.mapDamageR);
+        specialValues.AddIfNotDefault(SpecialAttribute.OffensivePhysicalDamage, offensive.papDamageV);
+        specialRates.AddIfNotDefault(SpecialAttribute.OffensivePhysicalDamage, offensive.papDamageR);
+
+        var resistances = new Dictionary<BasicAttribute, float>();
+        resistances.AddIfNotDefault(BasicAttribute.MaxWeaponAtk, status.resWapR);
+        resistances.AddIfNotDefault(BasicAttribute.BonusAtk, status.resBapR);
+        resistances.AddIfNotDefault(BasicAttribute.CriticalDamage, status.resCadR);
+        resistances.AddIfNotDefault(BasicAttribute.Accuracy, status.resAtpR);
+        resistances.AddIfNotDefault(BasicAttribute.Evasion, status.resEvpR);
+        resistances.AddIfNotDefault(BasicAttribute.Piercing, status.resPenR);
+        resistances.AddIfNotDefault(BasicAttribute.AttackSpeed, status.resAspR);
+
+        Debug.Assert(status.compulsionEventTypes.Length <= 1 && status.compulsionEventRate.Length <= 1);
+        var compulsionEventType = CompulsionEventType.None;
+        if (status.compulsionEventTypes.Length > 0) {
+            compulsionEventType = (CompulsionEventType)status.compulsionEventTypes[0];
+        }
+
+        AdditionalEffectMetadataStatus.CompulsionEvent? compulsionEvent = null;
+        if (compulsionEventType != CompulsionEventType.None) {
+            float compulsionEventRate = 0;
+            if (status.compulsionEventRate.Length > 0) {
+                compulsionEventRate = status.compulsionEventRate[0];
+            }
+
+            compulsionEvent = new AdditionalEffectMetadataStatus.CompulsionEvent(compulsionEventType, compulsionEventRate, status.compulsionEventSkillCodes);
+        } else {
+            // Ensure these fields are not set without a CompulsionEventType
+            Debug.Assert(status.compulsionEventRate.Length == 0 && status.compulsionEventSkillCodes.Length == 0);
+        }
+
+        return new AdditionalEffectMetadataStatus(
+            Values: values,
+            Rates: rates,
+            SpecialValues: specialValues,
+            SpecialRates: specialRates,
+            Resistances: resistances,
+            DeathResistanceHp: status.deathResistanceHP,
+            Compulsion: compulsionEvent,
+            ImmuneBreak: offensive.hitImmuneBreak,
+            Invincible: defensive.invincible != 0);
+    }
+
     private static AdditionalEffectMetadataRecovery? Convert(RecoveryProperty recovery) {
-        if (recovery.RecoveryRate <= 0 && recovery.hpValue <= 0 && recovery.hpRate <= 0 && recovery.spValue <= 0 && recovery.spRate <= 0
-            && recovery.spConsumeRate <= 0 && recovery.epValue <= 0 && recovery.epRate <= 0) {
+        if (recovery is {RecoveryRate: <= 0, hpValue: <= 0, hpRate: <= 0, spValue: <= 0, spRate: <= 0, spConsumeRate: <= 0, epValue: <= 0, epRate: <= 0}) {
             return null;
         }
 
@@ -119,10 +193,26 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
     }
 
     private static AdditionalEffectMetadataShield? Convert(ShieldProperty shield) {
-        if (shield.hpValue <= 0 && shield.hpByTargetMaxHP <= 0) {
+        if (shield is {hpValue: <= 0, hpByTargetMaxHP: <= 0}) {
             return null;
         }
 
         return new AdditionalEffectMetadataShield(HpValue: shield.hpValue, HpByTargetMaxHp: shield.hpByTargetMaxHP);
+    }
+
+    [return: NotNullIfNotNull(nameof(invokeEffect))]
+    private static AdditionalEffectMetadataInvokeEffect? Convert (InvokeEffectProperty? invokeEffect) {
+        if (invokeEffect is null) {
+            return null;
+        }
+
+        return new AdditionalEffectMetadataInvokeEffect(
+            Types: invokeEffect.types.Select(type => (InvokeEffectType) type).ToArray(),
+            Values: invokeEffect.values,
+            Rates: invokeEffect.rates,
+            EffectId: invokeEffect.effectID,
+            EffectGroupId: invokeEffect.effectGroupID,
+            SkillId: invokeEffect.skillID,
+            SkillGroupId: invokeEffect.skillGroupID);
     }
 }

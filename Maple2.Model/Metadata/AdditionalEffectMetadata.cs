@@ -1,4 +1,5 @@
 ﻿using Maple2.Model.Enum;
+using System.Collections.Generic;
 
 namespace Maple2.Model.Metadata;
 
@@ -9,9 +10,11 @@ public record AdditionalEffectMetadata(
     AdditionalEffectMetadataProperty Property,
     AdditionalEffectMetadataConsume Consume,
     AdditionalEffectMetadataUpdate Update,
+    AdditionalEffectMetadataStatus Status,
     AdditionalEffectMetadataRecovery? Recovery,
     AdditionalEffectMetadataDot Dot,
     AdditionalEffectMetadataShield? Shield,
+    AdditionalEffectMetadataInvokeEffect? InvokeEffect,
     SkillEffectMetadata[] Skills);
 
 public record AdditionalEffectMetadataProperty(
@@ -42,6 +45,20 @@ public record AdditionalEffectMetadataUpdate(
     public record CancelEffect(bool CheckSameCaster, bool PassiveEffect, int[] Ids, int[] Categories);
 
     public record ModifyDuration(int Id, float Rate, float Value);
+}
+
+public record AdditionalEffectMetadataStatus(
+    IReadOnlyDictionary<BasicAttribute, long> Values,
+    IReadOnlyDictionary<BasicAttribute, float> Rates,
+    IReadOnlyDictionary<SpecialAttribute, float> SpecialValues,
+    IReadOnlyDictionary<SpecialAttribute, float> SpecialRates,
+    IReadOnlyDictionary<BasicAttribute, float> Resistances,
+    long DeathResistanceHp,
+    AdditionalEffectMetadataStatus.CompulsionEvent? Compulsion,
+    int ImmuneBreak,
+    bool Invincible) {
+
+    public record CompulsionEvent(CompulsionEventType Type, float Rate, int[] SkillIds);
 }
 
 public record AdditionalEffectMetadataRecovery(
@@ -82,3 +99,12 @@ public record AdditionalEffectMetadataDot(
 public record AdditionalEffectMetadataShield(
     long HpValue,
     float HpByTargetMaxHp);
+
+public record AdditionalEffectMetadataInvokeEffect(
+    InvokeEffectType[] Types,
+    float[] Values,
+    float[] Rates,
+    int EffectId,
+    int EffectGroupId,
+    int SkillId,
+    int SkillGroupId);

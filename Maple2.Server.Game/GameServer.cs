@@ -66,6 +66,7 @@ public class GameServer : Server<GameSession> {
             using GameStorage.Request db = gameStorage.Context();
             gameEvent = db.FindEvent(typeof(T).Name);
             if (gameEvent != null) {
+                gameEvent.EventInfo.Id = gameEvent.Id;
                 eventCache[typeof(T).Name] = gameEvent;
             }
         }

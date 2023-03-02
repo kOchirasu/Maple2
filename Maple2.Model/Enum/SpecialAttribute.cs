@@ -352,6 +352,14 @@ public enum SpecialAttribute : byte {
     ReducePetRemakeOptionFee = 173,
     [Description("s_item_opt_sa_improve_riding_speed")]
     RidingSpeed = 174,
+    [Description("s_item_opt_sa_improve_survival_kill_exp")]
+    ImproveSurvivalKillExp = 175,
+    [Description("s_item_opt_sa_improve_survival_time_exp")]
+    ImproveSurvivalTimeExp = 176,
+    [Description("s_item_opt_sa_offensive_physicaldamage")]
+    OffensivePhysicalDamage = 177,
+    [Description("s_item_opt_sa_offensive_magicaldamage")]
+    OffensiveMagicalDamage = 178,
     [Description("s_item_opt_sa_reduce_gameitem_socket_unlock_fee")]
     ReduceGameItemSocketUnlockFee = 179,
 }

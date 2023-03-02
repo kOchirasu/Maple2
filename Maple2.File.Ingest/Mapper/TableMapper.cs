@@ -1,4 +1,5 @@
-﻿using System.Globalization;
+﻿using System.Diagnostics;
+using System.Globalization;
 using System.Numerics;
 using Maple2.Database.Extensions;
 using Maple2.File.Ingest.Utils;
@@ -9,6 +10,7 @@ using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.Tools.Extensions;
 using Newtonsoft.Json;
 using ChatSticker = Maple2.File.Parser.Xml.Table.ChatSticker;
 using GuildBuff = Maple2.File.Parser.Xml.Table.GuildBuff;
@@ -69,6 +71,8 @@ public class TableMapper : TypeMapper<TableMetadata> {
         foreach ((string type, ItemEquipVariationTable table) in ParseItemEquipVariation()) {
             yield return new TableMetadata {Name = $"itemoptionvariation_{type}.xml", Table = table};
         }
+        // SetItemOption
+        yield return new TableMetadata { Name = "setitem*.xml", Table = ParseSetItem() };
     }
 
     private ChatStickerTable ParseChatSticker() {
@@ -459,6 +463,62 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
             yield return (type, new ItemEquipVariationTable(values, rates, specialValues, specialRates));
         }
+    }
+
+    private SetItemTable ParseSetItem() {
+        var options = new Dictionary<int, SetBonusMetadata[]>();
+        foreach ((int id, SetItemOption option) in parser.ParseSetItemOption()) {
+            var parts = new List<SetBonusMetadata>();
+            foreach (SetItemOption.Part part in option.part) {
+                var values = new Dictionary<BasicAttribute, long>();
+                var rates = new Dictionary<BasicAttribute, float>();
+                var specialValues = new Dictionary<SpecialAttribute, float>();
+                var specialRates = new Dictionary<SpecialAttribute, float>();
+
+                foreach (BasicAttribute attribute in Enum.GetValues<BasicAttribute>()) {
+                    values.AddIfNotDefault(attribute, part.StatValue((byte)attribute));
+                    rates.AddIfNotDefault(attribute, part.StatRate((byte)attribute));
+                }
+
+                // Since 4 is already "Boss" we can ignore sgi_boss_target
+                Debug.Assert(part.sgi_boss_target is 0 or 4);
+                foreach (SpecialAttribute attribute in Enum.GetValues<SpecialAttribute>()) {
+                    byte attributeOption = attribute.OptionIndex();
+
+                    if (attributeOption != byte.MaxValue) {
+                        SpecialAttribute fixAttribute = attribute.SgiTarget(part.sgi_target);
+                        specialValues.AddIfNotDefault(fixAttribute, part.SpecialValue(attributeOption));
+                        specialRates.AddIfNotDefault(fixAttribute, part.SpecialRate(attributeOption));
+                    }
+                }
+
+                parts.Add(new SetBonusMetadata(
+                    Count: part.count,
+                    AdditionalEffects: part.additionalEffectID.Zip(part.additionalEffectLevel,
+                        (skillId, level) => new SetBonusAdditionalEffect(skillId, level)).ToArray(),
+                    Values: values,
+                    Rates: rates,
+                    SpecialValues: specialValues,
+                    SpecialRates: specialRates));
+            }
+
+            options[id] = parts.ToArray();
+        }
+
+        var results = new Dictionary<int, SetItemTable.Entry>();
+        foreach ((int id, string name, SetItemInfo info) in parser.ParseSetItemInfo()) {
+            Debug.Assert(options.ContainsKey(info.optionID));
+
+            results[id] = new SetItemTable.Entry(
+                Info: new SetItemInfoMetadata(
+                    Id: id,
+                    Name: name,
+                    ItemIds: info.itemIDs,
+                    OptionId: info.optionID),
+                Options: options[info.optionID]);
+        }
+
+        return new SetItemTable(results);
     }
 
     private LapenshardUpgradeTable ParseLapenshardUpgradeTable() {

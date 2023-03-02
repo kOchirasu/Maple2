@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Maple2.Model.Error;
@@ -20,6 +21,8 @@ public partial class ChannelService {
                 return Task.FromResult(AddGuildMember(request.GuildId, request.ReceiverIds, request.AddMember));
             case GuildRequest.GuildOneofCase.RemoveMember:
                 return Task.FromResult(RemoveGuildMember(request.ReceiverIds, request.RemoveMember));
+            case GuildRequest.GuildOneofCase.UpdateMember:
+                return Task.FromResult(UpdateGuildMember(request.ReceiverIds, request.UpdateMember));
             default:
                 return Task.FromResult(new GuildResponse {Error = (int) GuildError.s_guild_err_none});
         }
@@ -96,6 +99,23 @@ public partial class ChannelService {
                 session.Guild.RemoveGuild();
             } else {
                 session.Guild.RemoveMember(remove.CharacterId, remove.RequestorName);
+            }
+        }
+
+        return new GuildResponse();
+    }
+
+    private GuildResponse UpdateGuildMember(IEnumerable<long> receiverIds, GuildRequest.Types.UpdateMember update) {
+        foreach (long characterId in receiverIds) {
+            if (!server.GetSession(characterId, out GameSession? session)) {
+                continue;
+            }
+
+            if (update.HasRank) {
+                session.Guild.UpdateMemberRank(update.RequestorId, update.CharacterId, (byte) update.Rank);
+            }
+            if (update.HasMessage) {
+                session.Guild.UpdateMemberMessage(update.CharacterId, update.Message);
             }
         }
 

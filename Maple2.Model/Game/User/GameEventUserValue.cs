@@ -15,11 +15,11 @@ public class GameEventUserValue : IByteSerializable {
         Value = string.Empty;
     }
 
-    public GameEventUserValue(GameEventUserValueType type, GameEvent gameEvent) {
+    public GameEventUserValue(GameEventUserValueType type, long expirationTime, int eventId) {
         Value = string.Empty;
         Type = type;
-        ExpirationTime = gameEvent.EndTime;
-        EventId = gameEvent.Id;
+        ExpirationTime = expirationTime;
+        EventId = eventId;
     }
 
     public int Int() => int.TryParse(Value, out int result) ? result : 0;

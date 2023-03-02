@@ -285,7 +285,7 @@ public static class MapperExtensions {
     }
 
     // We use this default to avoid writing useless checks
-    private static readonly BeginConditionTarget DefaultBeginConditionTarget = new(Array.Empty<BeginConditionTarget.HasBuff>(), null, null);
+    private static readonly BeginConditionTarget DefaultBeginConditionTarget = new(Array.Empty<BeginConditionTarget.HasBuff>(), null);
     private static BeginConditionTarget? Convert(SubConditionTarget? target) {
         if (target == null) {
             return null;
@@ -293,7 +293,6 @@ public static class MapperExtensions {
 
         var result = new BeginConditionTarget(
             Buff: ParseBuffs(target),
-            Skill: ParseSkill(target),
             Event: ParseEvent(target));
 
         return DefaultBeginConditionTarget.Equals(result) ? null : result;
@@ -316,9 +315,10 @@ public static class MapperExtensions {
             return hasBuff;
         }
 
-        BeginConditionTarget.HasSkill? ParseSkill(SubConditionTarget data) {
-            return data.hasSkillID > 0 ? new BeginConditionTarget.HasSkill(data.hasSkillID, data.hasSkillLevel) : null;
-        }
+        // Seems to only be used for test skills.
+        // BeginConditionTarget.HasSkill? ParseSkill(SubConditionTarget data) {
+        //     return data.hasSkillID > 0 ? new BeginConditionTarget.HasSkill(data.hasSkillID, data.hasSkillLevel) : null;
+        // }
 
         BeginConditionTarget.EventCondition? ParseEvent(SubConditionTarget data) {
             if (data.eventCondition == 0) {
@@ -326,7 +326,7 @@ public static class MapperExtensions {
             }
 
             return new BeginConditionTarget.EventCondition(
-                Type: data.eventCondition,
+                Type: (EventConditionType) data.eventCondition,
                 IgnoreOwner: data.ignoreOwnerEvent != 0,
                 SkillIds: data.eventSkillID,
                 BuffIds: data.eventEffectID);

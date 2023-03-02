@@ -20,6 +20,8 @@ public class Account {
     public IList<int> PremiumRewardsClaimed { get; set; }
     public int MesoMarketListed { get; set; }
     public int MesoMarketPurchased { get; set; }
+    
+    public bool Online { get; set; }
 
     public Account() {
         PremiumRewardsClaimed = new List<int>();

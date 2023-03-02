@@ -1,4 +1,5 @@
 ﻿using Maple2.Model.Enum;
+using System.Collections.ObjectModel;
 
 namespace Maple2.Model.Metadata;
 
@@ -37,7 +38,8 @@ public record ItemMetadataProperty(
     int RepackCount,
     bool DisableDrop,
     int SocketId,
-    bool IsFragment);
+    bool IsFragment,
+    int[] SetOptionIds);
 
 public record ItemMetadataLimit(
     Gender Gender,
