@@ -20,6 +20,8 @@ internal class Character {
     public short Level { get; set; }
     public SkinColor SkinColor { get; set; }
     public int MapId { get; set; }
+    public int ReturnMapId { get; set; }
+    public short Channel { get; set; }
     public required Experience Experience { get; set; }
     public required Profile Profile { get; set; }
     public required Cooldown Cooldown { get; set; }
@@ -41,6 +43,7 @@ internal class Character {
             Level = other.Level,
             SkinColor = other.SkinColor,
             MapId = other.MapId,
+            ReturnMapId = other.MapId,
             Experience = new Experience {
                 Exp = other.Exp,
                 RestExp = other.RestExp,
@@ -70,6 +73,7 @@ internal class Character {
                 Ranching = other.Mastery.Ranching,
             },
             DeleteTime = other.DeleteTime.FromEpochSeconds(),
+            Channel = other.Channel,
         };
     }
 
@@ -88,6 +92,7 @@ internal class Character {
             Exp = other.Experience.Exp,
             RestExp = other.Experience.RestExp,
             MapId = other.MapId,
+            ReturnMapId = other.ReturnMapId,
             Mastery = other.Mastery,
             Motto = other.Profile.Motto,
             Picture = other.Profile.Picture,
@@ -96,6 +101,7 @@ internal class Character {
             DoctorCooldown = other.Cooldown.Doctor,
             StorageCooldown = other.Cooldown.Storage,
             DeleteTime = other.DeleteTime.ToEpochSeconds(),
+            Channel = other.Channel,
         };
     }
 

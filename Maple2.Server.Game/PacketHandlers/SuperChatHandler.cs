@@ -19,8 +19,8 @@ public class SuperChatHandler : PacketHandler<GameSession> {
     }
 
     public override void Handle(GameSession session, IByteReader packet) {
-        var function = packet.Read<Command>();
-        switch (function) {
+        var command = packet.Read<Command>();
+        switch (command) {
             case Command.Select:
                 HandleSelect(session, packet);
                 return;
@@ -34,7 +34,7 @@ public class SuperChatHandler : PacketHandler<GameSession> {
         int itemId = packet.ReadInt();
 
         Item? superChatItem = session.Item.Inventory.Find(itemId).FirstOrDefault();
-        if (superChatItem.Metadata.Function?.Type != ItemFunction.SuperWorldChat || 
+        if (superChatItem.Metadata.Function?.Type != ItemFunction.SuperWorldChat ||
             !int.TryParse(superChatItem.Metadata.Function?.Parameters.Split(",").First(), out int superChatId)) {
             return;
         }

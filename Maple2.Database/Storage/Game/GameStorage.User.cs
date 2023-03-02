@@ -102,7 +102,7 @@ public partial class GameStorage {
         }
 
         // We pass in objectId only for Player initialization.
-        public Player? LoadPlayer(long accountId, long characterId, int objectId) {
+        public Player? LoadPlayer(long accountId, long characterId, int objectId, short channel) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
 
             Model.Account? account = Context.Account.Find(accountId);
@@ -115,6 +115,9 @@ public partial class GameStorage {
             if (character == null) {
                 return null;
             }
+
+            account.Online = true;
+            character.Channel = channel;
 
             Context.Account.Update(account);
             Context.Character.Update(character);

@@ -103,7 +103,7 @@ public enum RecvOp : ushort {
     NewsNotification = 0x0064,
     SmartRecommendBilling = 0x0065,
     SystemShop = 0x0066,
-    DailyWonder = 0x0067,
+    Attendance = 0x0067,
     PcBangBonus = 0x0068,
     MaidCraftItem = 0x0069,
     RequestUserEnv = 0x006A,
