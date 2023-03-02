@@ -61,61 +61,14 @@ internal abstract class GameEventInfo {
     [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator GameEventInfo?(Maple2.Model.Game.Event.GameEventInfo? other) {
         return other switch {
-            Maple2.Model.Game.Event.TrafficOptimizer trafficOptimizer => new TrafficOptimizer {
-                Id = trafficOptimizer.Id,
-                Name = trafficOptimizer.Name,
-                GuideObjectSyncInterval = trafficOptimizer.GuideObjectSyncInterval,
-                RideSyncInterval = trafficOptimizer.RideSyncInterval,
-                UserSyncInterval = trafficOptimizer.UserSyncInterval,
-                LinearMovementInterval = trafficOptimizer.LinearMovementInterval,
-            },
-            Maple2.Model.Game.Event.EventFieldPopup fieldPopup => new EventFieldPopup {
-                Id = fieldPopup.Id,
-                Name = fieldPopup.Name,
-                MapId = fieldPopup.MapId,
-            },
-            Maple2.Model.Game.Event.StringBoard stringBoard => new StringBoard {
-                Id = stringBoard.Id,
-                Name = stringBoard.Name,
-                StringId = stringBoard.StringId,
-                String = stringBoard.String,
-            },
-            Maple2.Model.Game.Event.StringBoardLink stringBoardLink => new StringBoardLink {
-                Id = stringBoardLink.Id,
-                Name = stringBoardLink.Name,
-                Url = stringBoardLink.Url,
-            },
-            Maple2.Model.Game.Event.MeratMarketNotice meratMarketNotice => new MeratMarketNotice {
-                Id = meratMarketNotice.Id,
-                Name = meratMarketNotice.Name,
-                Message = meratMarketNotice.Message,
-            },
-            Maple2.Model.Game.Event.SaleChat saleChat => new SaleChat {
-                Id = saleChat.Id,
-                Name = saleChat.Name,
-                WorldChatDiscount = saleChat.WorldChatDiscount,
-                ChannelChatDiscount = saleChat.ChannelChatDiscount,
-            },
-            Maple2.Model.Game.Event.BlueMarble blueMarble => new BlueMarble {
-                Id = blueMarble.Id,
-                Name = blueMarble.Name,
-                Entries = blueMarble.Entries,
-                Tiles = blueMarble.Tiles,
-            },
-            Maple2.Model.Game.Event.AttendGift attendGift => new AttendGift {
-                Id = attendGift.Id,
-                Name = attendGift.Name,
-                AttendanceName = attendGift.AttendanceName,
-                Rewards = new Dictionary<int, RewardItem>(attendGift.Rewards),
-                DisableClaimButton = attendGift.DisableClaimButton,
-                SkipDayCost = attendGift.SkipDayCost,
-                SkipDayCurrencyType = attendGift.SkipDayCurrencyType,
-                SkipDaysAllowed = attendGift.SkipDaysAllowed,
-                TimeRequired = attendGift.TimeRequired,
-                Url = attendGift.Url,
-                BeginTime = attendGift.BeginTime,
-                EndTime = attendGift.EndTime,
-            },
+            Maple2.Model.Game.Event.TrafficOptimizer trafficOptimizer => (TrafficOptimizer) trafficOptimizer,
+            Maple2.Model.Game.Event.EventFieldPopup fieldPopup => (EventFieldPopup) fieldPopup,
+            Maple2.Model.Game.Event.StringBoard stringBoard => (StringBoard) stringBoard,
+            Maple2.Model.Game.Event.StringBoardLink stringBoardLink => (StringBoardLink) stringBoardLink,
+            Maple2.Model.Game.Event.MeratMarketNotice meratMarketNotice => (MeratMarketNotice) meratMarketNotice,
+            Maple2.Model.Game.Event.SaleChat saleChat => (SaleChat) saleChat,
+            Maple2.Model.Game.Event.BlueMarble blueMarble => (BlueMarble) blueMarble,
+            Maple2.Model.Game.Event.AttendGift attendGift => (AttendGift) attendGift,
             _ => null,
         };
     }
@@ -123,61 +76,14 @@ internal abstract class GameEventInfo {
     [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator Maple2.Model.Game.Event.GameEventInfo?(GameEventInfo? other) {
         return other switch {
-            TrafficOptimizer trafficOptimizer => new Maple2.Model.Game.Event.TrafficOptimizer {
-                Id = trafficOptimizer.Id,
-                Name = trafficOptimizer.Name,
-                GuideObjectSyncInterval = trafficOptimizer.GuideObjectSyncInterval,
-                RideSyncInterval = trafficOptimizer.RideSyncInterval,
-                UserSyncInterval = trafficOptimizer.UserSyncInterval,
-                LinearMovementInterval = trafficOptimizer.LinearMovementInterval,
-            },
-            EventFieldPopup fieldPopup => new Maple2.Model.Game.Event.EventFieldPopup {
-                Id = fieldPopup.Id,
-                Name = fieldPopup.Name,
-                MapId = fieldPopup.MapId,
-            },
-            StringBoard stringBoard => new Maple2.Model.Game.Event.StringBoard {
-                Id = stringBoard.Id,
-                Name = stringBoard.Name,
-                StringId = stringBoard.StringId,
-                String = stringBoard.String,
-            },
-            StringBoardLink stringBoardLink => new Maple2.Model.Game.Event.StringBoardLink {
-                Id = stringBoardLink.Id,
-                Name = stringBoardLink.Name,
-                Url = stringBoardLink.Url,
-            },
-            MeratMarketNotice meratMarketNotice => new Maple2.Model.Game.Event.MeratMarketNotice {
-                Id = meratMarketNotice.Id,
-                Name = meratMarketNotice.Name,
-                Message = meratMarketNotice.Message,
-            },
-            SaleChat saleChat => new Maple2.Model.Game.Event.SaleChat {
-                Id = saleChat.Id,
-                Name = saleChat.Name,
-                WorldChatDiscount = saleChat.WorldChatDiscount,
-                ChannelChatDiscount = saleChat.ChannelChatDiscount,
-            },
-            BlueMarble blueMarble => new Maple2.Model.Game.Event.BlueMarble {
-                Id = blueMarble.Id,
-                Name = blueMarble.Name,
-                Entries = blueMarble.Entries,
-                Tiles = blueMarble.Tiles,
-            },
-            AttendGift attendGift => new Maple2.Model.Game.Event.AttendGift {
-                Id = attendGift.Id,
-                Name = attendGift.Name,
-                AttendanceName = attendGift.AttendanceName,
-                BeginTime = attendGift.BeginTime,
-                EndTime = attendGift.EndTime,
-                Rewards = new Dictionary<int, RewardItem>(attendGift.Rewards),
-                DisableClaimButton = attendGift.DisableClaimButton,
-                SkipDayCost = attendGift.SkipDayCost,
-                SkipDayCurrencyType = attendGift.SkipDayCurrencyType,
-                SkipDaysAllowed = attendGift.SkipDaysAllowed,
-                TimeRequired = attendGift.TimeRequired,
-                Url = attendGift.Url,
-            },
+            TrafficOptimizer trafficOptimizer => (Maple2.Model.Game.Event.TrafficOptimizer) trafficOptimizer,
+            EventFieldPopup fieldPopup => (Maple2.Model.Game.Event.EventFieldPopup) fieldPopup,
+            StringBoard stringBoard => (Maple2.Model.Game.Event.StringBoard) stringBoard,
+            StringBoardLink stringBoardLink => (Maple2.Model.Game.Event.StringBoardLink) stringBoardLink,
+            MeratMarketNotice meratMarketNotice => (Maple2.Model.Game.Event.MeratMarketNotice) meratMarketNotice,
+            SaleChat saleChat => (Maple2.Model.Game.Event.SaleChat) saleChat,
+            BlueMarble blueMarble => (Maple2.Model.Game.Event.BlueMarble) blueMarble,
+            AttendGift attendGift => (Maple2.Model.Game.Event.AttendGift) attendGift,
             _ => null,
         };
     }

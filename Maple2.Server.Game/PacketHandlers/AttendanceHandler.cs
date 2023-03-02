@@ -54,11 +54,11 @@ public class AttendanceHandler : PacketHandler<GameSession> {
             return;
         }
 
-        var attendGift = (gameEvent.EventInfo as AttendGift)!;
+        AttendGift attendGift = (AttendGift) gameEvent.EventInfo;
 
         // Verify that the player meets the time requirements of event
         long accumulatedTimeValue = session.GameEventUserValue.Get(GameEventUserValueType.AttendanceAccumulatedTime, gameEvent.Id, DateTime.Now.AddDays(1).Date.ToEpochSeconds()).Long();
-        if ((DateTime.Now.AddSeconds(accumulatedTimeValue) - session.Player.Value.Character.LastModified).Seconds < attendGift.TimeRequired) {
+        if ((DateTime.Now.AddSeconds(accumulatedTimeValue) - session.Player.Value.Character.LastModified).TotalSeconds < attendGift.TimeRequired) {
             return;
         }
 
@@ -132,7 +132,7 @@ public class AttendanceHandler : PacketHandler<GameSession> {
             return;
         }
 
-        var attendGift = (gameEvent.EventInfo as AttendGift)!;
+        AttendGift attendGift = (AttendGift) gameEvent.EventInfo;
         int skipsTotal = session.GameEventUserValue.Get(GameEventUserValueType.AttendanceEarlyParticipationRemaining, attendGift.Id, attendGift.EndTime).Int();
         if (skipsTotal >= attendGift.SkipDaysAllowed) {
             return;
