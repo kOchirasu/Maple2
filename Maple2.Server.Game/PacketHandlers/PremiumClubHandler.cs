@@ -31,8 +31,8 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
     #endregion
 
     public override void Handle(GameSession session, IByteReader packet) {
-        var function = packet.Read<Command>();
-        switch (function) {
+        var command = packet.Read<Command>();
+        switch (command) {
             case Command.LoadClaimedItems:
                 HandleLoadClaimedItems(session);
                 return;
