@@ -388,6 +388,15 @@ public partial class FieldManager {
         return true;
     }
 
+    public bool RemoveItem(int objectId) {
+        if (!fieldItems.TryRemove(objectId, out _)) {
+            return false;
+        }
+
+        Broadcast(FieldPacket.RemoveItem(objectId));
+        return true;
+    }
+
     public bool RemoveLiftable(string entityId) {
         if (!fieldLiftables.TryRemove(entityId, out FieldLiftable? fieldLiftable)) {
             return false;

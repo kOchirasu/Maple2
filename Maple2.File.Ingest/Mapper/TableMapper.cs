@@ -35,6 +35,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
     protected override IEnumerable<TableMetadata> Map() {
         yield return new TableMetadata {Name = "chatemoticon.xml", Table = ParseChatSticker()};
+        yield return new TableMetadata {Name = "defaultitems.xml", Table = ParseDefaultItems()};
         yield return new TableMetadata {Name = "itembreakingredient.xml", Table = ParseItemBreakIngredient()};
         yield return new TableMetadata {Name = "itemgemstoneupgrade.xml", Table = ParseItemGemstoneUpgrade()};
         yield return new TableMetadata {Name = "itemextraction.xml", Table = ParseItemExtraction()};
@@ -82,6 +83,31 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
 
         return new ChatStickerTable(results);
+    }
+
+    private DefaultItemsTable ParseDefaultItems() {
+        var common = new Dictionary<EquipSlot, int[]>();
+        var job = new Dictionary<JobCode, IReadOnlyDictionary<EquipSlot, int[]>>();
+
+        foreach (IGrouping<int, (int JobCode, string Slot, IList<DefaultItems.Item> Items)> groups in parser.ParseDefaultItems().GroupBy(entry => entry.JobCode)) {
+            var equips = new Dictionary<EquipSlot, int[]>();
+            foreach ((_, string slot, IList<DefaultItems.Item> items) in groups) {
+                var equipSlot = Enum.Parse<EquipSlot>(slot);
+
+                List<int> itemIds = items.Select(item => item.id).ToList();
+                Dictionary<EquipSlot, int[]> dict = groups.Key == 0 ? common : equips;
+                if (dict.Remove(equipSlot, out int[]? existingIds)) {
+                    itemIds.AddRange(existingIds);
+                }
+                dict.Add(equipSlot, itemIds.Distinct().Order().ToArray());
+            }
+
+            if (equips.Count > 0) {
+                job.Add((JobCode) groups.Key, equips);
+            }
+        }
+
+        return new DefaultItemsTable(common, job);
     }
 
     private ItemBreakTable ParseItemBreakIngredient() {

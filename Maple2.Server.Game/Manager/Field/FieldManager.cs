@@ -293,9 +293,14 @@ public sealed partial class FieldManager : IDisposable {
 
         liftupWeapon = new LiftupWeapon(objectWeapon, itemId, item.Skill.WeaponId, item.Skill.WeaponLevel);
 
-        // TODO: Spawn Npcs
-        if (objectWeapon.SpawnNpcId == 0 || Random.Shared.NextSingle() >= objectWeapon.SpawnNpcRate) {
-            return true;
+        if (objectWeapon.SpawnNpcId != 0 && Random.Shared.NextSingle() < objectWeapon.SpawnNpcRate) {
+            if (NpcMetadata.TryGet(objectWeapon.SpawnNpcId, out NpcMetadata? metadata)) {
+                FieldNpc? fieldNpc = SpawnNpc(metadata, objectWeapon.Position, objectWeapon.Rotation);
+                if (fieldNpc != null) {
+                    Broadcast(FieldPacket.AddNpc(fieldNpc));
+                    Broadcast(ProxyObjectPacket.AddNpc(fieldNpc));
+                }
+            }
         }
 
         return true;

@@ -8,5 +8,21 @@ public struct Trophy {
     public int Adventure { get; set; }
     public int Lifestyle { get; set; }
 
+    public static Trophy operator +(in Trophy a, in Trophy b) {
+        return new Trophy {
+            Combat = a.Combat + b.Combat,
+            Adventure = a.Adventure + b.Adventure,
+            Lifestyle = a.Lifestyle + b.Lifestyle,
+        };
+    }
+
+    public static Trophy operator -(in Trophy a, in Trophy b) {
+        return new Trophy {
+            Combat = a.Combat - b.Combat,
+            Adventure = a.Adventure - b.Adventure,
+            Lifestyle = a.Lifestyle - b.Lifestyle,
+        };
+    }
+
     public int Total => Combat + Adventure + Lifestyle;
 }
