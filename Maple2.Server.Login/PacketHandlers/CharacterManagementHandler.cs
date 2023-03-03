@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Net;
 using Grpc.Core;
 using Maple2.Database.Storage;
@@ -14,6 +15,7 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Login.Session;
 using Maple2.Server.World.Service;
+using Maple2.Tools.Extensions;
 using static Maple2.Model.Enum.EquipSlot;
 using static Maple2.Model.Error.CharacterCreateError;
 using static Maple2.Model.Error.CharacterDeleteError;
@@ -41,8 +43,6 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
     public required TableMetadataStorage TableMetadata { private get; init; }
     // ReSharper restore All
     #endregion
-
-    public CharacterManagementHandler() { }
 
     public override void Handle(LoginSession session, IByteReader packet) {
         var command = packet.Read<Command>();
@@ -104,12 +104,12 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
         var jobCode = packet.Read<JobCode>();
         var job = (Job) ((int)jobCode * 10);
         string name = packet.ReadUnicodeString();
-        
+
         if (name.Length < Constant.CharacterNameLengthMin) {
             session.Send(CharacterListPacket.CreateError(s_char_err_name));
             return;
         }
-        
+
         if (name.Length > Constant.CharacterNameLengthMax) {
             session.Send(CharacterListPacket.CreateError(s_char_err_system));
             return;
@@ -125,7 +125,6 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
         var skinColor = packet.Read<SkinColor>();
         packet.Skip(2); // Unknown
 
-        // TODO: Validate items table/defaultitems.xml
         var outfits = new List<Item>();
         int equipCount = packet.ReadByte();
         for (int i = 0; i < equipCount; i++) {
@@ -135,7 +134,15 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
                 session.Send(CharacterListPacket.CreateError(s_char_err_invalid_def_item));
                 return;
             }
+            if (!ValidateDefaultItems(jobCode, id, slot)) {
+                session.Send(CharacterListPacket.CreateError(s_char_err_invalid_def_item));
+                return;
+            }
             if (!ItemMetadata.TryGet(id, out ItemMetadata? metadata)) {
+                session.Send(CharacterListPacket.CreateError(s_char_err_invalid_def_item));
+                return;
+            }
+            if (metadata.Limit.Gender != Gender.All && metadata.Limit.Gender != gender) {
                 session.Send(CharacterListPacket.CreateError(s_char_err_invalid_def_item));
                 return;
             }
@@ -216,6 +223,17 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
         if (db.UpdateDelete(session.AccountId, characterId, 0)) {
             session.Send(CharacterListPacket.CancelDelete(characterId));
         }
+    }
+
+    private bool ValidateDefaultItems(JobCode jobCode, int id, EquipSlot slot) {
+        if (TableMetadata.DefaultItemsTable.Common.TryGetValue(slot, out int[]? commonItemIds) && commonItemIds.Contains(id)) {
+            return true;
+        }
+        if (TableMetadata.DefaultItemsTable.Job.TryGetValue(jobCode, slot, out int[]? jobItemIds) && jobItemIds.Contains(id)) {
+            return true;
+        }
+
+        return false;
     }
 
     private static bool ValidateDeleteRequest(LoginSession session, long characterId, Character? character) {

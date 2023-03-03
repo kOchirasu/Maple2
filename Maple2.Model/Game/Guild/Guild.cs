@@ -22,7 +22,7 @@ public class Guild : IByteSerializable {
     public string Notice = string.Empty;
     public long CreationTime;
 
-    public Trophy Trophy; // TODO: Should be populated from members.
+    public Trophy Trophy;
     public GuildFocus Focus;
     public int Experience;
     public int Funds;

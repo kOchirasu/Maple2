@@ -31,9 +31,8 @@ public partial class FieldManager {
 
     private void CommitPlot(GameSession session) {
         Home home = session.Player.Value.Home;
-        // TODO: Also check user is an owner of this specific house.
         using GameStorage.Request db = GameStorage.Context();
-        if (home.Indoor.MapId == MapId && Plots.TryGetValue(home.Indoor.Number, out Plot? indoorPlot)) {
+        if (session.AccountId == OwnerId && home.Indoor.MapId == MapId && Plots.TryGetValue(home.Indoor.Number, out Plot? indoorPlot)) {
             SavePlot(indoorPlot);
         }
         if (home.Outdoor != null && home.Outdoor.MapId == MapId && Plots.TryGetValue(home.Outdoor.Number, out Plot? outdoorPlot)) {

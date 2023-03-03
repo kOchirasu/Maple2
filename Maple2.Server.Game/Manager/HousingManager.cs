@@ -99,8 +99,7 @@ public class HousingManager {
         }
 
         Plot? plot;
-        // TODO: Player should also own this home... (FieldManager.OwnerId)
-        if (session.Field.MapId == Home.Indoor.MapId) {
+        if (session.AccountId == session.Field.OwnerId && session.Field.MapId == Home.Indoor.MapId) {
             session.Field.Plots.TryGetValue(Home.Indoor.Number, out plot);
             return plot;
         }

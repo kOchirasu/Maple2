@@ -27,7 +27,7 @@ public class ShopItem : IByteSerializable {
     public int RequireFameGrade { get; init; }
     public bool AutoPreviewEquip { get; init; }
     public Item Item;
-    
+
     public ShopItem(int id) {
         Id = id;
     }
@@ -56,8 +56,8 @@ public class ShopItem : IByteSerializable {
         writer.WriteShort(RequireQuestAllianceId);
         writer.WriteInt(RequireFameGrade);
         writer.WriteBool(AutoPreviewEquip);
-        
-        //TODO: Implement buy period
+
+        // TODO: Implement buy period
         bool buyPeriod = false;
         writer.WriteBool(buyPeriod);
         if (buyPeriod) {
@@ -67,12 +67,12 @@ public class ShopItem : IByteSerializable {
             writer.WriteLong(); // end time
             writer.WriteBool(true); // unknown
             writer.WriteByte(1); // amount of buy periods count.
-            
+
             // loop start
             writer.WriteInt(); // time begin in seconds. ex 1200 = 12:20 AM
             writer.WriteInt(); // time end in seconds. ex 10600 = 2:56 AM
             // loop end
-            
+
             writer.WriteByte(1); // days of the week you can buy at. loop
             // loop start
             writer.WriteByte(); // 1 = Sunday, 7 = Saturday
