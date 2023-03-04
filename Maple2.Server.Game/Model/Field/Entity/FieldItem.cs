@@ -9,10 +9,10 @@ namespace Maple2.Server.Game.Model;
 public class FieldItem : FieldEntity<Item> {
     public IActor? Owner { get; init; }
 
-    private readonly int despawnTick;
+    private readonly long despawnTick;
 
     public FieldItem(FieldManager field, int objectId, Item value) : base(field, objectId, value) {
-        despawnTick = Environment.TickCount + (int) TimeSpan.FromMinutes(2).TotalSeconds;
+        despawnTick = Environment.TickCount64 + (int) TimeSpan.FromMinutes(2).TotalSeconds;
     }
 
     public void Pickup(FieldPlayer looter) {
@@ -25,8 +25,8 @@ public class FieldItem : FieldEntity<Item> {
         }
     }
 
-    public override void Sync() {
-        if (Environment.TickCount > despawnTick) {
+    public override void Update(long tickCount) {
+        if (tickCount > despawnTick) {
             Field.RemoveItem(ObjectId);
         }
     }

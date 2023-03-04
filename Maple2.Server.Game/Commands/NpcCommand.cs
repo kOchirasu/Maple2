@@ -44,7 +44,7 @@ public class NpcCommand : Command {
             }
             session.Field.Broadcast(FieldPacket.AddNpc(fieldNpc));
             session.Field.Broadcast(ProxyObjectPacket.AddNpc(fieldNpc));
-            fieldNpc.Sync();
+            fieldNpc.Update(Environment.TickCount64);
 
             ctx.ExitCode = 0;
         } catch (SystemException ex) {

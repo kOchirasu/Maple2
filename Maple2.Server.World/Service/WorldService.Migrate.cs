@@ -4,7 +4,6 @@ using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Maple2.Server.Core.Constants;
-using Maple2.Server.World.Containers;
 using Microsoft.Extensions.Caching.Memory;
 
 namespace Maple2.Server.World.Service;

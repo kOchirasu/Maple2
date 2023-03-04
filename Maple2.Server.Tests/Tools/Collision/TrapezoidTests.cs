@@ -1,5 +1,4 @@
-﻿using System;
-using System.Numerics;
+﻿using System.Numerics;
 using Maple2.Tools.Collision;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

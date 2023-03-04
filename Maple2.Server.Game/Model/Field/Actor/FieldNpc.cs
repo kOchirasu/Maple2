@@ -53,8 +53,8 @@ public class FieldNpc : Actor<Npc> {
     public short SequenceId;
     public short SequenceCounter;
 
-    private int nextActionTick;
-    private int nextControlTick;
+    private long nextActionTick;
+    private long nextControlTick;
 
     public override Stats Stats { get; }
     public int TargetId = 0;
@@ -73,37 +73,32 @@ public class FieldNpc : Actor<Npc> {
         Stats = new Stats(npc.Metadata.Stat);
         SequenceId = -1;
         SequenceCounter = 1;
-
-        Scheduler.Start();
     }
 
     protected virtual ByteWriter Control() {
         SequenceCounter++; // Not sure if this even matters
         return NpcControlPacket.Control(this);
     }
-    protected virtual void Remove() => Field.RemoveNpc(ObjectId);
 
-    public override bool Sync() {
-        if (base.Sync()) {
-            return true;
+    protected virtual void Remove(int delay) => Field.RemoveNpc(ObjectId, delay);
+
+    public override void Update(long tickCount) {
+        base.Update(tickCount);
+
+        if (tickCount < nextActionTick) {
+            return;
         }
 
-        int tickNow = Environment.TickCount;
-        if (tickNow < nextActionTick) {
-            return false;
-        }
-
-        if (CurrentAction.Sync()) {
+        if (CurrentAction.Update(tickCount)) {
             CurrentAction = CurrentAction.NextAction?.Invoke() ?? NextAction();
             Field.Broadcast(Control());
-            nextActionTick = tickNow + ACTION_TICK_INTERVAL;
+            nextActionTick = tickCount + ACTION_TICK_INTERVAL;
         }
 
-        if (tickNow > nextControlTick) {
+        if (tickCount > nextControlTick) {
             Field.Broadcast(Control());
-            nextControlTick = tickNow + CONTROL_TICK_INTERVAL;
+            nextControlTick = tickCount + CONTROL_TICK_INTERVAL;
         }
-        return false;
     }
 
     private NpcAction NextAction() {
@@ -171,6 +166,6 @@ public class FieldNpc : Actor<Npc> {
 
         Owner?.Despawn(ObjectId);
         CurrentAction.OnCompleted();
-        Scheduler.Schedule(Remove, (int) (Value.Metadata.Dead.Time * 1000));
+        Remove(delay: (int) (Value.Metadata.Dead.Time * 1000));
     }
 }

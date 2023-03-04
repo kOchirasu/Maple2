@@ -407,25 +407,29 @@ public partial class FieldManager {
         return true;
     }
 
-    public bool RemoveNpc(int objectId) {
+    public bool RemoveNpc(int objectId, int removeDelay = 0) {
         if (!Mobs.TryRemove(objectId, out FieldNpc? npc) && !Npcs.TryRemove(objectId, out npc)) {
             return false;
         }
 
         Navigation.RemoveAgent(npc.Agent);
-        Broadcast(FieldPacket.RemoveNpc(objectId));
-        Broadcast(ProxyObjectPacket.RemoveNpc(objectId));
+        Scheduler.Schedule(() => {
+            Broadcast(FieldPacket.RemoveNpc(objectId));
+            Broadcast(ProxyObjectPacket.RemoveNpc(objectId));
+        }, removeDelay);
         return true;
     }
 
-    public bool RemovePet(int objectId) {
+    public bool RemovePet(int objectId, int removeDelay = 0) {
         if (!Pets.TryRemove(objectId, out FieldPet? pet)) {
             return false;
         }
 
         Navigation.RemoveAgent(pet.Agent);
-        Broadcast(FieldPacket.RemovePet(objectId));
-        Broadcast(ProxyObjectPacket.RemovePet(objectId));
+        Scheduler.Schedule(() => {
+            Broadcast(FieldPacket.RemovePet(objectId));
+            Broadcast(ProxyObjectPacket.RemovePet(objectId));
+        }, removeDelay);
         return true;
     }
     #endregion

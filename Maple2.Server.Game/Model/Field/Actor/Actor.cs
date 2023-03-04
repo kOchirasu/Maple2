@@ -9,12 +9,16 @@ using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Tools.Collision;
-using Maple2.Tools.Scheduler;
 using Serilog;
 
 namespace Maple2.Server.Game.Model;
 
-public abstract class ActorBase<T> : IActor<T> {
+/// <summary>
+/// Actor is an entity that can engage in combat.
+/// </summary>
+/// <typeparam name="T">The type contained by this object</typeparam>
+public abstract class Actor<T> : IActor<T>, IDisposable {
+    #region ObjectId
     private int idCounter;
 
     /// <summary>
@@ -22,17 +26,17 @@ public abstract class ActorBase<T> : IActor<T> {
     /// </summary>
     /// <returns>Returns a local ObjectId</returns>
     protected int NextLocalId() => Interlocked.Increment(ref idCounter);
+    #endregion
 
     protected readonly ILogger Logger = Log.ForContext<T>();
 
     public FieldManager Field { get; }
     public T Value { get; }
 
-    public virtual ConcurrentDictionary<int, Buff> Buffs => IActor.NoBuffs;
     public virtual Stats Stats { get; } = new(0, 0);
 
     public int ObjectId { get; }
-    public virtual Vector3 Position { get; set; }
+    public Vector3 Position { get; set; }
     public Vector3 Rotation { get; set; }
 
     public virtual bool IsDead { get; protected set; }
@@ -40,37 +44,22 @@ public abstract class ActorBase<T> : IActor<T> {
     public virtual ActorState State { get; set; }
     public virtual ActorSubState SubState { get; set; }
 
-    protected ActorBase(FieldManager field, int objectId, T value) {
+    public virtual ConcurrentDictionary<int, Buff> Buffs { get; } = new();
+
+    protected Actor(FieldManager field, int objectId, T value) {
         Field = field;
         ObjectId = objectId;
         Value = value;
     }
 
-    public virtual void ApplyEffect(IActor caster, IActor owner, SkillEffectMetadata effect) { }
-    public virtual void ApplyDamage(IActor caster, DamageRecord damage, SkillMetadataAttack attack) { }
-    public virtual void AddBuff(IActor caster, IActor owner, int id, short level, bool notifyField = true) { }
-    public virtual void TargetAttack(SkillRecord record) { }
-
-    // Returns true when completed
-    public virtual bool Sync() {
-        return false;
-    }
-}
-
-/// <summary>
-/// Actor is an ActorBase that can engage in combat.
-/// </summary>
-/// <typeparam name="T">The type contained by this object</typeparam>
-public abstract class Actor<T> : ActorBase<T>, IDisposable {
-    protected readonly EventQueue Scheduler;
-
-    public override ConcurrentDictionary<int, Buff> Buffs { get; } = new();
-
-    protected Actor(FieldManager field, int objectId, T value) : base(field, objectId, value) {
-        Scheduler = new EventQueue();
+    public void Dispose() {
+        Dispose(true);
+        GC.SuppressFinalize(this);
     }
 
-    public override void ApplyEffect(IActor caster, IActor owner, SkillEffectMetadata effect) {
+    protected virtual void Dispose(bool disposing) { }
+
+    public virtual void ApplyEffect(IActor caster, IActor owner, SkillEffectMetadata effect) {
         Debug.Assert(effect.Condition != null);
 
         foreach (SkillEffectMetadata.Skill skill in effect.Skills) {
@@ -78,7 +67,7 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
         }
     }
 
-    public override void ApplyDamage(IActor caster, DamageRecord damage, SkillMetadataAttack attack) {
+    public virtual void ApplyDamage(IActor caster, DamageRecord damage, SkillMetadataAttack attack) {
         if (attack.Damage.Count > 0) {
             var targetRecord = new DamageRecordTarget {
                 ObjectId = ObjectId,
@@ -101,7 +90,7 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
         }
     }
 
-    public override void AddBuff(IActor caster, IActor owner, int id, short level, bool notifyField = true) {
+    public virtual void AddBuff(IActor caster, IActor owner, int id, short level, bool notifyField = true) {
         if (Buffs.TryGetValue(id, out Buff? existing)) {
             existing.Stack();
             if (notifyField) {
@@ -133,7 +122,7 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
         }
     }
 
-    public override void TargetAttack(SkillRecord record) {
+    public virtual void TargetAttack(SkillRecord record) {
         if (record.Targets.Count == 0) {
             return;
         }
@@ -167,28 +156,20 @@ public abstract class Actor<T> : ActorBase<T>, IDisposable {
         }
     }
 
-    public override bool Sync() {
-        Scheduler.InvokeAll();
-
+    public virtual void Update(long tickCount) {
         if (IsDead) {
-            return true;
+            return;
         }
 
         if (Stats[BasicAttribute.Health].Current <= 0) {
             IsDead = true;
             OnDeath();
-            return true;
+            return;
         }
 
         foreach (Buff buff in Buffs.Values) {
-            buff.Sync();
+            buff.Update(tickCount);
         }
-        return false;
-    }
-
-    public virtual void Dispose() {
-        Scheduler.Stop();
-        GC.SuppressFinalize(this);
     }
 
     protected abstract void OnDeath();

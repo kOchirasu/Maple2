@@ -1,5 +1,4 @@
 ﻿using System.Linq;
-using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
@@ -34,7 +33,7 @@ public class SuperChatHandler : PacketHandler<GameSession> {
         int itemId = packet.ReadInt();
 
         Item? superChatItem = session.Item.Inventory.Find(itemId).FirstOrDefault();
-        if (superChatItem.Metadata.Function?.Type != ItemFunction.SuperWorldChat ||
+        if (superChatItem?.Metadata.Function?.Type != ItemFunction.SuperWorldChat ||
             !int.TryParse(superChatItem.Metadata.Function?.Parameters.Split(",").First(), out int superChatId)) {
             return;
         }
