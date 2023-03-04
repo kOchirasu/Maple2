@@ -25,4 +25,6 @@ internal sealed class FieldActor : IActor {
         Stats = new Stats(0, 0);
         Buffs = new ConcurrentDictionary<int, Buff>();
     }
+
+    public void Update(long tickCount) { }
 }

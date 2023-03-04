@@ -12,7 +12,7 @@ using Serilog;
 
 namespace Maple2.Server.Game.Model;
 
-public class Buff : IByteSerializable {
+public class Buff : IUpdatable, IByteSerializable {
     private readonly FieldManager field;
     private readonly AdditionalEffectMetadata metadata;
     public readonly int ObjectId;
@@ -23,10 +23,10 @@ public class Buff : IByteSerializable {
     public int Id => metadata.Id;
     public short Level => metadata.Level;
 
-    public int StartTick { get; private set; }
-    public int EndTick { get; private set; }
-    public int IntervalTick { get; private set; }
-    public int NextProcTick { get; protected set; }
+    public long StartTick { get; private set; }
+    public long EndTick { get; private set; }
+    public long IntervalTick { get; private set; }
+    public long NextProcTick { get; protected set; }
     public int ProcCount { get; private set; }
     public int Stacks { get; private set; }
 
@@ -61,7 +61,7 @@ public class Buff : IByteSerializable {
 
     public void Stack() {
         Stacks = Math.Min(Stacks + 1, metadata.Property.MaxCount);
-        StartTick = Environment.TickCount;
+        StartTick = Environment.TickCount64;
         EndTick = StartTick + metadata.Property.DurationTick;
     }
 
@@ -99,13 +99,12 @@ public class Buff : IByteSerializable {
         }
     }
 
-    public virtual void Sync() {
+    public virtual void Update(long tickCount) {
         if (!activated) {
             Activate();
         }
 
-        int tickNow = Environment.TickCount;
-        if (canExpire && !canProc && tickNow > EndTick) {
+        if (canExpire && !canProc && tickCount > EndTick) {
             Remove();
             return;
         }
@@ -115,7 +114,7 @@ public class Buff : IByteSerializable {
             return;
         }
 
-        if (!canProc || tickNow < NextProcTick) {
+        if (!canProc || tickCount < NextProcTick) {
             return;
         }
 
@@ -234,8 +233,8 @@ public class Buff : IByteSerializable {
 
     // AdditionalEffect
     public void WriteAdditionalEffect(IByteWriter writer) {
-        writer.WriteInt(StartTick);
-        writer.WriteInt(EndTick);
+        writer.WriteInt((int) StartTick);
+        writer.WriteInt((int) EndTick);
         writer.WriteInt(Id);
         writer.WriteShort(Level);
         writer.WriteInt(Stacks);

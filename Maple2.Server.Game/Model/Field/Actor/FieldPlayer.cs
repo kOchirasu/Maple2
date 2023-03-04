@@ -4,6 +4,7 @@ using Maple2.Model.Game;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Collision;
+using Maple2.Tools.Scheduler;
 
 namespace Maple2.Server.Game.Model;
 
@@ -13,21 +14,23 @@ public class FieldPlayer : Actor<Player> {
 
     public override Stats Stats => Session.Stats.Values;
     public override IPrism Shape => new Prism(new Circle(new Vector2(Position.X, Position.Y), 10), Position.Z, 100);
-    private int battleTick;
+    private long battleTick;
     private bool inBattle;
 
     public int TagId = 1;
 
+    private readonly EventQueue scheduler;
+
     public FieldPlayer(GameSession session, Player player) : base(session.Field!, player.ObjectId, player) {
         Session = session;
 
-        Scheduler.ScheduleRepeated(() => Field.Broadcast(ProxyObjectPacket.UpdatePlayer(this, 66)), 2000);
-        Scheduler.ScheduleRepeated(() => {
-            if (InBattle && Environment.TickCount - battleTick > 2000) {
-                InBattle = false;
-            }
-        }, 500);
-        Scheduler.Start();
+        scheduler = new EventQueue();
+        scheduler.ScheduleRepeated(() => Field.Broadcast(ProxyObjectPacket.UpdatePlayer(this, 66)), 2000);
+        scheduler.Start();
+    }
+
+    protected override void Dispose(bool disposing) {
+        scheduler.Stop();
     }
 
     public static implicit operator Player(FieldPlayer fieldPlayer) => fieldPlayer.Value;
@@ -41,13 +44,15 @@ public class FieldPlayer : Actor<Player> {
             }
 
             if (inBattle) {
-                battleTick = Environment.TickCount;
+                battleTick = Environment.TickCount64;
             }
         }
     }
 
-    public override bool Sync() {
-        return base.Sync();
+    public override void Update(long tickCount) {
+        if (InBattle && tickCount - battleTick > 2000) {
+            InBattle = false;
+        }
     }
 
     protected override void OnDeath() {

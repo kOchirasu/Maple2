@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Maple2.Database.Extensions;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
@@ -239,7 +238,6 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         if (receiverMail == null) {
             session.Send(NoticePacket.MessageBox((StringCode.s_couple_effect_error_openbox_unknown)));
             throw new InvalidOperationException($"Failed to create buddy badge mail for receiver character id: {receiverInfo.CharacterId}");
-            return;
         }
 
         Item? receiverItem = db.CreateItem(receiverMail.Id,

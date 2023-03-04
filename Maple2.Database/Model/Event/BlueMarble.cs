@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using Maple2.Database.Extensions;
 using Maple2.Model.Game.Event;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Maple2.Database.Model.Event;
 

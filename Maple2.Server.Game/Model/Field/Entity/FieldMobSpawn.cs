@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Numerics;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Field;
@@ -22,7 +21,7 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
     private readonly WeightedSet<ItemMetadata> pets;
     private readonly List<int> spawnedMobs;
     private readonly List<int> spawnedPets;
-    private int spawnTick;
+    private long spawnTick;
 
     public FieldMobSpawn(FieldManager field, int objectId, MapMetadataSpawn metadata, WeightedSet<NpcMetadata> npcs, WeightedSet<ItemMetadata> pets) : base(field, objectId, metadata) {
         this.npcs = npcs;
@@ -55,18 +54,18 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
 #endif
 
         if (spawnedMobs.Count == 0) {
-            spawnTick = Math.Min(spawnTick, Environment.TickCount + Value.Cooldown * spawnRate);
-        } else if (spawnTick == int.MaxValue) {
-            spawnTick = Environment.TickCount + Value.Cooldown * spawnRate * FORCE_SPAWN_MULTIPLIER;
+            spawnTick = Math.Min(spawnTick, Environment.TickCount64 + Value.Cooldown * spawnRate);
+        } else if (spawnTick == long.MaxValue) {
+            spawnTick = Environment.TickCount64 + Value.Cooldown * spawnRate * FORCE_SPAWN_MULTIPLIER;
         }
     }
 
-    public override void Sync() {
-        if (Environment.TickCount < spawnTick) {
+    public override void Update(long tickCount) {
+        if (tickCount < spawnTick) {
             return;
         }
 
-        spawnTick = int.MaxValue;
+        spawnTick = long.MaxValue;
         for (int i = spawnedMobs.Count; i < Value.Population; i++) {
             FieldNpc? fieldNpc = Field.SpawnNpc(npcs.Get(), Position, Rotation, SPAWN_DISTANCE, owner: this);
             if (fieldNpc == null) {

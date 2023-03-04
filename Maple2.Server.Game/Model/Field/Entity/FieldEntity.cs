@@ -3,7 +3,7 @@ using Maple2.Server.Game.Manager.Field;
 
 namespace Maple2.Server.Game.Model;
 
-public abstract class FieldEntity<T> : IFieldEntity<T> {
+public abstract class FieldEntity<T> : IFieldEntity<T>, IUpdatable {
     public FieldManager Field { get; }
     public int ObjectId { get; }
     public T Value { get; }
@@ -19,5 +19,5 @@ public abstract class FieldEntity<T> : IFieldEntity<T> {
 
     public static implicit operator T(FieldEntity<T> fieldEntity) => fieldEntity.Value;
 
-    public virtual void Sync() { }
+    public virtual void Update(long tickCount) { }
 }

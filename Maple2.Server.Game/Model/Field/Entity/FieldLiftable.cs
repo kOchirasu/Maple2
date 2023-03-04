@@ -12,14 +12,14 @@ public class FieldLiftable : FieldEntity<Liftable> {
 
     public int Count;
     public LiftableState State;
-    public int FinishTick;
+    public long FinishTick;
 
-    public int RespawnTick { get; private set; }
+    public long RespawnTick { get; private set; }
 
     public FieldLiftable(FieldManager field, int objectId, string entityId, Liftable value) : base(field, objectId, value) {
         EntityId = entityId;
         Count = Value.ItemStackCount;
-        FinishTick = Environment.TickCount + Value.FinishTime;
+        FinishTick = Environment.TickCount64 + Value.FinishTime;
     }
 
     public LiftableCube? Pickup() {
@@ -29,7 +29,7 @@ public class FieldLiftable : FieldEntity<Liftable> {
 
         Count--;
         if (RespawnTick == 0) {
-            RespawnTick = Environment.TickCount + Value.RegenCheckTime;
+            RespawnTick = Environment.TickCount64 + Value.RegenCheckTime;
         }
 
         if (Count > 0) {
@@ -43,20 +43,19 @@ public class FieldLiftable : FieldEntity<Liftable> {
         return new LiftableCube(Value);
     }
 
-    public override void Sync() {
-        int ticks = Environment.TickCount;
-        if (ticks > FinishTick) {
+    public override void Update(long tickCount) {
+        if (tickCount > FinishTick) {
             Field.RemoveLiftable(EntityId);
             return;
         }
 
-        if (RespawnTick == 0 || ticks < RespawnTick) {
+        if (RespawnTick == 0 || tickCount < RespawnTick) {
             return;
         }
 
         Count++;
         if (Count < Value.ItemStackCount) {
-            RespawnTick = ticks + Value.RegenCheckTime;
+            RespawnTick = tickCount + Value.RegenCheckTime;
         } else {
             RespawnTick = 0;
         }

@@ -214,7 +214,7 @@ public class RequestCubeHandler : PacketHandler<GameSession> {
                 session.HeldCube = null;
                 fieldLiftable.Count = 1;
                 fieldLiftable.State = LiftableState.Disabled;
-                fieldLiftable.FinishTick = Environment.TickCount + fieldLiftable.Value.ItemLifetime;
+                fieldLiftable.FinishTick = Environment.TickCount64 + fieldLiftable.Value.ItemLifetime;
 
                 session.Field.Broadcast(LiftablePacket.Add(fieldLiftable));
                 session.Field.Broadcast(CubePacket.PlaceLiftable(session.Player.ObjectId, liftable, position, rotation));

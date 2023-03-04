@@ -17,6 +17,7 @@ using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Server.Game.Util;
 using Maple2.Tools.Extensions;
+using Maple2.Tools.Scheduler;
 using Serilog;
 
 namespace Maple2.Server.Game.Manager.Field;
@@ -46,6 +47,7 @@ public sealed partial class FieldManager : IDisposable {
 
     private readonly ConcurrentBag<SpawnPointNPC> npcSpawns = new();
 
+    internal readonly EventQueue Scheduler;
     internal readonly FieldActor FieldActor;
     private readonly CancellationTokenSource cancel;
     private readonly Thread thread;
@@ -63,9 +65,10 @@ public sealed partial class FieldManager : IDisposable {
         this.Entities = entities;
         TriggerObjects = new TriggerCollection(entities);
 
+        Scheduler = new EventQueue();
         FieldActor = new FieldActor(this);
         cancel = new CancellationTokenSource();
-        thread = new Thread(Sync);
+        thread = new Thread(Update);
         OwnerId = ownerId;
         InstanceId = thread.ManagedThreadId;
 
@@ -151,6 +154,7 @@ public sealed partial class FieldManager : IDisposable {
         }
 
         initialized = true;
+        Scheduler.Start();
         thread.Start();
     }
 
@@ -166,25 +170,28 @@ public sealed partial class FieldManager : IDisposable {
     /// <returns>Returns a local ObjectId</returns>
     private int NextLocalId() => Interlocked.Increment(ref localIdCounter);
 
-    private void Sync() {
+    private void Update() {
         while (!cancel.IsCancellationRequested) {
             if (Players.IsEmpty) {
                 Thread.Sleep(1000);
                 continue;
             }
 
-            foreach (FieldTrigger trigger in fieldTriggers.Values) trigger.Sync();
+            Scheduler.InvokeAll();
 
-            foreach (FieldPlayer player in Players.Values) player.Sync();
-            foreach (FieldNpc npc in Npcs.Values) npc.Sync();
-            foreach (FieldNpc mob in Mobs.Values) mob.Sync();
-            foreach (FieldPet pet in Pets.Values) pet.Sync();
-            foreach (FieldBreakable breakable in fieldBreakables.Values) breakable.Sync();
-            foreach (FieldLiftable liftable in fieldLiftables.Values) liftable.Sync();
-            foreach (FieldInteract interact in fieldInteracts.Values) interact.Sync();
-            foreach (FieldItem item in fieldItems.Values) item.Sync();
-            foreach (FieldMobSpawn mobSpawn in fieldMobSpawns.Values) mobSpawn.Sync();
-            foreach (FieldSkill skill in fieldSkills.Values) skill.Sync();
+            long tickCount = Environment.TickCount64;
+            foreach (FieldTrigger trigger in fieldTriggers.Values) trigger.Update(tickCount);
+
+            foreach (FieldPlayer player in Players.Values) player.Update(tickCount);
+            foreach (FieldNpc npc in Npcs.Values) npc.Update(tickCount);
+            foreach (FieldNpc mob in Mobs.Values) mob.Update(tickCount);
+            foreach (FieldPet pet in Pets.Values) pet.Update(tickCount);
+            foreach (FieldBreakable breakable in fieldBreakables.Values) breakable.Update(tickCount);
+            foreach (FieldLiftable liftable in fieldLiftables.Values) liftable.Update(tickCount);
+            foreach (FieldInteract interact in fieldInteracts.Values) interact.Update(tickCount);
+            foreach (FieldItem item in fieldItems.Values) item.Update(tickCount);
+            foreach (FieldMobSpawn mobSpawn in fieldMobSpawns.Values) mobSpawn.Update(tickCount);
+            foreach (FieldSkill skill in fieldSkills.Values) skill.Update(tickCount);
             Thread.Sleep(50);
         }
     }

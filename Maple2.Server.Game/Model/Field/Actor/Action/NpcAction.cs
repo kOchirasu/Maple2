@@ -7,14 +7,14 @@ namespace Maple2.Server.Game.Model.Action;
 public abstract class NpcAction {
     public bool Completed { get; protected set; }
     protected FieldNpc Npc;
-    protected int EndTick;
+    protected long EndTick;
 
     // Used for chaining predetermined actions.
     public Func<NpcAction>? NextAction { get; init; }
 
     protected NpcAction(FieldNpc npc, short sequenceId, float duration) {
         Npc = npc;
-        EndTick = Environment.TickCount + (int) (duration * 1000);
+        EndTick = Environment.TickCount64 + (int) (duration * 1000);
 
         Npc.SequenceId = sequenceId;
     }
@@ -23,8 +23,8 @@ public abstract class NpcAction {
     /// Synchronizes an Npc action.
     /// </summary>
     /// <returns>bool representing whether this action is completed</returns>
-    public virtual bool Sync() {
-        if (Environment.TickCount < EndTick) {
+    public virtual bool Update(long tickCount) {
+        if (tickCount < EndTick) {
             return false;
         }
 

@@ -18,15 +18,15 @@ public static class BreakablePacket {
         var pWriter = Packet.Of(SendOp.Breakable);
         pWriter.Write<Command>(Command.BatchUpdate);
 
-        int currentTick = Environment.TickCount;
+        long currentTick = Environment.TickCount64;
         pWriter.WriteInt(breakables.Count);
         foreach (FieldBreakable breakable in breakables) {
             pWriter.WriteString(breakable.EntityId);
             pWriter.Write<BreakableState>(breakable.State);
             pWriter.WriteBool(breakable.Visible);
             if (breakable.BaseTick > 0) {
-                pWriter.WriteInt(currentTick - breakable.BaseTick);
-                pWriter.WriteInt(breakable.BaseTick);
+                pWriter.WriteInt((int) (currentTick - breakable.BaseTick));
+                pWriter.WriteInt((int) breakable.BaseTick);
             } else {
                 pWriter.WriteInt();
                 pWriter.WriteInt();
@@ -43,8 +43,8 @@ public static class BreakablePacket {
         pWriter.Write<BreakableState>(breakable.State);
         pWriter.WriteBool(breakable.Visible);
         if (breakable.BaseTick > 0) {
-            pWriter.WriteInt(Environment.TickCount - breakable.BaseTick);
-            pWriter.WriteInt(breakable.BaseTick);
+            pWriter.WriteInt((int) (Environment.TickCount64 - breakable.BaseTick));
+            pWriter.WriteInt((int) breakable.BaseTick);
         } else {
             pWriter.WriteInt();
             pWriter.WriteInt();

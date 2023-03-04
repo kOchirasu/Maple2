@@ -5,7 +5,7 @@ using Maple2.Tools.Extensions;
 namespace Maple2.Server.Game.Model.Action;
 
 public class MoveAction : NpcAction {
-    private int lastTick;
+    private long lastTick;
 
     public static MoveAction Walk(FieldNpc npc, short sequenceId, float duration) {
         return new MoveAction(npc, sequenceId, npc.Value.Metadata.Action.WalkSpeed, duration);
@@ -25,17 +25,16 @@ public class MoveAction : NpcAction {
 
     private MoveAction(FieldNpc npc, short sequenceId, float speed, float duration) : base(npc, sequenceId, duration) {
         npc.Velocity = speed * Vector3.UnitY;
-        lastTick = Environment.TickCount;
+        lastTick = Environment.TickCount64;
     }
 
-    public override bool Sync() {
-        int tickNow = Environment.TickCount;
-        float timeDelta = (tickNow - lastTick) / 1000f;
+    public override bool Update(long tickCount) {
+        float timeDelta = (tickCount - lastTick) / 1000f;
         Vector3 distanceVector = timeDelta * Npc.Velocity.Rotate(Npc.Rotation);
         Npc.Position += distanceVector;
 
-        lastTick = tickNow;
-        return base.Sync();
+        lastTick = tickCount;
+        return base.Update(tickCount);
     }
 
     public override void OnCompleted() {

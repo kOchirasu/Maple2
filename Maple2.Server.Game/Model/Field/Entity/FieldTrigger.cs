@@ -36,10 +36,10 @@ public class FieldTrigger : FieldEntity<TriggerModel> {
         return false;
     }
 
-    public override void Sync() {
+    public override void Update(long tickCount) {
         context.Events.InvokeAll();
 
-        if (Environment.TickCount64 < nextTick) {
+        if (tickCount < nextTick) {
             return;
         }
 

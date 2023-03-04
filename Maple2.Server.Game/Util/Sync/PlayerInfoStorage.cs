@@ -79,7 +79,7 @@ public class PlayerInfoStorage {
         try {
             //PlayerInfoCache
             world.UpdatePlayer(request);
-        } catch (RpcException ex) { /* ignored */ }
+        } catch (RpcException) { /* ignored */ }
     }
 
     public bool ReceiveUpdate(PlayerUpdateRequest request) {

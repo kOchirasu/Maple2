@@ -9,8 +9,8 @@ namespace Maple2.Server.Game.Model;
 public class FieldInteract : FieldEntity<InteractObjectMetadata> {
     public readonly string EntityId;
 
-    private int nextTick;
-    private int reactTick;
+    private long nextTick;
+    private long reactTick;
 
     public InteractType Type => Value.Type;
 
@@ -20,7 +20,7 @@ public class FieldInteract : FieldEntity<InteractObjectMetadata> {
     public FieldInteract(FieldManager field, int objectId, string entityId, InteractObjectMetadata value) : base(field, objectId, value) {
         EntityId = entityId;
         State = InteractState.Normal;
-        nextTick = Environment.TickCount;
+        nextTick = Environment.TickCount64;
         reactLimit = Value.ReactCount > 0 ? Value.ReactCount : int.MaxValue;
     }
 
@@ -29,7 +29,7 @@ public class FieldInteract : FieldEntity<InteractObjectMetadata> {
             return false;
         }
 
-        reactTick = Environment.TickCount;
+        reactTick = Environment.TickCount64;
         reactLimit--;
         if (reactLimit > 0) {
             SetState(InteractState.Normal);
@@ -57,8 +57,8 @@ public class FieldInteract : FieldEntity<InteractObjectMetadata> {
         Field.Broadcast(InteractObjectPacket.Update(this));
     }
 
-    public override void Sync() {
-        if (nextTick == 0 || Environment.TickCount < nextTick) {
+    public override void Update(long tickCount) {
+        if (nextTick == 0 || tickCount < nextTick) {
             return;
         }
 
