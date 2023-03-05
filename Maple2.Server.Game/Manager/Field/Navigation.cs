@@ -7,6 +7,7 @@ using Maple2.Model.Metadata;
 using Maple2.PathEngine;
 using Maple2.PathEngine.Interface;
 using Maple2.PathEngine.Types;
+using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Util;
 using Serilog;
 
@@ -36,10 +37,14 @@ public sealed class Navigation : IDisposable {
         context = mesh.newContext();
     }
 
-    public Agent? AddAgent(NpcMetadata npc, Vector3 origin, int distance = 1) {
+    public AgentNavigation ForAgent(FieldNpc npc, Agent agent) {
+        return new AgentNavigation(npc, agent, mesh, context);
+    }
+
+    public Agent? AddAgent(NpcMetadata metadata, Vector3 origin) {
         // Using radius for width for now
-        Shape shape = GetShape((int) npc.Property.Capsule.Radius, (int) npc.Property.Capsule.Height);
-        if (!TryFindPosition(shape, ToPosition(origin), distance, out Position? position)) {
+        Shape shape = GetShape((int) metadata.Property.Capsule.Radius, (int) metadata.Property.Capsule.Height);
+        if (!TryFindPosition(shape, ToPosition(origin), metadata.Action.MoveArea, out Position? position)) {
             return null;
         }
 
@@ -48,64 +53,19 @@ public sealed class Navigation : IDisposable {
         return agent;
     }
 
-    public Vector3 UpdateAgent(Agent agent, Vector3 vector) {
-        Position position = mesh.positionNear3DPoint((int) vector.X, (int) vector.Y, (int) vector.Z, horizontalRange: 500, verticalRange: 50);
-        if (!mesh.positionIsValid(position)) {
-            Logger.Error("Failed to find valid position from {Source} => {Position}", vector, position);
-            return vector;
-        }
-
-        agent.moveTo(position);
-        return FromPosition(position);
-    }
-
-    public void RemoveAgent(Agent agent) {
-        context.removeAgent(agent);
-    }
-
-    public (Vector3 Start, Vector3 End) FindPath(Agent agent, Vector3 origin, int maxDistance, int maxHeight = 1) {
-        Position source = agent.findClosestUnobstructedPosition(context, 50);
-        if (!mesh.positionIsValid(source)) {
-            return default;
-        }
-
-        Position destination = mesh.generateRandomPositionLocally(ToPosition(origin), maxDistance);
-        agent.moveTo(source);
-        using Path? path = agent.findShortestPathTo(context, destination);
-        if (path == null || path.size() <= 1) {
-            return default;
-        }
-
-        Position start = path.position(0);
-        Position end = path.position(1);
-        int startZ = mesh.heightAtPosition(start);
-        int endZ = mesh.heightAtPosition(end);
-        if (Math.Abs(startZ - endZ) > maxHeight) {
-            return default;
-        }
-
-        // if (Math.Abs(startZ - endZ) > 1) {
-        //     Logger.Information("Path result:");
-        //     for (int i = 0; i < path.size(); i++) {
-        //         Position position = path.position(i);
-        //         Logger.Information("> {Position}|{HeightAtPosition}, {ConnectionIndex}", position, mesh.heightAtPosition(position), path.connectionIndex(i));
-        //     }
-        // }
-
-        // Only keep first section of path, the rest will be re-generated when needed.
-        return (FromPosition(start), FromPosition(end));
-    }
-
     private bool TryFindPosition(Shape? shape, Position origin, int distance, [NotNullWhen(true)] out Position? position) {
         position = origin;
         if (!mesh.positionIsValid(origin)) {
             return false;
         }
 
-        if (distance > 1) {
-            position = mesh.generateRandomPositionLocally((Position) position, distance);
-            position = mesh.findClosestUnobstructedPosition(shape, context, (Position) position, distance);
+        if (distance > 0) {
+            try {
+                // Unobstructed Position is required for pathfinding, attempt to find one.
+                position = mesh.findClosestUnobstructedPosition(shape, context, (Position) position, distance);
+            } catch { /* ignored */ }
         }
+
         if (!mesh.positionIsValid((Position) position)) {
             return false;
         }
@@ -131,8 +91,7 @@ public sealed class Navigation : IDisposable {
             return shape;
         }
 
-        // TODO: Using a small width for now to prevent Npcs from getting stuck
-        int halfWidth = 5; // Math.Max(width / 2, 1);
+        int halfWidth = Math.Max(width / 2, 1);
         int halfHeight = Math.Max(height / 2, 1);
         List<Point> vertices = new() {
             new Point(-halfWidth, -halfHeight),

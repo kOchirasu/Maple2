@@ -192,7 +192,9 @@ public sealed partial class FieldManager : IDisposable {
             foreach (FieldItem item in fieldItems.Values) item.Update(tickCount);
             foreach (FieldMobSpawn mobSpawn in fieldMobSpawns.Values) mobSpawn.Update(tickCount);
             foreach (FieldSkill skill in fieldSkills.Values) skill.Update(tickCount);
-            Thread.Sleep(50);
+
+            // Environment.TickCount has ~16ms precision so sleep until next update
+            Thread.Sleep(15);
         }
     }
 

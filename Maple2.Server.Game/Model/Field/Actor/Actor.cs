@@ -36,13 +36,11 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
     public virtual Stats Stats { get; } = new(0, 0);
 
     public int ObjectId { get; }
-    public Vector3 Position { get; set; }
-    public Vector3 Rotation { get; set; }
+    public virtual Vector3 Position { get; set; }
+    public virtual Vector3 Rotation { get; set; }
 
     public virtual bool IsDead { get; protected set; }
     public abstract IPrism Shape { get; }
-    public virtual ActorState State { get; set; }
-    public virtual ActorSubState SubState { get; set; }
 
     public virtual ConcurrentDictionary<int, Buff> Buffs { get; } = new();
 
@@ -157,9 +155,7 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
     }
 
     public virtual void Update(long tickCount) {
-        if (IsDead) {
-            return;
-        }
+        if (IsDead) return;
 
         if (Stats[BasicAttribute.Health].Current <= 0) {
             IsDead = true;

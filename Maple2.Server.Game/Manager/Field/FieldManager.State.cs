@@ -77,8 +77,8 @@ public partial class FieldManager {
         return fieldPlayer;
     }
 
-    public FieldNpc? SpawnNpc(NpcMetadata npc, Vector3 position, Vector3 rotation, int distance = 1, FieldMobSpawn? owner = null) {
-        Agent? agent = Navigation.AddAgent(npc, position, distance);
+    public FieldNpc? SpawnNpc(NpcMetadata npc, Vector3 position, Vector3 rotation, FieldMobSpawn? owner = null) {
+        Agent? agent = Navigation.AddAgent(npc, position);
         if (agent == null) {
             return null;
         }
@@ -101,12 +101,12 @@ public partial class FieldManager {
         return fieldNpc;
     }
 
-    public FieldPet? SpawnPet(Item pet, Vector3 position, Vector3 rotation, int distance = 1, FieldMobSpawn? owner = null, FieldPlayer? player = null) {
+    public FieldPet? SpawnPet(Item pet, Vector3 position, Vector3 rotation, FieldMobSpawn? owner = null, FieldPlayer? player = null) {
         if (!NpcMetadata.TryGet(pet.Metadata.Property.PetId, out NpcMetadata? npc)) {
             return null;
         }
 
-        Agent? agent = Navigation.AddAgent(npc, position, distance);
+        Agent? agent = Navigation.AddAgent(npc, position);
         if (agent == null) {
             return null;
         }
@@ -412,10 +412,10 @@ public partial class FieldManager {
             return false;
         }
 
-        Navigation.RemoveAgent(npc.Agent);
         Scheduler.Schedule(() => {
             Broadcast(FieldPacket.RemoveNpc(objectId));
             Broadcast(ProxyObjectPacket.RemoveNpc(objectId));
+            npc.Dispose();
         }, removeDelay);
         return true;
     }
@@ -425,10 +425,10 @@ public partial class FieldManager {
             return false;
         }
 
-        Navigation.RemoveAgent(pet.Agent);
         Scheduler.Schedule(() => {
             Broadcast(FieldPacket.RemovePet(objectId));
             Broadcast(ProxyObjectPacket.RemovePet(objectId));
+            pet.Dispose();
         }, removeDelay);
         return true;
     }
