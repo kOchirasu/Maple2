@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Numerics;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Field;
@@ -67,7 +68,7 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
 
         spawnTick = long.MaxValue;
         for (int i = spawnedMobs.Count; i < Value.Population; i++) {
-            FieldNpc? fieldNpc = Field.SpawnNpc(npcs.Get(), Position, Rotation, SPAWN_DISTANCE, owner: this);
+            FieldNpc? fieldNpc = Field.SpawnNpc(npcs.Get(), GetRandomSpawn(), Rotation, owner: this);
             if (fieldNpc == null) {
                 continue;
             }
@@ -85,7 +86,7 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
         if (Random.Shared.Next(PET_SPAWN_RATE_TOTAL) < Value.PetSpawnRate) {
             // Any stats are computed after pet is captured since that's when rarity is determined.
             var pet = new Item(pets.Get());
-            FieldPet? fieldPet = Field.SpawnPet(pet, Position, Rotation, SPAWN_DISTANCE, owner: this);
+            FieldPet? fieldPet = Field.SpawnPet(pet, GetRandomSpawn(), Rotation, owner: this);
             if (fieldPet == null) {
                 return;
             }
@@ -95,5 +96,11 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
             Field.Broadcast(FieldPacket.AddPet(fieldPet));
             Field.Broadcast(ProxyObjectPacket.AddPet(fieldPet));
         }
+    }
+
+    private Vector3 GetRandomSpawn() {
+        int spawnX = Random.Shared.Next((int) Position.X - SPAWN_DISTANCE, (int) Position.X + SPAWN_DISTANCE);
+        int spawnY = Random.Shared.Next((int) Position.Y - SPAWN_DISTANCE, (int) Position.Y + SPAWN_DISTANCE);
+        return new Vector3(spawnX, spawnY, Position.Z);
     }
 }

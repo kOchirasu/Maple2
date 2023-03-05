@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
@@ -14,6 +15,9 @@ public class FieldPlayer : Actor<Player> {
 
     public override Stats Stats => Session.Stats.Values;
     public override IPrism Shape => new Prism(new Circle(new Vector2(Position.X, Position.Y), 10), Position.Z, 100);
+    public ActorState State { get; set; }
+    public ActorSubState SubState { get; set; }
+
     private long battleTick;
     private bool inBattle;
 
