@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Database.Storage;
+using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
@@ -11,6 +12,7 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
+using Maple2.Server.Game.Manager;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Server.Game.Util;
@@ -75,6 +77,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
                 break;
             case ItemFunction.SelectItemBox:
                 HandleSelectItemBox(session, packet, item);
+                break;
+            case ItemFunction.OpenItemBox:
+                HandleOpenItemBox(session, item);
                 break;
             default:
                 Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
@@ -326,10 +331,15 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         session.Config.UpdatePremiumTime(hours);
     }
     
-    private void HandleSelectItemBox(GameSession session, IByteReader packet, Item item) {
+    private static void HandleSelectItemBox(GameSession session, IByteReader packet, Item item) {
         short unknown = packet.ReadShort();
-        int index = packet.ReadInt() - 48;
+        int index = packet.ReadShort() - 48;
+        session.ItemDrop.HandleSelectItemBox(index, item);
+        session.ItemDrop.Reset();
+    }
 
-
+    private static void HandleOpenItemBox(GameSession session, Item item) {
+        session.ItemDrop.HandleOpenItemBox(item);
+        session.ItemDrop.Reset();
     }
 }

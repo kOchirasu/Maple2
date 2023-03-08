@@ -987,36 +987,66 @@ public class TableMapper : TypeMapper<TableMetadata> {
     
     private IndividualItemDropTable ParseIndividualItemDropTable() {
         var results = new Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>>();
-        foreach ((int id, IndividualItemDrop drop) in parser.ParseIndividualItemDrop()) {
-
-            var itemIds = new List<int> {
-                drop.item,
-            };
-            if (drop.item2 > 0) {
-                itemIds.Add(drop.item2);
-            }
-            
-            var entry = new IndividualItemDropTable.Entry(
-                ItemIds: itemIds,
-                SmartGender: drop.isApplySmartGenderDrop,
-                MinCount: drop.minCount,
-                MaxCount: drop.maxCount);
-            
-            if (!results.ContainsKey(id)) {
-                results.Add(id, new Dictionary<byte, IList<IndividualItemDropTable.Entry>> {
-                    {drop.dropGroup, new List<IndividualItemDropTable.Entry> {
-                        entry,
-                    }},
-                });
-            } else if (!results[id].ContainsKey(drop.dropGroup)) {
-                results[id].Add(drop.dropGroup, new List<IndividualItemDropTable.Entry>() {
-                    entry,
-                });
-            } else {
-                results[id][drop.dropGroup].Add(entry);
-            }
-        }
+        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDrop());
+        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDropCharge());
+        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDropEvent());
+        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDropGacha());
+        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDropPet());
+        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemGearBox());
+        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDropEventNpc());
+        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDropNewGacha());
+        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDropQuestMob());
+        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDropQuestObj());
 
         return new IndividualItemDropTable(results);
+    }
+    
+    private Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>> GetIndividualItemDropTable(Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>> results, IEnumerable<(int Id, IDictionary<byte,List<IndividualItemDrop>>)> parser) {
+        foreach ((int id,  IDictionary<byte,List<IndividualItemDrop>> dict) in parser) {
+            foreach ((byte dropGroup, List<IndividualItemDrop> drops) in dict) {
+                foreach (IndividualItemDrop drop in drops) {
+                    var itemIds = new List<int> {
+                        drop.item,
+                    };
+                    if (drop.item2 > 0) {
+                        itemIds.Add(drop.item2);
+                    }
+
+                    float minCount = drop.minCount;
+                    float maxCount = drop.maxCount;
+                    if (drop.item == 90000008) { // Experience Orb
+                        minCount *= 10000;
+                        maxCount *= 10000;
+                    }
+
+                    var entry = new IndividualItemDropTable.Entry(
+                        ItemIds: itemIds,
+                        SmartGender: drop.isApplySmartGenderDrop,
+                        SmartDropRate: drop.smartDropRate,
+                        Rarity: drop.PackageUIShowGrade,
+                        EnchantLevel: drop.enchantLevel,
+                        ReduceTradeCount: drop.tradableCountDeduction,
+                        ReduceRepackLimit: drop.rePackingLimitCountDeduction,
+                        Bind: drop.isBindCharacter,
+                        MinCount: (int) minCount,
+                        MaxCount: (int) maxCount);
+
+                    if (!results.ContainsKey(id)) {
+                        results.Add(id, new Dictionary<byte, IList<IndividualItemDropTable.Entry>> {
+                            {drop.dropGroup, new List<IndividualItemDropTable.Entry> {
+                                entry,
+                            }},
+                        });
+                    } else if (!results[id].ContainsKey(dropGroup)) {
+                        results[id].Add(drop.dropGroup, new List<IndividualItemDropTable.Entry>() {
+                            entry,
+                        });
+                    } else {
+                        results[id][drop.dropGroup].Add(entry);
+                    }
+                }
+            }
+        }
+        return results;
     }
 }
