@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Maple2.Database.Extensions;
 using Maple2.Database.Storage;
-using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
@@ -12,7 +10,6 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
-using Maple2.Server.Game.Manager;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Server.Game.Util;
@@ -79,6 +76,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
                 HandleSelectItemBox(session, packet, item);
                 break;
             case ItemFunction.OpenItemBox:
+            case ItemFunction.OpenItemBoxWithKey:
                 HandleOpenItemBox(session, item);
                 break;
             default:
@@ -109,8 +107,8 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         }
 
         long existingTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        if (session.Player.Value.Unlock.StickerSets.ContainsKey(stickerSetId)) {
-            existingTime = session.Player.Value.Unlock.StickerSets[stickerSetId];
+        if (session.Player.Value.Unlock.StickerSets.TryGetValue(stickerSetId, out long set)) {
+            existingTime = set;
             if (existingTime == long.MaxValue) {
                 session.Send(ChatStickerPacket.Error(ChatStickerError.s_msg_chat_emoticon_add_failed_already_exist));
                 return;
@@ -247,7 +245,6 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         if (receiverMail == null) {
             session.Send(NoticePacket.MessageBox((StringCode.s_couple_effect_error_openbox_unknown)));
             throw new InvalidOperationException($"Failed to create buddy badge mail for receiver character id: {receiverInfo.CharacterId}");
-            return;
         }
 
         Item? receiverItem = db.CreateItem(receiverMail.Id,
@@ -271,7 +268,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_mail_send_partner, receiverInfo.Name)));
     }
 
-    private void HandleExpandCharacterSlot(GameSession session, Item item) {
+    private static void HandleExpandCharacterSlot(GameSession session, Item item) {
         if (session.Player.Value.Account.MaxCharacters >= Constant.ServerMaxCharacters) {
             session.Send(ItemUsePacket.MaxCharacterSlots());
             return;
@@ -317,7 +314,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         session.Send(CharacterListPacket.NameChanged(session.CharacterId, newName));
     }
 
-    private void HandlePremiumClubCoupon(GameSession session, Item item) {
+    private static void HandlePremiumClubCoupon(GameSession session, Item item) {
         Dictionary<string, string> parameters = XmlParseUtil.GetParameters(item.Metadata.Function?.Parameters);
 
         if (!parameters.ContainsKey("period") || !int.TryParse(parameters["period"], out int hours)) {
@@ -334,12 +331,12 @@ public class ItemUseHandler : PacketHandler<GameSession> {
     private static void HandleSelectItemBox(GameSession session, IByteReader packet, Item item) {
         short unknown = packet.ReadShort();
         int index = packet.ReadShort() - 48;
-        session.ItemDrop.HandleSelectItemBox(index, item);
-        session.ItemDrop.Reset();
+        session.ItemBox.Open(item, index: index);
+        session.ItemBox.Reset();
     }
 
     private static void HandleOpenItemBox(GameSession session, Item item) {
-        session.ItemDrop.HandleOpenItemBox(item);
-        session.ItemDrop.Reset();
+        session.ItemBox.Open(item);
+        session.ItemBox.Reset();
     }
 }

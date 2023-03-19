@@ -12,6 +12,7 @@ using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Extensions;
+using Microsoft.Scripting.Utils;
 using Serilog;
 using static Maple2.Model.Error.ItemInventoryError;
 
@@ -271,11 +272,15 @@ public class InventoryManager {
                 ingredient => ingredient.ItemId,
                 ingredient => session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList()
             );
-            Dictionary<ItemTag, IList<Item>> materialsByTag = components.ToDictionary(
-                ingredient => ingredient.Tag,
-                ingredient => session.Item.Inventory.Filter(item => item.Metadata.Property.Tag == ingredient.Tag)
-            );
-            
+            var materialsByTag = new Dictionary<ItemTag, IList<Item>>();
+            foreach(ItemComponent ingredient in components) {
+                if (materialsByTag.TryGetValue(ingredient.Tag, out IList<Item>? value)) {
+                    value.AddRange(session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList());
+                } else {
+                    materialsByTag.Add(ingredient.Tag, session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList());
+                }
+            }
+
             foreach (ItemComponent ingredient in components) {
                 int remaining = ingredient.Amount * quantityMultiplier;
                 if (ingredient.Tag != ItemTag.None) {
