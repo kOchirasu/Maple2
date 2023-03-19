@@ -146,7 +146,8 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     RequireVip: data.limit.vip,
                     RequireWedding: data.limit.wedding,
                     GlamorForgeCount: itemExtractionTryCount.GetValueOrDefault(id),
-                    Jobs: data.limit.jobLimit.Select(job => (JobCode) job).ToArray()
+                    JobLimits: data.limit.jobLimit.Select(job => (JobCode) job).ToArray(),
+                    JobRecommends: data.limit.recommendJobs.Select(job => (JobCode) job).ToArray()
                 ),
                 Skill: skill,
                 Function: function,

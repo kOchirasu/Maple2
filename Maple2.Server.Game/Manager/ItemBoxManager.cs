@@ -116,7 +116,7 @@ public class ItemBoxManager {
         if (itemBoxParams[1] == 1) {
             for (int startCount = 0; startCount < count; startCount++) {
                 if (!session.Item.Inventory.ConsumeItemComponents(new List<ItemComponent> {
-                        new(item.Id, item.Rarity, itemBoxParams.Length == 5 ? itemBoxParams[5] : 1, ItemTag.None),
+                        new(item.Id, item.Rarity, itemBoxParams.Length == 5 ? itemBoxParams[4] : 1, ItemTag.None),
                     })) {
                     return ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
                 }
@@ -137,12 +137,13 @@ public class ItemBoxManager {
                     foreach (Item newItem in itemList) {
                         if (!session.Item.Inventory.Add(newItem, true)) {
                             error = ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
+                            // TODO: mail user
                         }
                     }
-                    BoxCount++;
-                    if (error != ItemBoxError.ok) {
-                        return error;
-                    }
+                }
+                BoxCount++;
+                if (error != ItemBoxError.ok) {
+                    return error;
                 }
             }
         } else {
@@ -156,7 +157,7 @@ public class ItemBoxManager {
         IList<IndividualItemDropTable.Entry> drops = session.ItemBox.FilterDrops(dropGroupTable.Values.SelectMany(x => x).ToList());
         for (int startCount = 0; startCount < count; startCount++) {
             if (!session.Item.Inventory.ConsumeItemComponents(new List<ItemComponent> {
-                    new(item.Id, item.Rarity, itemBoxParams.Length == 5 ? itemBoxParams[5] : 1, ItemTag.None),
+                    new(item.Id, item.Rarity, itemBoxParams.Length == 5 ? itemBoxParams[4] : 1, ItemTag.None),
                 })) {
                 return ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
             }
@@ -173,11 +174,11 @@ public class ItemBoxManager {
                     if (!session.Item.Inventory.Add(newItem, true)) {
                         error = ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
                     }
-                    BoxCount++;
                 }
-                if (error != ItemBoxError.ok) {
-                    return error;
-                }
+            }
+            BoxCount++;
+            if (error != ItemBoxError.ok) {
+                return error;
             }
         }
         return error;
@@ -213,7 +214,8 @@ public class ItemBoxManager {
             }
 
             // Check for any job restrictions
-            if (entry.SmartDropRate > 0 && itemMetadata.Limit.Jobs.Length > 0 && !itemMetadata.Limit.Jobs.Contains(session.Player.Value.Character.Job.Code())) {
+            if (entry.SmartDropRate > 0 && itemMetadata.Limit.JobRecommends.Length > 0 && 
+                !itemMetadata.Limit.JobRecommends.Contains(session.Player.Value.Character.Job.Code()) && !itemMetadata.Limit.JobRecommends.Contains(JobCode.None)) {
                 continue;
             }
 
