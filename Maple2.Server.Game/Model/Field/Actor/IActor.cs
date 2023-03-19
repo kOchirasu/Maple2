@@ -14,8 +14,6 @@ public interface IActor : IFieldEntity {
 
     public bool IsDead { get; }
     public IPrism Shape { get; }
-    public ActorState State { get; }
-    public ActorSubState SubState { get; }
 
     public virtual void ApplyEffect(IActor caster, IActor owner, SkillEffectMetadata effect) { }
     public virtual void ApplyDamage(IActor caster, DamageRecord damage, SkillMetadataAttack attack) { }
@@ -24,6 +22,6 @@ public interface IActor : IFieldEntity {
     public virtual void TargetAttack(SkillRecord record) { }
 }
 
-public interface IActor<T> : IActor {
+public interface IActor<out T> : IActor {
     public T Value { get; }
 }

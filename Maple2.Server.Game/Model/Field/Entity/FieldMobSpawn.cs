@@ -22,7 +22,7 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
     private readonly WeightedSet<ItemMetadata> pets;
     private readonly List<int> spawnedMobs;
     private readonly List<int> spawnedPets;
-    private int spawnTick;
+    private long spawnTick;
 
     public FieldMobSpawn(FieldManager field, int objectId, MapMetadataSpawn metadata, WeightedSet<NpcMetadata> npcs, WeightedSet<ItemMetadata> pets) : base(field, objectId, metadata) {
         this.npcs = npcs;
@@ -55,20 +55,20 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
 #endif
 
         if (spawnedMobs.Count == 0) {
-            spawnTick = Math.Min(spawnTick, Environment.TickCount + Value.Cooldown * spawnRate);
-        } else if (spawnTick == int.MaxValue) {
-            spawnTick = Environment.TickCount + Value.Cooldown * spawnRate * FORCE_SPAWN_MULTIPLIER;
+            spawnTick = Math.Min(spawnTick, Environment.TickCount64 + Value.Cooldown * spawnRate);
+        } else if (spawnTick == long.MaxValue) {
+            spawnTick = Environment.TickCount64 + Value.Cooldown * spawnRate * FORCE_SPAWN_MULTIPLIER;
         }
     }
 
-    public override void Sync() {
-        if (Environment.TickCount < spawnTick) {
+    public override void Update(long tickCount) {
+        if (tickCount < spawnTick) {
             return;
         }
 
-        spawnTick = int.MaxValue;
+        spawnTick = long.MaxValue;
         for (int i = spawnedMobs.Count; i < Value.Population; i++) {
-            FieldNpc? fieldNpc = Field.SpawnNpc(npcs.Get(), Position, Rotation, SPAWN_DISTANCE, owner: this);
+            FieldNpc? fieldNpc = Field.SpawnNpc(npcs.Get(), GetRandomSpawn(), Rotation, owner: this);
             if (fieldNpc == null) {
                 continue;
             }
@@ -86,7 +86,7 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
         if (Random.Shared.Next(PET_SPAWN_RATE_TOTAL) < Value.PetSpawnRate) {
             // Any stats are computed after pet is captured since that's when rarity is determined.
             var pet = new Item(pets.Get());
-            FieldPet? fieldPet = Field.SpawnPet(pet, Position, Rotation, SPAWN_DISTANCE, owner: this);
+            FieldPet? fieldPet = Field.SpawnPet(pet, GetRandomSpawn(), Rotation, owner: this);
             if (fieldPet == null) {
                 return;
             }
@@ -96,5 +96,11 @@ public class FieldMobSpawn : FieldEntity<MapMetadataSpawn> {
             Field.Broadcast(FieldPacket.AddPet(fieldPet));
             Field.Broadcast(ProxyObjectPacket.AddPet(fieldPet));
         }
+    }
+
+    private Vector3 GetRandomSpawn() {
+        int spawnX = Random.Shared.Next((int) Position.X - SPAWN_DISTANCE, (int) Position.X + SPAWN_DISTANCE);
+        int spawnY = Random.Shared.Next((int) Position.Y - SPAWN_DISTANCE, (int) Position.Y + SPAWN_DISTANCE);
+        return new Vector3(spawnX, spawnY, Position.Z);
     }
 }

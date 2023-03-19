@@ -77,8 +77,8 @@ public partial class FieldManager {
         return fieldPlayer;
     }
 
-    public FieldNpc? SpawnNpc(NpcMetadata npc, Vector3 position, Vector3 rotation, int distance = 1, FieldMobSpawn? owner = null) {
-        Agent? agent = Navigation.AddAgent(npc, position, distance);
+    public FieldNpc? SpawnNpc(NpcMetadata npc, Vector3 position, Vector3 rotation, FieldMobSpawn? owner = null) {
+        Agent? agent = Navigation.AddAgent(npc, position);
         if (agent == null) {
             return null;
         }
@@ -101,12 +101,12 @@ public partial class FieldManager {
         return fieldNpc;
     }
 
-    public FieldPet? SpawnPet(Item pet, Vector3 position, Vector3 rotation, int distance = 1, FieldMobSpawn? owner = null, FieldPlayer? player = null) {
+    public FieldPet? SpawnPet(Item pet, Vector3 position, Vector3 rotation, FieldMobSpawn? owner = null, FieldPlayer? player = null) {
         if (!NpcMetadata.TryGet(pet.Metadata.Property.PetId, out NpcMetadata? npc)) {
             return null;
         }
 
-        Agent? agent = Navigation.AddAgent(npc, position, distance);
+        Agent? agent = Navigation.AddAgent(npc, position);
         if (agent == null) {
             return null;
         }
@@ -388,6 +388,15 @@ public partial class FieldManager {
         return true;
     }
 
+    public bool RemoveItem(int objectId) {
+        if (!fieldItems.TryRemove(objectId, out _)) {
+            return false;
+        }
+
+        Broadcast(FieldPacket.RemoveItem(objectId));
+        return true;
+    }
+
     public bool RemoveLiftable(string entityId) {
         if (!fieldLiftables.TryRemove(entityId, out FieldLiftable? fieldLiftable)) {
             return false;
@@ -398,25 +407,29 @@ public partial class FieldManager {
         return true;
     }
 
-    public bool RemoveNpc(int objectId) {
+    public bool RemoveNpc(int objectId, int removeDelay = 0) {
         if (!Mobs.TryRemove(objectId, out FieldNpc? npc) && !Npcs.TryRemove(objectId, out npc)) {
             return false;
         }
 
-        Navigation.RemoveAgent(npc.Agent);
-        Broadcast(FieldPacket.RemoveNpc(objectId));
-        Broadcast(ProxyObjectPacket.RemoveNpc(objectId));
+        Scheduler.Schedule(() => {
+            Broadcast(FieldPacket.RemoveNpc(objectId));
+            Broadcast(ProxyObjectPacket.RemoveNpc(objectId));
+            npc.Dispose();
+        }, removeDelay);
         return true;
     }
 
-    public bool RemovePet(int objectId) {
+    public bool RemovePet(int objectId, int removeDelay = 0) {
         if (!Pets.TryRemove(objectId, out FieldPet? pet)) {
             return false;
         }
 
-        Navigation.RemoveAgent(pet.Agent);
-        Broadcast(FieldPacket.RemovePet(objectId));
-        Broadcast(ProxyObjectPacket.RemovePet(objectId));
+        Scheduler.Schedule(() => {
+            Broadcast(FieldPacket.RemovePet(objectId));
+            Broadcast(ProxyObjectPacket.RemovePet(objectId));
+            pet.Dispose();
+        }, removeDelay);
         return true;
     }
     #endregion

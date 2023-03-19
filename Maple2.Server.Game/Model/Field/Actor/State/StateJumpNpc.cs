@@ -9,8 +9,8 @@ public sealed class StateJumpNpc : NpcState {
     public readonly bool IsAbsolute;
     public readonly Vector3 StartPosition;
     public readonly Vector3 EndPosition;
-    public readonly float Duration;
-    public readonly float Height;
+    public readonly float Angle;
+    public readonly float Scale;
 
     public override ActorSubState SubState {
         get => base.SubState;
@@ -23,15 +23,15 @@ public sealed class StateJumpNpc : NpcState {
         }
     }
 
-    public StateJumpNpc(in Vector3 startPosition, in Vector3 endPosition, float duration, float height) {
+    public StateJumpNpc(in Vector3 startPosition, in Vector3 endPosition, float angle, float scale) {
         State = ActorState.Jump;
         SubState = ActorSubState.Jump_Jump; // Not sure, seems to be None
 
         IsAbsolute = true;
         StartPosition = startPosition;
         EndPosition = endPosition;
-        Duration = duration;
-        Height = height;
+        Angle = angle;
+        Scale = scale;
     }
 
     public StateJumpNpc(in Vector3 endPosition) {
@@ -39,8 +39,8 @@ public sealed class StateJumpNpc : NpcState {
         SubState = ActorSubState.Jump_Jump; // Not sure, seems to be None
 
         EndPosition = endPosition;
-        Duration = 1f;
-        Height = 0.45f;
+        Angle = 0.45f;
+        Scale = 1f;
     }
 
     public override void WriteTo(IByteWriter writer) {
@@ -48,8 +48,8 @@ public sealed class StateJumpNpc : NpcState {
         if (IsAbsolute) {
             writer.Write<Vector3>(StartPosition);
             writer.Write<Vector3>(EndPosition);
-            writer.WriteFloat(Duration);
-            writer.WriteFloat(Height);
+            writer.WriteFloat(Angle);
+            writer.WriteFloat(Scale);
         } else {
             writer.Write<Vector3>(EndPosition);
         }

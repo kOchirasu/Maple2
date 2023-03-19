@@ -3,7 +3,6 @@ using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
-using Buddy = Maple2.Model.Game.Buddy;
 
 namespace Maple2.Database.Storage;
 

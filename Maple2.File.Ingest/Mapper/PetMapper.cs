@@ -1,10 +1,6 @@
-﻿using System.Diagnostics;
-using System.Xml;
-using System.Xml.Serialization;
-using Maple2.File.IO;
+﻿using Maple2.File.IO;
 using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.Pet;
-using Maple2.File.Parser.Xml.String;
 using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Metadata;
 
@@ -12,26 +8,21 @@ namespace Maple2.File.Ingest.Mapper;
 
 public class PetMapper : TypeMapper<PetMetadata> {
     private readonly PetParser parser;
-    private readonly Dictionary<int, string> petNames;
 
     public PetMapper(M2dReader xmlReader) {
         parser = new PetParser(xmlReader);
-
-        // TODO: This should be handled by Maple2.File
-        var nameSerializer = new XmlSerializer(typeof(StringMapping));
-        XmlReader reader = xmlReader.GetXmlReader(xmlReader.GetEntry("en/petname.xml"));
-        var mapping = nameSerializer.Deserialize(reader) as StringMapping;
-        Debug.Assert(mapping != null);
-
-        petNames = mapping.key.ToDictionary(key => int.Parse(key.id), key => key.name);
     }
 
     protected override IEnumerable<PetMetadata> Map() {
-        Dictionary<int, PetData> datas = parser.Parse()
-            .ToDictionary(entry => entry.Id, entry => entry.data);
+        var petNames = new Dictionary<int, string>();
+        var petData = new Dictionary<int, PetData>();
+        foreach ((int id, string name, PetData data) in parser.Parse()) {
+            petNames[id] = name;
+            petData[id] = data;
+        }
 
         foreach (PetProperty property in parser.ParseProperty()) {
-            if (!datas.TryGetValue(property.code, out PetData? data)) {
+            if (!petData.TryGetValue(property.code, out PetData? data)) {
                 // Defaults
                 data = new PetData {
                     code = property.code,

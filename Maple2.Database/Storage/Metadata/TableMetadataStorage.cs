@@ -6,6 +6,7 @@ namespace Maple2.Database.Storage;
 
 public class TableMetadataStorage {
     private readonly Lazy<ChatStickerTable> chatStickerTable;
+    private readonly Lazy<DefaultItemsTable> defaultItemsTable;
     private readonly Lazy<ItemBreakTable> itemBreakTable;
     private readonly Lazy<ItemExtractionTable> itemExtractionTable;
     private readonly Lazy<GemstoneUpgradeTable> gemstoneUpgradeTable;
@@ -43,6 +44,7 @@ public class TableMetadataStorage {
     private readonly Lazy<ItemEquipVariationTable> weaponVariationTable;
 
     public ChatStickerTable ChatStickerTable => chatStickerTable.Value;
+    public DefaultItemsTable DefaultItemsTable => defaultItemsTable.Value;
     public ItemBreakTable ItemBreakTable => itemBreakTable.Value;
     public ItemExtractionTable ItemExtractionTable => itemExtractionTable.Value;
     public GemstoneUpgradeTable GemstoneUpgradeTable => gemstoneUpgradeTable.Value;
@@ -81,6 +83,7 @@ public class TableMetadataStorage {
 
     public TableMetadataStorage(MetadataContext context) {
         chatStickerTable = Retrieve<ChatStickerTable>(context, "chatemoticon.xml");
+        defaultItemsTable = Retrieve<DefaultItemsTable>(context, "defaultitems.xml");
         itemBreakTable = Retrieve<ItemBreakTable>(context, "itembreakingredient.xml");
         itemExtractionTable = Retrieve<ItemExtractionTable>(context, "itemextraction.xml");
         gemstoneUpgradeTable = Retrieve<GemstoneUpgradeTable>(context, "itemgemstoneupgrade.xml");

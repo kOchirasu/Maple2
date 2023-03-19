@@ -17,13 +17,13 @@ public class FieldSkill : FieldEntity<SkillMetadata> {
     public IActor Caster { get; init; }
     public int Interval { get; }
     public int FireCount { get; private set; }
-    public bool Enabled => FireCount < 0 || NextTick <= endTick || Environment.TickCount <= endTick;
+    public bool Enabled => FireCount < 0 || NextTick <= endTick || Environment.TickCount64 <= endTick;
     public bool Active { get; private set; } = true;
 
     public readonly Vector3[] Points;
     public readonly bool UseDirection;
-    private readonly int endTick;
-    public int NextTick { get; private set; }
+    private readonly long endTick;
+    public long NextTick { get; private set; }
 
     private readonly ILogger logger = Log.ForContext<FieldSkill>();
 
@@ -33,7 +33,7 @@ public class FieldSkill : FieldEntity<SkillMetadata> {
         Points = points;
         Interval = interval;
         FireCount = -1;
-        NextTick = Environment.TickCount + interval;
+        NextTick = Environment.TickCount64 + interval;
     }
 
     public FieldSkill(FieldManager field, int objectId, IActor caster,
@@ -44,7 +44,7 @@ public class FieldSkill : FieldEntity<SkillMetadata> {
         FireCount = fireCount;
         UseDirection = splash.UseDirection;
 
-        int baseTick = Environment.TickCount;
+        long baseTick = Environment.TickCount64;
         if (splash.ImmediateActive) {
             NextTick = baseTick;
             endTick = baseTick + splash.RemoveDelay + (FireCount - 1) * splash.Interval;
@@ -58,13 +58,13 @@ public class FieldSkill : FieldEntity<SkillMetadata> {
         }
     }
 
-    public override void Sync() {
+    public override void Update(long tickCount) {
         if (!Enabled) {
             Field.RemoveSkill(ObjectId);
             return;
         }
 
-        if (Environment.TickCount < NextTick) {
+        if (tickCount < NextTick) {
             return;
         }
 
@@ -80,7 +80,7 @@ public class FieldSkill : FieldEntity<SkillMetadata> {
                 }
             }
 
-            NextTick = Environment.TickCount + Interval;
+            NextTick = Environment.TickCount64 + Interval;
             return;
         }
 

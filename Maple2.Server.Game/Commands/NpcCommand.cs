@@ -37,14 +37,14 @@ public class NpcCommand : Command {
 
             Vector3 position = session.Player.Position;
             Vector3 rotation = session.Player.Rotation;
-            FieldNpc? fieldNpc = session.Field.SpawnNpc(metadata, position, rotation, Constant.BlockSize);
+            FieldNpc? fieldNpc = session.Field.SpawnNpc(metadata, position, rotation);
             if (fieldNpc == null) {
                 ctx.Console.Error.WriteLine($"Failed to spawn npc: {npcId}");
                 return;
             }
             session.Field.Broadcast(FieldPacket.AddNpc(fieldNpc));
             session.Field.Broadcast(ProxyObjectPacket.AddNpc(fieldNpc));
-            fieldNpc.Sync();
+            fieldNpc.Update(Environment.TickCount64);
 
             ctx.ExitCode = 0;
         } catch (SystemException ex) {

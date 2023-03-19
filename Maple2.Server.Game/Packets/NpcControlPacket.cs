@@ -27,44 +27,11 @@ public static class NpcControlPacket {
         return pWriter;
     }
 
-    public static ByteWriter ControlPet(params FieldPet[] pets) {
-        var pWriter = Packet.Of(SendOp.NpcControl);
-        pWriter.WriteShort((short) pets.Length);
-
-        foreach (FieldPet pet in pets) {
-            using var buffer = new PoolByteWriter();
-            buffer.PetBuffer(pet);
-            pWriter.WriteShort((short) buffer.Length);
-            pWriter.WriteBytes(buffer.ToArray());
-        }
-
-        return pWriter;
-    }
-
-    // TODO: Might be able to merge this with NpcBuffer
-    private static void PetBuffer(this PoolByteWriter buffer, FieldPet pet, float sequenceSpeed = 1f) {
-        buffer.WriteInt(pet.ObjectId);
-        buffer.WriteByte(); // Flags bit-1, bit-2
-        buffer.Write<Vector3S>(pet.Position);
-        buffer.WriteShort((short) (pet.Rotation.Z * 10));
-        buffer.Write<Vector3S>(pet.Velocity.Rotate(pet.Rotation));
-        buffer.WriteShort((short) (sequenceSpeed * 100));
-
-        if (pet.Value.IsBoss) {
-            buffer.WriteInt(pet.TargetId);
-        }
-
-        buffer.Write<ActorState>(pet.State);
-        buffer.WriteShort(pet.SequenceId);
-        buffer.WriteShort(pet.SequenceCounter);
-
-        // Set -1 to continue previous animation
-        pet.SequenceId = -1;
-    }
-
     private static void NpcBuffer(this PoolByteWriter buffer, FieldNpc npc, float sequenceSpeed = 1f) {
         buffer.WriteInt(npc.ObjectId);
-        buffer.WriteByte(2); // Flags bit-1 (AdditionalEffectRelated), bit-2 (UIHpBarRelated)
+        // Flags bit-1 (AdditionalEffectRelated), bit-2 (UIHpBarRelated)
+        buffer.WriteByte(2);
+
         buffer.Write<Vector3S>(npc.Position);
         buffer.WriteShort((short) (npc.Rotation.Z * 10));
         buffer.Write<Vector3S>(npc.Velocity.Rotate(npc.Rotation));
@@ -74,16 +41,16 @@ public static class NpcControlPacket {
             buffer.WriteInt(npc.TargetId); // ObjectId of Player being targeted?
         }
 
-        buffer.Write<ActorState>(npc.State);
+        buffer.Write<ActorState>(npc.State.State);
         buffer.WriteShort(npc.SequenceId);
         buffer.WriteShort(npc.SequenceCounter);
 
         // Animation (-2 = Jump_A, -3 = Jump_B)
-        if (npc.SequenceId is ANI_JUMP_A or ANI_JUMP_B && npc.StateData is StateJumpNpc jump) {
+        if (npc.SequenceId is ANI_JUMP_A or ANI_JUMP_B && npc.State is StateJumpNpc jump) {
             buffer.WriteClass<StateJumpNpc>(jump);
         }
 
-        switch (npc.StateData) {
+        switch (npc.State) {
             case StateHitNpc hit:
                 buffer.WriteClass<StateHitNpc>(hit);
                 break;

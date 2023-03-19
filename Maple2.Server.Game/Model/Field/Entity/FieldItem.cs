@@ -1,4 +1,5 @@
-﻿using Maple2.Model;
+﻿using System;
+using Maple2.Model;
 using Maple2.Model.Game;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Packets;
@@ -8,7 +9,11 @@ namespace Maple2.Server.Game.Model;
 public class FieldItem : FieldEntity<Item> {
     public IActor? Owner { get; init; }
 
-    public FieldItem(FieldManager field, int objectId, Item value) : base(field, objectId, value) { }
+    private readonly long despawnTick;
+
+    public FieldItem(FieldManager field, int objectId, Item value) : base(field, objectId, value) {
+        despawnTick = Environment.TickCount64 + (int) TimeSpan.FromMinutes(2).TotalSeconds;
+    }
 
     public void Pickup(FieldPlayer looter) {
         if (Value.IsMeso()) {
@@ -20,7 +25,9 @@ public class FieldItem : FieldEntity<Item> {
         }
     }
 
-    public override void Sync() {
-        // TODO: Despawn item
+    public override void Update(long tickCount) {
+        if (tickCount > despawnTick) {
+            Field.RemoveItem(ObjectId);
+        }
     }
 }

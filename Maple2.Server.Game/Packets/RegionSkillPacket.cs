@@ -17,7 +17,7 @@ public static class RegionSkillPacket {
         pWriter.Write<Command>(Command.Add);
         pWriter.WriteInt(fieldSkill.ObjectId);
         pWriter.WriteInt(fieldSkill.Caster.ObjectId);
-        pWriter.WriteInt(fieldSkill.NextTick);
+        pWriter.WriteInt((int) fieldSkill.NextTick);
         pWriter.WriteByte((byte) fieldSkill.Points.Length);
         foreach (Vector3 point in fieldSkill.Points) {
             pWriter.Write<Vector3>(point);

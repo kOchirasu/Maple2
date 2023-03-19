@@ -70,12 +70,7 @@ public sealed class FieldPet : FieldNpc {
         damage.Targets.Add(targetRecord);
     }
 
-    protected override ByteWriter Control() {
-        SequenceCounter++; // Not sure if this even matters
-        return NpcControlPacket.ControlPet(this);
-    }
-
-    protected override void Remove() => Field.RemovePet(ObjectId);
+    protected override void Remove(int delay) => Field.RemovePet(ObjectId, delay);
 
     public void UpdateSkin(int skinId) {
         SkinId = skinId > 0 ? skinId : Value.Id;
