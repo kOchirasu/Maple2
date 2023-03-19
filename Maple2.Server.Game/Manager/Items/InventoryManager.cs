@@ -183,7 +183,7 @@ public class InventoryManager {
                 using GameStorage.Request db = session.GameStorage.Context();
                 db.SaveItems(session.CharacterId, add);
             }
-            
+
             foreach ((Item item, int added) in result) {
                 session.Send(item.Uid == add.Uid
                     ? ItemInventoryPacket.Add(add)
