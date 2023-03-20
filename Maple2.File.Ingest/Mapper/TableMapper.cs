@@ -1013,21 +1013,21 @@ public class TableMapper : TypeMapper<TableMetadata> {
     
     private IndividualItemDropTable ParseIndividualItemDropTable() {
         var results = new Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>>();
-        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDrop());
-        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDropCharge());
-        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDropEvent());
-        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDropGacha());
-        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDropPet());
-        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemGearBox());
-        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDropEventNpc());
-        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDropNewGacha());
-        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDropQuestMob());
-        results = GetIndividualItemDropTable(results, parser.ParseIndividualItemDropQuestObj());
+        results = MergeIndividualItemDropTable(results, parser.ParseIndividualItemDrop());
+        results = MergeIndividualItemDropTable(results, parser.ParseIndividualItemDropCharge());
+        results = MergeIndividualItemDropTable(results, parser.ParseIndividualItemDropEvent());
+        results = MergeIndividualItemDropTable(results, parser.ParseIndividualItemDropGacha());
+        results = MergeIndividualItemDropTable(results, parser.ParseIndividualItemDropPet());
+        results = MergeIndividualItemDropTable(results, parser.ParseIndividualItemGearBox());
+        results = MergeIndividualItemDropTable(results, parser.ParseIndividualItemDropEventNpc());
+        results = MergeIndividualItemDropTable(results, parser.ParseIndividualItemDropNewGacha());
+        results = MergeIndividualItemDropTable(results, parser.ParseIndividualItemDropQuestMob());
+        results = MergeIndividualItemDropTable(results, parser.ParseIndividualItemDropQuestObj());
 
         return new IndividualItemDropTable(results);
     }
     
-    private Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>> GetIndividualItemDropTable(Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>> results, IEnumerable<(int Id, IDictionary<byte,List<IndividualItemDrop>>)> parser) {
+    private Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>> MergeIndividualItemDropTable(Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>> results, IEnumerable<(int Id, IDictionary<byte,List<IndividualItemDrop>>)> parser) {
         foreach ((int id,  IDictionary<byte,List<IndividualItemDrop>> dict) in parser) {
             foreach ((byte dropGroup, List<IndividualItemDrop> drops) in dict) {
                 foreach (IndividualItemDrop drop in drops) {
@@ -1046,7 +1046,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
                     }
 
                     var entry = new IndividualItemDropTable.Entry(
-                        ItemIds: itemIds,
+                        ItemIds: itemIds.ToArray(),
                         SmartGender: drop.isApplySmartGenderDrop,
                         SmartDropRate: drop.smartDropRate,
                         Rarity: drop.PackageUIShowGrade,

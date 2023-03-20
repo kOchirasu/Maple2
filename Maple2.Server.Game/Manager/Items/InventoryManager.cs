@@ -148,7 +148,7 @@ public class InventoryManager {
         }
     }
 
-    public bool Add(Item add, bool notifyNew = false, bool commit = false) {
+    public bool Add(Item add, bool notifyNew = false, bool mailIfFull = false, bool commit = false) {
         lock (session.Item) {
             if (!tabs.TryGetValue(add.Inventory, out ItemCollection? items)) {
                 session.Send(ItemInventoryPacket.Error(s_item_err_not_active_tab));
@@ -173,6 +173,9 @@ public class InventoryManager {
 
             IList<(Item, int Added)> result = items.Add(add, true);
             if (result.Count == 0) {
+                if (mailIfFull) {
+                    MailItem(add);
+                }
                 session.Send(ItemInventoryPacket.Error(s_err_inventory));
                 return false;
             }
@@ -273,7 +276,7 @@ public class InventoryManager {
                 ingredient => session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList()
             );
             var materialsByTag = new Dictionary<ItemTag, IList<Item>>();
-            foreach(ItemComponent ingredient in components) {
+            foreach (ItemComponent ingredient in components) {
                 if (materialsByTag.TryGetValue(ingredient.Tag, out IList<Item>? value)) {
                     value.AddRange(session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList());
                 } else {
@@ -336,6 +339,35 @@ public class InventoryManager {
             }
         }
         return true;
+    }
+
+    private void MailItem(Item item) {
+        lock (session.Item) {
+            var mail = new Mail {
+                Type = MailType.System,
+                ReceiverId = session.CharacterId,
+                Content = "50000000", // id from string/en/systemmailcontentna.xml
+            };
+
+            using GameStorage.Request db = session.GameStorage.Context();
+            mail = db.CreateMail(mail);
+            if (mail == null) {
+                throw new InvalidOperationException($"Failed to create mail for character id: {session.CharacterId}");
+            }
+
+            if (!db.SaveItems(mail.Id, item)) {
+                throw new InvalidOperationException($"Failed to owner id to mail: {session.CharacterId}");
+            }
+
+            mail.Items.Add(item);
+
+            try {
+                session.World.MailNotification(new MailNotificationRequest {
+                    CharacterId = session.CharacterId,
+                    MailId = mail.Id,
+                });
+            } catch { /* ignored */ }
+        }
     }
 
     public void Sort(InventoryType type, bool removeExpired = false) {

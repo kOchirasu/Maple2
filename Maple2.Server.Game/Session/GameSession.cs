@@ -114,10 +114,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Housing = new HousingManager(this);
         Mail = new MailManager(this);
         ItemEnchant = new ItemEnchantManager(this, Lua);
-        ItemBox = new ItemBoxManager(this) {
-            ItemMetadata = ItemMetadata,
-            TableMetadata = TableMetadata,
-        };
+        ItemBox = new ItemBoxManager(this);
         GameEventUserValue = new GameEventUserValueManager(this);
 
         Guild = new GuildManager(this);

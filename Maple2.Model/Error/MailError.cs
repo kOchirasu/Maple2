@@ -6,8 +6,8 @@ namespace Maple2.Model.Error;
 
 public enum MailError : byte {
     none = 0,
-    [Description("Empty {0} spaces in your inventory.")]
-    s_err_job_inventory_full = 1,
+    [Description("Character not found.")]
+    s_mail_error_username = 1,
     [Description("The item amounts do not match.")]
     s_mail_error_attachcount = 2, // also 5
     [Description("This item cannot be sent.")]
@@ -18,8 +18,10 @@ public enum MailError : byte {
     s_mail_error_alreadyread = 16,
     [Description("The attached item on this mail has already been retrieved.")]
     s_mail_error_already_receive = 17, // also 21
-    [Description("The item amounts do not match.")]
-    s_mail_error_attachcount_effect17 = 20, // + effect(17)
+    [Description("The item cannot be retrieved because your inventory is full.")]
+    s_mail_error_receiveitem_to_inven = 20,
+    [Description("The item cannot be retrieved because the mail has expired.")]
+    s_mail_error_receive_expired = 21,
     [Description("The item amounts do not match.")]
     s_mail_error_attachcount_effect18 = 22, // + effect(18)
     [Description("The sale has ended.")]

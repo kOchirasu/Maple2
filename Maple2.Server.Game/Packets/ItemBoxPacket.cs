@@ -7,7 +7,7 @@ namespace Maple2.Server.Game.Packets;
 
 public static class ItemBoxPacket {
 
-    public static ByteWriter Open(int sourceItemId, int amount, ItemBoxError error) {
+    public static ByteWriter Open(int sourceItemId, int amount, ItemBoxError error = ItemBoxError.ok) {
         var pWriter = Packet.Of(SendOp.ItemBox);
         pWriter.WriteInt(sourceItemId);
         pWriter.WriteInt(amount);

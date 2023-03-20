@@ -7,7 +7,7 @@ public record IndividualItemDropTable(
     Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>> Entries): Table {
 
     public record Entry(
-        IList<int> ItemIds,
+        int[] ItemIds,
         bool SmartGender,
         int SmartDropRate,
         int? Rarity,
