@@ -57,7 +57,7 @@ public class ItemBoxManager {
         IndividualItemDropTable.Entry selectedEntry = drops[index];
         for (int startCount = 0; startCount < count; startCount++) {
             if (!session.Item.Inventory.ConsumeItemComponents(new[] {
-                    new ItemComponent(item.Id, -1, itemRequiredAmount, ItemTag.None)
+                    new ItemComponent(item.Id, -1, itemRequiredAmount, ItemTag.None),
                 })) {
                 return ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
             }
@@ -102,7 +102,7 @@ public class ItemBoxManager {
         if (unknownId == 1) {
             for (int startCount = 0; startCount < count; startCount++) {
                 if (!session.Item.Inventory.ConsumeItemComponents(new[] {
-                        new ItemComponent(item.Id, item.Rarity, itemRequiredAmount, ItemTag.None)
+                        new ItemComponent(item.Id, item.Rarity, itemRequiredAmount, ItemTag.None),
                     })) {
                     return ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
                 }
@@ -141,7 +141,7 @@ public class ItemBoxManager {
         IList<IndividualItemDropTable.Entry> drops = session.ItemBox.FilterDrops(dropGroupTable.Values.SelectMany(x => x).ToList());
         for (int startCount = 0; startCount < count; startCount++) {
             if (!session.Item.Inventory.ConsumeItemComponents(new[] {
-                    new ItemComponent(item.Id, item.Rarity, itemRequiredAmount, ItemTag.None)
+                    new ItemComponent(item.Id, item.Rarity, itemRequiredAmount, ItemTag.None),
                 })) {
                 return ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
             }
@@ -238,7 +238,7 @@ public class ItemBoxManager {
         for (int startCount = 0; startCount < count; startCount++) {
             // assumes itemBoxParams[1] is another globalDropBoxId utilized
             if (!session.Item.Inventory.ConsumeItemComponents(new[] {
-                    new ItemComponent(item.Id, item.Rarity, itemRequiredAmount, ItemTag.None)
+                    new ItemComponent(item.Id, item.Rarity, itemRequiredAmount, ItemTag.None),
                 })) {
                 error = ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
             }
