@@ -1027,8 +1027,8 @@ public class TableMapper : TypeMapper<TableMetadata> {
         return new IndividualItemDropTable(results);
     }
     
-    private Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>> MergeIndividualItemDropTable(Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>> results, IEnumerable<(int Id, IDictionary<byte,List<IndividualItemDrop>>)> parser) {
-        foreach ((int id,  IDictionary<byte,List<IndividualItemDrop>> dict) in parser) {
+    private Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>> MergeIndividualItemDropTable(Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>> results, IEnumerable<(int Id, IDictionary<byte, List<IndividualItemDrop>>)> parser) {
+        foreach ((int id, IDictionary<byte,List<IndividualItemDrop>> dict) in parser) {
             foreach ((byte dropGroup, List<IndividualItemDrop> drops) in dict) {
                 foreach (IndividualItemDrop drop in drops) {
                     var itemIds = new List<int> {
