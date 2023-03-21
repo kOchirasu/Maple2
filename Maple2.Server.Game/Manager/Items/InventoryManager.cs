@@ -147,10 +147,14 @@ public class InventoryManager {
         }
     }
 
-    public bool Add(Item add, bool notifyNew = false, bool mailIfFull = false, bool commit = false) {
+    public bool Add(Item add, bool notifyNew = false, bool commit = false) {
         lock (session.Item) {
             if (!tabs.TryGetValue(add.Inventory, out ItemCollection? items)) {
                 session.Send(ItemInventoryPacket.Error(s_item_err_not_active_tab));
+                return false;
+            }
+
+            if (!CanAdd(add)) {
                 return false;
             }
 
@@ -158,23 +162,16 @@ public class InventoryManager {
             if (add.Uid == 0) {
                 // Slot MUST be -1 so we don't add directly to a slot.
                 add.Slot = -1;
-                int remainStack = items.GetStackResult(add);
-                if (remainStack > 0) {
-                    using GameStorage.Request db = session.GameStorage.Context();
-                    Item? newAdd = db.CreateItem(session.CharacterId, add);
-                    if (newAdd == null) {
-                        return false;
-                    }
-
-                    add = newAdd;
-                }
+                using GameStorage.Request db = session.GameStorage.Context(); 
+                Item? newAdd = db.CreateItem(session.CharacterId, add); 
+                if (newAdd == null) { 
+                    return false; 
+                } 
+                add = newAdd;
             }
 
             IList<(Item, int Added)> result = items.Add(add, true);
             if (result.Count == 0) {
-                if (mailIfFull) {
-                    MailItem(add);
-                }
                 session.Send(ItemInventoryPacket.Error(s_err_inventory));
                 return false;
             }
@@ -342,22 +339,27 @@ public class InventoryManager {
         return true;
     }
 
-    private void MailItem(Item item) {
+    public bool MailItem(Item item) {
         lock (session.Item) {
+            using GameStorage.Request db = session.GameStorage.Context();
             var mail = new Mail {
                 Type = MailType.System,
                 ReceiverId = session.CharacterId,
                 Content = "50000000", // id from string/en/systemmailcontentna.xml
             };
 
-            using GameStorage.Request db = session.GameStorage.Context();
             mail = db.CreateMail(mail);
             if (mail == null) {
                 throw new InvalidOperationException($"Failed to create mail for character id: {session.CharacterId}");
             }
 
-            if (!db.SaveItems(mail.Id, item)) {
-                throw new InvalidOperationException($"Failed to owner id to mail: {session.CharacterId}");
+            if (item.Uid == 0) {
+                item.Slot = -1;
+                Item? newAdd = db.CreateItem(mail.Id, item);
+                if (newAdd == null) {
+                    return false;
+                }
+                item = newAdd;
             }
 
             mail.Items.Add(item);
@@ -369,6 +371,7 @@ public class InventoryManager {
                 });
             } catch { /* ignored */ }
         }
+        return true;
     }
 
     public void Sort(InventoryType type, bool removeExpired = false) {

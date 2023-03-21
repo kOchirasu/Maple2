@@ -163,14 +163,18 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
             BlueMarbleEntry entry1 = blueMarble.Entries.FirstOrDefault(entry => entry.TripAmount == 0);
             if (entry1 != default && ItemMetadata.TryGet(entry1.Item.ItemId, out ItemMetadata? trip0Metadata)) {
                 var trip0Item = new Item(trip0Metadata, entry1.Item.ItemRarity, entry1.Item.ItemAmount);
-                session.Item.Inventory.Add(trip0Item, true, true);
+                if (!session.Item.Inventory.Add(trip0Item, true)) {
+                    session.Item.Inventory.MailItem(trip0Item);
+                }
             }
 
             // Check if there's any other item to give for hitting a specific number of trips
             BlueMarbleEntry entry2 = blueMarble.Entries.FirstOrDefault(entry => entry.TripAmount == trips);
             if (entry2 != default && ItemMetadata.TryGet(entry2.Item.ItemId, out ItemMetadata? tripMetadata)) {
                 var tripItem = new Item(tripMetadata, entry2.Item.ItemRarity, entry2.Item.ItemAmount);
-                session.Item.Inventory.Add(tripItem, true, true);
+                if (!session.Item.Inventory.Add(tripItem, true)) {
+                    session.Item.Inventory.MailItem(tripItem);
+                }
             }
         }
 

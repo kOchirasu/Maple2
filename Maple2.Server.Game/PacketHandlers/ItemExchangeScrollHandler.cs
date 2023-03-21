@@ -90,7 +90,9 @@ public class ItemExchangeScroll : PacketHandler<GameSession> {
         }
             
         var rewardItem = new Item(itemMetadata, scrollMetadata.RewardItem.Rarity, scrollMetadata.RewardItem.Amount * quantity);
-        session.Item.Inventory.Add(rewardItem, true, true);
+        if (!session.Item.Inventory.Add(rewardItem, true)) {
+            session.Item.Inventory.MailItem(rewardItem);
+        }
         session.Send(ItemExchangeScrollPacket.Error(ItemExchangeScrollError.s_itemslot_exchange_ok));
     }
 }
