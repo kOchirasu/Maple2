@@ -17,16 +17,15 @@ public class ItemBoxHandler : PacketHandler<GameSession> {
         int itemId = packet.ReadInt();
         short unk = packet.ReadShort();
         int count = packet.ReadInt();
-        short unk2 = packet.ReadShort(); // is 1 on select item box, 0 on open item box
-        int index = 0;
+        if (!int.TryParse(packet.ReadUnicodeString(), out int index)) {
+            return;
+        }
+
         Item? item = session.Item.Inventory.Find(itemId).FirstOrDefault();
         if (item == null) {
             return;
         }
-        
-        if (item.Metadata.Function?.Type == ItemFunction.SelectItemBox) {
-            index = packet.ReadShort() - 48;
-        }
+
         ItemBoxError error = session.ItemBox.Open(item, count, index);
         session.Send(ItemBoxPacket.Open(itemId, session.ItemBox.BoxCount, error));
         session.ItemBox.Reset();
