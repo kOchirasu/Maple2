@@ -329,8 +329,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
     }
     
     private static void HandleSelectItemBox(GameSession session, IByteReader packet, Item item) {
-        short unknown = packet.ReadShort();
-        int index = packet.ReadShort() - 48;
+        if (!int.TryParse(packet.ReadUnicodeString(), out int index)) {
+            return;
+        }
         session.ItemBox.Open(item, index: index);
         session.ItemBox.Reset();
     }
