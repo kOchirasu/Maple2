@@ -159,16 +159,19 @@ public class InventoryManager {
                 // Slot MUST be -1 so we don't add directly to a slot.
                 add.Slot = -1;
                 int remainStack = items.GetStackResult(add);
-                if (remainStack == 0 && items.OpenSlots == 0) {
-                    return false;
-                }
+                if (remainStack > 0) {
+                    if (items.OpenSlots <= 0) {
+                        return false;
+                    }
 
-                using GameStorage.Request db = session.GameStorage.Context(); 
-                Item? newAdd = db.CreateItem(session.CharacterId, add); 
-                if (newAdd == null) { 
-                    return false; 
-                } 
-                add = newAdd;
+                    using GameStorage.Request db = session.GameStorage.Context();
+                    Item? newAdd = db.CreateItem(session.CharacterId, add);
+                    if (newAdd == null) {
+                        return false;
+                    }
+
+                    add = newAdd;
+                }
             }
 
             IList<(Item, int Added)> result = items.Add(add, true);
