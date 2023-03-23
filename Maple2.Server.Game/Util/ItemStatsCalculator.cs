@@ -26,7 +26,7 @@ public sealed class ItemStatsCalculator {
         }
 
         var stats = new ItemStats();
-        int job = (int) item.Metadata.Limit.Jobs.FirstOrDefault(JobCode.Newbie);
+        int job = (int) item.Metadata.Limit.JobLimits.FirstOrDefault(JobCode.Newbie);
         int levelFactor = item.Metadata.Option.LevelFactor;
         ushort level = (ushort) item.Metadata.Limit.Level;
 

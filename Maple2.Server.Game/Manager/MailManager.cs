@@ -161,7 +161,7 @@ public sealed class MailManager {
             int freeSlots = session.Item.Inventory.FreeSlots(group.Key);
 
             if (requireSlots > freeSlots) {
-                return MailError.s_err_job_inventory_full;
+                return MailError.s_mail_error_receiveitem_to_inven;
             }
         }
 

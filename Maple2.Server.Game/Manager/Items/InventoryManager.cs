@@ -160,6 +160,10 @@ public class InventoryManager {
                 add.Slot = -1;
                 int remainStack = items.GetStackResult(add);
                 if (remainStack > 0) {
+                    if (items.OpenSlots <= 0) {
+                        return false;
+                    }
+
                     using GameStorage.Request db = session.GameStorage.Context();
                     Item? newAdd = db.CreateItem(session.CharacterId, add);
                     if (newAdd == null) {
@@ -271,11 +275,17 @@ public class InventoryManager {
                 ingredient => ingredient.ItemId,
                 ingredient => session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList()
             );
-            Dictionary<ItemTag, IList<Item>> materialsByTag = components.ToDictionary(
-                ingredient => ingredient.Tag,
-                ingredient => session.Item.Inventory.Filter(item => item.Metadata.Property.Tag == ingredient.Tag)
-            );
-            
+            var materialsByTag = new Dictionary<ItemTag, IList<Item>>();
+            foreach (ItemComponent ingredient in components) {
+                if (materialsByTag.TryGetValue(ingredient.Tag, out IList<Item>? value)) {
+                    foreach (Item item in session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity)) {
+                        value.Add(item);
+                    }
+                } else {
+                    materialsByTag.Add(ingredient.Tag, session.Item.Inventory.Find(ingredient.ItemId, ingredient.Rarity).ToList());
+                }
+            }
+
             foreach (ItemComponent ingredient in components) {
                 int remaining = ingredient.Amount * quantityMultiplier;
                 if (ingredient.Tag != ItemTag.None) {

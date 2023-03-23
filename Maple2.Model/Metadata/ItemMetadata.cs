@@ -53,7 +53,8 @@ public record ItemMetadataLimit(
     bool RequireVip,
     bool RequireWedding,
     int GlamorForgeCount,
-    JobCode[] Jobs);
+    JobCode[] JobLimits,
+    JobCode[] JobRecommends);
 
 public record ItemMetadataSkill(
     int Id,

@@ -25,6 +25,7 @@ public class TableMetadataStorage {
     private readonly Lazy<ItemSocketTable> itemSocketTable;
     private readonly Lazy<GuildTable> guildTable;
     private readonly Lazy<PremiumClubTable> premiumClubTable;
+    private readonly Lazy<IndividualItemDropTable> individualItemDropTable;
 
     private readonly Lazy<EnchantScrollTable> enchantScrollTable;
     private readonly Lazy<ItemRemakeScrollTable> itemRemakeScrollTable;
@@ -62,6 +63,7 @@ public class TableMetadataStorage {
     public ItemSocketTable ItemSocketTable => itemSocketTable.Value;
     public GuildTable GuildTable => guildTable.Value;
     public PremiumClubTable PremiumClubTable => premiumClubTable.Value;
+    public IndividualItemDropTable IndividualItemDropTable => individualItemDropTable.Value;
 
     public EnchantScrollTable EnchantScrollTable => enchantScrollTable.Value;
     public ItemRemakeScrollTable ItemRemakeScrollTable => itemRemakeScrollTable.Value;
@@ -100,6 +102,7 @@ public class TableMetadataStorage {
         itemSocketTable = Retrieve<ItemSocketTable>(context, "itemsocket.xml");
         guildTable = Retrieve<GuildTable>(context, "guild*.xml");
         premiumClubTable = Retrieve<PremiumClubTable>(context, "vip*.xml");
+        individualItemDropTable = Retrieve<IndividualItemDropTable>(context, "individualitemdrop*.xml");
         enchantScrollTable = Retrieve<EnchantScrollTable>(context, "enchantscroll.xml");
         itemRemakeScrollTable = Retrieve<ItemRemakeScrollTable>(context, "itemremakescroll.xml");
         itemRepackingScrollTable = Retrieve<ItemRepackingScrollTable>(context, "itemrepackingscroll.xml");

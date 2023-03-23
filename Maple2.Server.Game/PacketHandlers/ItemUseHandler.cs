@@ -72,6 +72,13 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             case ItemFunction.VIPCoupon:
                 HandlePremiumClubCoupon(session, item);
                 break;
+            case ItemFunction.SelectItemBox:
+                HandleSelectItemBox(session, packet, item);
+                break;
+            case ItemFunction.OpenItemBox:
+            case ItemFunction.OpenItemBoxWithKey:
+                HandleOpenItemBox(session, item);
+                break;
             default:
                 Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
                 return;
@@ -100,8 +107,8 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         }
 
         long existingTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        if (session.Player.Value.Unlock.StickerSets.ContainsKey(stickerSetId)) {
-            existingTime = session.Player.Value.Unlock.StickerSets[stickerSetId];
+        if (session.Player.Value.Unlock.StickerSets.TryGetValue(stickerSetId, out long set)) {
+            existingTime = set;
             if (existingTime == long.MaxValue) {
                 session.Send(ChatStickerPacket.Error(ChatStickerError.s_msg_chat_emoticon_add_failed_already_exist));
                 return;
@@ -261,7 +268,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         session.Send(NoticePacket.MessageBox(new InterfaceText(StringCode.s_couple_effect_mail_send_partner, receiverInfo.Name)));
     }
 
-    private void HandleExpandCharacterSlot(GameSession session, Item item) {
+    private static void HandleExpandCharacterSlot(GameSession session, Item item) {
         if (session.Player.Value.Account.MaxCharacters >= Constant.ServerMaxCharacters) {
             session.Send(ItemUsePacket.MaxCharacterSlots());
             return;
@@ -307,7 +314,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         session.Send(CharacterListPacket.NameChanged(session.CharacterId, newName));
     }
 
-    private void HandlePremiumClubCoupon(GameSession session, Item item) {
+    private static void HandlePremiumClubCoupon(GameSession session, Item item) {
         Dictionary<string, string> parameters = XmlParseUtil.GetParameters(item.Metadata.Function?.Parameters);
 
         if (!parameters.ContainsKey("period") || !int.TryParse(parameters["period"], out int hours)) {
@@ -319,5 +326,18 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         }
 
         session.Config.UpdatePremiumTime(hours);
+    }
+    
+    private static void HandleSelectItemBox(GameSession session, IByteReader packet, Item item) {
+        if (!int.TryParse(packet.ReadUnicodeString(), out int index)) {
+            return;
+        }
+        session.ItemBox.Open(item, index: index);
+        session.ItemBox.Reset();
+    }
+
+    private static void HandleOpenItemBox(GameSession session, Item item) {
+        session.ItemBox.Open(item);
+        session.ItemBox.Reset();
     }
 }

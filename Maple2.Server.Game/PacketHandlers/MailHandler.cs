@@ -71,7 +71,7 @@ public class MailHandler : PacketHandler<GameSession> {
         using GameStorage.Request db = session.GameStorage.Context();
         long receiverId = db.GetCharacterId(receiverName);
         if (receiverId == default) {
-            session.Send(MailPacket.Error(MailError.s_mail_error_sendmail));
+            session.Send(MailPacket.Error(MailError.s_mail_error_username));
             return;
         }
 

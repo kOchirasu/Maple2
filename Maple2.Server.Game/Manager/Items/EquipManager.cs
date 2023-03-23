@@ -264,7 +264,7 @@ public class EquipManager {
         if (item.IsExpired()) {
             return StringCode.s_item_err_puton_expired;
         }
-        if (item.Metadata.Limit.Jobs.Length > 0 && !item.Metadata.Limit.Jobs.Contains(session.Player.Value.Character.Job.Code())) {
+        if (item.Metadata.Limit.JobLimits.Length > 0 && !item.Metadata.Limit.JobLimits.Contains(session.Player.Value.Character.Job.Code())) {
             return StringCode.s_item_err_puton_job;
         }
         if (item.Binding != null && item.Binding.CharacterId != session.CharacterId) {
