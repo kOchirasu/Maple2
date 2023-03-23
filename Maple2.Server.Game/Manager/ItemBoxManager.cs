@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Maple2.Database.Storage;
 using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
@@ -64,7 +63,7 @@ public class ItemBoxManager {
             IEnumerable<Item> itemList = session.ItemBox.GetItemsFromGroup(selectedEntry);
             foreach (Item newItem in itemList) {
                 if (!session.Item.Inventory.Add(newItem, true)) {
-                    session.Item.Inventory.MailItem(newItem);
+                    session.Item.MailItem(newItem);
                     error = ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
                 }
             }
@@ -109,7 +108,7 @@ public class ItemBoxManager {
                 if (itemId > 0 && session.ItemMetadata.TryGet(itemId, out ItemMetadata? itemMetadata)) {
                     var newItem = new Item(itemMetadata, item.Metadata.Option?.ConstantId ?? 1);
                     if (!session.Item.Inventory.Add(newItem, true)) {
-                        session.Item.Inventory.MailItem(newItem);
+                        session.Item.MailItem(newItem);
                         error = ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
                     }
                 }
@@ -122,7 +121,7 @@ public class ItemBoxManager {
                     IEnumerable<Item> itemList = session.ItemBox.GetItemsFromGroup(selectedEntry);
                     foreach (Item newItem in itemList) {
                         if (!session.Item.Inventory.Add(newItem, true)) {
-                            session.Item.Inventory.MailItem(newItem);
+                            session.Item.MailItem(newItem);
                             error = ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
                         }
                     }
@@ -150,7 +149,7 @@ public class ItemBoxManager {
             if (itemId > 0 && session.ItemMetadata.TryGet(itemId, out ItemMetadata? itemMetadata)) {
                 var newItem = new Item(itemMetadata);
                 if (!session.Item.Inventory.Add(newItem, true)) {
-                    session.Item.Inventory.MailItem(newItem);
+                    session.Item.MailItem(newItem);
                     error = ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
                 }
             }
@@ -158,7 +157,7 @@ public class ItemBoxManager {
                 IEnumerable<Item> itemList = session.ItemBox.GetItemsFromGroup(drop);
                 foreach (Item newItem in itemList) {
                     if (!session.Item.Inventory.Add(newItem, true)) {
-                        session.Item.Inventory.MailItem(newItem);
+                        session.Item.MailItem(newItem);
                         error = ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
                     }
                 }
@@ -251,7 +250,7 @@ public class ItemBoxManager {
             if (itemId > 0 && session.ItemMetadata.TryGet(itemId, out ItemMetadata? itemMetadata)) {
                 var newItem = new Item(itemMetadata);
                 if (!session.Item.Inventory.Add(newItem, true)) {
-                    session.Item.Inventory.MailItem(newItem);
+                    session.Item.MailItem(newItem);
                     error = ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
                 }
                 BoxCount++;

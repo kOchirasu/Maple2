@@ -164,7 +164,7 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
             if (entry1 != default && ItemMetadata.TryGet(entry1.Item.ItemId, out ItemMetadata? trip0Metadata)) {
                 var trip0Item = new Item(trip0Metadata, entry1.Item.ItemRarity, entry1.Item.ItemAmount);
                 if (!session.Item.Inventory.Add(trip0Item, true)) {
-                    session.Item.Inventory.MailItem(trip0Item);
+                    session.Item.MailItem(trip0Item);
                 }
             }
 
@@ -173,7 +173,7 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
             if (entry2 != default && ItemMetadata.TryGet(entry2.Item.ItemId, out ItemMetadata? tripMetadata)) {
                 var tripItem = new Item(tripMetadata, entry2.Item.ItemRarity, entry2.Item.ItemAmount);
                 if (!session.Item.Inventory.Add(tripItem, true)) {
-                    session.Item.Inventory.MailItem(tripItem);
+                    session.Item.MailItem(tripItem);
                 }
             }
         }

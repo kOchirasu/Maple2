@@ -47,6 +47,41 @@ public class ItemManager {
             session.Send(ItemInventoryPacket.UpdateItem(item));
         }
     }
+    
+    public bool MailItem(Item item) {
+        lock (session.Item) {
+            using GameStorage.Request db = session.GameStorage.Context();
+            var mail = new Mail {
+                Type = MailType.System,
+                ReceiverId = session.CharacterId,
+                Content = "50000000", // id from string/en/systemmailcontentna.xml
+            };
+
+            mail = db.CreateMail(mail);
+            if (mail == null) {
+                return false;
+            }
+
+            if (item.Uid == 0) {
+                item.Slot = -1;
+                Item? newAdd = db.CreateItem(mail.Id, item);
+                if (newAdd == null) {
+                    return false;
+                }
+                item = newAdd;
+            }
+
+            mail.Items.Add(item);
+
+            try {
+                session.World.MailNotification(new MailNotificationRequest {
+                    CharacterId = session.CharacterId,
+                    MailId = mail.Id,
+                });
+            } catch { /* ignored */ }
+        }
+        return true;
+    }
 
     public void Save(GameStorage.Request db) {
         Equips.Save(db);

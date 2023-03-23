@@ -154,14 +154,15 @@ public class InventoryManager {
                 return false;
             }
 
-            if (!CanAdd(add)) {
-                return false;
-            }
-
             // If we are adding an item without a Uid, it may need to be created in db.
             if (add.Uid == 0) {
                 // Slot MUST be -1 so we don't add directly to a slot.
                 add.Slot = -1;
+                int remainStack = items.GetStackResult(add);
+                if (remainStack == 0 && items.OpenSlots == 0) {
+                    return false;
+                }
+
                 using GameStorage.Request db = session.GameStorage.Context(); 
                 Item? newAdd = db.CreateItem(session.CharacterId, add); 
                 if (newAdd == null) { 
@@ -335,41 +336,6 @@ public class InventoryManager {
                     }
                 }
             }
-        }
-        return true;
-    }
-
-    public bool MailItem(Item item) {
-        lock (session.Item) {
-            using GameStorage.Request db = session.GameStorage.Context();
-            var mail = new Mail {
-                Type = MailType.System,
-                ReceiverId = session.CharacterId,
-                Content = "50000000", // id from string/en/systemmailcontentna.xml
-            };
-
-            mail = db.CreateMail(mail);
-            if (mail == null) {
-                throw new InvalidOperationException($"Failed to create mail for character id: {session.CharacterId}");
-            }
-
-            if (item.Uid == 0) {
-                item.Slot = -1;
-                Item? newAdd = db.CreateItem(mail.Id, item);
-                if (newAdd == null) {
-                    return false;
-                }
-                item = newAdd;
-            }
-
-            mail.Items.Add(item);
-
-            try {
-                session.World.MailNotification(new MailNotificationRequest {
-                    CharacterId = session.CharacterId,
-                    MailId = mail.Id,
-                });
-            } catch { /* ignored */ }
         }
         return true;
     }
