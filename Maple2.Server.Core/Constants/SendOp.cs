@@ -174,6 +174,7 @@ public enum SendOp : ushort {
     MaidCraftItem = 0x00AB,
     EnterUgcMap = 0x00AC,
     ItemUse = 0x00AD,
+    ItemBox = 0x00AE,
     Cash = 0x00AF,
     MyInfo = 0x00B0,
     //UNKNOWN = 0x00B1, // nullsub

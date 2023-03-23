@@ -74,7 +74,7 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                 Name: data.function.name, // Temp duplicate data makes it easier to read DB
                 Parameters: data.function.parameter);
 
-            bool hasOption = data.option.@static > 0 || data.option.constant > 6 || data.option.random > 0 || data.option.optionID > 0;
+            bool hasOption = data.option.@static > 0 || data.option.constant > 0 || data.option.random > 0 || data.option.optionID > 0;
             int levelFactor = (int) data.option.optionLevelFactor;
             if (FeatureLocaleFilter.FeatureEnabled("HiddenStatAdd01") || FeatureLocaleFilter.FeatureEnabled("HiddenStatAdd03") || FeatureLocaleFilter.FeatureEnabled("HiddenStatAdd04")) {
                 levelFactor = (int) (data.option.globalOptionLevelFactor ?? levelFactor);
@@ -146,7 +146,8 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     RequireVip: data.limit.vip,
                     RequireWedding: data.limit.wedding,
                     GlamorForgeCount: itemExtractionTryCount.GetValueOrDefault(id),
-                    Jobs: data.limit.jobLimit.Select(job => (JobCode) job).ToArray()
+                    JobLimits: data.limit.jobLimit.Select(job => (JobCode) job).ToArray(),
+                    JobRecommends: data.limit.recommendJobs.Select(job => (JobCode) job).ToArray()
                 ),
                 Skill: skill,
                 Function: function,

@@ -110,11 +110,9 @@ public class MasteryHandler : PacketHandler<GameSession> {
                 continue;
             }
             Item item = new(itemMetadata, rewardItem.Rarity, rewardItem.Amount);
-            if (!session.Item.Inventory.CanAdd(item)) {
-                // TODO: Mail to player
-                continue;
+            if (!session.Item.Inventory.Add(item, true)) {
+                session.Item.MailItem(item);
             }
-            session.Item.Inventory.Add(item, true);
         }
         session.Send(MasteryPacket.GetCraftedItem(entry.Type, (ICollection<ItemComponent>) entry.RewardItems));
 

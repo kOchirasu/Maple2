@@ -27,7 +27,7 @@ public enum RecvOp : ushort {
     RequestItemInventory = 0x0017,
     RequestItemStorage = 0x0018,
     RequestItemUse = 0x0019,
-    ItemExtraData = 0x001A,
+    RequestItemBox = 0x001A,
     RequestItemPickup = 0x001C,
     RequestMesoPickup = 0x001D,
     CharacterInfo = 0x001E,

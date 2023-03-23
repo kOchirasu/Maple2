@@ -4,6 +4,7 @@ namespace Maple2.Model.Enum;
 
 // table/jobgroup.xml
 public enum JobCode : short {
+    None = 0,
     Newbie = 1,
     Knight = 10,
     Berserker = 20,
