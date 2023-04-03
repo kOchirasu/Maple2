@@ -1,4 +1,4 @@
-using System;
+using System.Linq;
 using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
@@ -20,21 +20,30 @@ public class TutorialItemHandler : PacketHandler<GameSession>
 
         JobCode jobCode = session.Player.Value.Character.Job.Code();
 
-        Console.WriteLine(jobCode);
-
         if (!jobTable.Entries.TryGetValue(jobCode, out JobTable.Entry? jobMetadata))
         {
             return;
         }
-        
+
         foreach (JobTable.Item tutorialItem in jobMetadata.Tutorial.StartItem)
         {
+            int tutorialItemsCount = session.Item.Inventory.Find(tutorialItem.Id).Count();
+
+            tutorialItemsCount += session.Item.Equips.Gear.Count(x => x.Value.Id == tutorialItem.Id);
+
+            if (tutorialItemsCount >= tutorialItem.Count)
+            {
+                continue;
+            }
+
             if (!session.ItemMetadata.TryGet(tutorialItem.Id, out ItemMetadata? itemMetadata))
             {
                 continue;
             }
-            
-            Item item = new Item(itemMetadata, tutorialItem.Rarity, tutorialItem.Count);
+
+            int countRemaining = tutorialItem.Count - tutorialItemsCount;
+
+            Item item = new(itemMetadata, tutorialItem.Rarity, countRemaining);
             session.Item.Inventory.Add(item, true);
         }
     }
