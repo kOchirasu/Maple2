@@ -267,6 +267,7 @@ public class NpcScriptContext {
     /* TODO: Quests aren't implemented yet :( Finish once they are, I guess.
     public bool QuestState(int questId, int questState) {
         return Session.Quest.Find(questId).State == questState;
+    }
 
     public bool MultiQuestState(List<int> questIds, int questState) {
         foreach (int questId in questIds) {
@@ -274,10 +275,9 @@ public class NpcScriptContext {
                 return true;
             }
         }
-    }
     } */
 
-    public bool CurrentMap(int mapId) {
-        return Session.Field.MapId == mapId;
+    public int CurrentMap() {
+        return Session.Field.MapId;
     }
 }
