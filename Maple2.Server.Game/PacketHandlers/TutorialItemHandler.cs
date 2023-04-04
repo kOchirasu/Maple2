@@ -32,7 +32,7 @@ public class TutorialItemHandler : PacketHandler<GameSession> {
 
             if (!session.ItemMetadata.TryGet(tutorialItem.Id, out var itemMetadata)) continue;
 
-            Item item = new(itemMetadata, tutorialItem.Rarity);
+            var item = new Item(itemMetadata, tutorialItem.Rarity);
             session.Item.Inventory.Add(item, true);
         }
     }
