@@ -25,7 +25,7 @@ public class TutorialItemHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (session.Field != null && jobMetadata.Tutorial.StartField != session.Field.MapId) {
+        if (session.Field == null || jobMetadata.Tutorial.StartField != session.Field.MapId) {
             return;
         }
 
