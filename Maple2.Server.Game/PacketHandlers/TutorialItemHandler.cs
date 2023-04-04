@@ -34,7 +34,9 @@ public class TutorialItemHandler : PacketHandler<GameSession> {
 
             tutorialItemsInInventory += session.Item.Equips.Gear.Count(x => x.Value.Id == tutorialItemGroup.Key);
 
-            if (tutorialItemsInInventory >= tutorialItemGroup.Count()) {
+            int tutorialItemsToSpawn = tutorialItemGroup.Select(item => item.Count).Sum();
+
+            if (tutorialItemsInInventory >= tutorialItemsToSpawn) {
                 continue;
             }
 
@@ -42,8 +44,9 @@ public class TutorialItemHandler : PacketHandler<GameSession> {
                 continue;
             }
 
-            foreach (var tutorialItem in tutorialItemGroup) {
-                session.Item.Inventory.Add(new Item(itemMetadata, tutorialItem.Rarity));
+            while (tutorialItemsInInventory < tutorialItemsToSpawn) {
+                session.Item.Inventory.Add(new Item(itemMetadata));
+                tutorialItemsInInventory++;
             }
         }
     }
