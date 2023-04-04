@@ -278,6 +278,6 @@ public class NpcScriptContext {
     } */
 
     public int CurrentMap() {
-        return Session.Field.MapId;
+        return Session.Field?.MapId ?? 0;
     }
 }
