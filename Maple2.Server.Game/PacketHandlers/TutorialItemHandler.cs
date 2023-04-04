@@ -27,11 +27,13 @@ public class TutorialItemHandler : PacketHandler<GameSession>
 
         foreach (JobTable.Item tutorialItem in jobMetadata.Tutorial.StartItem)
         {
-            int tutorialItemsCount = session.Item.Inventory.Find(tutorialItem.Id).Count();
+            int tutorialItemsInInventory = session.Item.Inventory.Find(tutorialItem.Id).Count();
 
-            tutorialItemsCount += session.Item.Equips.Gear.Count(x => x.Value.Id == tutorialItem.Id);
+            tutorialItemsInInventory += session.Item.Equips.Gear.Count(x => x.Value.Id == tutorialItem.Id);
 
-            if (tutorialItemsCount >= tutorialItem.Count)
+            int tutorialItemsToSpawn = jobMetadata.Tutorial.StartItem.Count(x => x.Id == tutorialItem.Id);
+
+            if (tutorialItemsInInventory >= tutorialItemsToSpawn)
             {
                 continue;
             }
@@ -41,9 +43,7 @@ public class TutorialItemHandler : PacketHandler<GameSession>
                 continue;
             }
 
-            int countRemaining = tutorialItem.Count - tutorialItemsCount;
-
-            Item item = new(itemMetadata, tutorialItem.Rarity, countRemaining);
+            Item item = new(itemMetadata, tutorialItem.Rarity);
             session.Item.Inventory.Add(item, true);
         }
     }
