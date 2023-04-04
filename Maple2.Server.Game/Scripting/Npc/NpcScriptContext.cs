@@ -255,4 +255,29 @@ public class NpcScriptContext {
     public bool HasMesos(long amount) {
         return Session.Currency.Meso >= amount;
     }
+
+    public int Job() {
+        return (int)Session.Player.Value.Character.Job;
+    }
+
+    public int Level() {
+        return Session.Player.Value.Character.Level;
+    }
+
+    /* TODO: Quests aren't implemented yet :( Finish once they are, I guess.
+    public bool QuestState(int questId, int questState) {
+        return Session.Quest.Find(questId).State == questState;
+    }
+
+    public bool MultiQuestState(List<int> questIds, int questState) {
+        foreach (int questId in questIds) {
+            if (Session.Quest.Find(questId).State == questState) {
+                return true;
+            }
+        }
+    } */
+
+    public int CurrentMap() {
+        return Session.Field?.MapId ?? 0;
+    }
 }
