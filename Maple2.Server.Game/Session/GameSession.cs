@@ -22,6 +22,7 @@ using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Manager.Items;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
+using Maple2.Server.Game.Util;
 using Maple2.Server.Game.Util.Sync;
 using Maple2.Server.World.Service;
 using Maple2.Tools.Scheduler;
@@ -55,6 +56,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public required MapMetadataStorage MapMetadata { get; init; }
     public required FieldManager.Factory FieldFactory { private get; init; }
     public required Lua.Lua Lua { private get; init; }
+    public required ItemStatsCalculator ItemStatsCalc { private get; init; }
     public required PlayerInfoStorage PlayerInfo { get; init; }
     // ReSharper restore All
     #endregion
@@ -120,7 +122,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Guild = new GuildManager(this);
         Config = new ConfigManager(db, this);
         Buddy = new BuddyManager(db, this);
-        Item = new ItemManager(db, this);
+        Item = new ItemManager(db, this, ItemStatsCalc);
 
         if (!PrepareField(player.Character.MapId)) {
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));

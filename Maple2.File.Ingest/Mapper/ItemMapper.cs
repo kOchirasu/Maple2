@@ -133,6 +133,10 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     IsFragment: data.property.functionTags == "piece",
                     SetOptionIds: itemSetBonuses.GetValueOrDefault(id)?.ToArray() ?? Array.Empty<int>()
                 ),
+                Customize: new ItemMetadataCustomize(
+                    ColorPalette: data.customize.colorPalette,
+                    DefaultColorIndex: data.customize.defaultColorIndex
+                ),
                 Limit: new ItemMetadataLimit(
                     Gender: (Gender) data.limit.genderLimit,
                     Level: data.limit.levelLimit,
