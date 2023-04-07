@@ -49,40 +49,36 @@ public class ItemManager {
         return item ?? Equips.Outfit.Values.FirstOrDefault(outfit => outfit.Uid == uid);
     }
 
-    public Item CreateItem(ItemMetadata itemMetadata, int rarity = 1, int amount = 1, bool initialize = true) {
-        var item = new Item(itemMetadata, rarity, amount, initialize);
+    public Item CreateItem(ItemMetadata itemMetadata, int rarity = 1, int amount = 1) {
+        var item = new Item(itemMetadata, rarity, amount);
         item.Stats = itemStatsCalc.GetStats(item);
         item.Socket = itemStatsCalc.GetSockets(item);
-        
-        
-        item.Appearance = itemMetadata.SlotNames.FirstOrDefault(EquipSlot.Unknown) switch {
-            EquipSlot.HR => new HairAppearance(GetColor(item)),
-            EquipSlot.FD => new DecalAppearance(GetColor(item)),
-            EquipSlot.CP => new CapAppearance(GetColor(item)),
-            _ => new ItemAppearance(GetColor(item)),
-        };
-        
+
+        if (item.Appearance != null) {
+            item.Appearance.Color = GetColor(item.Metadata.Customize);
+        }
+
         return item;
     }
     
-    private EquipColor GetColor(Item item) {
+    private EquipColor GetColor(ItemMetadataCustomize metadata) {
         // Item has no color
-        if (item.Metadata.Customize.ColorPalette == 0 || 
-            !session.TableMetadata.ColorPaletteTable.Entries.TryGetValue(item.Metadata.Customize.ColorPalette, out Dictionary<int, ColorPaletteTable.Entry>? palette)) {
+        if (metadata.ColorPalette == 0 || 
+            !session.TableMetadata.ColorPaletteTable.Entries.TryGetValue(metadata.ColorPalette, out Dictionary<int, ColorPaletteTable.Entry>? palette)) {
             return default;
         }
         
         // Item has random color
-        if (item.Metadata.Customize.DefaultColorIndex < 0) {
+        if (metadata.DefaultColorIndex < 0) {
             // random entry from palette
             int index = Random.Shared.Next(palette.Count);
             ColorPaletteTable.Entry randomEntry = palette.Values.ElementAt(index);
-            return new EquipColor(randomEntry.Primary, randomEntry.Secondary, randomEntry.Tertiary, item.Metadata.Customize.ColorPalette, index);
+            return new EquipColor(randomEntry.Primary, randomEntry.Secondary, randomEntry.Tertiary, metadata.ColorPalette, index);
         }
         
         // Item has specified color
-        if (palette.TryGetValue(item.Metadata.Customize.DefaultColorIndex, out ColorPaletteTable.Entry? entry)) {
-            return new EquipColor(entry.Primary, entry.Secondary, entry.Tertiary, item.Metadata.Customize.ColorPalette, item.Metadata.Customize.DefaultColorIndex);
+        if (palette.TryGetValue(metadata.DefaultColorIndex, out ColorPaletteTable.Entry? entry)) {
+            return new EquipColor(entry.Primary, entry.Secondary, entry.Tertiary, metadata.ColorPalette, metadata.DefaultColorIndex);
         }
 
         return default;
