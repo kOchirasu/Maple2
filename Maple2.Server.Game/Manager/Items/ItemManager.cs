@@ -49,7 +49,11 @@ public class ItemManager {
         return item ?? Equips.Outfit.Values.FirstOrDefault(outfit => outfit.Uid == uid);
     }
 
-    public Item CreateItem(ItemMetadata itemMetadata, int rarity = 1, int amount = 1) {
+    public Item? CreateItem(int itemId, int rarity = 1, int amount = 1) {
+        if (!session.ItemMetadata.TryGet(itemId, out ItemMetadata? itemMetadata)) {
+            return null;
+        }
+
         var item = new Item(itemMetadata, rarity, amount);
         item.Stats = itemStatsCalc.GetStats(item);
         item.Socket = itemStatsCalc.GetSockets(item);

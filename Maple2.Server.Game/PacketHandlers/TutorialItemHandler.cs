@@ -40,12 +40,13 @@ public class TutorialItemHandler : PacketHandler<GameSession> {
                 continue;
             }
 
-            if (!session.ItemMetadata.TryGet(tutorialItemGroup.Key, out var itemMetadata)) {
+            Item? tutorialItem = session.Item.CreateItem(tutorialItemGroup.Key);
+            if (tutorialItem == null) {
                 continue;
             }
 
             while (tutorialItemsInInventory < tutorialItemsToSpawn) {
-                session.Item.Inventory.Add(session.Item.CreateItem(itemMetadata));
+                session.Item.Inventory.Add(tutorialItem, true);
                 tutorialItemsInInventory++;
             }
         }

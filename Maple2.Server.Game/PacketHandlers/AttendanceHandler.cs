@@ -94,6 +94,11 @@ public class AttendanceHandler : PacketHandler<GameSession> {
             return;
         }
 
+        Item? item = session.Item.CreateItem(reward.ItemId, reward.Rarity, reward.Amount);
+        if (item == null) {
+            return;
+        }
+
         // TODO: Have sender name, title, and body be more configurable
         var receiverMail = new Mail() {
             ReceiverId = session.CharacterId,
@@ -109,7 +114,7 @@ public class AttendanceHandler : PacketHandler<GameSession> {
             throw new InvalidOperationException($"Failed to create mail for attendance reward to user {session.CharacterId}");
         }
 
-        Item? item = db.CreateItem(receiverMail.Id, session.Item.CreateItem(metadata, reward.Rarity, reward.Amount));
+        item = db.CreateItem(receiverMail.Id, item);
         if (item == null) {
             throw new InvalidOperationException($"Failed to create reward item: {metadata.Id}");
         }

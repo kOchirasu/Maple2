@@ -142,16 +142,16 @@ public class ItemDismantleHandler : PacketHandler<GameSession> {
 
             var result = new Dictionary<int, int>();
             foreach ((int id, (int min, int max)) in rewards) {
-                if (!ItemMetadata.TryGet(id, out ItemMetadata? metadata)) {
-                    continue;
-                }
-
                 int total = Random.Shared.Next(min, max);
                 result[id] = total;
                 while (total > 0) {
-                    int rewarded = Math.Min(metadata.Property.SlotMax, total);
+                    Item? item = session.Item.CreateItem(id);
+                    if (item == null) {
+                        continue;
+                    }
+                    int rewarded = Math.Min(item.Metadata.Property.SlotMax, total);
                     total -= rewarded;
-                    session.Item.Inventory.Add(session.Item.CreateItem(metadata,1,rewarded), true);
+                    session.Item.Inventory.Add(item, true);
                 }
             }
 

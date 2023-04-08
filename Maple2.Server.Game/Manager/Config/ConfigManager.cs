@@ -323,7 +323,8 @@ public class ConfigManager {
             return true; // Nothing to unequip
         }
 
-        if (!session.ItemMetadata.TryGet(lapenshardId, out ItemMetadata? metadata)) {
+        Item? lapenshard = session.Item.CreateItem(lapenshardId, Constant.LapenshardGrade);
+        if (lapenshard == null) {
             return false;
         }
 
@@ -331,7 +332,6 @@ public class ConfigManager {
             return false;
         }
 
-        Item lapenshard = session.Item.CreateItem(metadata, Constant.LapenshardGrade);
         lapenshard.Transfer?.Bind(session.Player.Value.Character);
         bool success = session.Item.Inventory.Add(lapenshard);
         if (!success) {

@@ -297,12 +297,12 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
                 return;
             }
 
-            if (!ItemMetadata.TryGet(itemGemstone.ItemId, out ItemMetadata? metadata)) {
+            Item? gem = session.Item.CreateItem(itemGemstone.ItemId, rarity: Constant.GemstoneGrade);
+            if (gem == null) {
                 session.Send(ItemSocketPacket.Error(11, error: s_itemsocketsystem_error_server_default));
                 return;
             }
 
-            Item gem = session.Item.CreateItem(metadata, rarity: Constant.GemstoneGrade);
             if (!session.Item.Inventory.Add(gem, true)) {
                 return; // Failed to add to inventory
             }

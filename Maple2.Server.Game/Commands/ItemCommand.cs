@@ -39,20 +39,20 @@ public class ItemCommand : Command {
 
     private void Handle(InvocationContext ctx, int itemId, int amount, int rarity, bool drop) {
         try {
-            if (!itemStorage.TryGet(itemId, out ItemMetadata? metadata)) {
+            rarity = Math.Clamp(rarity, 1, MAX_RARITY);
+            Item? item = session.Item.CreateItem(itemId, rarity);
+            if (item == null) {
                 ctx.Console.Error.WriteLine($"Invalid Item: {itemId}");
                 return;
             }
 
-            if (metadata.Property.SlotMax == 0) {
+            if (item.Metadata.Property.SlotMax == 0) {
                 ctx.Console.Error.WriteLine($"{itemId} has SlotMax of 0, ignoring...");
                 amount = Math.Clamp(amount, 1, int.MaxValue);
             } else {
-                amount = Math.Clamp(amount, 1, metadata.Property.SlotMax);
+                amount = Math.Clamp(amount, 1, item.Metadata.Property.SlotMax);
             }
-            rarity = Math.Clamp(rarity, 1, MAX_RARITY);
-
-            Item? item = session.Item.CreateItem(metadata, rarity, amount);
+            item.Amount = amount;
 
             using (GameStorage.Request db = session.GameStorage.Context()) {
                 item = db.CreateItem(session.CharacterId, item);
