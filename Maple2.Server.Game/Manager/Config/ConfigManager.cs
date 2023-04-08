@@ -331,7 +331,7 @@ public class ConfigManager {
             return false;
         }
 
-        var lapenshard = new Item(metadata, Constant.LapenshardGrade);
+        Item lapenshard = session.Item.CreateItem(metadata, Constant.LapenshardGrade);
         lapenshard.Transfer?.Bind(session.Player.Value.Character);
         bool success = session.Item.Inventory.Add(lapenshard);
         if (!success) {

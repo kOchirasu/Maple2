@@ -215,9 +215,8 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             return;
         }
 
-        var selfBadge = new Item(itemMetadata, buddyBadgeBoxParams[1]) {
-            CoupleInfo = new ItemCoupleInfo(receiverInfo.CharacterId, receiverInfo.Name, true),
-        };
+        Item selfBadge = session.Item.CreateItem(itemMetadata, buddyBadgeBoxParams[1]);
+        selfBadge.CoupleInfo = new ItemCoupleInfo(receiverInfo.CharacterId, receiverInfo.Name, true);
 
         if (!session.Item.Inventory.CanAdd(selfBadge)) {
             session.Send(NoticePacket.MessageBox(StringCode.s_gem_error_inventory_full));
@@ -247,10 +246,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             throw new InvalidOperationException($"Failed to create buddy badge mail for receiver character id: {receiverInfo.CharacterId}");
         }
 
-        Item? receiverItem = db.CreateItem(receiverMail.Id,
-            new Item(itemMetadata, buddyBadgeBoxParams[1]) {
-                CoupleInfo = new ItemCoupleInfo(session.Player.Value.Character.Id, session.PlayerName),
-            });
+        Item? receiverItem = session.Item.CreateItem(itemMetadata, buddyBadgeBoxParams[1]);
+        receiverItem.CoupleInfo = new ItemCoupleInfo(session.Player.Value.Character.Id, session.PlayerName);
+        receiverItem = db.CreateItem(receiverMail.Id, receiverItem);
         if (receiverItem == null) {
             throw new InvalidOperationException($"Failed to create buddy badge: {itemMetadata.Id}");
         }

@@ -89,7 +89,7 @@ public class ItemExchangeScroll : PacketHandler<GameSession> {
             return;
         }
             
-        var rewardItem = new Item(itemMetadata, scrollMetadata.RewardItem.Rarity, scrollMetadata.RewardItem.Amount * quantity);
+        Item rewardItem = session.Item.CreateItem(itemMetadata, scrollMetadata.RewardItem.Rarity, scrollMetadata.RewardItem.Amount * quantity);
         if (!session.Item.Inventory.Add(rewardItem, true)) {
             session.Item.MailItem(rewardItem);
         }

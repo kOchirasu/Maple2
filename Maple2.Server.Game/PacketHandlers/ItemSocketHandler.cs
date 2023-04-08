@@ -34,7 +34,6 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
     // ReSharper disable MemberCanBePrivate.Global
     public required ItemMetadataStorage ItemMetadata { private get; init; }
     public required TableMetadataStorage TableMetadata { private get; init; }
-    public required ItemStatsCalculator ItemStatsCalc { private get; init; }
     public required Lua.Lua Lua { private get; init; }
     // ReSharper restore All
     #endregion
@@ -303,8 +302,7 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
                 return;
             }
 
-            var gem = new Item(metadata, rarity: Constant.GemstoneGrade);
-            gem.Stats = ItemStatsCalc.GetStats(gem);
+            Item gem = session.Item.CreateItem(metadata, rarity: Constant.GemstoneGrade);
             if (!session.Item.Inventory.Add(gem, true)) {
                 return; // Failed to add to inventory
             }

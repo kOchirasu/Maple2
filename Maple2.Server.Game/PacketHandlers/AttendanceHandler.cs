@@ -109,7 +109,7 @@ public class AttendanceHandler : PacketHandler<GameSession> {
             throw new InvalidOperationException($"Failed to create mail for attendance reward to user {session.CharacterId}");
         }
 
-        Item? item = db.CreateItem(receiverMail.Id, new Item(metadata, reward.Rarity, reward.Amount));
+        Item? item = db.CreateItem(receiverMail.Id, session.Item.CreateItem(metadata, reward.Rarity, reward.Amount));
         if (item == null) {
             throw new InvalidOperationException($"Failed to create reward item: {metadata.Id}");
         }

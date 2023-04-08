@@ -267,8 +267,8 @@ public class FishingHandler : PacketHandler<GameSession> {
             if (!ItemMetadata.TryGet(entry.Id, out ItemMetadata? itemMetadata)) {
                 continue;
             }
-
-            if (!session.Item.Inventory.Add(new Item(itemMetadata, entry.Rarity, entry.Amount), true)) {
+            
+            if (!session.Item.Inventory.Add(session.Item.CreateItem(itemMetadata, entry.Rarity, entry.Amount), true)) {
                 return;
             }
         }

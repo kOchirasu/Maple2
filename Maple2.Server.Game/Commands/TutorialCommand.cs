@@ -62,7 +62,7 @@ public class TutorialCommand : Command {
                                 continue;
                             }
 
-                            var item = new Item(metadata, rewardItem.Rarity, rewardItem.Count);
+                            Item? item = session.Item.CreateItem(metadata, rewardItem.Rarity, rewardItem.Count);
                             item.Stats = ItemStatsCalc.GetStats(item);
                             item = db.CreateItem(player.Character.Id, item);
                             if (item == null) {

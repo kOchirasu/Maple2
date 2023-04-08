@@ -63,7 +63,7 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
             return;
         }
 
-        var item = new Item(itemMetadata, premiumMetadata.Rarity, premiumMetadata.Amount);
+        Item item = session.Item.CreateItem(itemMetadata, premiumMetadata.Rarity, premiumMetadata.Amount);
         if (!session.Item.Inventory.CanAdd(item)) {
             return;
         }
@@ -109,7 +109,7 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
                 continue;
             }
 
-            var bonusItem = new Item(itemMetadata, item.Rarity, item.Amount);
+            Item bonusItem = session.Item.CreateItem(itemMetadata, item.Rarity, item.Amount);
             if (!session.Item.Inventory.CanAdd(bonusItem)) {
                 // Mail?
                 return;

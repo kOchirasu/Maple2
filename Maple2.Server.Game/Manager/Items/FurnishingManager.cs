@@ -148,9 +148,8 @@ public class FurnishingManager {
 
         Item? stored = storage.FirstOrDefault(existing => existing.Id == itemId);
         if (stored == null) {
-            var item = new Item(metadata) {
-                Group = ItemGroup.Furnishing,
-            };
+            Item? item = session.Item.CreateItem(metadata); 
+            item.Group = ItemGroup.Furnishing;
             using GameStorage.Request db = session.GameStorage.Context();
             item = db.CreateItem(session.AccountId, item);
             if (item == null || storage.Add(item).Count <= 0) {

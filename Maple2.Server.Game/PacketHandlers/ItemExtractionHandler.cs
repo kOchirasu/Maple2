@@ -53,7 +53,7 @@ public class ItemExtractionHandler : PacketHandler<GameSession> {
             }
 
             using GameStorage.Request db = session.GameStorage.Context();
-            Item? resultItem = db.CreateItem(0, new Item(resultItemMetadata));
+            Item? resultItem = db.CreateItem(0, session.Item.CreateItem(resultItemMetadata));
             if (resultItem == null) {
                 throw new InvalidOperationException($"Failed to create result item: {resultItemMetadata.Id}");
             }

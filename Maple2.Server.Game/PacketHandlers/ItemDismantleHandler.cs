@@ -151,7 +151,7 @@ public class ItemDismantleHandler : PacketHandler<GameSession> {
                 while (total > 0) {
                     int rewarded = Math.Min(metadata.Property.SlotMax, total);
                     total -= rewarded;
-                    session.Item.Inventory.Add(new Item(metadata, 1, rewarded), true);
+                    session.Item.Inventory.Add(session.Item.CreateItem(metadata,1,rewarded), true);
                 }
             }
 

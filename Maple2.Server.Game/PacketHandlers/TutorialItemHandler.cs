@@ -1,4 +1,4 @@
-using System.Linq;
+﻿using System.Linq;
 using Maple2.Model;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -45,7 +45,7 @@ public class TutorialItemHandler : PacketHandler<GameSession> {
             }
 
             while (tutorialItemsInInventory < tutorialItemsToSpawn) {
-                session.Item.Inventory.Add(new Item(itemMetadata));
+                session.Item.Inventory.Add(session.Item.CreateItem(itemMetadata));
                 tutorialItemsInInventory++;
             }
         }

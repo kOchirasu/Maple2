@@ -210,7 +210,8 @@ public class NpcScriptContext {
                 continue;
             }
 
-            results.Add(new Item(metadata, rarity, amount));
+            Item item = Session.Item.CreateItem(metadata, rarity, amount);
+            results.Add(item);
         }
 
         // Validate that reward is possible

@@ -50,7 +50,7 @@ public class ItemManager {
     }
 
     public Item CreateItem(ItemMetadata itemMetadata, int rarity = 1, int amount = 1) {
-        var item = new Item(itemMetadata, rarity, amount);
+        Item item = session.Item.CreateItem(itemMetadata, rarity, amount);
         item.Stats = itemStatsCalc.GetStats(item);
         item.Socket = itemStatsCalc.GetSockets(item);
 
