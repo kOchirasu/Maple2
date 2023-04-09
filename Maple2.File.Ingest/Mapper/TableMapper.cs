@@ -1079,7 +1079,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
     }
     
     private ColorPaletteTable ParseColorPaletteTable() {
-        var results = new Dictionary<int, Dictionary<int, ColorPaletteTable.Entry>>();
+        var results = new Dictionary<int, IReadOnlyDictionary<int, ColorPaletteTable.Entry>>();
         foreach ((int id, ColorPalette palette) in parser.ParseColorPalette()) {
             foreach(ColorPalette.Color? color in palette.color) {
                 var entry = new ColorPaletteTable.Entry(
@@ -1093,7 +1093,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
                         {color.colorSN, entry},
                     });
                 } else {
-                    results[id].Add(color.colorSN, entry);
+                    (results[id] as Dictionary<int, ColorPaletteTable.Entry>)!.Add(color.colorSN, entry);
                 }
             }
         }

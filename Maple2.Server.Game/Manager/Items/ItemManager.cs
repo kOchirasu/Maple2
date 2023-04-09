@@ -68,7 +68,7 @@ public class ItemManager {
     private EquipColor GetColor(ItemMetadataCustomize metadata) {
         // Item has no color
         if (metadata.ColorPalette == 0 || 
-            !session.TableMetadata.ColorPaletteTable.Entries.TryGetValue(metadata.ColorPalette, out Dictionary<int, ColorPaletteTable.Entry>? palette)) {
+            !session.TableMetadata.ColorPaletteTable.Entries.TryGetValue(metadata.ColorPalette, out IReadOnlyDictionary<int, ColorPaletteTable.Entry>? palette)) {
             return default;
         }
         
