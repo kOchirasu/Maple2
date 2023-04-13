@@ -114,13 +114,13 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
         switch (tile.Type) {
             case BlueMarbleTileType.Item:
             case BlueMarbleTileType.TreasureTrove:
-                if (!ItemMetadata.TryGet(tile.Item.ItemId, out ItemMetadata? itemMetadata)) {
-                    // TODO: Error
+                Item? item = session.Item.CreateItem(tile.Item.ItemId, tile.Item.ItemRarity, tile.Item.ItemAmount);
+                if (item == null) {
+                    // TODO: Error packet?
                     break;
                 }
-                var item = new Item(itemMetadata, tile.Item.ItemRarity, tile.Item.ItemAmount);
                 if (!session.Item.Inventory.Add(item, true)) {
-                    // TODO: Mail to user
+                    session.Item.MailItem(item);
                 }
                 break;
             case BlueMarbleTileType.Backtrack:
@@ -142,7 +142,7 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
             case BlueMarbleTileType.RollAgain:
             case BlueMarbleTileType.Trap:
             default:
-                Logger.Warning($"Unhandled Mapleopoly tile type: {tile.Type}");
+                Logger.Warning("Unhandled Mapleopoly tile type: {TileType}", tile.Type);
                 break;
         }
 
@@ -161,18 +161,18 @@ public class MapleopolyHandler : PacketHandler<GameSession> {
 
             // Check if there's any item to give for every 1 trip
             BlueMarbleEntry entry1 = blueMarble.Entries.FirstOrDefault(entry => entry.TripAmount == 0);
-            if (entry1 != default && ItemMetadata.TryGet(entry1.Item.ItemId, out ItemMetadata? trip0Metadata)) {
-                var trip0Item = new Item(trip0Metadata, entry1.Item.ItemRarity, entry1.Item.ItemAmount);
-                if (!session.Item.Inventory.Add(trip0Item, true)) {
+            if (entry1 != default) {
+                Item? trip0Item = session.Item.CreateItem(entry1.Item.ItemId);
+                if (trip0Item != null && !session.Item.Inventory.Add(trip0Item, true)) {
                     session.Item.MailItem(trip0Item);
                 }
             }
 
             // Check if there's any other item to give for hitting a specific number of trips
             BlueMarbleEntry entry2 = blueMarble.Entries.FirstOrDefault(entry => entry.TripAmount == trips);
-            if (entry2 != default && ItemMetadata.TryGet(entry2.Item.ItemId, out ItemMetadata? tripMetadata)) {
-                var tripItem = new Item(tripMetadata, entry2.Item.ItemRarity, entry2.Item.ItemAmount);
-                if (!session.Item.Inventory.Add(tripItem, true)) {
+            if (entry2 != default) {
+                Item? tripItem = session.Item.CreateItem(entry2.Item.ItemId);
+                if (tripItem != null && !session.Item.Inventory.Add(tripItem, true)) {
                     session.Item.MailItem(tripItem);
                 }
             }

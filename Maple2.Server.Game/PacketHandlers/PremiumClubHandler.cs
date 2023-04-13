@@ -58,15 +58,14 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (!TableMetadata.PremiumClubTable.Items.TryGetValue(benefitId, out PremiumClubTable.Item? premiumMetadata) ||
-            !ItemMetadata.TryGet(premiumMetadata.Id, out ItemMetadata? itemMetadata)) {
+        if (!TableMetadata.PremiumClubTable.Items.TryGetValue(benefitId, out PremiumClubTable.Item? premiumMetadata)) {
             return;
         }
-
-        var item = new Item(itemMetadata, premiumMetadata.Rarity, premiumMetadata.Amount);
-        if (!session.Item.Inventory.CanAdd(item)) {
+        
+        Item? item = session.Item.CreateItem(premiumMetadata.Id, premiumMetadata.Rarity, premiumMetadata.Amount);
+        if (item == null || !session.Item.Inventory.CanAdd(item)) {
             return;
-        }
+        } 
 
         if (session.Player.Value.Account.PremiumRewardsClaimed.Contains(benefitId)) {
             return;
@@ -105,17 +104,14 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
         session.Currency.Meret -= premiumMetadata.Price;
 
         foreach (PremiumClubTable.Item item in premiumMetadata.BonusItems) {
-            if (!ItemMetadata.TryGet(item.Id, out ItemMetadata? itemMetadata)) {
+            Item? bonusItem = session.Item.CreateItem(item.Id, item.Rarity, item.Rarity);
+            if (bonusItem == null) {
                 continue;
             }
 
-            var bonusItem = new Item(itemMetadata, item.Rarity, item.Amount);
-            if (!session.Item.Inventory.CanAdd(bonusItem)) {
-                // Mail?
-                return;
+            if (!session.Item.Inventory.Add(bonusItem, true)) {
+                session.Item.MailItem(bonusItem);
             }
-
-            session.Item.Inventory.Add(bonusItem, true);
         }
 
         session.Send(PremiumCubPacket.PurchasePackage(packageId));

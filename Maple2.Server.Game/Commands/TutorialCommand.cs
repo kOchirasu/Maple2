@@ -58,12 +58,10 @@ public class TutorialCommand : Command {
                     case Type.Item: {
                         using GameStorage.Request db = session.GameStorage.Context();
                         foreach (JobTable.Item rewardItem in tutorial.StartItem.Concat(tutorial.Reward)) {
-                            if (!session.ItemMetadata.TryGet(rewardItem.Id, out ItemMetadata? metadata)) {
-                                continue;
+                            Item? item = session.Item.CreateItem(rewardItem.Id, rewardItem.Rarity, rewardItem.Count);
+                            if (item == null) {
+                                return;
                             }
-
-                            var item = new Item(metadata, rewardItem.Rarity, rewardItem.Count);
-                            item.Stats = ItemStatsCalc.GetStats(item);
                             item = db.CreateItem(player.Character.Id, item);
                             if (item == null) {
                                 ctx.Console.Error.WriteLine($"Failed to create item: {rewardItem.Id}");

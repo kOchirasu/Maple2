@@ -59,11 +59,10 @@ public class MasteryHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (!ItemMetadata.TryGet(entry.ItemId, out ItemMetadata? itemMetadata)) {
+        Item? rewardItem = session.Item.CreateItem(entry.ItemId, entry.ItemRarity, entry.ItemAmount);
+        if (rewardItem == null) {
             return;
         }
-
-        var rewardItem = new Item(itemMetadata, entry.ItemRarity, entry.ItemAmount);
 
         if (!session.Item.Inventory.Add(rewardItem, true)) {
             session.Send(ChatPacket.Alert(StringCode.s_err_inventory));
@@ -106,10 +105,11 @@ public class MasteryHandler : PacketHandler<GameSession> {
         }
 
         foreach (ItemComponent rewardItem in entry.RewardItems) {
-            if (!ItemMetadata.TryGet(rewardItem.ItemId, out ItemMetadata? itemMetadata)) {
+            Item? item = session.Item.CreateItem(rewardItem.ItemId, rewardItem.Rarity, rewardItem.Amount);
+            if (item == null) {
                 continue;
             }
-            Item item = new(itemMetadata, rewardItem.Rarity, rewardItem.Amount);
+
             if (!session.Item.Inventory.Add(item, true)) {
                 session.Item.MailItem(item);
             }

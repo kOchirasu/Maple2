@@ -209,15 +209,13 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (!ItemMetadata.TryGet(buddyBadgeBoxParams[0], out ItemMetadata? itemMetadata)) {
+        Item? selfBadge = session.Item.CreateItem(buddyBadgeBoxParams[0], buddyBadgeBoxParams[1]);
+        if (selfBadge == null) {
             session.Send(NoticePacket.MessageBox(StringCode.s_couple_effect_error_openbox_unknown));
-            Logger.Error("Unknown buddy badge box item Id: {Parameters}", buddyBadgeBoxParams[0]);
+            Logger.Error("Failed to create buddy badge box item: {Parameters}", buddyBadgeBoxParams[0]);
             return;
         }
-
-        var selfBadge = new Item(itemMetadata, buddyBadgeBoxParams[1]) {
-            CoupleInfo = new ItemCoupleInfo(receiverInfo.CharacterId, receiverInfo.Name, true),
-        };
+        selfBadge.CoupleInfo = new ItemCoupleInfo(receiverInfo.CharacterId, receiverInfo.Name, true);
 
         if (!session.Item.Inventory.CanAdd(selfBadge)) {
             session.Send(NoticePacket.MessageBox(StringCode.s_gem_error_inventory_full));
@@ -247,12 +245,14 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             throw new InvalidOperationException($"Failed to create buddy badge mail for receiver character id: {receiverInfo.CharacterId}");
         }
 
-        Item? receiverItem = db.CreateItem(receiverMail.Id,
-            new Item(itemMetadata, buddyBadgeBoxParams[1]) {
-                CoupleInfo = new ItemCoupleInfo(session.Player.Value.Character.Id, session.PlayerName),
-            });
+        Item? receiverItem = session.Item.CreateItem(buddyBadgeBoxParams[0], buddyBadgeBoxParams[1]);
         if (receiverItem == null) {
-            throw new InvalidOperationException($"Failed to create buddy badge: {itemMetadata.Id}");
+            throw new InvalidOperationException($"Failed to create buddy badge item: {buddyBadgeBoxParams[0]}");
+        }
+        receiverItem.CoupleInfo = new ItemCoupleInfo(session.Player.Value.Character.Id, session.PlayerName);
+        receiverItem = db.CreateItem(receiverMail.Id, receiverItem);
+        if (receiverItem == null) {
+            throw new InvalidOperationException($"Failed to create buddy badge: {buddyBadgeBoxParams[0]}");
         }
 
         receiverMail.Items.Add(receiverItem);

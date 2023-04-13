@@ -8,7 +8,6 @@ using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using Maple2.Server.Game.Util;
 
 namespace Maple2.Server.Game.Commands;
 
@@ -21,12 +20,6 @@ public class ItemCommand : Command {
 
     private readonly GameSession session;
     private readonly ItemMetadataStorage itemStorage;
-
-    #region Autofac Autowired
-    // ReSharper disable MemberCanBePrivate.Global
-    public required ItemStatsCalculator ItemStatsCalc { private get; init; }
-    // ReSharper restore All
-    #endregion
 
     public ItemCommand(GameSession session, ItemMetadataStorage itemStorage) : base(NAME, DESCRIPTION) {
         this.session = session;
@@ -46,22 +39,20 @@ public class ItemCommand : Command {
 
     private void Handle(InvocationContext ctx, int itemId, int amount, int rarity, bool drop) {
         try {
-            if (!itemStorage.TryGet(itemId, out ItemMetadata? metadata)) {
+            rarity = Math.Clamp(rarity, 1, MAX_RARITY);
+            Item? item = session.Item.CreateItem(itemId, rarity);
+            if (item == null) {
                 ctx.Console.Error.WriteLine($"Invalid Item: {itemId}");
                 return;
             }
 
-            if (metadata.Property.SlotMax == 0) {
+            if (item.Metadata.Property.SlotMax == 0) {
                 ctx.Console.Error.WriteLine($"{itemId} has SlotMax of 0, ignoring...");
                 amount = Math.Clamp(amount, 1, int.MaxValue);
             } else {
-                amount = Math.Clamp(amount, 1, metadata.Property.SlotMax);
+                amount = Math.Clamp(amount, 1, item.Metadata.Property.SlotMax);
             }
-            rarity = Math.Clamp(rarity, 1, MAX_RARITY);
-
-            var item = new Item(metadata, rarity, amount);
-            item.Stats = ItemStatsCalc.GetStats(item);
-            item.Socket = ItemStatsCalc.GetSockets(item);
+            item.Amount = amount;
 
             using (GameStorage.Request db = session.GameStorage.Context()) {
                 item = db.CreateItem(session.CharacterId, item);

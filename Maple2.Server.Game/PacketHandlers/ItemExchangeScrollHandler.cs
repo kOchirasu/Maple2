@@ -82,14 +82,12 @@ public class ItemExchangeScroll : PacketHandler<GameSession> {
                 }
             }
         }
-        
-        session.Currency.Meso -= scrollMetadata.RequiredMeso;
-
-        if (!ItemMetadata.TryGet(scrollMetadata.RewardItem.ItemId, out ItemMetadata? itemMetadata)) {
+        Item? rewardItem = session.Item.CreateItem(scrollMetadata.RewardItem.ItemId, scrollMetadata.RewardItem.Rarity, scrollMetadata.RewardItem.Amount * quantity);
+        if (rewardItem == null) {
             return;
         }
-            
-        var rewardItem = new Item(itemMetadata, scrollMetadata.RewardItem.Rarity, scrollMetadata.RewardItem.Amount * quantity);
+
+        session.Currency.Meso -= scrollMetadata.RequiredMeso;
         if (!session.Item.Inventory.Add(rewardItem, true)) {
             session.Item.MailItem(rewardItem);
         }

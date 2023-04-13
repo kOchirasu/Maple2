@@ -264,11 +264,12 @@ public class FishingHandler : PacketHandler<GameSession> {
             .Take(Constant.FishingRewardsMaxCount)
             .ToArray();
         foreach (FishingRewardTable.Entry entry in items) {
-            if (!ItemMetadata.TryGet(entry.Id, out ItemMetadata? itemMetadata)) {
-                continue;
+            Item? item = session.Item.CreateItem(entry.Id, entry.Rarity, entry.Amount);
+            if (item == null) {
+                return;
             }
-
-            if (!session.Item.Inventory.Add(new Item(itemMetadata, entry.Rarity, entry.Amount), true)) {
+            
+            if (!session.Item.Inventory.Add(item, true)) {
                 return;
             }
         }
