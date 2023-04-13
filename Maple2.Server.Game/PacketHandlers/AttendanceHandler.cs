@@ -90,7 +90,12 @@ public class AttendanceHandler : PacketHandler<GameSession> {
         session.GameEventUserValue.Set(attendGift.Id, GameEventUserValueType.AttendanceRewardsClaimed, rewardsClaimed);
 
         RewardItem reward = attendGift.Rewards.FirstOrDefault(entry => entry.Key == rewardsClaimed).Value;
-        if (default(RewardItem).Equals(reward) || !ItemMetadata.TryGet(reward.ItemId, out ItemMetadata? metadata)) {
+        if (default(RewardItem).Equals(reward)) {
+            return;
+        }
+
+        Item? item = session.Item.CreateItem(reward.ItemId, reward.Rarity, reward.Amount);
+        if (item == null) {
             return;
         }
 
@@ -109,9 +114,9 @@ public class AttendanceHandler : PacketHandler<GameSession> {
             throw new InvalidOperationException($"Failed to create mail for attendance reward to user {session.CharacterId}");
         }
 
-        Item? item = db.CreateItem(receiverMail.Id, new Item(metadata, reward.Rarity, reward.Amount));
+        item = db.CreateItem(receiverMail.Id, item);
         if (item == null) {
-            throw new InvalidOperationException($"Failed to create reward item: {metadata.Id}");
+            throw new InvalidOperationException($"Failed to create reward item: {reward.ItemId}");
         }
 
         receiverMail.Items.Add(item);

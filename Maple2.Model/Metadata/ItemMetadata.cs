@@ -9,6 +9,7 @@ public record ItemMetadata(
     string Mesh,
     ItemMetadataLife Life,
     ItemMetadataProperty Property,
+    ItemMetadataCustomize Customize,
     ItemMetadataLimit Limit,
     ItemMetadataSkill? Skill,
     ItemMetadataFunction? Function,
@@ -39,6 +40,10 @@ public record ItemMetadataProperty(
     int SocketId,
     bool IsFragment,
     int[] SetOptionIds);
+
+public record ItemMetadataCustomize(
+    int ColorPalette,
+    int DefaultColorIndex);
 
 public record ItemMetadataLimit(
     Gender Gender,

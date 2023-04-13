@@ -35,22 +35,22 @@ public readonly struct EquipColor {
     public Color Secondary { get; }
     public Color Tertiary { get; }
     public int Index { get; }
-
-    // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
-    private readonly int Unknown;
+    public int PaletteId { get; }
 
     public EquipColor(Color color) {
         this.Primary = color;
         this.Secondary = color;
         this.Tertiary = color;
         this.Index = -1;
+        this.PaletteId = 0;
     }
 
     [JsonConstructor]
-    public EquipColor(Color primary, Color secondary, Color tertiary, int index = -1) {
+    public EquipColor(Color primary, Color secondary, Color tertiary, int paletteId, int index = -1) {
         this.Primary = primary;
         this.Secondary = secondary;
         this.Tertiary = tertiary;
+        this.PaletteId = paletteId;
         this.Index = index;
     }
 

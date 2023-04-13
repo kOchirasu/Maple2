@@ -7,6 +7,7 @@ using Maple2.File.IO;
 using Maple2.File.Parser;
 using Maple2.File.Parser.Xml;
 using Maple2.File.Parser.Xml.Table;
+using Maple2.Model.Common;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -51,6 +52,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "guild*.xml", Table = ParseGuildTable() };
         yield return new TableMetadata {Name = "vip*.xml", Table = ParsePremiumClubTable()};
         yield return new TableMetadata {Name = "individualitemdrop*.xml", Table = ParseIndividualItemDropTable()};
+        yield return new TableMetadata {Name = "colorpalette.xml", Table = ParseColorPaletteTable()};
         // Fishing
         yield return new TableMetadata {Name = "fishingspot.xml", Table = ParseFishingSpot()};
         yield return new TableMetadata {Name = "fish.xml", Table = ParseFish()};
@@ -1074,5 +1076,31 @@ public class TableMapper : TypeMapper<TableMetadata> {
             }
         }
         return results;
+    }
+    
+    private ColorPaletteTable ParseColorPaletteTable() {
+        var results = new Dictionary<int, IReadOnlyDictionary<int, ColorPaletteTable.Entry>>();
+        foreach ((int id, ColorPalette palette) in parser.ParseColorPalette()) {
+            foreach(ColorPalette.Color? color in palette.color) {
+                var entry = new ColorPaletteTable.Entry(
+                    Primary: ParseColor(color.ch0),
+                    Secondary: ParseColor(color.ch1),
+                    Tertiary: ParseColor(color.ch2),
+                    AchieveId: color.achieveID,
+                    AchieveGrade: color.achieveGrade);
+                if (!results.ContainsKey(id)) {
+                    results.Add(id, new Dictionary<int, ColorPaletteTable.Entry> {
+                        {color.colorSN, entry},
+                    });
+                } else {
+                    (results[id] as Dictionary<int, ColorPaletteTable.Entry>)!.Add(color.colorSN, entry);
+                }
+            }
+        }
+        return new ColorPaletteTable(results);
+    }
+
+    private Color ParseColor(System.Drawing.Color color) {
+        return new Color(color.B, color.G, color.R, color.A);
     }
 }

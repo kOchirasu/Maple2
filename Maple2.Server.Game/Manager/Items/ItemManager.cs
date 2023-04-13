@@ -1,21 +1,28 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Maple2.Database.Storage;
+using Maple2.Model.Common;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Server.Game.Util;
 
 namespace Maple2.Server.Game.Manager.Items;
 
 public class ItemManager {
     private readonly GameSession session;
+    private readonly ItemStatsCalculator itemStatsCalc;
 
     public readonly EquipManager Equips;
     public readonly InventoryManager Inventory;
     public readonly FurnishingManager Furnishing;
 
-    public ItemManager(GameStorage.Request db, GameSession session) {
+    public ItemManager(GameStorage.Request db, GameSession session, ItemStatsCalculator itemStatsCalc) {
         this.session = session;
+        this.itemStatsCalc = itemStatsCalc;
 
         Equips = new EquipManager(db, session);
         Inventory = new InventoryManager(db, session);
@@ -40,6 +47,45 @@ public class ItemManager {
     public Item? GetOutfit(long uid) {
         Item? item = Inventory.Get(uid, InventoryType.Outfit);
         return item ?? Equips.Outfit.Values.FirstOrDefault(outfit => outfit.Uid == uid);
+    }
+
+    public Item? CreateItem(int itemId, int rarity = 1, int amount = 1) {
+        if (!session.ItemMetadata.TryGet(itemId, out ItemMetadata? itemMetadata)) {
+            return null;
+        }
+
+        var item = new Item(itemMetadata, rarity, amount);
+        item.Stats = itemStatsCalc.GetStats(item);
+        item.Socket = itemStatsCalc.GetSockets(item);
+
+        if (item.Appearance != null) {
+            item.Appearance.Color = GetColor(item.Metadata.Customize);
+        }
+
+        return item;
+    }
+    
+    private EquipColor GetColor(ItemMetadataCustomize metadata) {
+        // Item has no color
+        if (metadata.ColorPalette == 0 || 
+            !session.TableMetadata.ColorPaletteTable.Entries.TryGetValue(metadata.ColorPalette, out IReadOnlyDictionary<int, ColorPaletteTable.Entry>? palette)) {
+            return default;
+        }
+        
+        // Item has random color
+        if (metadata.DefaultColorIndex < 0) {
+            // random entry from palette
+            int index = Random.Shared.Next(palette.Count);
+            ColorPaletteTable.Entry randomEntry = palette.Values.ElementAt(index);
+            return new EquipColor(randomEntry.Primary, randomEntry.Secondary, randomEntry.Tertiary, metadata.ColorPalette, index);
+        }
+        
+        // Item has specified color
+        if (palette.TryGetValue(metadata.DefaultColorIndex, out ColorPaletteTable.Entry? entry)) {
+            return new EquipColor(entry.Primary, entry.Secondary, entry.Tertiary, metadata.ColorPalette, metadata.DefaultColorIndex);
+        }
+
+        return default;
     }
 
     public void Bind(Item item) {

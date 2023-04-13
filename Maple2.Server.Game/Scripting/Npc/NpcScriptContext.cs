@@ -206,11 +206,11 @@ public class NpcScriptContext {
 
         var results = new List<Item>();
         foreach ((int id, int rarity, int amount) in rewards) {
-            if (!Session.ItemMetadata.TryGet(id, out ItemMetadata? metadata)) {
+            Item? item = Session.Item.CreateItem(id, rarity, amount);
+            if (item == null) {
                 continue;
             }
-
-            results.Add(new Item(metadata, rarity, amount));
+            results.Add(item);
         }
 
         // Validate that reward is possible

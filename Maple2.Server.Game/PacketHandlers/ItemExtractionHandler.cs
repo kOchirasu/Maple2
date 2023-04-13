@@ -37,7 +37,8 @@ public class ItemExtractionHandler : PacketHandler<GameSession> {
                 return;
             }
 
-            if (!ItemMetadata.TryGet(entry.ResultItemId, out ItemMetadata? resultItemMetadata)) {
+            Item? resultItem = session.Item.CreateItem(entry.ResultItemId);
+            if (resultItem == null) {
                 return;
             }
 
@@ -53,9 +54,9 @@ public class ItemExtractionHandler : PacketHandler<GameSession> {
             }
 
             using GameStorage.Request db = session.GameStorage.Context();
-            Item? resultItem = db.CreateItem(0, new Item(resultItemMetadata));
+            resultItem = db.CreateItem(0, resultItem);
             if (resultItem == null) {
-                throw new InvalidOperationException($"Failed to create result item: {resultItemMetadata.Id}");
+                throw new InvalidOperationException($"Failed to create result item: {entry.ResultItemId}");
             }
 
             session.Item.Inventory.Add(resultItem, true);

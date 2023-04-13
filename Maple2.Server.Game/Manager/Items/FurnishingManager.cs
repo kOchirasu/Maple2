@@ -142,15 +142,14 @@ public class FurnishingManager {
 
     private long AddStorage(int itemId) {
         const int amount = 1;
-        if (!session.ItemMetadata.TryGet(itemId, out ItemMetadata? metadata)) {
+        Item? item = session.Item.CreateItem(itemId);
+        if (item == null) {
             return 0;
         }
 
         Item? stored = storage.FirstOrDefault(existing => existing.Id == itemId);
         if (stored == null) {
-            var item = new Item(metadata) {
-                Group = ItemGroup.Furnishing,
-            };
+            item.Group = ItemGroup.Furnishing;
             using GameStorage.Request db = session.GameStorage.Context();
             item = db.CreateItem(session.AccountId, item);
             if (item == null || storage.Add(item).Count <= 0) {
@@ -161,7 +160,7 @@ public class FurnishingManager {
             return item.Uid;
         }
 
-        if (stored.Amount + amount > metadata.Property.SlotMax) {
+        if (stored.Amount + amount > item.Metadata.Property.SlotMax) {
             return 0;
         }
 
