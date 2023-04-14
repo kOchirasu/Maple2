@@ -62,6 +62,7 @@ public class NpcScriptContext {
 
         State = state;
         var dialogue = new NpcDialogue(state, 0, GetButton());
+        
         Session.Send(NpcTalkPacket.Respond(Npc, TalkType, dialogue));
         return true;
     }
@@ -119,6 +120,8 @@ public class NpcScriptContext {
             TalkType |= NpcTalkType.Select;
         }
     }
+
+    public int GetFunctionId => Metadata.States[State].Contents.ElementAt(Index).FunctionId;
 
     private NpcTalkButton GetButton() {
         if (!Metadata.States.TryGetValue(State, out ScriptState? state)) {
