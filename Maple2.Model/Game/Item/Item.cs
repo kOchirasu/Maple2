@@ -68,7 +68,8 @@ public class Item : IByteSerializable, IByteDeserializable {
             _ => new ItemAppearance(default),
         };
 
-        Transfer = new ItemTransfer(GetTransferFlag(), Metadata.Property.TradableCount, Metadata.Property.RepackCount);
+        Transfer = new ItemTransfer(GetTransferFlag(), Metadata.Property.TradableCount, 0);
+        Enchant = new ItemEnchant(tradeable: Transfer.RepackageCount > 0 || Transfer.RemainTrades > 0 || Transfer.Flag.HasFlag(TransferFlag.Trade));
 
         ExpiryTime = GetExpiryTime();
         
