@@ -29,6 +29,7 @@ public class Item : IByteSerializable, IByteDeserializable {
     public bool IsLocked;
     public long UnlockTime;
     public short GlamorForges;
+    public int GachaDismantleId;
 
     public ItemAppearance? Appearance;
     public ItemStats? Stats;
@@ -99,6 +100,7 @@ public class Item : IByteSerializable, IByteDeserializable {
             IsLocked = IsLocked,
             UnlockTime = UnlockTime,
             GlamorForges = GlamorForges,
+            GachaDismantleId = GachaDismantleId,
             Appearance = Appearance?.Clone(),
             Stats = Stats?.Clone(),
             Enchant = Enchant?.Clone(),
@@ -125,6 +127,7 @@ public class Item : IByteSerializable, IByteDeserializable {
             IsLocked = IsLocked,
             UnlockTime = UnlockTime,
             GlamorForges = GlamorForges,
+            GachaDismantleId = GachaDismantleId,
             Appearance = Appearance,
             Stats = Stats,
             Enchant = Enchant,
@@ -200,7 +203,7 @@ public class Item : IByteSerializable, IByteDeserializable {
         writer.WriteLong(UnlockTime);
         writer.WriteShort(GlamorForges);
         writer.WriteBool(false);
-        writer.WriteInt();
+        writer.WriteInt(GachaDismantleId);
 
         writer.WriteClass<ItemAppearance>(Appearance ?? ItemAppearance.Default);
         writer.WriteClass<ItemStats>(Stats ?? ItemStats.Default);

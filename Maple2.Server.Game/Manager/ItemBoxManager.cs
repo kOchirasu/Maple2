@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Model;
@@ -6,6 +7,7 @@ using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.Manager;
@@ -29,6 +31,7 @@ public class ItemBoxManager {
             ItemFunction.SelectItemBox => SelectItemBox(item, itemBoxParams[0], itemBoxParams[1], index, count),
             ItemFunction.OpenItemBox => OpenItemBox(item, itemBoxParams[0], itemBoxParams[1], itemBoxParams[2], itemBoxParams[3], itemBoxParams.Length == 5 ? itemBoxParams[4] : 1, count),
             ItemFunction.OpenItemBoxWithKey => OpenItemBoxWithKey(item, itemBoxParams[0], itemBoxParams[1], itemBoxParams[2], itemBoxParams[5], count),
+            ItemFunction.OpenGachaBox => OpenGachaBox(item, itemBoxParams[0], itemBoxParams[1], count),
             _ => throw new ArgumentOutOfRangeException(item.Metadata.Function?.Type.ToString(), "Invalid box type"),
         };
     }
@@ -105,8 +108,11 @@ public class ItemBoxManager {
                     return ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
                 }
 
-                if (itemId > 0 && session.ItemMetadata.TryGet(itemId, out ItemMetadata? itemMetadata)) {
-                    var newItem = new Item(itemMetadata, item.Metadata.Option?.ConstantId ?? 1);
+                if (itemId > 0) {
+                    Item? newItem = session.Item.CreateItem(itemId, item.Metadata.Option?.ConstantId ?? 1);
+                    if (newItem == null) {
+                        continue;
+                    }
                     if (!session.Item.Inventory.Add(newItem, true)) {
                         session.Item.MailItem(newItem);
                         error = ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
@@ -146,8 +152,11 @@ public class ItemBoxManager {
                 return ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
             }
 
-            if (itemId > 0 && session.ItemMetadata.TryGet(itemId, out ItemMetadata? itemMetadata)) {
-                var newItem = new Item(itemMetadata);
+            if (itemId > 0) {
+                Item? newItem = session.Item.CreateItem(itemId);
+                if (newItem == null) {
+                    continue;
+                }
                 if (!session.Item.Inventory.Add(newItem, true)) {
                     session.Item.MailItem(newItem);
                     error = ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
@@ -187,6 +196,52 @@ public class ItemBoxManager {
         return GiveAllDropBoxItems(item, itemId, keyAmountRequired, count, dropGroupTable);
     }
 
+    private ItemBoxError OpenGachaBox(Item item, int gachaBoxId, int addItemId, int count) {
+        if (!session.TableMetadata.GachaInfoTable.Entries.TryGetValue(gachaBoxId, out GachaInfoTable.Entry? gachaEntry)) {
+            return ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
+        }
+
+        if (!session.TableMetadata.IndividualItemDropTable.Entries.TryGetValue(gachaEntry.DropBoxId, out Dictionary<byte, IList<IndividualItemDropTable.Entry>>? dropGroupTable)) {
+            return ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
+        }
+
+        var totalItems = new List<Item>();
+        ItemComponent ingredient = new(item.Id, item.Rarity, 1, ItemTag.None);
+        for (int startCount = 0; startCount < count; startCount++) {
+            if (!session.Item.Inventory.ConsumeItemComponents(new[] {ingredient})) {
+                return ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
+            }
+
+            // This is only applicable if Feature "ItemCN" is enabled
+            /*Item? additionalItem = session.Item.CreateItem(addItemId);
+            if (additionalItem != null && !session.Item.Inventory.Add(additionalItem, true)) {
+                session.Item.MailItem(additionalItem);
+            }*/
+
+            foreach ((byte dropGroup, IList<IndividualItemDropTable.Entry> drops) in dropGroupTable) {
+                IList<IndividualItemDropTable.Entry> filteredDrops = session.ItemBox.FilterDrops(drops);
+
+                // randomize contents
+                IndividualItemDropTable.Entry selectedEntry = filteredDrops[Random.Shared.Next(0, filteredDrops.Count)];
+                IEnumerable<Item> itemList = session.ItemBox.GetItemsFromGroup(selectedEntry);
+                foreach (Item newItem in itemList) {
+                    newItem.GachaDismantleId = gachaBoxId;
+                    totalItems.Add(newItem);
+                    if (!session.Item.Inventory.Add(newItem, true)) {
+                        session.Item.MailItem(newItem);
+                    }
+                    
+                    // TODO: Implement a weight system, possibly determined by GachaInfoTable.Entry.RandomBoxGroup ??
+                    // TODO: Broadcast server message if item rarity >= 4
+                }
+            }
+            BoxCount++;
+        }
+
+        session.Send(ItemScriptPacket.Gacha(totalItems));
+        return ItemBoxError.ok;
+    }
+
     private IList<IndividualItemDropTable.Entry> FilterDrops(IEnumerable<IndividualItemDropTable.Entry> entries) {
         var filteredEntries = new List<IndividualItemDropTable.Entry>();
         foreach (IndividualItemDropTable.Entry entry in entries) {
@@ -211,15 +266,10 @@ public class ItemBoxManager {
     private IEnumerable<Item> GetItemsFromGroup(IndividualItemDropTable.Entry entry) {
         var items = new List<Item>();
         foreach (int id in entry.ItemIds) {
-            if (!session.ItemMetadata.TryGet(id, out ItemMetadata? itemMetadata)) {
+            Item? newItem = session.Item.CreateItem(id, amount: Random.Shared.Next(entry.MinCount, entry.MaxCount));
+            if (newItem == null) {
                 continue;
             }
-
-            int? rarity = entry.Rarity;
-            if (rarity == null && itemMetadata.Option?.ConstantId < 6) {
-                rarity = itemMetadata.Option?.ConstantId;
-            }
-            var newItem = new Item(itemMetadata, rarity ?? 1, Random.Shared.Next(entry.MinCount, entry.MaxCount));
             if (entry.ReduceRepackLimit && newItem.Transfer?.RemainRepackage > 0) {
                 newItem.Transfer.RemainRepackage--;
             }
@@ -247,8 +297,11 @@ public class ItemBoxManager {
                 error = ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
             }
 
-            if (itemId > 0 && session.ItemMetadata.TryGet(itemId, out ItemMetadata? itemMetadata)) {
-                var newItem = new Item(itemMetadata);
+            if (itemId > 0) {
+                Item? newItem = session.Item.CreateItem(itemId);
+                if (newItem == null) {
+                    continue;
+                }
                 if (!session.Item.Inventory.Add(newItem, true)) {
                     session.Item.MailItem(newItem);
                     error = ItemBoxError.s_err_cannot_open_multi_itembox_inventory;

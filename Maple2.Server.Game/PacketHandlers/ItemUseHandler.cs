@@ -79,6 +79,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             case ItemFunction.OpenItemBoxWithKey:
                 HandleOpenItemBox(session, item);
                 break;
+            case ItemFunction.OpenGachaBox:
+                HandleOpenGachaBox(session, packet, item);
+                break;
             default:
                 Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
                 return;
@@ -339,5 +342,10 @@ public class ItemUseHandler : PacketHandler<GameSession> {
     private static void HandleOpenItemBox(GameSession session, Item item) {
         session.ItemBox.Open(item);
         session.ItemBox.Reset();
+    }
+
+    private static void HandleOpenGachaBox(GameSession session, IByteReader packet, Item item) {
+        string amountString = packet.ReadUnicodeString();
+        session.ItemBox.Open(item, amountString == "multi" ? 10 : 1);
     }
 }
