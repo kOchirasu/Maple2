@@ -220,8 +220,8 @@ public class ItemBoxManager {
                 rarity = itemMetadata.Option?.ConstantId;
             }
             var newItem = new Item(itemMetadata, rarity ?? 1, Random.Shared.Next(entry.MinCount, entry.MaxCount));
-            if (entry.ReduceRepackLimit && newItem.Transfer?.RemainRepackage > 0) {
-                newItem.Transfer.RemainRepackage--;
+            if (entry.ReduceRepackLimit && newItem.Transfer?.RepackageCount > 0) {
+                newItem.Transfer.RepackageCount++;
             }
 
             // TODO: Apply enchant level & stats

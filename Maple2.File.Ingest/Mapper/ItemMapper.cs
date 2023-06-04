@@ -35,10 +35,16 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
             int transferType = data.limit.transferType;
             int tradableCount = data.property.tradableCount;
             int tradableCountDeduction = data.property.tradableCountDeduction;
+            int repackingLimitCount = data.property.rePackingLimitCount;
+            int repackingItemConsumeCount = data.property.rePackingItemConsumeCount;
+            int[] repackingScrollIds = data.property.globalRePackingScrollID;
             if (FeatureLocaleFilter.FeatureEnabled("GlobalTransferType")) {
                 transferType = data.limit.globalTransferType ?? transferType;
                 tradableCount = data.property.globalTradableCount ?? tradableCount;
                 tradableCountDeduction = data.property.globalTradableCountDeduction ?? tradableCountDeduction;
+                repackingLimitCount = data.property.globalRePackingLimitCount ?? repackingLimitCount;
+                repackingItemConsumeCount = data.property.globalRePackingItemConsumeCount ?? repackingItemConsumeCount;
+                repackingScrollIds = data.property.globalRePackingScrollID ?? repackingScrollIds;
             }
             if (FeatureLocaleFilter.FeatureEnabled("GlobalTransferTypeNA")) {
                 transferType = data.limit.globalTransferTypeNA ?? transferType;
@@ -127,7 +133,9 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     Ride: data.ride.rideMonster,
                     TradableCount: tradableCount,
                     TradableCountDeduction: tradableCountDeduction,
-                    RepackCount: data.property.rePackingLimitCount,
+                    RepackCount: repackingLimitCount,
+                    RepackConsumeCount: repackingItemConsumeCount,
+                    RepackScrollIds: repackingScrollIds,
                     DisableDrop: data.property.disableDrop,
                     SocketId: data.property.socketDataId,
                     IsFragment: data.property.functionTags == "piece",
