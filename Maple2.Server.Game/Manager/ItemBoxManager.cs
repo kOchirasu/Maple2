@@ -44,7 +44,7 @@ public class ItemBoxManager {
             !session.TableMetadata.IndividualItemDropTable.Entries.TryGetValue(commonBoxId, out Dictionary<byte, IList<IndividualItemDropTable.Entry>>? commonDropGroupTable)) {
             return ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
         }
-            
+
         // Get uncommon dropbox
         if (!int.TryParse(parameters["unCommonBoxId"], out int unCommonBoxId) ||
             !session.TableMetadata.IndividualItemDropTable.Entries.TryGetValue(unCommonBoxId, out Dictionary<byte, IList<IndividualItemDropTable.Entry>>? unCommonDropGroupTable)) {
@@ -58,13 +58,13 @@ public class ItemBoxManager {
             if (!session.Item.Inventory.Consume(new[] {keyIngredient})) {
                 return ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
             }
-            
+
             if (autoPay) {
                 int.TryParse(parameters["boxPrice"], out int mesoCost);
-                if (!session.Item.Inventory.Consume(new[]{boxIngredient})
-                     && mesoCost > 0 && session.Currency.CanAddMeso(-mesoCost) == -mesoCost) {
-                    return ItemBoxError.s_err_cannot_open_multi_itembox_inventory; 
-                } 
+                if (!session.Item.Inventory.Consume(new[] {boxIngredient})
+                    && mesoCost > 0 && session.Currency.CanAddMeso(-mesoCost) == -mesoCost) {
+                    return ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
+                }
             } else {
                 if (!session.Item.Inventory.Consume(new[] {boxIngredient})) {
                     return ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
@@ -84,7 +84,7 @@ public class ItemBoxManager {
                     }
                 }
             }
-            
+
             // uncommon dropbox items
             foreach ((byte dropGroup, IList<IndividualItemDropTable.Entry> drops) in unCommonDropGroupTable) {
                 IList<IndividualItemDropTable.Entry> filteredDrops = session.ItemBox.FilterDrops(drops);
@@ -101,12 +101,12 @@ public class ItemBoxManager {
             }
             BoxCount++;
         }
-        
+
         session.Send(ItemScriptPacket.LulluBox(totalItems));
         return ItemBoxError.ok;
-    } 
-    
-    public ItemBoxError OpenLulluBoxSimple(Item item, int count = 1, bool autoPay = false) {
+    }
+
+    public ItemBoxError OpenLulluBoxSimple(Item item, int count = 1) {
         Dictionary<string, string> parameters = XmlParseUtil.GetParameters(item.Metadata.Function?.Parameters);
 
         // Get common dropbox
@@ -139,12 +139,12 @@ public class ItemBoxManager {
 
             BoxCount++;
         }
-        
+
         session.Send(ItemScriptPacket.LulluBox(totalItems));
         return ItemBoxError.ok;
     }
 
-    private ItemBoxError SelectItemBox(Item item, int itemRequiredAmount, int boxId, int index, int count = 1) { 
+    private ItemBoxError SelectItemBox(Item item, int itemRequiredAmount, int boxId, int index, int count = 1) {
         // check if box count is enough to open
         if (session.Item.Inventory.Find(item.Id).Sum(box => box.Amount) < itemRequiredAmount) {
             return ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
@@ -338,7 +338,7 @@ public class ItemBoxManager {
                     if (!session.Item.Inventory.Add(newItem, true)) {
                         session.Item.MailItem(newItem);
                     }
-                    
+
                     // TODO: Implement a weight system, possibly determined by GachaInfoTable.Entry.RandomBoxGroup ??
                     // TODO: Broadcast server message if item rarity >= 4
                 }
