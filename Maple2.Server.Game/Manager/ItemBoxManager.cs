@@ -378,8 +378,9 @@ public class ItemBoxManager {
             if (newItem == null) {
                 continue;
             }
-            if (entry.ReduceRepackLimit && newItem.Transfer?.RemainRepackage > 0) {
-                newItem.Transfer.RemainRepackage--;
+
+            if (entry.ReduceRepackLimit && newItem.Transfer?.RepackageCount > 0) {
+                newItem.Transfer.RepackageCount++;
             }
 
             // TODO: Apply enchant level & stats
