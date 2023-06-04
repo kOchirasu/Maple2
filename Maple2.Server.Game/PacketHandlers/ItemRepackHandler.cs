@@ -39,7 +39,7 @@ public class ItemRepackHandler : PacketHandler<GameSession> {
             }
 
             Item? targetItem = session.Item.Inventory.Get(targetItemUid);
-            if (targetItem == null || targetItem.Binding != null) {
+            if (targetItem == null || targetItem.Transfer == null || targetItem.Binding != null) {
                 session.Send(ItemRepackPacket.Error(ItemRepackError.s_item_repacking_scroll_error_invalid_target));
                 return;
             }
@@ -49,12 +49,12 @@ public class ItemRepackHandler : PacketHandler<GameSession> {
                 return;
             }
 
-            if (targetItem.Transfer?.Flag.HasFlag(TransferFlag.LimitTrade) == true && targetItem.Transfer.RemainTrades > 0) {
+            if (targetItem.Transfer.Flag.HasFlag(TransferFlag.LimitTrade) == true && targetItem.Transfer.RemainTrades > 0) {
                 session.Send(ItemRepackPacket.Error(ItemRepackError.s_item_repacking_scroll_error_invalid_target));
                 return;
             }
 
-            if (targetItem.Transfer?.RepackageCount > targetItem.Metadata.Property.RepackCount) {
+            if (targetItem.Transfer.RepackageCount > targetItem.Metadata.Property.RepackCount) {
                 session.Send(ItemRepackPacket.Error(ItemRepackError.s_item_repacking_scroll_error_invalid_target));
                 return;
             }
@@ -83,7 +83,7 @@ public class ItemRepackHandler : PacketHandler<GameSession> {
             
             //TODO: Check item slot type
 
-            targetItem.Transfer!.RemainTrades++;
+            targetItem.Transfer.RemainTrades++;
             targetItem.Transfer.RepackageCount++;
             session.Send(ItemRepackPacket.Commit(targetItem));
         }
