@@ -21,7 +21,7 @@ public static class ItemScriptPacket {
             pWriter.WriteInt(item.Id);
             pWriter.WriteInt(item.Amount);
             pWriter.WriteInt(item.Rarity);
-            pWriter.WriteByte();
+            pWriter.WriteBool(true);
         }
 
         return pWriter;
@@ -43,7 +43,7 @@ public static class ItemScriptPacket {
             pWriter.WriteInt(item.Id);
             pWriter.WriteInt(item.Amount);
             pWriter.WriteInt(item.Rarity);
-            pWriter.WriteByte();
+            pWriter.WriteBool(true);
         }
 
         return pWriter;

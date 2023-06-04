@@ -87,6 +87,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
                 break;
             case ItemFunction.OpenItemBoxLulluSimple:
                 HandleOpenItemBoxLulluSimple(session, packet, item);
+                break;
             case ItemFunction.ItemRePackingScroll:
                 HandleItemRepackingScroll(session, item);
                 break;
@@ -368,6 +369,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         string amountString = packet.ReadUnicodeString();
         session.ItemBox.OpenLulluBoxSimple(item, amountString == "multi" ? 10 : 1);
         session.ItemBox.Reset();
+    }
 
     private static void HandleItemRepackingScroll(GameSession session, Item item) {
         session.Send(ItemRepackPacket.Open(item.Uid));
