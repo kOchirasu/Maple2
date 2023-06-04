@@ -49,7 +49,7 @@ public class ItemRepackHandler : PacketHandler<GameSession> {
                 return;
             }
 
-            if (targetItem.Transfer.Flag.HasFlag(TransferFlag.LimitTrade) == true && targetItem.Transfer.RemainTrades > 0) {
+            if (targetItem.Transfer.Flag.HasFlag(TransferFlag.LimitTrade) && targetItem.Transfer.RemainTrades > 0) {
                 session.Send(ItemRepackPacket.Error(ItemRepackError.s_item_repacking_scroll_error_invalid_target));
                 return;
             }
