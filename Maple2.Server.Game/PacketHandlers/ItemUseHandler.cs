@@ -336,7 +336,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
         session.Config.UpdatePremiumTime(hours);
     }
-    
+
     private static void HandleSelectItemBox(GameSession session, IByteReader packet, Item item) {
         if (!int.TryParse(packet.ReadUnicodeString(), out int index)) {
             return;
@@ -361,7 +361,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         session.ItemBox.OpenLulluBox(item, amountString.Contains("multi") ? 10 : 1, autoPay: amountString.Contains("autoPay"));
         session.ItemBox.Reset();
     }
-    
+
     private static void HandleOpenItemBoxLulluSimple(GameSession session, IByteReader packet, Item item) {
         string amountString = packet.ReadUnicodeString();
         session.ItemBox.OpenLulluBoxSimple(item, amountString == "multi" ? 10 : 1);
