@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Items;
@@ -118,6 +119,10 @@ public class TradeManager : IDisposable {
                 caller.Send(TradePacket.Error(s_trade_error_itemcount));
             }
             if (!caller.Item.Inventory.Remove(itemUid, out Item? item, amount)) {
+                return;
+            }
+            if (item.Transfer?.Flag.HasFlag(TransferFlag.LimitTrade) == true && item.Transfer.RemainTrades < 1) {
+                caller.Item.Inventory.Add(item);
                 return;
             }
 
@@ -250,6 +255,9 @@ public class TradeManager : IDisposable {
             long fee = success ? (long) (Constant.TradeFeePercent / 100f * sender.Mesos) : 0;
             sender.Session.Currency.Meso += sender.Mesos - fee;
             foreach (Item item in sender.Items) {
+                if (item.Transfer?.Flag.HasFlag(TransferFlag.LimitTrade) == true) {
+                    item.Transfer.RemainTrades--;
+                }
                 sender.Session.Item.Inventory.Add(item);
             }
 
@@ -260,6 +268,9 @@ public class TradeManager : IDisposable {
             long fee = success ? (long) (Constant.TradeFeePercent / 100f * receiver.Mesos) : 0;
             receiver.Session.Currency.Meso += receiver.Mesos - fee;
             foreach (Item item in receiver.Items) {
+                if (item.Transfer?.Flag.HasFlag(TransferFlag.LimitTrade) == true) {
+                    item.Transfer.RemainTrades--;
+                }
                 receiver.Session.Item.Inventory.Add(item);
             }
 

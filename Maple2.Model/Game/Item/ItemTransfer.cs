@@ -11,19 +11,19 @@ public sealed class ItemTransfer : IByteSerializable, IByteDeserializable {
 
     public TransferFlag Flag { get; set; }
     public int RemainTrades { get; set; }
-    public int RemainRepackage { get; set; }
+    public int RepackageCount { get; set; }
 
     public ItemBinding? Binding { get; private set; }
 
-    public ItemTransfer(TransferFlag flag = 0, int remainTrades = 0, int remainRepackage = 0, ItemBinding? binding = null) {
+    public ItemTransfer(TransferFlag flag = 0, int remainTrades = 0, int repackageCount = 0, ItemBinding? binding = null) {
         Flag = flag;
         RemainTrades = remainTrades;
-        RemainRepackage = remainRepackage;
+        RepackageCount = repackageCount;
         Binding = binding;
     }
 
     public ItemTransfer Clone() {
-        return new ItemTransfer(Flag, RemainTrades, RemainRepackage, Binding?.Clone());
+        return new ItemTransfer(Flag, RemainTrades, RepackageCount, Binding?.Clone());
     }
 
     public bool Bind(Character character) {
@@ -45,7 +45,7 @@ public sealed class ItemTransfer : IByteSerializable, IByteDeserializable {
         writer.Write<TransferFlag>(Flag); // CItemTransfer[5]
         writer.WriteBool(false); // CItemTransfer[9] *bit-1*
         writer.WriteInt(RemainTrades); // CItemTransfer[10]
-        writer.WriteInt(RemainRepackage); // CItemTransfer[11]
+        writer.WriteInt(RepackageCount); // CItemTransfer[11]
         writer.WriteByte(); // CItemTransfer[12]
         writer.WriteBool(true); // CItemTransfer[9] *bit-10* (socketTransfer?)
 
@@ -60,7 +60,7 @@ public sealed class ItemTransfer : IByteSerializable, IByteDeserializable {
         Flag = reader.Read<TransferFlag>();
         reader.ReadByte();
         RemainTrades = reader.ReadInt();
-        RemainRepackage = reader.ReadInt();
+        RepackageCount = reader.ReadInt();
         reader.ReadByte();
         reader.ReadBool();
         bool isBound = reader.ReadBool();

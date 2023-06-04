@@ -36,6 +36,8 @@ public record ItemMetadataProperty(
     int TradableCount,
     int TradableCountDeduction,
     int RepackCount,
+    int RepackConsumeCount,
+    int[] RepackScrollIds,
     bool DisableDrop,
     int SocketId,
     bool IsFragment,
