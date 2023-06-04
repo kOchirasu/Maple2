@@ -60,11 +60,14 @@ public class ItemBoxManager {
             }
 
             if (autoPay) {
-                int.TryParse(parameters["boxPrice"], out int mesoCost);
-                if (!session.Item.Inventory.Consume(new[] {boxIngredient})
-                    && mesoCost > 0 && session.Currency.CanAddMeso(-mesoCost) == -mesoCost) {
-                    return ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
-                }
+                if (!session.Item.Inventory.Consume(new[] {boxIngredient})) {
+                    int.TryParse(parameters["boxPrice"], out int mesoCost);
+                    mesoCost = Math.Min(mesoCost, 0);
+                    if (session.Currency.CanAddMeso(-mesoCost) == -mesoCost) {
+                        return ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
+                    }
+                    session.Currency.Meso -= mesoCost; 
+                } 
             } else {
                 if (!session.Item.Inventory.Consume(new[] {boxIngredient})) {
                     return ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
