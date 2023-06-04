@@ -80,7 +80,13 @@ public class ItemUseHandler : PacketHandler<GameSession> {
                 HandleOpenItemBox(session, item);
                 break;
             case ItemFunction.OpenGachaBox:
-                HandleOpenGachaBox(session, packet, item);
+                HandleOpenGacha(session, packet, item);
+                break;
+            case ItemFunction.OpenItemBoxLullu:
+                HandleOpenItemBoxLullu(session, packet, item);
+                break;
+            case ItemFunction.OpenItemBoxLulluSimple:
+                HandleOpenItemBoxLulluSimple(session, packet, item);
                 break;
             default:
                 Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
@@ -344,8 +350,21 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         session.ItemBox.Reset();
     }
 
-    private static void HandleOpenGachaBox(GameSession session, IByteReader packet, Item item) {
+    private static void HandleOpenGacha(GameSession session, IByteReader packet, Item item) {
         string amountString = packet.ReadUnicodeString();
         session.ItemBox.Open(item, amountString == "multi" ? 10 : 1);
+        session.ItemBox.Reset();
+    }
+
+    private static void HandleOpenItemBoxLullu(GameSession session, IByteReader packet, Item item) {
+        string amountString = packet.ReadUnicodeString();
+        session.ItemBox.OpenLulluBox(item, amountString.Contains("multi") ? 10 : 1, autoPay: amountString.Contains("autoPay"));
+        session.ItemBox.Reset();
+    }
+    
+    private static void HandleOpenItemBoxLulluSimple(GameSession session, IByteReader packet, Item item) {
+        string amountString = packet.ReadUnicodeString();
+        session.ItemBox.OpenLulluBoxSimple(item, amountString == "multi" ? 10 : 1);
+        session.ItemBox.Reset();
     }
 }

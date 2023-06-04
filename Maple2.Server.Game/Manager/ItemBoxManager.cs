@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Model;
@@ -9,6 +8,7 @@ using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Server.Game.Util;
 
 namespace Maple2.Server.Game.Manager;
 
@@ -34,6 +34,114 @@ public class ItemBoxManager {
             ItemFunction.OpenGachaBox => OpenGachaBox(item, itemBoxParams[0], itemBoxParams[1], count),
             _ => throw new ArgumentOutOfRangeException(item.Metadata.Function?.Type.ToString(), "Invalid box type"),
         };
+    }
+
+    public ItemBoxError OpenLulluBox(Item item, int count = 1, bool autoPay = false) {
+        Dictionary<string, string> parameters = XmlParseUtil.GetParameters(item.Metadata.Function?.Parameters);
+
+        // Get common dropbox
+        if (!int.TryParse(parameters["commonBoxId"], out int commonBoxId) ||
+            !session.TableMetadata.IndividualItemDropTable.Entries.TryGetValue(commonBoxId, out Dictionary<byte, IList<IndividualItemDropTable.Entry>>? commonDropGroupTable)) {
+            return ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
+        }
+            
+        // Get uncommon dropbox
+        if (!int.TryParse(parameters["unCommonBoxId"], out int unCommonBoxId) ||
+            !session.TableMetadata.IndividualItemDropTable.Entries.TryGetValue(unCommonBoxId, out Dictionary<byte, IList<IndividualItemDropTable.Entry>>? unCommonDropGroupTable)) {
+            return ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
+        }
+
+        var boxIngredient = new IngredientInfo(Enum.Parse<ItemTag>(parameters["boxItemTag"]), 1);
+        var keyIngredient = new IngredientInfo(Enum.Parse<ItemTag>(parameters["keyItemTag"]), 1);
+        var totalItems = new List<Item>();
+        for (int startCount = 0; startCount < count; startCount++) {
+            if (!session.Item.Inventory.Consume(new[] {keyIngredient})) {
+                return ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
+            }
+            
+            if (autoPay) {
+                int.TryParse(parameters["boxPrice"], out int mesoCost);
+                if (!session.Item.Inventory.Consume(new[]{boxIngredient})
+                     && mesoCost > 0 && session.Currency.CanAddMeso(-mesoCost) == -mesoCost) {
+                    return ItemBoxError.s_err_cannot_open_multi_itembox_inventory; 
+                } 
+            } else {
+                if (!session.Item.Inventory.Consume(new[] {boxIngredient})) {
+                    return ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
+                }
+            }
+
+            // common dropbox items
+            foreach ((byte dropGroup, IList<IndividualItemDropTable.Entry> drops) in commonDropGroupTable) {
+                IList<IndividualItemDropTable.Entry> filteredDrops = session.ItemBox.FilterDrops(drops);
+
+                // randomize contents
+                IndividualItemDropTable.Entry selectedEntry = filteredDrops[Random.Shared.Next(0, filteredDrops.Count)];
+                IEnumerable<Item> itemList = session.ItemBox.GetItemsFromGroup(selectedEntry);
+                foreach (Item newItem in itemList) {
+                    if (!session.Item.Inventory.Add(newItem, true)) {
+                        session.Item.MailItem(newItem);
+                    }
+                }
+            }
+            
+            // uncommon dropbox items
+            foreach ((byte dropGroup, IList<IndividualItemDropTable.Entry> drops) in unCommonDropGroupTable) {
+                IList<IndividualItemDropTable.Entry> filteredDrops = session.ItemBox.FilterDrops(drops);
+
+                // randomize contents
+                IndividualItemDropTable.Entry selectedEntry = filteredDrops[Random.Shared.Next(0, filteredDrops.Count)];
+                IEnumerable<Item> itemList = session.ItemBox.GetItemsFromGroup(selectedEntry);
+                foreach (Item newItem in itemList) {
+                    totalItems.Add(newItem);
+                    if (!session.Item.Inventory.Add(newItem, true)) {
+                        session.Item.MailItem(newItem);
+                    }
+                }
+            }
+            BoxCount++;
+        }
+        
+        session.Send(ItemScriptPacket.LulluBox(totalItems));
+        return ItemBoxError.ok;
+    } 
+    
+    public ItemBoxError OpenLulluBoxSimple(Item item, int count = 1, bool autoPay = false) {
+        Dictionary<string, string> parameters = XmlParseUtil.GetParameters(item.Metadata.Function?.Parameters);
+
+        // Get common dropbox
+        if (!int.TryParse(parameters["commonBoxId"], out int commonBoxId) ||
+            !session.TableMetadata.IndividualItemDropTable.Entries.TryGetValue(commonBoxId, out Dictionary<byte, IList<IndividualItemDropTable.Entry>>? commonDropGroupTable)) {
+            return ItemBoxError.s_err_cannot_open_multi_itembox_inventory_fail;
+        }
+
+        var keyItemTag = new IngredientInfo(Enum.Parse<ItemTag>(parameters["keyItemTag"]), 1);
+        var totalItems = new List<Item>();
+        for (int startCount = 0; startCount < count; startCount++) {
+            if (!session.Item.Inventory.Consume(new[] {keyItemTag})) {
+                return ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
+            }
+
+            // common dropbox items
+            foreach ((byte dropGroup, IList<IndividualItemDropTable.Entry> drops) in commonDropGroupTable) {
+                IList<IndividualItemDropTable.Entry> filteredDrops = session.ItemBox.FilterDrops(drops);
+
+                // randomize contents
+                IndividualItemDropTable.Entry selectedEntry = filteredDrops[Random.Shared.Next(0, filteredDrops.Count)];
+                IEnumerable<Item> itemList = session.ItemBox.GetItemsFromGroup(selectedEntry);
+                foreach (Item newItem in itemList) {
+                    totalItems.Add(newItem);
+                    if (!session.Item.Inventory.Add(newItem, true)) {
+                        session.Item.MailItem(newItem);
+                    }
+                }
+            }
+
+            BoxCount++;
+        }
+        
+        session.Send(ItemScriptPacket.LulluBox(totalItems));
+        return ItemBoxError.ok;
     }
 
     private ItemBoxError SelectItemBox(Item item, int itemRequiredAmount, int boxId, int index, int count = 1) { 
