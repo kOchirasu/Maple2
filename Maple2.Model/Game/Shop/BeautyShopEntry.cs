@@ -19,6 +19,10 @@ public class BeautyShopEntry : IByteSerializable {
         Cost = cost;
     }
 
+    public BeautyShopEntry(int itemId) {
+        
+    }
+
     public void WriteTo(IByteWriter writer) {
         writer.WriteInt(ItemId);
         writer.Write<ShopItemLabel>(Label);
