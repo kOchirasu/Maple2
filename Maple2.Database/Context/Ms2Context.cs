@@ -31,6 +31,7 @@ public sealed class Ms2Context : DbContext {
     internal DbSet<GameEvent> GameEvent { get; set; } = null!;
     internal DbSet<GameEventUserValue> GameEventUserValue { get; set; } = null!;
     internal DbSet<BeautyShop> BeautyShop { get; set; } = null!;
+    internal DbSet<BeautyShopEntry> BeautyShopEntry { get; set; } = null!;
 
     public Ms2Context(DbContextOptions options) : base(options) { }
 
@@ -60,6 +61,7 @@ public sealed class Ms2Context : DbContext {
         modelBuilder.Entity<Shop>(Maple2.Database.Model.Shop.Shop.Configure);
         modelBuilder.Entity<ShopItem>(Maple2.Database.Model.Shop.ShopItem.Configure);
         modelBuilder.Entity<BeautyShop>(Maple2.Database.Model.Shop.BeautyShop.Configure);
+        modelBuilder.Entity<BeautyShopEntry>(Maple2.Database.Model.Shop.BeautyShopEntry.Configure);
 
         modelBuilder.Entity<GameEvent>(Maple2.Database.Model.Event.GameEvent.Configure);
         modelBuilder.Entity<GameEventUserValue>(Maple2.Database.Model.Event.GameEventUserValue.Configure);

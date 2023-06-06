@@ -41,6 +41,24 @@ internal class BeautyShop {
             },
         };
     }
+    
+    public static implicit operator BeautyShop?(Maple2.Model.Game.Shop.BeautyShop? other) {
+        return other == null ? null : new BeautyShop {
+            Id = other.Id,
+            Unknown1 = other.Unknown1,
+            Unknown2 = other.Unknown2,
+            Category = other.Category,
+            ShopType = other.ShopType,
+            ShopSubType = other.ShopSubType,
+            VoucherId = other.VoucherId,
+            ItemCostCurrencyType = other.ItemCost.Type,
+            ItemCostItemId = other.ItemCost.ItemId,
+            ItemCostAmount = other.ItemCost.Amount,
+            RecolorCostCurrencyType = other.RecolorCost.Type,
+            RecolorCostItemId = other.RecolorCost.ItemId,
+            RecolorCostAmount = other.RecolorCost.Amount,
+        };
+    }
 
     public static void Configure(EntityTypeBuilder<BeautyShop> builder) {
         builder.ToTable("beauty-shop");

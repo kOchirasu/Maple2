@@ -5,6 +5,7 @@ using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Game.Event;
+using Maple2.Model.Game.Shop;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -71,6 +72,18 @@ public class UserChatHandler : PacketHandler<GameSession> {
 
     private static void HandleNormal(GameSession session, string message) {
         session.Field?.Broadcast(ChatPacket.Message(session.Player.Value, ChatType.Normal, message));
+        var beautyShop = new BeautyShop(500) {
+            Category = BeautyShopCategory.Standard,
+            ShopType = BeautyShopType.Hair,
+            ItemCost = new BeautyShopCost(ShopCurrencyType.Meso, 10000),
+            RecolorCost = new BeautyShopCost(ShopCurrencyType.Meso, 0),
+            ShopSubType = 16,
+            VoucherId = 20300036,
+            Unknown1 = 0,
+            Unknown2 = 0,
+        };
+        using GameStorage.Request db = session.GameStorage.Context();
+        db.CreateBeautyShop(beautyShop);
     }
 
     private void HandleWhisper(GameSession session, string message, string recipient) {

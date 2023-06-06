@@ -7,7 +7,7 @@ namespace Maple2.Model.Game.Shop;
 
 public class BeautyShopEntry : IByteSerializable {
     public readonly int ItemId;
-    public readonly BeautyShopCost Cost;
+    public BeautyShopCost Cost { get; set; }
 
     public ShopItemLabel Label { get; init; }
     public short RequireLevel { get; init; }

@@ -1,5 +1,6 @@
 ﻿using Maple2.Database.Storage;
 using Maple2.Model.Common;
+using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Game.Shop;
@@ -93,13 +94,39 @@ public class BeautyHandler : PacketHandler<GameSession> {
 
     private void HandleShop(GameSession session, IByteReader packet) {
         int npcId = packet.ReadInt();
-        byte shopType = packet.ReadByte();
+        var shopType = (BeautyShopType) packet.ReadByte();
 
         if (!NpcMetadata.TryGet(npcId, out NpcMetadata? metadata)) {
             return;
         }
 
-        int shopId = metadata.Basic.ShopId;
+        using GameStorage.Request db = session.GameStorage.Context();
+        BeautyShop? beautyShop = db.GetBeautyShop(metadata.Basic.ShopId);
+        if (beautyShop == null) {
+            // TODO: Error?
+            return;
+        }
+
+        switch (beautyShop.Category) {
+            case BeautyShopCategory.Dye:
+                switch (beautyShop.ShopType) {
+                    case BeautyShopType.Item:
+                        break;
+                    case BeautyShopType.Skin:
+                        break;
+                    default:
+                        return;
+                }
+                break;
+            case BeautyShopCategory.Save:
+                break;
+            case BeautyShopCategory.Special:
+            case BeautyShopCategory.Standard:
+                break;
+            default:
+                return;
+        }
+        /*int shopId = metadata.Basic.ShopId;
         switch (shopId) {
             case 500:
                 session.Send(BeautyPacket.BeautyShop(BeautyShop.Face()));
@@ -125,7 +152,7 @@ public class BeautyHandler : PacketHandler<GameSession> {
             case 510:
                 session.Send(BeautyPacket.SaveShop(BeautyShop.SavedHair()));
                 return;
-        }
+        }*/
     }
 
     private void HandleCreateBeauty(GameSession session, IByteReader packet) {
