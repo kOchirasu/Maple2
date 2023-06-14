@@ -53,6 +53,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "vip*.xml", Table = ParsePremiumClubTable()};
         yield return new TableMetadata {Name = "individualitemdrop*.xml", Table = ParseIndividualItemDropTable()};
         yield return new TableMetadata {Name = "colorpalette.xml", Table = ParseColorPaletteTable()};
+        yield return new TableMetadata {Name = "shop_beautycoupon.xml", Table = ParseShopBeautyCouponTable()};
         // Fishing
         yield return new TableMetadata {Name = "fishingspot.xml", Table = ParseFishingSpot()};
         yield return new TableMetadata {Name = "fish.xml", Table = ParseFish()};
@@ -1102,5 +1103,14 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
     private Color ParseColor(System.Drawing.Color color) {
         return new Color(color.B, color.G, color.R, color.A);
+    }
+    
+    private ShopBeautyCouponTable ParseShopBeautyCouponTable() {
+        var results = new Dictionary<int, IReadOnlyList<int>>();
+        foreach ((int id, ShopBeautyCoupon coupon) in parser.ParseShopBeautyCoupon()) {
+            results.Add(id, new List<int>(coupon.item.Select(item => item.id)));
+        }
+
+        return new ShopBeautyCouponTable(results);
     }
 }

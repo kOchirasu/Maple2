@@ -72,6 +72,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public StatsManager Stats { get; set; }
     public ItemEnchantManager ItemEnchant { get; set; }
     public ItemBoxManager ItemBox { get; set; }
+    public BeautyManager Beauty { get; set; }
     public GameEventUserValueManager GameEventUserValue { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
@@ -117,6 +118,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Mail = new MailManager(this);
         ItemEnchant = new ItemEnchantManager(this, Lua);
         ItemBox = new ItemBoxManager(this);
+        Beauty = new BeautyManager(this);
         GameEventUserValue = new GameEventUserValueManager(this);
 
         Guild = new GuildManager(this);

@@ -13,9 +13,10 @@ internal class BeautyShop {
     public BeautyShopType ShopType { get; set; }
     public int ShopSubType { get; set; }
     public int VoucherId { get; set; }
-    public ShopCurrencyType ItemCostCurrencyType { get; set; }
-    public int ItemCostItemId { get; set; }
-    public int ItemCostAmount { get; set; }
+    public int ServiceRewardItemId { get; set; }
+    public ShopCurrencyType ServiceCostCurrencyType { get; set; }
+    public int ServiceCostItemId { get; set; }
+    public int ServiceCostAmount { get; set; }
     public ShopCurrencyType RecolorCostCurrencyType { get; set; }
     public int RecolorCostItemId { get; set; }
     public int RecolorCostAmount { get; set; }
@@ -29,34 +30,9 @@ internal class BeautyShop {
             ShopType = other.ShopType,
             ShopSubType = other.ShopSubType,
             VoucherId = other.VoucherId,
-            ItemCost = new Maple2.Model.Game.Shop.BeautyShopCost{
-                Type = other.ItemCostCurrencyType,
-                ItemId = other.ItemCostItemId,
-                Amount = other.ItemCostAmount,
-            },
-            RecolorCost = new Maple2.Model.Game.Shop.BeautyShopCost{
-                Type = other.RecolorCostCurrencyType,
-                ItemId = other.RecolorCostItemId,
-                Amount = other.RecolorCostAmount,
-            },
-        };
-    }
-    
-    public static implicit operator BeautyShop?(Maple2.Model.Game.Shop.BeautyShop? other) {
-        return other == null ? null : new BeautyShop {
-            Id = other.Id,
-            Unknown1 = other.Unknown1,
-            Unknown2 = other.Unknown2,
-            Category = other.Category,
-            ShopType = other.ShopType,
-            ShopSubType = other.ShopSubType,
-            VoucherId = other.VoucherId,
-            ItemCostCurrencyType = other.ItemCost.Type,
-            ItemCostItemId = other.ItemCost.ItemId,
-            ItemCostAmount = other.ItemCost.Amount,
-            RecolorCostCurrencyType = other.RecolorCost.Type,
-            RecolorCostItemId = other.RecolorCost.ItemId,
-            RecolorCostAmount = other.RecolorCost.Amount,
+            ServiceRewardItemId = other.ServiceRewardItemId,
+            ServiceCost = new Maple2.Model.Game.Shop.BeautyShopCost(other.ServiceCostCurrencyType, other.ServiceCostItemId, other.ServiceCostAmount),
+            RecolorCost = new Maple2.Model.Game.Shop.BeautyShopCost(other.RecolorCostCurrencyType, other.RecolorCostItemId, other.RecolorCostAmount),
         };
     }
 

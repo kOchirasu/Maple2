@@ -32,7 +32,7 @@ public static class ItemUsePacket {
     }
 
     public static ByteWriter BeautyCoupon(int playerObjectId, long itemUid) {
-        var pWriter = Packet.Of(SendOp.Emote);
+        var pWriter = Packet.Of(SendOp.ItemUse);
         pWriter.Write<Command>(Command.BeautyCoupon);
         pWriter.WriteInt(playerObjectId);
         pWriter.WriteLong(itemUid);

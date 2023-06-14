@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using Maple2.Model.Game.Shop;
 
 namespace Maple2.Database.Storage;
@@ -13,18 +12,10 @@ public partial class GameStorage {
             }
 
             // Get shop entries
-            foreach (BeautyShopEntry entry in Context.BeautyShopEntry.Where(model => model.ShopId == shopId)) {
-                entry.Cost = beautyShop.ItemCost;
-                beautyShop.Entries.Add(entry);
-            }
+            beautyShop.Entries = Context.BeautyShopEntry.Where(model => model.ShopId == shopId)
+                .Select<Model.Shop.BeautyShopEntry, BeautyShopEntry>(item => item)
+                .ToList();
             return beautyShop;
-        }
-        
-        // TODO: Delete after. this is for debugging
-        public void CreateBeautyShop(BeautyShop shop) {
-            Model.Shop.BeautyShop model = shop;
-            Context.BeautyShop.Add(model);
-            Context.SaveChanges();
         }
     }
 }

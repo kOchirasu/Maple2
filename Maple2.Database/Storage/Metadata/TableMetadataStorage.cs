@@ -27,6 +27,7 @@ public class TableMetadataStorage {
     private readonly Lazy<PremiumClubTable> premiumClubTable;
     private readonly Lazy<IndividualItemDropTable> individualItemDropTable;
     private readonly Lazy<ColorPaletteTable> colorPaletteTable;
+    private readonly Lazy<ShopBeautyCouponTable> shopBeautyCouponTable;
 
     private readonly Lazy<EnchantScrollTable> enchantScrollTable;
     private readonly Lazy<ItemRemakeScrollTable> itemRemakeScrollTable;
@@ -66,6 +67,7 @@ public class TableMetadataStorage {
     public PremiumClubTable PremiumClubTable => premiumClubTable.Value;
     public IndividualItemDropTable IndividualItemDropTable => individualItemDropTable.Value;
     public ColorPaletteTable ColorPaletteTable => colorPaletteTable.Value;
+    public ShopBeautyCouponTable ShopBeautyCouponTable => shopBeautyCouponTable.Value;
 
     public EnchantScrollTable EnchantScrollTable => enchantScrollTable.Value;
     public ItemRemakeScrollTable ItemRemakeScrollTable => itemRemakeScrollTable.Value;
@@ -106,6 +108,7 @@ public class TableMetadataStorage {
         premiumClubTable = Retrieve<PremiumClubTable>(context, "vip*.xml");
         individualItemDropTable = Retrieve<IndividualItemDropTable>(context, "individualitemdrop*.xml");
         colorPaletteTable = Retrieve<ColorPaletteTable>(context, "colorpalette.xml");
+        shopBeautyCouponTable = Retrieve<ShopBeautyCouponTable>(context, "shop_beautycoupon.xml");
         enchantScrollTable = Retrieve<EnchantScrollTable>(context, "enchantscroll.xml");
         itemRemakeScrollTable = Retrieve<ItemRemakeScrollTable>(context, "itemremakescroll.xml");
         itemRepackingScrollTable = Retrieve<ItemRepackingScrollTable>(context, "itemrepackingscroll.xml");

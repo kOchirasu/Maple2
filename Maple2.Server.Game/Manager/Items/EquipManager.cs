@@ -52,6 +52,16 @@ public class EquipManager {
                ?? Badge.Values.FirstOrDefault(item => item.Uid == itemUid);
     }
 
+    public Item? Get(EquipSlot equipSlot) {
+        return Gear.TryGetValue(equipSlot, out Item? item) ? item
+               : Outfit.TryGetValue(equipSlot, out item) ? item
+               : null;
+    }
+
+    public Item? Get(BadgeType badgeType) {
+        return Badge.TryGetValue(badgeType, out Item? item) ? item : null;
+    }
+
     /// <summary>
     /// Equips an item to its specified slot
     /// </summary>
@@ -189,6 +199,20 @@ public class EquipManager {
                 session.Pet?.BadgeChanged(badge.Badge);
             }
 
+            return true;
+        }
+    }
+
+    public bool EquipCosmetic(Item cosmetic, EquipSlot equipSlot) {
+        lock (session.Item) {
+            Item? currentCosmetic = session.Item.Equips.Get(equipSlot);
+            if (currentCosmetic != null && !session.Item.Equips.Unequip(currentCosmetic.Uid)) {
+                return false;
+            }
+            cosmetic.Group = ItemGroup.Outfit;
+            cosmetic.Slot = (short) equipSlot;
+            Outfit[equipSlot] = cosmetic;
+            session.Field?.Broadcast(EquipPacket.EquipItem(session.Player, cosmetic, 0));
             return true;
         }
     }

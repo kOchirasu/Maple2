@@ -19,6 +19,7 @@ internal class CharacterConfig {
     public SkillBook? SkillBook { get; set; }
     public IList<int>? FavoriteStickers { get; set; }
     public IDictionary<LapenshardSlot, int>? Lapenshards { get; set; }
+    public short HairSlotAmount { get; set; }
 
     public DateTime LastModified { get; set; }
 

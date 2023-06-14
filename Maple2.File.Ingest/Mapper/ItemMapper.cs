@@ -1,5 +1,7 @@
-﻿using M2dXmlGenerator;
+﻿using System.Numerics;
+using M2dXmlGenerator;
 using Maple2.Database.Extensions;
+using Maple2.File.Ingest.Utils;
 using Maple2.File.IO;
 using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.Item;
@@ -70,6 +72,73 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                 expirationDuration = data.life.usePeriod;
             }
 
+            var hairList = new List<DefaultHairMetadata>();
+            // parse default hair positions
+            foreach (Slot slot in data.slots.slot.Where(dataSlots => dataSlots.name == "HR")) {
+
+                // not sure what the difference/significance is within the multiple scale entries. Currently just using the first one
+                float minScale = slot.scale.ElementAtOrDefault(0)?.min ?? 0f;
+                float maxScale = slot.scale.ElementAtOrDefault(0)?.max ?? 0f;
+                switch (slot.asset.Count) {
+                    case 3: // Hair has front and back positionable hair section
+                        var backHairPositions3 = new Vector3[slot.asset[1].custom.Count];
+                        var backHairRotations3 = new Vector3[slot.asset[1].custom.Count];
+                        var frontHairPositions3 = new Vector3[slot.asset[2].custom.Count];
+                        var frontHairRotations3 = new Vector3[slot.asset[2].custom.Count];
+                        
+                        for (int index = 0; index < slot.asset[1].custom.Count; index++) {
+                            // back hair
+                            foreach (var preset in slot.asset[1].custom) {
+                                backHairPositions3[index] = Vector3ParseUtil.ParseVector3(preset.position);
+                                backHairRotations3[index] = Vector3ParseUtil.ParseVector3(preset.rotation);
+                            }
+
+                            // front hair
+                            foreach (var preset in slot.asset[2].custom) {
+                                frontHairPositions3[index] = Vector3ParseUtil.ParseVector3(preset.position);
+                                frontHairRotations3[index] = Vector3ParseUtil.ParseVector3(preset.rotation);
+                            }
+                            
+                            hairList.Add(new DefaultHairMetadata(
+                                BackPosition: backHairPositions3[index],
+                                BackRotation: backHairRotations3[index],
+                                FrontPosition: frontHairPositions3[index],
+                                FrontRotation: frontHairRotations3[index],
+                                MinScale: minScale,
+                                MaxScale: maxScale));
+                        }
+                        break;
+                    case 2: // Hair has one positionable hair section
+                        var backHairPositions2 = new Vector3[slot.asset[1].custom.Count];
+                        var backHairRotations2 = new Vector3[slot.asset[1].custom.Count];
+
+                        for (int index = 0; index < slot.asset[1].custom.Count; index++) {
+                            foreach (var preset in slot.asset[1].custom) {
+                                backHairPositions2[index] = Vector3ParseUtil.ParseVector3(preset.position);
+                                backHairRotations2[index] = Vector3ParseUtil.ParseVector3(preset.rotation);
+                            }
+                            
+                            hairList.Add(new DefaultHairMetadata(
+                                BackPosition: backHairPositions2[index],
+                                BackRotation: backHairRotations2[index],
+                                FrontPosition: Vector3.Zero,
+                                FrontRotation: Vector3.Zero,
+                                MinScale: minScale,
+                                MaxScale: maxScale));
+                        }
+                        break;
+                    default: // No positionable hair section
+                        hairList.Add(new DefaultHairMetadata(
+                            BackPosition: Vector3.Zero,
+                            BackRotation: Vector3.Zero,
+                            FrontPosition: Vector3.Zero,
+                            FrontRotation: Vector3.Zero,
+                            MinScale: minScale,
+                            MaxScale: maxScale));
+                        break;
+                }
+            }
+
             ItemMetadataSkill? skill = data.skill.skillID == 0 && data.objectWeaponSkill.skillID == 0 ? null : new ItemMetadataSkill(
                 Id: data.skill.skillID,
                 Level: data.skill.skillID != 0 ? data.skill.skillLevel : (short) 0,
@@ -115,6 +184,7 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     .Select(slot => Enum.Parse<EquipSlot>(slot.name, true))
                     .ToArray(),
                 Mesh: data.ucc.mesh,
+                DefaultHairs: hairList.ToArray(),
                 Life: new ItemMetadataLife(
                     ExpirationDuration: expirationDuration,
                     ExpirationTimestamp: expirationTimestamp
