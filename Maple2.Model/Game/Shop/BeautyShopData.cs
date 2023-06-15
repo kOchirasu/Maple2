@@ -15,7 +15,7 @@ public class BeautyShopData : IByteSerializable {
     public BeautyShopCost ServiceCost { get; init; } = BeautyShopCost.Zero;
     public BeautyShopCost RecolorCost { get; init; } = BeautyShopCost.Zero;
 
-    public BeautyShopData(int id) {
+    protected BeautyShopData(int id) {
         Id = id;
     }
 

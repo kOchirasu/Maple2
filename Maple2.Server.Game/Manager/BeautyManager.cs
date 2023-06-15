@@ -1,21 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Database.Storage;
-using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.Server.Game.Manager.Items;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using Maple2.Tools.Extensions;
 using Serilog;
-using static Maple2.Model.Error.StorageInventoryError;
 
-namespace Maple2.Server.Game.Manager.Items;
+namespace Maple2.Server.Game.Manager;
 
 public sealed class BeautyManager : IDisposable {
     private readonly GameSession session;
@@ -25,12 +20,10 @@ public sealed class BeautyManager : IDisposable {
     public BeautyManager(GameSession session) {
         this.session = session;
         items = new ItemCollection(Constant.BaseStorageCount);
-
         using GameStorage.Request db = session.GameStorage.Context();
-        foreach (Item item in db.GetSavedHairs(session.CharacterId)) {
-            if (items.Add(item).Count == 0) {
-                Log.Error("Failed to add saved hair:{Uid}", item.Uid);
-            }
+        expand = db.GetHairStorageAmount(session.CharacterId);
+        foreach (Item item in db.GetSavedHairs(session.CharacterId).Where(item => items.Add(item).Count == 0)) {
+            Log.Error("Failed to add saved hair:{Uid}", item.Uid);
         }
     }
 
@@ -38,8 +31,6 @@ public sealed class BeautyManager : IDisposable {
         using GameStorage.Request db = session.GameStorage.Context();
         lock (session.Item) {
             db.SaveItems(session.CharacterId, items.ToArray());
-
-            session.Beauty = null;
         }
     }
 
@@ -100,7 +91,7 @@ public sealed class BeautyManager : IDisposable {
     }
     public void ClearPreviousHair() => previousHair = null;
 
-    public bool EquipCosmetic(long uid) {
+    public bool EquipSavedCosmetic(long uid) {
         Item? cosmetic = items.Get(uid);
         if (cosmetic == null) {
             return false;
@@ -126,62 +117,4 @@ public sealed class BeautyManager : IDisposable {
         session.Send(BeautyPacket.ApplySavedHair());
         return true;
     }
-
-    public void Expand() {
-        lock (session.Item) {
-            short newSize = (short) (items.Size + Constant.InventoryExpandRowCount);
-            if (newSize > Constant.StoreExpandMaxSlotCount) {
-                session.Send(StorageInventoryPacket.Error(s_store_err_expand_max));
-                return;
-            }
-            if (session.Currency.Meret < Constant.StoreExpandPrice1Row) {
-                session.Send(StorageInventoryPacket.Error(s_cannot_charge_merat));
-                return;
-            }
-
-            if (!items.Expand(newSize)) {
-                session.Send(StorageInventoryPacket.Error(s_store_err_code));
-                return;
-            }
-
-            session.Currency.Meret -= Constant.StoreExpandPrice1Row;
-            expand += Constant.InventoryExpandRowCount;
-
-            Load();
-        }
-    }
-
-    #region Internal (No Locks)
-    private bool RemoveInternal(long uid, int amount, [NotNullWhen(true)] out Item? removed) {
-        if (amount > 0) {
-            Item? item = items.Get(uid);
-            if (item == null || item.Amount < amount) {
-                session.Send(StorageInventoryPacket.Error(s_item_err_invalid_count));
-                removed = null;
-                return false;
-            }
-
-            // Otherwise, we would just do a full remove.
-            if (item.Amount > amount) {
-                using GameStorage.Request db = session.GameStorage.Context();
-                removed = db.SplitItem(0, item, amount);
-                if (removed == null) {
-                    return false;
-                }
-                item.Amount -= amount;
-
-                session.Send(StorageInventoryPacket.Update(uid, item.Amount));
-                return true;
-            }
-        }
-
-        // Full remove of item
-        if (items.Remove(uid, out removed)) {
-            session.Send(StorageInventoryPacket.Remove(uid));
-            return true;
-        }
-
-        return false;
-    }
-    #endregion
 }

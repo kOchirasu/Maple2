@@ -98,6 +98,8 @@ public partial class GameStorage {
             return (info.Meso, info.Expand);
         }
 
+        public short GetHairStorageAmount(long characterId) => Context.CharacterConfig.Find(characterId)?.HairSlotAmount ?? 0;
+
         public PetConfig GetPetConfig(long itemUid) {
             return Context.PetConfig.Find(itemUid) ?? new PetConfig();
         }

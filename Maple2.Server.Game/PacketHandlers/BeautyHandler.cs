@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using IronPython.Modules;
 using Maple2.Database.Storage;
 using Maple2.Model;
 using Maple2.Model.Common;
@@ -14,12 +13,9 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
-using Maple2.Server.Game.Manager.Items;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Extensions;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Serilog.Core;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -398,7 +394,7 @@ public class BeautyHandler : PacketHandler<GameSession> {
             return;
         }
 
-        session.Beauty.EquipCosmetic(uid);
+        session.Beauty.EquipSavedCosmetic(uid);
     }
 
     private void HandleGearDye(GameSession session, IByteReader packet) {
