@@ -20,7 +20,7 @@ public class BeautyShopEntry : IByteSerializable {
     }
 
     public BeautyShopEntry() {
-        
+        Cost = BeautyShopCost.Zero;
     }
 
     public void WriteTo(IByteWriter writer) {
