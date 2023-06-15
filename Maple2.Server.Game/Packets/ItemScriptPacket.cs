@@ -21,7 +21,7 @@ public static class ItemScriptPacket {
             pWriter.WriteInt(item.Id);
             pWriter.WriteInt(item.Amount);
             pWriter.WriteInt(item.Rarity);
-            pWriter.WriteBool(true);
+            pWriter.WriteBool(true); // Enables sparkling animation around item icon
         }
 
         return pWriter;

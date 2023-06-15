@@ -63,7 +63,7 @@ public class ItemBoxManager {
                 if (!session.Item.Inventory.Consume(new[] {boxIngredient})) {
                     int.TryParse(parameters["boxPrice"], out int mesoCost);
                     mesoCost = Math.Max(mesoCost, 0);
-                    if (session.Currency.CanAddMeso(-mesoCost) == -mesoCost) {
+                    if (session.Currency.CanAddMeso(-mesoCost) != -mesoCost) {
                         return ItemBoxError.s_err_cannot_open_multi_itembox_inventory;
                     }
                     session.Currency.Meso -= mesoCost; 
