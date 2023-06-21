@@ -226,7 +226,6 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
     }
 
     private bool ValidateDefaultItems(JobCode jobCode, int id, EquipSlot slot) {
-        return true;
         if (TableMetadata.DefaultItemsTable.Common.TryGetValue(slot, out int[]? commonItemIds) && commonItemIds.Contains(id)) {
             return true;
         }
