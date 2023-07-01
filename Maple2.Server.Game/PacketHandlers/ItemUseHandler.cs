@@ -79,6 +79,15 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             case ItemFunction.OpenItemBoxWithKey:
                 HandleOpenItemBox(session, item);
                 break;
+            case ItemFunction.OpenGachaBox:
+                HandleOpenGacha(session, packet, item);
+                break;
+            case ItemFunction.OpenItemBoxLullu:
+                HandleOpenItemBoxLullu(session, packet, item);
+                break;
+            case ItemFunction.OpenItemBoxLulluSimple:
+                HandleOpenItemBoxLulluSimple(session, packet, item);
+                break;
             case ItemFunction.ItemRePackingScroll:
                 HandleItemRepackingScroll(session, item);
                 break;
@@ -330,7 +339,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
         session.Config.UpdatePremiumTime(hours);
     }
-    
+
     private static void HandleSelectItemBox(GameSession session, IByteReader packet, Item item) {
         if (!int.TryParse(packet.ReadUnicodeString(), out int index)) {
             return;
@@ -341,6 +350,24 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
     private static void HandleOpenItemBox(GameSession session, Item item) {
         session.ItemBox.Open(item);
+        session.ItemBox.Reset();
+    }
+
+    private static void HandleOpenGacha(GameSession session, IByteReader packet, Item item) {
+        string amountString = packet.ReadUnicodeString();
+        session.ItemBox.Open(item, amountString == "multi" ? 10 : 1);
+        session.ItemBox.Reset();
+    }
+
+    private static void HandleOpenItemBoxLullu(GameSession session, IByteReader packet, Item item) {
+        string amountString = packet.ReadUnicodeString();
+        session.ItemBox.OpenLulluBox(item, amountString.Contains("multi") ? 10 : 1, autoPay: amountString.Contains("autoPay"));
+        session.ItemBox.Reset();
+    }
+
+    private static void HandleOpenItemBoxLulluSimple(GameSession session, IByteReader packet, Item item) {
+        string amountString = packet.ReadUnicodeString();
+        session.ItemBox.OpenLulluBoxSimple(item, amountString == "multi" ? 10 : 1);
         session.ItemBox.Reset();
     }
 
