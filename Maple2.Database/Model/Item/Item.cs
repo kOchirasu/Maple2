@@ -22,6 +22,7 @@ internal class Item {
     public bool IsLocked { get; set; }
     public long UnlockTime { get; set; }
     public short GlamorForges { get; set; }
+    public int GachaDismantleId { get; set; }
 
     public ItemAppearance? Appearance { get; set; }
     public ItemStats? Stats { get; set; }
@@ -58,6 +59,7 @@ internal class Item {
             IsLocked = other.IsLocked,
             UnlockTime = other.UnlockTime,
             GlamorForges = other.GlamorForges,
+            GachaDismantleId = other.GachaDismantleId,
             Appearance = other.Appearance == null ? null : other.Appearance switch {
                 Maple2.Model.Game.HairAppearance hair => (HairAppearance) hair,
                 Maple2.Model.Game.DecalAppearance decal => (DecalAppearance) decal,
@@ -99,6 +101,7 @@ internal class Item {
             IsLocked = IsLocked,
             UnlockTime = UnlockTime,
             GlamorForges = GlamorForges,
+            GachaDismantleId = GachaDismantleId,
             Appearance = Appearance switch {
                 HairAppearance hair => hair,
                 DecalAppearance decal => decal,

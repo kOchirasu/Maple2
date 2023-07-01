@@ -49,9 +49,17 @@ public class ItemManager {
         return item ?? Equips.Outfit.Values.FirstOrDefault(outfit => outfit.Uid == uid);
     }
 
-    public Item? CreateItem(int itemId, int rarity = 1, int amount = 1) {
+    public Item? CreateItem(int itemId, int rarity = -1, int amount = 1) {
         if (!session.ItemMetadata.TryGet(itemId, out ItemMetadata? itemMetadata)) {
             return null;
+        }
+
+        if (rarity <= 0) {
+            if (itemMetadata.Option != null && itemMetadata.Option.ConstantId is < 6 and > 0) {
+                rarity = itemMetadata.Option.ConstantId;
+            } else {
+                rarity = 1;
+            }
         }
 
         var item = new Item(itemMetadata, rarity, amount);

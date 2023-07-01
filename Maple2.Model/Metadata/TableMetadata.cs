@@ -58,4 +58,5 @@ public class TableMetadata {
 [JsonDerivedType(typeof(ColorPaletteTable), typeDiscriminator: "colorpalette")]
 [JsonDerivedType(typeof(SetItemTable), typeDiscriminator: "setitem")]
 [JsonDerivedType(typeof(DefaultItemsTable), typeDiscriminator: "defaultitems")]
+[JsonDerivedType(typeof(GachaInfoTable), typeDiscriminator: "gacha_info")]
 public abstract record Table;
