@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Maple2.Server.World.Migrations
 {
     [DbContext(typeof(Ms2Context))]
-    [Migration("20230614054725_BeautyShop")]
+    [Migration("20230702192843_BeautyShop")]
     partial class BeautyShop
     {
         /// <inheritdoc />
@@ -204,9 +204,6 @@ namespace Maple2.Server.World.Migrations
                     b.Property<string>("FavoriteStickers")
                         .HasColumnType("json");
 
-                    b.Property<short>("HairSlotAmount")
-                        .HasColumnType("smallint");
-
                     b.Property<string>("HotBars")
                         .HasColumnType("json");
 
@@ -251,6 +248,9 @@ namespace Maple2.Server.World.Migrations
                     b.Property<string>("FishAlbum")
                         .IsRequired()
                         .HasColumnType("json");
+
+                    b.Property<short>("HairSlotExpand")
+                        .HasColumnType("smallint");
 
                     b.Property<DateTime>("LastModified")
                         .IsConcurrencyToken()
@@ -601,6 +601,9 @@ namespace Maple2.Server.World.Migrations
 
                     b.Property<DateTime>("ExpiryTime")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int>("GachaDismantleId")
+                        .HasColumnType("int");
 
                     b.Property<short>("GlamorForges")
                         .HasColumnType("smallint");

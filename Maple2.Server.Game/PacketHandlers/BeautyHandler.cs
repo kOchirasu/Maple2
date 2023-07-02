@@ -358,7 +358,7 @@ public class BeautyHandler : PacketHandler<GameSession> {
             return;
         }
 
-        session.Beauty.Add(uid);
+        session.Beauty.AddHair(uid);
     }
 
     private void HandleAddSlots(GameSession session, IByteReader packet) {
@@ -374,7 +374,7 @@ public class BeautyHandler : PacketHandler<GameSession> {
         }
 
         if (delete) {
-            session.Beauty.Remove(uid);
+            session.Beauty.RemoveHair(uid);
         }
     }
 

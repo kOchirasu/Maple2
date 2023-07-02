@@ -15,13 +15,11 @@ namespace Maple2.Server.Game.Manager;
 public sealed class BeautyManager : IDisposable {
     private readonly GameSession session;
     private readonly ItemCollection items;
-    private short expand;
     private Item? previousHair;
     public BeautyManager(GameSession session) {
         this.session = session;
-        items = new ItemCollection(Constant.BaseStorageCount);
+        items = new ItemCollection((short) (Constant.BaseStorageCount + session.Player.Value.Unlock.HairSlotExpand));
         using GameStorage.Request db = session.GameStorage.Context();
-        expand = db.GetHairStorageAmount(session.CharacterId);
         foreach (Item item in db.GetSavedHairs(session.CharacterId).Where(item => items.Add(item).Count == 0)) {
             Log.Error("Failed to add saved hair:{Uid}", item.Uid);
         }
@@ -35,28 +33,26 @@ public sealed class BeautyManager : IDisposable {
     }
 
     public void Load() {
-        lock (session.Item) {
             session.Send(BeautyPacket.StartList());
-            session.Send(BeautyPacket.SaveSlots(expand));
+            session.Send(BeautyPacket.SaveSlots(session.Player.Value.Unlock.HairSlotExpand));
             session.Send(BeautyPacket.ListCount(items.Count));
             if (items.Count > 0) {
-                session.Send(BeautyPacket.ListHair(items.OrderBy(hair => hair.CreationTime).ToList()));;
+                session.Send(BeautyPacket.ListHair(items.OrderBy(hair => hair.CreationTime).ToList()));
+                ;
             }
-        }
     }
 
-    public void Add(long uid) {
+    public void AddHair(long uid) {
         Item? hair = session.Item.GetOutfit(uid);
-        if (hair == null) {
+        if (hair == null || !hair.Type.IsHair) {
             return;
         }
 
-        if (items.Any(savedHair => savedHair.Uid == uid)) {
+        if (items.Contains(uid)) {
             return;
         }
 
-        if (items.Count >= Constant.HairSlotCount + expand) {
-            session.Send(BeautyPacket.Error(BeautyError.s_beauty_msg_error_style_slot_max));
+        if (items.OpenSlots <= 0) {
             return;
         }
 
@@ -71,11 +67,11 @@ public sealed class BeautyManager : IDisposable {
         session.Send(BeautyPacket.SaveHair(hair, hairCopy));
     }
 
-    public bool Remove(long uid) {
+    public bool RemoveHair(long uid) {
         if (!items.Remove(uid, out Item? hair)) {
             return false;
         }
-        
+
         session.Item.Inventory.Discard(hair);
         session.Send(BeautyPacket.DeleteHair(uid));
         return true;
@@ -89,6 +85,7 @@ public sealed class BeautyManager : IDisposable {
         }
         session.Item.Equips.EquipCosmetic(previousHair, EquipSlot.HR);
     }
+
     public void ClearPreviousHair() => previousHair = null;
 
     public bool EquipSavedCosmetic(long uid) {
@@ -104,7 +101,7 @@ public sealed class BeautyManager : IDisposable {
 
         Item? copy = cosmetic.Clone();
         copy.Group = ItemGroup.Default;
-            
+
         using GameStorage.Request db = session.GameStorage.Context();
         copy = db.CreateItem(session.CharacterId, copy);
         if (copy == null) {

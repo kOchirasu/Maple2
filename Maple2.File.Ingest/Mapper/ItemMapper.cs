@@ -88,17 +88,13 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                         
                         for (int index = 0; index < slot.asset[1].custom.Count; index++) {
                             // back hair
-                            foreach (var preset in slot.asset[1].custom) {
-                                backHairPositions3[index] = Vector3ParseUtil.ParseVector3(preset.position);
-                                backHairRotations3[index] = Vector3ParseUtil.ParseVector3(preset.rotation);
-                            }
+                            backHairPositions3[index] = slot.asset[1].custom[index].position;
+                            backHairRotations3[index] = slot.asset[1].custom[index].rotation;
 
                             // front hair
-                            foreach (var preset in slot.asset[2].custom) {
-                                frontHairPositions3[index] = Vector3ParseUtil.ParseVector3(preset.position);
-                                frontHairRotations3[index] = Vector3ParseUtil.ParseVector3(preset.rotation);
-                            }
-                            
+                            frontHairPositions3[index] = slot.asset[2].custom[index].position;
+                            frontHairRotations3[index] = slot.asset[2].custom[index].rotation;
+
                             hairList.Add(new DefaultHairMetadata(
                                 BackPosition: backHairPositions3[index],
                                 BackRotation: backHairRotations3[index],
@@ -113,10 +109,8 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                         var backHairRotations2 = new Vector3[slot.asset[1].custom.Count];
 
                         for (int index = 0; index < slot.asset[1].custom.Count; index++) {
-                            foreach (var preset in slot.asset[1].custom) {
-                                backHairPositions2[index] = Vector3ParseUtil.ParseVector3(preset.position);
-                                backHairRotations2[index] = Vector3ParseUtil.ParseVector3(preset.rotation);
-                            }
+                            backHairPositions2[index] = slot.asset[1].custom[index].position;
+                            backHairRotations2[index] = slot.asset[1].custom[index].rotation;
                             
                             hairList.Add(new DefaultHairMetadata(
                                 BackPosition: backHairPositions2[index],

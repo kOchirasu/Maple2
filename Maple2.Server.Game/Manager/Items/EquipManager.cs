@@ -203,12 +203,18 @@ public class EquipManager {
         }
     }
 
+    /// <summary>
+    /// Unequips an cosmetic item (Hair, Eyes, Face Decor) and discards the previous cosmetic item.
+    /// </summary>
     public bool EquipCosmetic(Item cosmetic, EquipSlot equipSlot) {
         lock (session.Item) {
             Item? currentCosmetic = session.Item.Equips.Get(equipSlot);
+            // Unequip and discard cosmetic item.
             if (currentCosmetic != null && !session.Item.Equips.Unequip(currentCosmetic.Uid)) {
                 return false;
             }
+            
+            // Item needs to be in the Outfit item group to display.
             cosmetic.Group = ItemGroup.Outfit;
             cosmetic.Slot = (short) equipSlot;
             Outfit[equipSlot] = cosmetic;

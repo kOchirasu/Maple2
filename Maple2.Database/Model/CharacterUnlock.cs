@@ -21,6 +21,7 @@ internal class CharacterUnlock {
     public required IList<FishEntry> FishAlbum { get; set; }
     public required IList<Quest> Quests { get; set; }
     public required InventoryExpand Expand { get; set; }
+    public short HairSlotExpand { get; set; }
     public DateTime LastModified { get; init; }
 
     public static implicit operator CharacterUnlock(Maple2.Model.Game.Unlock? other) {
@@ -54,6 +55,7 @@ internal class CharacterUnlock {
                 Lapenshard = other.Expand.GetValueOrDefault(InventoryType.Lapenshard),
                 Fragment = other.Expand.GetValueOrDefault(InventoryType.Fragment),
             },
+            HairSlotExpand = other.HairSlotExpand,
             Maps = other.Maps,
             Taxis = other.Taxis,
             Titles = other.Titles,
@@ -90,6 +92,7 @@ internal class CharacterUnlock {
                 {InventoryType.Lapenshard, other.Expand.Lapenshard},
                 {InventoryType.Fragment, other.Expand.Fragment},
             },
+            HairSlotExpand = other.HairSlotExpand,
         };
 
         unlock.Maps.UnionWith(other.Maps);

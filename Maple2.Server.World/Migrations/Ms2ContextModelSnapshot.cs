@@ -201,9 +201,6 @@ namespace Maple2.Server.World.Migrations
                     b.Property<string>("FavoriteStickers")
                         .HasColumnType("json");
 
-                    b.Property<short>("HairSlotAmount")
-                        .HasColumnType("smallint");
-
                     b.Property<string>("HotBars")
                         .HasColumnType("json");
 
@@ -248,6 +245,9 @@ namespace Maple2.Server.World.Migrations
                     b.Property<string>("FishAlbum")
                         .IsRequired()
                         .HasColumnType("json");
+
+                    b.Property<short>("HairSlotExpand")
+                        .HasColumnType("smallint");
 
                     b.Property<DateTime>("LastModified")
                         .IsConcurrencyToken()

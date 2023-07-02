@@ -12,8 +12,8 @@ namespace Maple2.Server.World.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<short>(
-                name: "HairSlotAmount",
-                table: "character-config",
+                name: "HairSlotExpand",
+                table: "character-unlock",
                 type: "smallint",
                 nullable: false,
                 defaultValue: (short)0);
@@ -81,8 +81,8 @@ namespace Maple2.Server.World.Migrations
                 name: "beauty-shop");
 
             migrationBuilder.DropColumn(
-                name: "HairSlotAmount",
-                table: "character-config");
+                name: "HairSlotExpand",
+                table: "character-unlock");
         }
     }
 }
