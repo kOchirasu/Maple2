@@ -59,4 +59,5 @@ public class TableMetadata {
 [JsonDerivedType(typeof(SetItemTable), typeDiscriminator: "setitem")]
 [JsonDerivedType(typeof(DefaultItemsTable), typeDiscriminator: "defaultitems")]
 [JsonDerivedType(typeof(ShopBeautyCouponTable), typeDiscriminator: "shopbeautycoupon")]
+[JsonDerivedType(typeof(GachaInfoTable), typeDiscriminator: "gacha_info")]
 public abstract record Table;
