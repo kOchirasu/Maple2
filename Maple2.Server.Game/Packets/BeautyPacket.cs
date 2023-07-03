@@ -127,7 +127,7 @@ public static class BeautyPacket {
         pWriter.Write<Command>(Command.SaveHair);
         pWriter.WriteLong(currentHair.Uid);
         pWriter.WriteLong(hairCopy.Uid);
-        pWriter.WriteByte();
+        pWriter.WriteByte(9);
         pWriter.WriteLong(hairCopy.CreationTime);
 
         return pWriter;

@@ -204,13 +204,29 @@ public class EquipManager {
     }
 
     /// <summary>
-    /// Unequips an cosmetic item (Hair, Eyes, Face Decor) and discards the previous cosmetic item.
+    /// Equips a cosmetic item, unequips an cosmetic item (Hair, Eyes, Face Decor), and discards the previous cosmetic item.
     /// </summary>
+    /// <param name="cosmetic">The hair, face, or face decor item to equip.</param>
+    /// <param name="equipSlot">Slot to equip the cosmetic item.</param>
     public bool EquipCosmetic(Item cosmetic, EquipSlot equipSlot) {
+        if (equipSlot is not (EquipSlot.HR or EquipSlot.FA or EquipSlot.FD)) {
+            return false;
+        }
+
+        if (!ValidEquipSlotForItem(equipSlot, cosmetic)) {
+            return false;
+        }
+
         lock (session.Item) {
-            Item? currentCosmetic = session.Item.Equips.Get(equipSlot);
+            StringCode result = ValidateEquipItem(session, cosmetic);
+            if (result != StringCode.s_empty_string) {
+                session.Send(NoticePacket.MessageBox(result));
+                return false;
+            }
+
+            Item? currentCosmetic = Get(equipSlot);
             // Unequip and discard cosmetic item.
-            if (currentCosmetic != null && !session.Item.Equips.Unequip(currentCosmetic.Uid)) {
+            if (currentCosmetic != null && !Unequip(currentCosmetic.Uid)) {
                 return false;
             }
             

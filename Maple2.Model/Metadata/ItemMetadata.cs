@@ -102,9 +102,9 @@ public record ItemMetadataHousing(
     int InteriorLevel);
 
 public record DefaultHairMetadata(
-    Vector3 BackPosition,
-    Vector3 BackRotation,
-    Vector3 FrontPosition,
-    Vector3 FrontRotation,
-    float MinScale,
-    float MaxScale);
+    Vector3 BackPosition = default,
+    Vector3 BackRotation = default,
+    Vector3 FrontPosition = default,
+    Vector3 FrontRotation = default,
+    float MinScale = 0f,
+    float MaxScale = 0f);

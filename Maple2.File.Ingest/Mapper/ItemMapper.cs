@@ -96,20 +96,12 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                             hairList.Add(new DefaultHairMetadata(
                                 BackPosition: custom.position,
                                 BackRotation: custom.rotation,
-                                FrontPosition: Vector3.Zero,
-                                FrontRotation: Vector3.Zero,
                                 MinScale: minScale,
                                 MaxScale: maxScale));
                         }
                         break;
                     default: // No positionable hair section
-                        hairList.Add(new DefaultHairMetadata(
-                            BackPosition: Vector3.Zero,
-                            BackRotation: Vector3.Zero,
-                            FrontPosition: Vector3.Zero,
-                            FrontRotation: Vector3.Zero,
-                            MinScale: minScale,
-                            MaxScale: maxScale));
+                        hairList.Add(new DefaultHairMetadata());
                         break;
                 }
             }

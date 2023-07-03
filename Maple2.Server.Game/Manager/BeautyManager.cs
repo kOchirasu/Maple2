@@ -27,19 +27,17 @@ public sealed class BeautyManager : IDisposable {
 
     public void Dispose() {
         using GameStorage.Request db = session.GameStorage.Context();
-        lock (session.Item) {
-            db.SaveItems(session.CharacterId, items.ToArray());
-        }
+        db.SaveItems(session.CharacterId, items.ToArray());
     }
 
     public void Load() {
-            session.Send(BeautyPacket.StartList());
-            session.Send(BeautyPacket.SaveSlots(session.Player.Value.Unlock.HairSlotExpand));
-            session.Send(BeautyPacket.ListCount(items.Count));
-            if (items.Count > 0) {
-                session.Send(BeautyPacket.ListHair(items.OrderBy(hair => hair.CreationTime).ToList()));
-                ;
-            }
+        session.Send(BeautyPacket.StartList());
+        session.Send(BeautyPacket.SaveSlots(session.Player.Value.Unlock.HairSlotExpand));
+        session.Send(BeautyPacket.ListCount(items.Count));
+        if (items.Count > 0) {
+            session.Send(BeautyPacket.ListHair(items.OrderBy(hair => hair.CreationTime).ToList()));
+            ;
+        }
     }
 
     public void AddHair(long uid) {
@@ -99,6 +97,7 @@ public sealed class BeautyManager : IDisposable {
             return false;
         }
 
+        // Clone() causes copy to have the same Uid as the original. However, CreateItem() will generate a new Uid.
         Item? copy = cosmetic.Clone();
         copy.Group = ItemGroup.Default;
 
