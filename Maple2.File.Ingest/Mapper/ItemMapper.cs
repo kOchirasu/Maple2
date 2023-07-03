@@ -81,40 +81,21 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                 float maxScale = slot.scale.ElementAtOrDefault(0)?.max ?? 0f;
                 switch (slot.asset.Count) {
                     case 3: // Hair has front and back positionable hair section
-                        var backHairPositions3 = new Vector3[slot.asset[1].custom.Count];
-                        var backHairRotations3 = new Vector3[slot.asset[1].custom.Count];
-                        var frontHairPositions3 = new Vector3[slot.asset[2].custom.Count];
-                        var frontHairRotations3 = new Vector3[slot.asset[2].custom.Count];
-                        
                         for (int index = 0; index < slot.asset[1].custom.Count; index++) {
-                            // back hair
-                            backHairPositions3[index] = slot.asset[1].custom[index].position;
-                            backHairRotations3[index] = slot.asset[1].custom[index].rotation;
-
-                            // front hair
-                            frontHairPositions3[index] = slot.asset[2].custom[index].position;
-                            frontHairRotations3[index] = slot.asset[2].custom[index].rotation;
-
                             hairList.Add(new DefaultHairMetadata(
-                                BackPosition: backHairPositions3[index],
-                                BackRotation: backHairRotations3[index],
-                                FrontPosition: frontHairPositions3[index],
-                                FrontRotation: frontHairRotations3[index],
+                                BackPosition: slot.asset[1].custom[index].position,
+                                BackRotation: slot.asset[1].custom[index].rotation,
+                                FrontPosition: slot.asset[2].custom[index].position,
+                                FrontRotation: slot.asset[2].custom[index].rotation,
                                 MinScale: minScale,
                                 MaxScale: maxScale));
                         }
                         break;
                     case 2: // Hair has one positionable hair section
-                        var backHairPositions2 = new Vector3[slot.asset[1].custom.Count];
-                        var backHairRotations2 = new Vector3[slot.asset[1].custom.Count];
-
-                        for (int index = 0; index < slot.asset[1].custom.Count; index++) {
-                            backHairPositions2[index] = slot.asset[1].custom[index].position;
-                            backHairRotations2[index] = slot.asset[1].custom[index].rotation;
-                            
+                        foreach (Slot.Custom custom in slot.asset[1].custom) {
                             hairList.Add(new DefaultHairMetadata(
-                                BackPosition: backHairPositions2[index],
-                                BackRotation: backHairRotations2[index],
+                                BackPosition: custom.position,
+                                BackRotation: custom.rotation,
                                 FrontPosition: Vector3.Zero,
                                 FrontRotation: Vector3.Zero,
                                 MinScale: minScale,
