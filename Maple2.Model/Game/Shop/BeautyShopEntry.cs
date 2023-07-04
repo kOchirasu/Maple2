@@ -6,8 +6,8 @@ using Maple2.Tools.Extensions;
 namespace Maple2.Model.Game.Shop;
 
 public class BeautyShopEntry : IByteSerializable {
-    public readonly int ItemId;
-    public readonly BeautyShopCost Cost;
+    public int ItemId { get; init; }
+    public BeautyShopCost Cost { get; init; }
 
     public ShopItemLabel Label { get; init; }
     public short RequireLevel { get; init; }
@@ -17,6 +17,10 @@ public class BeautyShopEntry : IByteSerializable {
     public BeautyShopEntry(int itemId, BeautyShopCost cost) {
         ItemId = itemId;
         Cost = cost;
+    }
+
+    public BeautyShopEntry() {
+        Cost = BeautyShopCost.Zero;
     }
 
     public void WriteTo(IByteWriter writer) {

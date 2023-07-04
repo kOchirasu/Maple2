@@ -52,6 +52,16 @@ public class EquipManager {
                ?? Badge.Values.FirstOrDefault(item => item.Uid == itemUid);
     }
 
+    public Item? Get(EquipSlot equipSlot) {
+        return Gear.TryGetValue(equipSlot, out Item? item) ? item
+               : Outfit.TryGetValue(equipSlot, out item) ? item
+               : null;
+    }
+
+    public Item? Get(BadgeType badgeType) {
+        return Badge.TryGetValue(badgeType, out Item? item) ? item : null;
+    }
+
     /// <summary>
     /// Equips an item to its specified slot
     /// </summary>
@@ -189,6 +199,42 @@ public class EquipManager {
                 session.Pet?.BadgeChanged(badge.Badge);
             }
 
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Equips a cosmetic item, unequips an cosmetic item (Hair, Eyes, Face Decor), and discards the previous cosmetic item.
+    /// </summary>
+    /// <param name="cosmetic">The hair, face, or face decor item to equip.</param>
+    /// <param name="equipSlot">Slot to equip the cosmetic item.</param>
+    public bool EquipCosmetic(Item cosmetic, EquipSlot equipSlot) {
+        if (equipSlot is not (EquipSlot.HR or EquipSlot.FA or EquipSlot.FD)) {
+            return false;
+        }
+
+        if (!ValidEquipSlotForItem(equipSlot, cosmetic)) {
+            return false;
+        }
+
+        lock (session.Item) {
+            StringCode result = ValidateEquipItem(session, cosmetic);
+            if (result != StringCode.s_empty_string) {
+                session.Send(NoticePacket.MessageBox(result));
+                return false;
+            }
+
+            Item? currentCosmetic = Get(equipSlot);
+            // Unequip and discard cosmetic item.
+            if (currentCosmetic != null && !Unequip(currentCosmetic.Uid)) {
+                return false;
+            }
+            
+            // Item needs to be in the Outfit item group to display.
+            cosmetic.Group = ItemGroup.Outfit;
+            cosmetic.Slot = (short) equipSlot;
+            Outfit[equipSlot] = cosmetic;
+            session.Field?.Broadcast(EquipPacket.EquipItem(session.Player, cosmetic, 0));
             return true;
         }
     }
