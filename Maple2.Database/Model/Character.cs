@@ -42,7 +42,7 @@ internal class Character {
             Level = other.Level,
             SkinColor = other.SkinColor,
             MapId = other.MapId,
-            ReturnMapId = other.MapId,
+            ReturnMapId = other.ReturnMapId,
             Experience = new Experience {
                 Exp = other.Exp,
                 RestExp = other.RestExp,

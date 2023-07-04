@@ -49,10 +49,11 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "itemsocket.xml", Table = ParseItemSocketTable()};
         yield return new TableMetadata {Name = "masteryreceipe.xml", Table = ParseMasteryRecipe()};
         yield return new TableMetadata {Name = "mastery.xml", Table = ParseMasteryReward()};
-        yield return new TableMetadata {Name = "guild*.xml", Table = ParseGuildTable() };
+        yield return new TableMetadata {Name = "guild*.xml", Table = ParseGuildTable()};
         yield return new TableMetadata {Name = "vip*.xml", Table = ParsePremiumClubTable()};
         yield return new TableMetadata {Name = "individualitemdrop*.xml", Table = ParseIndividualItemDropTable()};
         yield return new TableMetadata {Name = "colorpalette.xml", Table = ParseColorPaletteTable()};
+        yield return new TableMetadata {Name = "shop_beautycoupon.xml", Table = ParseShopBeautyCouponTable()};
         yield return new TableMetadata {Name = "gacha_info.xml", Table = ParseGachaInfoTable()};
         // Fishing
         yield return new TableMetadata {Name = "fishingspot.xml", Table = ParseFishingSpot()};
@@ -71,12 +72,12 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "itemoptionstatic.xml", Table = ParseItemOptionStatic()};
         yield return new TableMetadata {Name = "itemoptionpick.xml", Table = ParseItemOptionPick()};
         yield return new TableMetadata {Name = "itemoptionvariation.xml", Table = ParseItemVariation()};
-        
+
         foreach ((string type, ItemEquipVariationTable table) in ParseItemEquipVariation()) {
             yield return new TableMetadata {Name = $"itemoptionvariation_{type}.xml", Table = table};
         }
         // SetItemOption
-        yield return new TableMetadata { Name = "setitem*.xml", Table = ParseSetItem() };
+        yield return new TableMetadata {Name = "setitem*.xml", Table = ParseSetItem()};
     }
 
     private ChatStickerTable ParseChatSticker() {
@@ -505,8 +506,8 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 var specialRates = new Dictionary<SpecialAttribute, float>();
 
                 foreach (BasicAttribute attribute in Enum.GetValues<BasicAttribute>()) {
-                    values.AddIfNotDefault(attribute, part.StatValue((byte)attribute));
-                    rates.AddIfNotDefault(attribute, part.StatRate((byte)attribute));
+                    values.AddIfNotDefault(attribute, part.StatValue((byte) attribute));
+                    rates.AddIfNotDefault(attribute, part.StatRate((byte) attribute));
                 }
 
                 // Since 4 is already "Boss" we can ignore sgi_boss_target
@@ -1013,7 +1014,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
         return new PremiumClubTable(premiumClubBuffs, premiumClubItems, premiumClubPackages);
     }
-    
+
     private IndividualItemDropTable ParseIndividualItemDropTable() {
         var results = new Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>>();
         results = MergeIndividualItemDropTable(results, parser.ParseIndividualItemDrop());
@@ -1029,9 +1030,9 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
         return new IndividualItemDropTable(results);
     }
-    
+
     private Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>> MergeIndividualItemDropTable(Dictionary<int, Dictionary<byte, IList<IndividualItemDropTable.Entry>>> results, IEnumerable<(int Id, IDictionary<byte, List<IndividualItemDrop>>)> parser) {
-        foreach ((int id, IDictionary<byte,List<IndividualItemDrop>> dict) in parser) {
+        foreach ((int id, IDictionary<byte, List<IndividualItemDrop>> dict) in parser) {
             foreach ((byte dropGroup, List<IndividualItemDrop> drops) in dict) {
                 foreach (IndividualItemDrop drop in drops) {
                     var itemIds = new List<int> {
@@ -1078,11 +1079,11 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
         return results;
     }
-    
+
     private ColorPaletteTable ParseColorPaletteTable() {
         var results = new Dictionary<int, IReadOnlyDictionary<int, ColorPaletteTable.Entry>>();
         foreach ((int id, ColorPalette palette) in parser.ParseColorPalette()) {
-            foreach(ColorPalette.Color? color in palette.color) {
+            foreach (ColorPalette.Color? color in palette.color) {
                 var entry = new ColorPaletteTable.Entry(
                     Primary: ParseColor(color.ch0),
                     Secondary: ParseColor(color.ch1),
@@ -1105,6 +1106,14 @@ public class TableMapper : TypeMapper<TableMetadata> {
         return new Color(color.B, color.G, color.R, color.A);
     }
 
+    private ShopBeautyCouponTable ParseShopBeautyCouponTable() {
+        var results = new Dictionary<int, IReadOnlyList<int>>();
+        foreach ((int id, ShopBeautyCoupon coupon) in parser.ParseShopBeautyCoupon()) {
+            results.Add(id, new List<int>(coupon.item.Select(item => item.id)));
+        }
+
+        return new ShopBeautyCouponTable(results);
+    }
     private GachaInfoTable ParseGachaInfoTable() {
         var results = new Dictionary<int, GachaInfoTable.Entry>();
         foreach ((int randomBoxId, GachaInfo gachaInfo) in parser.ParseGachaInfo()) {

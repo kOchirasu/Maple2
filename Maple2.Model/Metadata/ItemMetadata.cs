@@ -1,4 +1,6 @@
-﻿using Maple2.Model.Enum;
+﻿using System.Collections.Generic;
+using System.Numerics;
+using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
 
@@ -7,6 +9,7 @@ public record ItemMetadata(
     string? Name,
     EquipSlot[] SlotNames,
     string Mesh,
+    DefaultHairMetadata[] DefaultHairs,
     ItemMetadataLife Life,
     ItemMetadataProperty Property,
     ItemMetadataCustomize Customize,
@@ -97,3 +100,11 @@ public record ItemMetadataHousing(
     int TrophyId,
     int TrophyLevel,
     int InteriorLevel);
+
+public record DefaultHairMetadata(
+    Vector3 BackPosition = default,
+    Vector3 BackRotation = default,
+    Vector3 FrontPosition = default,
+    Vector3 FrontRotation = default,
+    float MinScale = 0f,
+    float MaxScale = 0f);

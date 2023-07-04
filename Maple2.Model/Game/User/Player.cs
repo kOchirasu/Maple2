@@ -24,6 +24,7 @@ public class Unlock {
     public DateTime LastModified { get; init; }
 
     public IDictionary<InventoryType, short> Expand { get; init; } = new Dictionary<InventoryType, short>();
+    public short HairSlotExpand;
 
     public readonly ISet<int> Maps = new SortedSet<int>();
     public readonly ISet<int> Taxis = new SortedSet<int>();

@@ -91,6 +91,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             case ItemFunction.ItemRePackingScroll:
                 HandleItemRepackingScroll(session, item);
                 break;
+            case ItemFunction.ItemChangeBeauty:
+                HandleItemChangeBeauty(session, item);
+                break;
             default:
                 Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
                 return;
@@ -373,5 +376,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
     private static void HandleItemRepackingScroll(GameSession session, Item item) {
         session.Send(ItemRepackPacket.Open(item.Uid));
+    }
+
+    private static void HandleItemChangeBeauty(GameSession session, Item item) {
+        session.Send(ItemUsePacket.BeautyCoupon(session.Player.Value.ObjectId, item.Uid));
     }
 }

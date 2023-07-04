@@ -69,6 +69,7 @@ public sealed class MetadataContext : DbContext {
         builder.ToTable("item");
         builder.HasKey(item => item.Id);
         builder.Property(item => item.SlotNames).HasJsonConversion();
+        builder.Property(item => item.DefaultHairs).HasJsonConversion();
         builder.Property(item => item.Life).HasJsonConversion();
         builder.Property(item => item.Property).HasJsonConversion();
         builder.Property(item => item.Customize).HasJsonConversion();
