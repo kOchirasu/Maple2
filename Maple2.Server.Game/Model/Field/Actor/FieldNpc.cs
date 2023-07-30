@@ -154,9 +154,7 @@ public class FieldNpc : Actor<Npc> {
     }
 
     protected override void OnDeath() {
-        foreach (Buff buff in Buffs.Values) {
-            buff.Remove();
-        }
+        Buffs.RemoveAll();
 
         Owner?.Despawn(ObjectId);
         CurrentRoutine.OnCompleted();

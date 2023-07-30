@@ -29,19 +29,39 @@ public enum BuffCategory {
     Unknown1 = 1,
     Unknown2 = 2,
     Unknown4 = 4,
-    Unknown6 = 6,
-    Unknown7 = 7,
-    Unknown8 = 8,
-    Unknown9 = 9,
+    EnemyDot = 6,
+    Stunned = 7, // ?
+    Slow = 8, // ?
+    BossResistance = 9,
     Unknown99 = 99,
-    Unknown1007 = 1007,
+    MonsterStunned = 1007, // ?
     Unknown2001 = 2001,
 }
 
 public enum BuffEventType {
-    None = 0,
-    Unknown1 = 1,
-    Unknown2 = 2,
-    Unknown3 = 3,
-    Unknown4 = 4,
+    OnTick = 0,
+    AutoFish = 1,
+    SafeRiding = 2,
+    AmphibiousRide = 3,
+    AutoPerform = 4,
+}
+
+public enum BuffKeepCondition {
+    TimerDuration = 0, // ?
+    SkillDuration = 1, // ?
+    TimerDurationTrackCooldown = 5, // ?
+    UnlimitedDuration = 99,
+}
+
+public enum BuffResetCondition {
+    ResetTimer = 0,
+    NoTimerReset = 1,
+    ResetTimer2 = 2, // ?
+    ChangeTimerNoOverride = 3, // ?
+}
+
+public enum BuffDotCondition {
+    Instant = 0,
+    Delayed = 1,
+    Unknown = 2,
 }

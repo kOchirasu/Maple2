@@ -27,9 +27,9 @@ public record AdditionalEffectMetadataProperty(
     int IntervalTick,
     int DelayTick,
     int MaxCount,
-    int KeepCondition,
-    int ResetCondition,
-    int DotCondition);
+    BuffKeepCondition KeepCondition,
+    BuffKeepCondition ResetCondition,
+    BuffDotCondition DotCondition);
 
 public record AdditionalEffectMetadataConsume(
     float HpRate,

@@ -2,6 +2,7 @@
 using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.Map;
 using Maple2.File.Parser.Xml.Table;
+using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 
 namespace Maple2.File.Ingest.Mapper;
@@ -43,9 +44,9 @@ public class MapMapper : TypeMapper<MapMetadata> {
                 XBlock: data.xblock.name.ToLower(),
                 Property: new MapMetadataProperty(
                     Continent: data.property.continentCode,
-                    Region: data.property.regionCode,
+                    Region: (MapRegion) data.property.regionCode,
                     Category: data.property.mapCategoryCode,
-                    Type: data.property.mapType,
+                    Type: (MapType) data.property.mapType,
                     BigCity: data.property.bigCity,
                     ExploreType: data.property.exploreType,
                     TutorialType: data.property.tutorialType,

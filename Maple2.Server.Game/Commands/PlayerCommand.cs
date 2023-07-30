@@ -112,9 +112,7 @@ public class PlayerCommand : Command {
                 session.Player.Value.Character.Job = job;
                 session.Config.Skill.SkillInfo.SetJob(job);
 
-                foreach (Buff buff in session.Player.Buffs.Values) {
-                    buff.Remove();
-                }
+                session.Player.Buffs.RemoveAll();
                 session.Stats.Refresh();
                 session.Field?.Broadcast(JobPacket.Awakening(session.Player, session.Config.Skill.SkillInfo));
                 ctx.ExitCode = 0;

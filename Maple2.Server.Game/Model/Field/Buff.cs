@@ -49,20 +49,30 @@ public class Buff : IUpdatable, IByteSerializable {
         // Buffs with IntervalTick=0 will just proc a single time
         IntervalTick = metadata.Property.IntervalTick > 0 ? metadata.Property.IntervalTick : metadata.Property.DurationTick + 1000;
 
-        // Initialize
         Stack();
         NextProcTick = StartTick + this.metadata.Property.DelayTick + this.metadata.Property.IntervalTick;
         UpdateEnabled(false);
         // Buffs with KeepCondition == 99 will not proc?
-        canProc = metadata.Property.KeepCondition != 99;
+        canProc = metadata.Property.KeepCondition != BuffKeepCondition.UnlimitedDuration;
         // Buffs with a duration of 0 are permanent.
         canExpire = EndTick > StartTick;
     }
 
-    public void Stack() {
+    public bool Stack() {
+        if (Stacks >= metadata.Property.MaxCount) {
+            return false;
+        }
         Stacks = Math.Min(Stacks + 1, metadata.Property.MaxCount);
         StartTick = Environment.TickCount64;
         EndTick = StartTick + metadata.Property.DurationTick;
+        return true;
+    }
+
+    public void RemoveStack(int amount = 1) {
+        Stacks = Math.Max(0, Stacks - amount);
+        if (Stacks == 0) {
+            Remove();
+        }
     }
 
     private void Activate() {
@@ -72,9 +82,7 @@ public class Buff : IUpdatable, IByteSerializable {
                     continue;
                 }
 
-                if (Owner.Buffs.TryGetValue(id, out Buff? buff)) {
-                    buff.Remove();
-                }
+                Owner.Buffs.Remove(id);
             }
         }
 
@@ -94,7 +102,7 @@ public class Buff : IUpdatable, IByteSerializable {
     }
 
     public void Remove() {
-        if (Owner.Buffs.Remove(Id, out _)) {
+        if (Owner.Buffs.Remove(Id)) {
             field.Broadcast(BuffPacket.Remove(this));
         }
     }
@@ -143,7 +151,7 @@ public class Buff : IUpdatable, IByteSerializable {
                         break;
                 }
             } else if (effect.Splash != null) {
-                field.AddSkill(Caster, effect, new[]{Owner.Position}, Owner.Rotation);
+                field.AddSkill(Caster, effect, new[] {Owner.Position}, Owner.Rotation);
             }
         }
 

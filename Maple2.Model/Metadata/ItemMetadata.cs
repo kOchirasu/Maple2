@@ -16,6 +16,7 @@ public record ItemMetadata(
     ItemMetadataLimit Limit,
     ItemMetadataSkill? Skill,
     ItemMetadataFunction? Function,
+    ItemMetadataAdditionalEffect[] AdditionalEffects,
     ItemMetadataOption? Option,
     ItemMetadataMusic? Music,
     ItemMetadataHousing? Housing) : ISearchResult;
@@ -76,6 +77,10 @@ public record ItemMetadataFunction(
     ItemFunction Type,
     string Name,
     string Parameters);
+
+public record ItemMetadataAdditionalEffect(
+    int Id,
+    short Level);
 
 public record ItemMetadataOption(
     int StaticId,

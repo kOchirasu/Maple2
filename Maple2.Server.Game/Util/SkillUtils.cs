@@ -94,7 +94,7 @@ public static class SkillUtils {
         }
 
         foreach ((int id, short level, bool owned, int count, CompareType compare) in condition.Buff) {
-            if (!target.Buffs.TryGetValue(id, out Buff? buff)) {
+            if (!target.Buffs.Buffs.TryGetValue(id, out Buff? buff)) {
                 return false;
             }
             if (buff.Level < level) {

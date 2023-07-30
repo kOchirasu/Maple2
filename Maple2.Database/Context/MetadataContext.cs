@@ -76,6 +76,7 @@ public sealed class MetadataContext : DbContext {
         builder.Property(item => item.Limit).HasJsonConversion();
         builder.Property(item => item.Skill).HasJsonConversion();
         builder.Property(item => item.Function).HasJsonConversion();
+        builder.Property(item => item.AdditionalEffects).HasJsonConversion();
         builder.Property(item => item.Option).HasJsonConversion();
         builder.Property(item => item.Music).HasJsonConversion();
         builder.Property(item => item.Housing).HasJsonConversion();
