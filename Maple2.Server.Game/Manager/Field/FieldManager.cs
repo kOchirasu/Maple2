@@ -7,6 +7,7 @@ using System.Numerics;
 using System.Threading;
 using Maple2.Database.Storage;
 using Maple2.Model.Common;
+using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -85,7 +86,7 @@ public sealed partial class FieldManager : IDisposable {
         if (ugcMetadata.Plots.Count > 0) {
             using GameStorage.Request db = GameStorage.Context();
             // Type 3 = 62000000_ugc and 62900000_ugd
-            long plotOwnerId = Metadata.Property.Type == 3 ? OwnerId : -1;
+            long plotOwnerId = Metadata.Property.Type == MapType.Home ? OwnerId : -1;
             foreach (Plot plot in db.LoadPlotsForMap(MapId, plotOwnerId)) {
                 Plots[plot.Number] = plot;
             }
