@@ -20,7 +20,7 @@ namespace Maple2.Server.Game.Model;
 /// Actor is an entity that can engage in combat.
 /// </summary>
 /// <typeparam name="T">The type contained by this object</typeparam>
-public abstract class Actor<T> : IActor<T>, IActor, IDisposable {
+public abstract class Actor<T> : IActor<T>, IDisposable {
 
     protected readonly ILogger Logger = Log.ForContext<T>();
 

@@ -20,7 +20,7 @@ public class BuffManager {
     private int NextLocalId() => Interlocked.Increment(ref idCounter);
     #endregion
     private readonly IActor actor;
-    public virtual ConcurrentDictionary<int, Buff> Buffs { get; } = new();
+    public ConcurrentDictionary<int, Buff> Buffs { get; } = new();
     private readonly ILogger logger = Log.ForContext<BuffManager>();
 
     public BuffManager(IActor actor) {
@@ -37,7 +37,7 @@ public class BuffManager {
                 }
 
                 // Check for buffs on gemstones
-                if (item.Socket?.Sockets is not null && item.Socket.Sockets.Length > 0)
+                if (item.Socket?.Sockets is not null && item.Socket.Sockets.Length > 0) {
                     foreach (ItemGemstone? gemstone in item.Socket?.Sockets!) {
                         if (gemstone == null || !player.Session.ItemMetadata.TryGet(gemstone.ItemId, out ItemMetadata? metadata)) {
                             continue;
@@ -47,6 +47,7 @@ public class BuffManager {
                             AddBuff(actor, actor, buff.Id, buff.Level, false);
                         }
                     }
+                }
             }
         }
     }
