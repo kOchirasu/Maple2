@@ -16,21 +16,21 @@ public static class PlayerHostPacket {
         AdBalloonWindow = 6,
     }
 
-    public static ByteWriter AdBalloonWindow(InteractBillBoardObject interact) {
+    public static ByteWriter AdBalloonWindow(InteractBillBoardObject billboard) {
         var pWriter = Packet.Of(SendOp.PlayerHost);
         pWriter.Write<Command>(Command.AdBalloonWindow);
-        pWriter.WriteLong(interact.Owner.AccountId);
-        pWriter.WriteLong(interact.Owner.Id);
-        pWriter.WriteUnicodeString(interact.Owner.Picture);
-        pWriter.WriteUnicodeString(interact.Owner.Name);
-        pWriter.WriteShort(interact.Owner.Level);
-        pWriter.Write(interact.Owner.Job.Code());
+        pWriter.WriteLong(billboard.Owner.AccountId);
+        pWriter.WriteLong(billboard.Owner.Id);
+        pWriter.WriteUnicodeString(billboard.Owner.Picture);
+        pWriter.WriteUnicodeString(billboard.Owner.Name);
+        pWriter.WriteShort(billboard.Owner.Level);
+        pWriter.Write(billboard.Owner.Job.Code());
         pWriter.WriteShort();
-        pWriter.WriteUnicodeString(interact.Title);
-        pWriter.WriteUnicodeString(interact.Description);
-        pWriter.WriteBool(interact.PublicHouse);
-        pWriter.WriteLong(interact.CreationTime);
-        pWriter.WriteLong(interact.ExpirationTime);
+        pWriter.WriteUnicodeString(billboard.Title);
+        pWriter.WriteUnicodeString(billboard.Description);
+        pWriter.WriteBool(billboard.PublicHouse);
+        pWriter.WriteLong(billboard.CreationTime);
+        pWriter.WriteLong(billboard.ExpirationTime);
         pWriter.WriteLong();
 
         return pWriter;

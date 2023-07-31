@@ -32,6 +32,7 @@ public partial class FieldManager {
     private readonly ConcurrentDictionary<string, FieldBreakable> fieldBreakables = new();
     private readonly ConcurrentDictionary<string, FieldLiftable> fieldLiftables = new();
     private readonly ConcurrentDictionary<string, FieldInteract> fieldInteracts = new();
+    private readonly ConcurrentDictionary<string, FieldInteract> fieldAdBalloons = new();
     private readonly ConcurrentDictionary<int, FieldItem> fieldItems = new();
     private readonly ConcurrentDictionary<int, FieldMobSpawn> fieldMobSpawns = new();
     private readonly ConcurrentDictionary<int, FieldSkill> fieldSkills = new();
@@ -183,13 +184,13 @@ public partial class FieldManager {
             return null;
         }
 
-        IInteractObject interactObject = metadata.Type switch {
-            InteractType.Mesh => new InteractMeshObject(entityId, (interact as Ms2InteractMesh)!),
-            InteractType.Telescope => new InteractTelescopeObject(entityId, (interact as Ms2Telescope)!),
-            InteractType.Ui => new InteractUiObject(entityId, (interact as Ms2SimpleUiObject)!),
-            InteractType.DisplayImage => new InteractDisplayImage(entityId, (interact as Ms2InteractDisplay)!),
-            InteractType.Gathering => new InteractGatheringObject(entityId, (interact as Ms2InteractActor)!),
-            InteractType.GuildPoster => new InteractGuildPosterObject(entityId, (interact as Ms2InteractDisplay)!),
+        IInteractObject interactObject = interact switch {
+            Ms2InteractMesh mesh => new InteractMeshObject(entityId, mesh),
+            Ms2Telescope telescope => new InteractTelescopeObject(entityId, telescope),
+            Ms2SimpleUiObject ui => new InteractUiObject(entityId, ui),
+            Ms2InteractDisplay display when metadata.Type == InteractType.DisplayImage => new InteractDisplayImage(entityId, display),
+            Ms2InteractDisplay poster when metadata.Type == InteractType.GuildPoster => new InteractGuildPosterObject(entityId, poster),
+            Ms2InteractActor actor => new InteractGatheringObject(entityId, actor),
             _ => throw new ArgumentException($"Unsupported Type: {metadata.Type}"),
         };
 
@@ -202,17 +203,26 @@ public partial class FieldManager {
         return fieldInteract;
     }
 
-    public FieldInteract? AddInteract(InteractObject interactData, IInteractObject interactObject, int globalId) {
+    public FieldInteract? AddInteract(InteractObject interactData, IInteractObject interactObject) {
         if (!TableMetadata.InteractObjectTable.Entries.TryGetValue(interactData.InteractId, out InteractObjectMetadata? metadata)) {
             return null;
         }
 
-        var fieldInteract = new FieldInteract(this, globalId, interactObject.EntityId, metadata, interactObject) {
+        var fieldInteract = new FieldInteract(this, NextLocalId(), interactObject.EntityId, metadata, interactObject) {
             Position = interactData.Position,
             Rotation = interactData.Rotation,
         };
 
-        fieldInteracts[fieldInteract.EntityId] = fieldInteract;
+        //TODO: Add treasure chests
+        switch (interactObject) {
+            case InteractBillBoardObject billboard:
+                fieldAdBalloons[billboard.EntityId] = fieldInteract;
+                break;
+            default:
+                fieldInteracts[interactObject.EntityId] = fieldInteract;
+                break;
+        }
+
         Broadcast(InteractObjectPacket.Add(interactObject));
         return fieldInteract;
     }
@@ -474,8 +484,8 @@ public partial class FieldManager {
         // LOAD:
         added.Session.Send(LiftablePacket.Update(fieldLiftables.Values));
         added.Session.Send(BreakablePacket.Update(fieldBreakables.Values));
-        added.Session.Send(InteractObjectPacket.Load(fieldInteracts.Values.Where(interact => interact.Value.Type != InteractType.BillBoard).ToList()));
-        foreach (FieldInteract fieldInteract in fieldInteracts.Values.Where(interact => interact.Value.Type == InteractType.BillBoard)) {
+        added.Session.Send(InteractObjectPacket.Load(fieldInteracts.Values));
+        foreach (FieldInteract fieldInteract in fieldAdBalloons.Values) {
             added.Session.Send(InteractObjectPacket.Add(fieldInteract.Object));
         }
         foreach (FieldPlayer fieldPlayer in Players.Values) {

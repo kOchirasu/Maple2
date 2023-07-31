@@ -388,6 +388,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
     private static void HandleInstallBillBoard(GameSession session, IByteReader packet, Item item) {
         string[] fieldParameters = packet.ReadUnicodeString().Split("'");
+        if (fieldParameters.Length < 3 || session.Field == null) {
+            return;
+        }
 
         Dictionary<string, string> functionParameters = XmlParseUtil.GetParameters(item.Metadata.Function?.Parameters);
         if (!functionParameters.ContainsKey("interactID") || !int.TryParse(functionParameters["interactID"], out int interactId) ||
@@ -396,7 +399,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             return;
         }
 
-        int globalId = FieldManager.NextGlobalId();
+        string globalId = Guid.NewGuid().ToString();
         var interactMesh = new Ms2InteractMesh(interactId, session.Player.Position, session.Player.Rotation);
         var billboard = new InteractBillBoardObject("BillBoard_" + globalId, interactMesh, session.Player.Value.Character) {
             Title = fieldParameters[0],
@@ -411,7 +414,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             Scale = functionParameters.TryGetValue("scale", out string? scaleString) && !float.TryParse(scaleString, out float scale) ? scale : 1f,
         };
 
-        session.Field?.AddInteract(interactMesh, billboard, globalId);
+        session.Field.AddInteract(interactMesh, billboard);
         session.Item.Inventory.Consume(item.Uid, 1);
     }
 }

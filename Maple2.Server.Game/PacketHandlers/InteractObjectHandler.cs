@@ -40,7 +40,9 @@ public class InteractObjectHandler : PacketHandler<GameSession> {
     private void HandleEnd(GameSession session, IByteReader packet) {
         string entityId = packet.ReadString();
 
-        if (session.Field?.TryGetInteract(entityId, out FieldInteract? interact) == true && interact.React()) {
+        if (entityId.StartsWith("BillBoard") && session.Field?.TryGetAdBalloon(entityId, out FieldInteract? interact) == true && interact.React()) {
+            session.Send(PlayerHostPacket.AdBalloonWindow((interact.Object as InteractBillBoardObject)!));
+        } else if (session.Field?.TryGetInteract(entityId, out interact) == true && interact.React()) {
             switch (interact.Value.Type) {
                 case InteractType.Mesh:
                     session.Send(InteractObjectPacket.Interact(interact));
@@ -57,8 +59,6 @@ public class InteractObjectHandler : PacketHandler<GameSession> {
                 case InteractType.Gathering:
                 case InteractType.GuildPoster:
                 case InteractType.BillBoard: // AdBalloon
-                    session.Send(PlayerHostPacket.AdBalloonWindow((interact.Object as InteractBillBoardObject)!));
-                    break;
                 case InteractType.WatchTower:
                     break;
             }
