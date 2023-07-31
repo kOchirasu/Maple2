@@ -15,8 +15,8 @@ public interface IInteractObject : IByteSerializable {
 public abstract class InteractObject<T> : IInteractObject where T : InteractObject {
     public abstract InteractType Type { get; }
 
-    protected readonly T Metadata;
-    public int Id => Metadata.InteractId;
+    protected T Metadata { get; init; }
+    public int Id {get; init; }
     public string Model = string.Empty;
     public string Asset = string.Empty;
     public string NormalState = string.Empty;
@@ -28,6 +28,7 @@ public abstract class InteractObject<T> : IInteractObject where T : InteractObje
     protected InteractObject(string entityId, T metadata) {
         EntityId = entityId;
         Metadata = metadata;
+        Id = metadata.InteractId;
     }
 
     public virtual void WriteTo(IByteWriter writer) {
