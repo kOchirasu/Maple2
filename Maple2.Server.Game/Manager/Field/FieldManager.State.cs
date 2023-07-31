@@ -183,12 +183,37 @@ public partial class FieldManager {
             return null;
         }
 
-        var fieldInteract = new FieldInteract(this, NextLocalId(), entityId, metadata) {
+        IInteractObject interactObject = metadata.Type switch {
+            InteractType.Mesh => new InteractMeshObject(entityId, (interact as Ms2InteractMesh)!),
+            InteractType.Telescope => new InteractTelescopeObject(entityId, (interact as Ms2Telescope)!),
+            InteractType.Ui => new InteractUiObject(entityId, (interact as Ms2SimpleUiObject)!),
+            InteractType.DisplayImage => new InteractDisplayImage(entityId, (interact as Ms2InteractDisplay)!),
+            InteractType.Gathering => new InteractGatheringObject(entityId, (interact as Ms2InteractActor)!),
+            InteractType.GuildPoster => new InteractGuildPosterObject(entityId, (interact as Ms2InteractDisplay)!),
+            _ => throw new ArgumentException($"Unsupported Type: {metadata.Type}"),
+        };
+
+        var fieldInteract = new FieldInteract(this, NextLocalId(), entityId, metadata, interactObject) {
             Position = interact.Position,
             Rotation = interact.Rotation,
         };
 
         fieldInteracts[entityId] = fieldInteract;
+        return fieldInteract;
+    }
+
+    public FieldInteract? AddInteract(InteractObject interactData, IInteractObject interactObject, int globalId) {
+        if (!TableMetadata.InteractObjectTable.Entries.TryGetValue(interactData.InteractId, out InteractObjectMetadata? metadata)) {
+            return null;
+        }
+
+        var fieldInteract = new FieldInteract(this, globalId, interactObject.EntityId, metadata, interactObject) {
+            Position = interactData.Position,
+            Rotation = interactData.Rotation,
+        };
+
+        fieldInteracts[fieldInteract.EntityId] = fieldInteract;
+        Broadcast(InteractObjectPacket.Add(interactObject));
         return fieldInteract;
     }
 
@@ -407,6 +432,15 @@ public partial class FieldManager {
         return true;
     }
 
+    public bool RemoveInteract(string entityId) {
+        if (fieldInteracts.TryRemove(entityId, out FieldInteract? fieldInteract)) {
+            return false;
+        }
+
+        Broadcast(InteractObjectPacket.Remove(entityId));
+        return true;
+    }
+
     public bool RemoveNpc(int objectId, int removeDelay = 0) {
         if (!Mobs.TryRemove(objectId, out FieldNpc? npc) && !Npcs.TryRemove(objectId, out npc)) {
             return false;
@@ -440,7 +474,10 @@ public partial class FieldManager {
         // LOAD:
         added.Session.Send(LiftablePacket.Update(fieldLiftables.Values));
         added.Session.Send(BreakablePacket.Update(fieldBreakables.Values));
-        added.Session.Send(InteractObjectPacket.Load(fieldInteracts.Values));
+        added.Session.Send(InteractObjectPacket.Load(fieldInteracts.Values.Where(interact => interact.Value.Type != InteractType.BillBoard).ToList()));
+        foreach (FieldInteract fieldInteract in fieldInteracts.Values.Where(interact => interact.Value.Type == InteractType.BillBoard)) {
+            added.Session.Send(InteractObjectPacket.Add(fieldInteract.Object));
+        }
         foreach (FieldPlayer fieldPlayer in Players.Values) {
             added.Session.Send(FieldPacket.AddPlayer(fieldPlayer.Session));
             if (fieldPlayer.Session.GuideObject != null) {

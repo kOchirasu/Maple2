@@ -1,4 +1,5 @@
 ﻿using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
@@ -56,6 +57,8 @@ public class InteractObjectHandler : PacketHandler<GameSession> {
                 case InteractType.Gathering:
                 case InteractType.GuildPoster:
                 case InteractType.BillBoard: // AdBalloon
+                    session.Send(PlayerHostPacket.AdBalloonWindow((interact.Object as InteractBillBoardObject)!));
+                    break;
                 case InteractType.WatchTower:
                     break;
             }

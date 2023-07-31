@@ -12,7 +12,7 @@ public class FieldItem : FieldEntity<Item> {
     private readonly long despawnTick;
 
     public FieldItem(FieldManager field, int objectId, Item value) : base(field, objectId, value) {
-        despawnTick = Environment.TickCount64 + (int) TimeSpan.FromMinutes(2).TotalSeconds;
+        despawnTick = Environment.TickCount64 + (int) TimeSpan.FromMinutes(2).TotalSeconds * 1000;
     }
 
     public void Pickup(FieldPlayer looter) {
