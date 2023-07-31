@@ -40,15 +40,13 @@ public class InteractObjectHandler : PacketHandler<GameSession> {
     private void HandleEnd(GameSession session, IByteReader packet) {
         string entityId = packet.ReadString();
 
-        if (entityId.StartsWith("BillBoard") && session.Field?.TryGetAdBalloon(entityId, out FieldInteract? interact) == true && interact.React()) {
-            session.Send(PlayerHostPacket.AdBalloonWindow((interact.Object as InteractBillBoardObject)!));
-        } else if (session.Field?.TryGetInteract(entityId, out interact) == true && interact.React()) {
+        if (session.Field?.TryGetInteract(entityId, out FieldInteract? interact) == true && interact.React()) {
             switch (interact.Value.Type) {
                 case InteractType.Mesh:
                     session.Send(InteractObjectPacket.Interact(interact));
                     break;
                 case InteractType.Telescope:
-                    // TODO: this should only be sent if telescope not found yet?
+                    session.Send(InteractObjectPacket.Interact(interact));
                     session.Send(InteractObjectPacket.Result(InteractResult.s_interact_find_new_telescope, interact));
                     break;
                 case InteractType.Ui:
@@ -59,6 +57,8 @@ public class InteractObjectHandler : PacketHandler<GameSession> {
                 case InteractType.Gathering:
                 case InteractType.GuildPoster:
                 case InteractType.BillBoard: // AdBalloon
+                    session.Send(PlayerHostPacket.AdBalloonWindow((interact.Object as InteractBillBoardObject)!));
+                    break;
                 case InteractType.WatchTower:
                     break;
             }

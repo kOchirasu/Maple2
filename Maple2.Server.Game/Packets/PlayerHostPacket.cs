@@ -19,12 +19,12 @@ public static class PlayerHostPacket {
     public static ByteWriter AdBalloonWindow(InteractBillBoardObject billboard) {
         var pWriter = Packet.Of(SendOp.PlayerHost);
         pWriter.Write<Command>(Command.AdBalloonWindow);
-        pWriter.WriteLong(billboard.Owner.AccountId);
-        pWriter.WriteLong(billboard.Owner.Id);
-        pWriter.WriteUnicodeString(billboard.Owner.Picture);
-        pWriter.WriteUnicodeString(billboard.Owner.Name);
-        pWriter.WriteShort(billboard.Owner.Level);
-        pWriter.Write(billboard.Owner.Job.Code());
+        pWriter.WriteLong(billboard.OwnerAccountId);
+        pWriter.WriteLong(billboard.OwnerCharacterId);
+        pWriter.WriteUnicodeString(billboard.OwnerPicture);
+        pWriter.WriteUnicodeString(billboard.OwnerName);
+        pWriter.WriteShort(billboard.OwnerLevel);
+        pWriter.Write(billboard.OwnerJob);
         pWriter.WriteShort();
         pWriter.WriteUnicodeString(billboard.Title);
         pWriter.WriteUnicodeString(billboard.Description);

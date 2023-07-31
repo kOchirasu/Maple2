@@ -183,7 +183,6 @@ public partial class FieldManager {
         if (!TableMetadata.InteractObjectTable.Entries.TryGetValue(interact.InteractId, out InteractObjectMetadata? metadata)) {
             return null;
         }
-
         IInteractObject interactObject = interact switch {
             Ms2InteractMesh mesh => new InteractMeshObject(entityId, mesh),
             Ms2Telescope telescope => new InteractTelescopeObject(entityId, telescope),
@@ -194,17 +193,11 @@ public partial class FieldManager {
             _ => throw new ArgumentException($"Unsupported Type: {metadata.Type}"),
         };
 
-        var fieldInteract = new FieldInteract(this, NextLocalId(), entityId, metadata, interactObject) {
-            Position = interact.Position,
-            Rotation = interact.Rotation,
-        };
-
-        fieldInteracts[entityId] = fieldInteract;
-        return fieldInteract;
+        return AddInteract(interact, interactObject);
     }
 
-    public FieldInteract? AddInteract(InteractObject interactData, IInteractObject interactObject) {
-        if (!TableMetadata.InteractObjectTable.Entries.TryGetValue(interactData.InteractId, out InteractObjectMetadata? metadata)) {
+    public FieldInteract? AddInteract(InteractObject interactData, IInteractObject interactObject, InteractObjectMetadata? metadata = null) {
+        if (metadata == null && !TableMetadata.InteractObjectTable.Entries.TryGetValue(interactData.InteractId, out metadata)) {
             return null;
         }
 
@@ -223,7 +216,6 @@ public partial class FieldManager {
                 break;
         }
 
-        Broadcast(InteractObjectPacket.Add(interactObject));
         return fieldInteract;
     }
 

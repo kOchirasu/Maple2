@@ -246,11 +246,7 @@ public sealed partial class FieldManager : IDisposable {
 
     public ICollection<FieldInteract> EnumerateInteract() => fieldInteracts.Values;
     public bool TryGetInteract(string entityId, [NotNullWhen(true)] out FieldInteract? fieldInteract) {
-        return fieldInteracts.TryGetValue(entityId, out fieldInteract);
-    }
-
-    public bool TryGetAdBalloon(string entityId, [NotNullWhen(true)] out FieldInteract? fieldInteract) {
-        return fieldAdBalloons.TryGetValue(entityId, out fieldInteract);
+        return fieldInteracts.TryGetValue(entityId, out fieldInteract) || fieldAdBalloons.TryGetValue(entityId, out fieldInteract);
     }
 
     public bool MoveToPortal(GameSession session, int portalId) {

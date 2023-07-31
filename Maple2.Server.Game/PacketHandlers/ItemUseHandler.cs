@@ -11,6 +11,7 @@ using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Manager.Field;
+using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Server.Game.Util;
@@ -414,7 +415,11 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             Scale = functionParameters.TryGetValue("scale", out string? scaleString) && !float.TryParse(scaleString, out float scale) ? scale : 1f,
         };
 
-        session.Field.AddInteract(interactMesh, billboard);
+        FieldInteract? fieldInteract = session.Field.AddInteract(interactMesh, billboard);
+        if (fieldInteract == null) {
+            return;
+        }
+        session.Field.Broadcast(InteractObjectPacket.Add(fieldInteract.Object));
         session.Item.Inventory.Consume(item.Uid, 1);
     }
 }
