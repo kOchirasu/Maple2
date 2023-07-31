@@ -34,7 +34,7 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                         DelayTick: data.BasicProperty.delayTick,
                         MaxCount: data.BasicProperty.maxBuffCount,
                         KeepCondition: (BuffKeepCondition) data.BasicProperty.keepCondition,
-                        ResetCondition: (BuffKeepCondition) data.BasicProperty.resetCondition,
+                        ResetCondition: (BuffResetCondition) data.BasicProperty.resetCondition,
                         DotCondition: (BuffDotCondition) data.BasicProperty.dotCondition),
                     Consume: new AdditionalEffectMetadataConsume(
                         HpRate: data.ConsumeProperty.hpRate,

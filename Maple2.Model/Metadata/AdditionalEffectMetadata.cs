@@ -28,7 +28,7 @@ public record AdditionalEffectMetadataProperty(
     int DelayTick,
     int MaxCount,
     BuffKeepCondition KeepCondition,
-    BuffKeepCondition ResetCondition,
+    BuffResetCondition ResetCondition,
     BuffDotCondition DotCondition);
 
 public record AdditionalEffectMetadataConsume(

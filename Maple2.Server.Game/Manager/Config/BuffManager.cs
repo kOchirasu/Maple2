@@ -76,9 +76,9 @@ public class BuffManager {
             logger.Error("Invalid buff: {SkillId},{Level}", id, level);
             return;
         }
-
+        
         // if (!SkillUtils.CheckCondition(additionalEffect.Condition, caster, owner, this)) {
-        //     Console.WriteLine($"Ignore buff {id}");
+        //     Buff should still be added, just disabled
         //     return;
         // }
 
