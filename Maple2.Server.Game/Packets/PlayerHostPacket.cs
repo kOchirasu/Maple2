@@ -1,4 +1,5 @@
 ﻿using Maple2.Model;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -24,7 +25,7 @@ public static class PlayerHostPacket {
         pWriter.WriteUnicodeString(billboard.OwnerPicture);
         pWriter.WriteUnicodeString(billboard.OwnerName);
         pWriter.WriteShort(billboard.OwnerLevel);
-        pWriter.Write(billboard.OwnerJob);
+        pWriter.Write<JobCode>(billboard.OwnerJobCode);
         pWriter.WriteShort();
         pWriter.WriteUnicodeString(billboard.Title);
         pWriter.WriteUnicodeString(billboard.Description);

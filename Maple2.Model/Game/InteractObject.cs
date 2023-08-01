@@ -17,23 +17,18 @@ public abstract class InteractObject<T> : IInteractObject where T : InteractObje
 
     protected T Metadata { get; init; }
     public int Id { get; init; }
-    public string Model { get; init; }
-    public string Asset { get; init; }
-    public string NormalState { get; init; }
-    public string Reactable { get; init; }
-    public float Scale { get; init; }
+    public string Model { get; init; } = "";
+    public string Asset { get; init; } = "";
+    public string NormalState { get; init; } = "";
+    public string Reactable { get; init; } = "";
+    public float Scale { get; init; } = 1f;
 
     public string EntityId { get; init; }
 
-    protected InteractObject(string entityId, T metadata, string model = "", string asset = "", string normalState = "", string reactable = "", float scale = 1f) {
+    protected InteractObject(string entityId, T metadata) {
         EntityId = entityId;
         Metadata = metadata;
         Id = metadata.InteractId;
-        Model = model;
-        Asset = asset;
-        NormalState = normalState;
-        Reactable = reactable;
-        Scale = scale;
     }
 
     public virtual void WriteTo(IByteWriter writer) {
@@ -107,7 +102,7 @@ public sealed class InteractBillBoardObject : InteractObject<Ms2InteractMesh> {
     public string OwnerName { get; init; }
     public string OwnerPicture { get; init; }
     public short OwnerLevel { get; init; }
-    public JobCode OwnerJob { get; init; }
+    public JobCode OwnerJobCode { get; init; }
     public string Title { get; init; } = "";
     public string Description { get; init; } = "";
     public bool PublicHouse { get; init; }
@@ -120,7 +115,7 @@ public sealed class InteractBillBoardObject : InteractObject<Ms2InteractMesh> {
         OwnerName = owner.Name;
         OwnerPicture = owner.Picture;
         OwnerLevel = owner.Level;
-        OwnerJob = owner.Job.Code();
+        OwnerJobCode = owner.Job.Code();
     }
 
     public override void WriteTo(IByteWriter writer) {
