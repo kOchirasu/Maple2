@@ -10,6 +10,8 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
+using Maple2.Server.Game.Manager.Field;
+using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Server.Game.Util;
@@ -93,6 +95,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
                 break;
             case ItemFunction.ItemChangeBeauty:
                 HandleItemChangeBeauty(session, item);
+                break;
+            case ItemFunction.InstallBillBoard:
+                HandleInstallBillBoard(session, packet, item);
                 break;
             default:
                 Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
@@ -380,5 +385,41 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
     private static void HandleItemChangeBeauty(GameSession session, Item item) {
         session.Send(ItemUsePacket.BeautyCoupon(session.Player.Value.ObjectId, item.Uid));
+    }
+
+    private static void HandleInstallBillBoard(GameSession session, IByteReader packet, Item item) {
+        string[] fieldParameters = packet.ReadUnicodeString().Split("'");
+        if (fieldParameters.Length < 3 || session.Field == null) {
+            return;
+        }
+
+        Dictionary<string, string> functionParameters = XmlParseUtil.GetParameters(item.Metadata.Function?.Parameters);
+        if (!functionParameters.ContainsKey("interactID") || !int.TryParse(functionParameters["interactID"], out int interactId) ||
+            !functionParameters.ContainsKey("durationSec") || !int.TryParse(functionParameters["durationSec"], out int durationSec) ||
+            !functionParameters.ContainsKey("model") || !functionParameters.ContainsKey("normal") || !functionParameters.ContainsKey("reactable")) {
+            return;
+        }
+
+        string globalId = Guid.NewGuid().ToString();
+        var interactMesh = new Ms2InteractMesh(interactId, session.Player.Position, session.Player.Rotation);
+        var billboard = new InteractBillBoardObject("BillBoard_" + globalId, interactMesh, session.Player.Value.Character) {
+            Title = fieldParameters[0],
+            Description = fieldParameters[1],
+            PublicHouse = fieldParameters[2].Equals("1"),
+            CreationTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            ExpirationTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + durationSec,
+            Model = functionParameters["model"],
+            Asset = functionParameters.TryGetValue("asset", out string? parameter) ? parameter : string.Empty,
+            NormalState = functionParameters["normal"],
+            Reactable = functionParameters["reactable"],
+            Scale = functionParameters.TryGetValue("scale", out string? scaleString) && !float.TryParse(scaleString, out float scale) ? scale : 1f,
+        };
+
+        FieldInteract? fieldInteract = session.Field.AddInteract(interactMesh, billboard);
+        if (fieldInteract == null) {
+            return;
+        }
+        session.Field.Broadcast(InteractObjectPacket.Add(fieldInteract.Object));
+        session.Item.Inventory.Consume(item.Uid, 1);
     }
 }

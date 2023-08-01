@@ -32,6 +32,7 @@ public partial class FieldManager {
     private readonly ConcurrentDictionary<string, FieldBreakable> fieldBreakables = new();
     private readonly ConcurrentDictionary<string, FieldLiftable> fieldLiftables = new();
     private readonly ConcurrentDictionary<string, FieldInteract> fieldInteracts = new();
+    private readonly ConcurrentDictionary<string, FieldInteract> fieldAdBalloons = new();
     private readonly ConcurrentDictionary<int, FieldItem> fieldItems = new();
     private readonly ConcurrentDictionary<int, FieldMobSpawn> fieldMobSpawns = new();
     private readonly ConcurrentDictionary<int, FieldSkill> fieldSkills = new();
@@ -182,13 +183,39 @@ public partial class FieldManager {
         if (!TableMetadata.InteractObjectTable.Entries.TryGetValue(interact.InteractId, out InteractObjectMetadata? metadata)) {
             return null;
         }
-
-        var fieldInteract = new FieldInteract(this, NextLocalId(), entityId, metadata) {
-            Position = interact.Position,
-            Rotation = interact.Rotation,
+        IInteractObject interactObject = interact switch {
+            Ms2InteractMesh mesh => new InteractMeshObject(entityId, mesh),
+            Ms2Telescope telescope => new InteractTelescopeObject(entityId, telescope),
+            Ms2SimpleUiObject ui => new InteractUiObject(entityId, ui),
+            Ms2InteractDisplay display when metadata.Type == InteractType.DisplayImage => new InteractDisplayImage(entityId, display),
+            Ms2InteractDisplay poster when metadata.Type == InteractType.GuildPoster => new InteractGuildPosterObject(entityId, poster),
+            Ms2InteractActor actor => new InteractGatheringObject(entityId, actor),
+            _ => throw new ArgumentException($"Unsupported Type: {metadata.Type}"),
         };
 
-        fieldInteracts[entityId] = fieldInteract;
+        return AddInteract(interact, interactObject);
+    }
+
+    public FieldInteract? AddInteract(InteractObject interactData, IInteractObject interactObject, InteractObjectMetadata? metadata = null) {
+        if (metadata == null && !TableMetadata.InteractObjectTable.Entries.TryGetValue(interactData.InteractId, out metadata)) {
+            return null;
+        }
+
+        var fieldInteract = new FieldInteract(this, NextLocalId(), interactObject.EntityId, metadata, interactObject) {
+            Position = interactData.Position,
+            Rotation = interactData.Rotation,
+        };
+
+        //TODO: Add treasure chests
+        switch (interactObject) {
+            case InteractBillBoardObject billboard:
+                fieldAdBalloons[billboard.EntityId] = fieldInteract;
+                break;
+            default:
+                fieldInteracts[interactObject.EntityId] = fieldInteract;
+                break;
+        }
+
         return fieldInteract;
     }
 
@@ -407,6 +434,15 @@ public partial class FieldManager {
         return true;
     }
 
+    public bool RemoveInteract(string entityId) {
+        if (fieldInteracts.TryRemove(entityId, out FieldInteract? fieldInteract)) {
+            return false;
+        }
+
+        Broadcast(InteractObjectPacket.Remove(entityId));
+        return true;
+    }
+
     public bool RemoveNpc(int objectId, int removeDelay = 0) {
         if (!Mobs.TryRemove(objectId, out FieldNpc? npc) && !Npcs.TryRemove(objectId, out npc)) {
             return false;
@@ -441,6 +477,9 @@ public partial class FieldManager {
         added.Session.Send(LiftablePacket.Update(fieldLiftables.Values));
         added.Session.Send(BreakablePacket.Update(fieldBreakables.Values));
         added.Session.Send(InteractObjectPacket.Load(fieldInteracts.Values));
+        foreach (FieldInteract fieldInteract in fieldAdBalloons.Values) {
+            added.Session.Send(InteractObjectPacket.Add(fieldInteract.Object));
+        }
         foreach (FieldPlayer fieldPlayer in Players.Values) {
             added.Session.Send(FieldPacket.AddPlayer(fieldPlayer.Session));
             if (fieldPlayer.Session.GuideObject != null) {
