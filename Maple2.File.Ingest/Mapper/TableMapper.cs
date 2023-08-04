@@ -14,6 +14,7 @@ using Maple2.Model.Metadata;
 using Maple2.Tools.Extensions;
 using Newtonsoft.Json;
 using ChatSticker = Maple2.File.Parser.Xml.Table.ChatSticker;
+using ExpBaseTable = Maple2.Model.Metadata.ExpBaseTable;
 using GuildBuff = Maple2.File.Parser.Xml.Table.GuildBuff;
 using GuildNpc = Maple2.File.Parser.Xml.Table.GuildNpc;
 using GuildNpcType = Maple2.Model.Enum.GuildNpcType;
@@ -55,6 +56,8 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "colorpalette.xml", Table = ParseColorPaletteTable()};
         yield return new TableMetadata {Name = "shop_beautycoupon.xml", Table = ParseShopBeautyCouponTable()};
         yield return new TableMetadata {Name = "gacha_info.xml", Table = ParseGachaInfoTable()};
+        yield return new TableMetadata {Name = "expbasetable.xml", Table = ParseExpBaseTable()};
+        yield return new TableMetadata {Name = "nextexp.xml", Table = ParseNextExpTable()};
         // Fishing
         yield return new TableMetadata {Name = "fishingspot.xml", Table = ParseFishingSpot()};
         yield return new TableMetadata {Name = "fish.xml", Table = ParseFish()};
@@ -1126,5 +1129,29 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
 
         return new GachaInfoTable(results);
+    }
+
+    private ExpBaseTable ParseExpBaseTable() {
+        var results = new Dictionary<int, IReadOnlyDictionary<int, long>>();
+        foreach ((int tableId, Parser.Xml.Table.ExpBaseTable table) in parser.ParseExpBaseTable()) {
+            foreach (Parser.Xml.Table.ExpBaseTable.Base tableBase in table.@base) {
+                if (!results.ContainsKey(tableId)) {
+                    results.Add(tableId, new Dictionary<int, long>{
+                            {tableBase.level, tableBase.exp},
+                    });
+                } else {
+                    (results[tableId] as Dictionary<int, long>)!.Add(tableBase.level, tableBase.exp);
+                }
+            }
+        }
+        return new ExpBaseTable(results);
+    }
+
+    private NextExpTable ParseNextExpTable() {
+        var results = new Dictionary<int, long>();
+        foreach ((int level, NextExp entry) in parser.ParseNextExp()) {
+            results.Add(entry.level, entry.value);
+        }
+        return new NextExpTable(results);
     }
 }
