@@ -1,15 +1,16 @@
 ﻿using System;
-using System.Collections.Generic;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.Manager;
 
 public sealed class ExperienceManager {
     private readonly GameSession session;
+    private readonly Lua.Lua lua;
     private long Exp {
         get => session.Player.Value.Character.Exp;
         set => session.Player.Value.Character.Exp = value;
@@ -27,7 +28,6 @@ public sealed class ExperienceManager {
     //public long PrestigeExp => session.Player.Value.Account.PrestigeExp;
     private int ChainKillCount { get; set; }
 
-    private readonly Lua.Lua lua;
     public ExperienceManager(GameSession session, Lua.Lua lua) {
         this.session = session;
         this.lua = lua;
@@ -47,7 +47,7 @@ public sealed class ExperienceManager {
         // TODO: Using table ID 2. Need confirmation if particular maps (or dungeons) use a different table
         long expGained = fieldNpc.Value.Metadata.Basic.CustomExp;
         if (fieldNpc.Value.Metadata.Basic.CustomExp < 0) {
-            if (!session.TableMetadata.ExpBaseTable.Entries.TryGetValue(2, out IReadOnlyDictionary<int, long>? table) || !table.TryGetValue(fieldNpc.Value.Metadata.Basic.Level, out expGained)) {
+            if (!session.TableMetadata.ExpTable.ExpBase.TryGetValue(2, fieldNpc.Value.Metadata.Basic.Level, out expGained)) {
                 return;
             }
         }
@@ -56,13 +56,8 @@ public sealed class ExperienceManager {
         session.Send(ExperienceUpPacket.Add(expGained, Exp, RestExp, npc.ObjectId));
     }
 
-
     private long GetRestExp(long expGained) {
-        long addedRestExp = (long) (expGained * ((float) Constant.RestExpAcquireRate / 10000)); // convert int to a percentage
-        if (addedRestExp > RestExp) {
-            addedRestExp = RestExp;
-        }
-
+        long addedRestExp = Math.Min(RestExp, (long)(expGained * (Constant.RestExpAcquireRate / 10000.0f))); // convert int to a percentage
         RestExp = Math.Max(0, RestExp - addedRestExp);
         Exp += expGained;
         return addedRestExp;
@@ -77,7 +72,7 @@ public sealed class ExperienceManager {
     public bool LevelUp() {
         int startLevel = Level;
         for (int level = startLevel; level < Constant.characterMaxLevel; level++) {
-            if (!session.TableMetadata.NextExpTable.Entries.TryGetValue(level, out long expToNextLevel) || expToNextLevel > Exp) {
+            if (!session.TableMetadata.ExpTable.NextExp.TryGetValue(level, out long expToNextLevel) || expToNextLevel > Exp) {
                 break;
             }
 
@@ -89,5 +84,4 @@ public sealed class ExperienceManager {
         }
         return startLevel != Level;
     }
-
 }

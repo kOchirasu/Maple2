@@ -19,7 +19,7 @@ public static class ExperienceUpPacket {
         pWriter.WriteLong(totalExp);
         pWriter.WriteLong(restExp);
         pWriter.WriteInt(sourceObjectId);
-        pWriter.WriteBool(additional);
+        pWriter.WriteBool(additional); // if true, s_msg_take_event_additional
 
         return pWriter;
     }
@@ -32,7 +32,7 @@ public static class ExperienceUpPacket {
         pWriter.WriteLong(totalExp);
         pWriter.WriteLong(restExp);
         pWriter.Write<ExpMessageCode>(expMessageCode);
-        pWriter.WriteBool(additional);
+        pWriter.WriteBool(additional); // if true, s_msg_take_event_additional
 
         return pWriter;
     }

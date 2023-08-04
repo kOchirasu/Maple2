@@ -29,8 +29,7 @@ public class TableMetadataStorage {
     private readonly Lazy<ColorPaletteTable> colorPaletteTable;
     private readonly Lazy<ShopBeautyCouponTable> shopBeautyCouponTable;
     private readonly Lazy<GachaInfoTable> gachaInfoTable;
-    private readonly Lazy<ExpBaseTable> expTable;
-    private readonly Lazy<NextExpTable> nextExpTable;
+    private readonly Lazy<ExpTable> expTable;
 
     private readonly Lazy<EnchantScrollTable> enchantScrollTable;
     private readonly Lazy<ItemRemakeScrollTable> itemRemakeScrollTable;
@@ -72,8 +71,7 @@ public class TableMetadataStorage {
     public ColorPaletteTable ColorPaletteTable => colorPaletteTable.Value;
     public ShopBeautyCouponTable ShopBeautyCouponTable => shopBeautyCouponTable.Value;
     public GachaInfoTable GachaInfoTable => gachaInfoTable.Value;
-    public ExpBaseTable ExpBaseTable => expTable.Value;
-    public NextExpTable NextExpTable => nextExpTable.Value;
+    public ExpTable ExpTable => expTable.Value;
 
     public EnchantScrollTable EnchantScrollTable => enchantScrollTable.Value;
     public ItemRemakeScrollTable ItemRemakeScrollTable => itemRemakeScrollTable.Value;
@@ -116,8 +114,7 @@ public class TableMetadataStorage {
         colorPaletteTable = Retrieve<ColorPaletteTable>(context, "colorpalette.xml");
         shopBeautyCouponTable = Retrieve<ShopBeautyCouponTable>(context, "shop_beautycoupon.xml");
         gachaInfoTable = Retrieve<GachaInfoTable>(context, "gacha_info.xml");
-        expTable = Retrieve<ExpBaseTable>(context, "expbasetable.xml");
-        nextExpTable = Retrieve<NextExpTable>(context, "nextexp.xml");
+        expTable = Retrieve<ExpTable>(context, "exp*.xml");
         enchantScrollTable = Retrieve<EnchantScrollTable>(context, "enchantscroll.xml");
         itemRemakeScrollTable = Retrieve<ItemRemakeScrollTable>(context, "itemremakescroll.xml");
         itemRepackingScrollTable = Retrieve<ItemRepackingScrollTable>(context, "itemrepackingscroll.xml");
