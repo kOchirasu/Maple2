@@ -23,7 +23,7 @@ public sealed class ExperienceManager {
         get => session.Player.Value.Character.Level;
         set => session.Player.Value.Character.Level = value;
     }
-    
+
     //public long PrestigeExp => session.Player.Value.Account.PrestigeExp;
     private int ChainKillCount { get; set; }
 

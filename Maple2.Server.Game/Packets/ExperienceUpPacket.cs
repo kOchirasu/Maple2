@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using Maple2.Model.Enum;
-using Maple2.Model.Error;
-using Maple2.Model.Game;
+﻿using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
@@ -18,7 +15,7 @@ public static class ExperienceUpPacket {
         var pWriter = Packet.Of(SendOp.ExpUp);
         pWriter.Write<Command>(Command.Add);
         pWriter.WriteLong(gainedExp);
-        pWriter.WriteShort();
+        pWriter.WriteShort(); // Unknown
         pWriter.WriteLong(totalExp);
         pWriter.WriteLong(restExp);
         pWriter.WriteInt(sourceObjectId);
@@ -26,12 +23,12 @@ public static class ExperienceUpPacket {
 
         return pWriter;
     }
-    
+
     public static ByteWriter Add(long gainedExp, long totalExp, long restExp, ExpMessageCode expMessageCode, bool additional = false) {
         var pWriter = Packet.Of(SendOp.ExpUp);
         pWriter.Write<Command>(Command.Add);
         pWriter.WriteLong(gainedExp);
-        pWriter.WriteShort();
+        pWriter.WriteShort(); // Unknown
         pWriter.WriteLong(totalExp);
         pWriter.WriteLong(restExp);
         pWriter.Write<ExpMessageCode>(expMessageCode);
