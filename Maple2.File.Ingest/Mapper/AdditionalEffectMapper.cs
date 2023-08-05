@@ -33,6 +33,12 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                         IntervalTick: data.BasicProperty.intervalTick,
                         DelayTick: data.BasicProperty.delayTick,
                         MaxCount: data.BasicProperty.maxBuffCount,
+                        KeepOnDeath: data.BasicProperty.deadKeepEffect,
+                        RemoveOnLogout: data.BasicProperty.logoutClearEffect,
+                        RemoveOnLeaveField: data.BasicProperty.leaveFieldClearEffect, 
+                        RemoveOnPvpZone: data.BasicProperty.clearEffectFromPVPZone,
+                        KeepOnEnterPvpZone: data.BasicProperty.doNotClearEffectFromEnterPVPZone,
+                        CasterIndividualBuff: data.BasicProperty.casterIndividualEffect,
                         KeepCondition: (BuffKeepCondition) data.BasicProperty.keepCondition,
                         ResetCondition: (BuffResetCondition) data.BasicProperty.resetCondition,
                         DotCondition: (BuffDotCondition) data.BasicProperty.dotCondition),
@@ -45,6 +51,8 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                     Dot: new AdditionalEffectMetadataDot(
                         Damage: Convert(data.DotDamageProperty),
                         Buff: Convert(data.DotBuffProperty)),
+                    Exp: new AdditionalEffectMetadataExp(
+                        Value: data.ExpProperty.value),
                     Shield: Convert(data.ShieldProperty),
                     InvokeEffect: Convert(data.InvokeEffectProperty),
                     Skills: data.conditionSkill.Concat(data.splashSkill).Select(skill => skill.Convert()).ToArray());
@@ -60,7 +68,7 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                 CheckSameCaster: cancel.cancelCheckSameCaster,
                 PassiveEffect: cancel.cancelPassiveEffect,
                 Ids: cancel.cancelEffectCodes,
-                Categories: cancel.cancelBuffCategories);
+                Categories: Array.ConvertAll(cancel.cancelBuffCategories, category => (BuffCategory) category));
         }
 
         ModifyEffectDurationProperty modify = data.ModifyEffectDurationProperty;
@@ -72,7 +80,7 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
         return new AdditionalEffectMetadataUpdate(
             Cancel: cancelEffect,
             ImmuneIds: data.ImmuneEffectProperty.immuneEffectCodes,
-            ImmuneCategories: data.ImmuneEffectProperty.immuneBuffCategories,
+            ImmuneCategories: Array.ConvertAll(data.ImmuneEffectProperty.immuneBuffCategories, category => (BuffCategory) category),
             ResetCooldown: data.ResetSkillCoolDownTimeProperty.skillCodes,
             Duration: modifyDuration);
     }

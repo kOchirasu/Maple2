@@ -12,21 +12,28 @@ public record AdditionalEffectMetadata(
     AdditionalEffectMetadataUpdate Update,
     AdditionalEffectMetadataStatus Status,
     AdditionalEffectMetadataRecovery? Recovery,
+    AdditionalEffectMetadataExp Exp,
     AdditionalEffectMetadataDot Dot,
     AdditionalEffectMetadataShield? Shield,
     AdditionalEffectMetadataInvokeEffect? InvokeEffect,
     SkillEffectMetadata[] Skills);
 
 public record AdditionalEffectMetadataProperty(
-    BuffType Type,           // 1,2,3
-    BuffSubType SubType,     // 0,1,2,4,6,8,16,32,64,128,256,512,1024
-    BuffCategory Category,   // 0,1,2,4,6,7,8,9,99,1007,2001
+    BuffType Type, // 1,2,3
+    BuffSubType SubType, // 0,1,2,4,6,8,16,32,64,128,256,512,1024
+    BuffCategory Category, // 0,1,2,4,6,7,8,9,99,1007,2001
     BuffEventType EventType, // 0,1,2,3,4
     int Group,
     int DurationTick,
     int IntervalTick,
     int DelayTick,
     int MaxCount,
+    bool KeepOnDeath,
+    bool RemoveOnLogout,
+    bool RemoveOnLeaveField,
+    bool RemoveOnPvpZone,
+    bool KeepOnEnterPvpZone,
+    bool CasterIndividualBuff,
     BuffKeepCondition KeepCondition,
     BuffResetCondition ResetCondition,
     BuffDotCondition DotCondition);
@@ -38,11 +45,11 @@ public record AdditionalEffectMetadataConsume(
 public record AdditionalEffectMetadataUpdate(
     AdditionalEffectMetadataUpdate.CancelEffect? Cancel,
     int[] ImmuneIds,
-    int[] ImmuneCategories,
+    BuffCategory[] ImmuneCategories,
     int[] ResetCooldown,
     AdditionalEffectMetadataUpdate.ModifyDuration[] Duration
 ) {
-    public record CancelEffect(bool CheckSameCaster, bool PassiveEffect, int[] Ids, int[] Categories);
+    public record CancelEffect(bool CheckSameCaster, bool PassiveEffect, int[] Ids, BuffCategory[] Categories);
 
     public record ModifyDuration(int Id, float Rate, float Value);
 }
@@ -72,6 +79,9 @@ public record AdditionalEffectMetadataRecovery(
     long EpValue,
     float EpRate,
     bool NotCrit);
+
+public record AdditionalEffectMetadataExp (
+    long Value);
 
 public record AdditionalEffectMetadataDot(
     AdditionalEffectMetadataDot.DotDamage? Damage,

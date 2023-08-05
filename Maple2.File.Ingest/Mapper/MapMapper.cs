@@ -61,7 +61,9 @@ public class MapMapper : TypeMapper<MapMetadata> {
                     HomeReturnable: data.property.homeReturnable,
                     DeathPenalty: data.property.deathPenalty,
                     OnlyDarkTomb: data.property.onlyDarkTomb,
-                    PkMode: data.property.pkMode),
+                    PkMode: data.property.pkMode,
+                    CanFly: data.property.checkFly,
+                    CanClimb: data.property.checkClimb),
                 Limit: new MapMetadataLimit(
                     Capacity: data.property.capacity,
                     MinLevel: data.property.enterMinLevel,

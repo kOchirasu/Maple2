@@ -357,15 +357,11 @@ public partial class TriggerContext {
         ErrorLog("[RemoveBuff] boxId:{Id}, buffId:{BuffId}, isPlayer:{IsPlayer}", boxId, buffId, isPlayer);
         if (isPlayer) {
             foreach (IActor player in PlayersInBox(boxId)) {
-                if (player.Buffs.Buffs.TryGetValue(buffId, out Buff? buff)) {
-                    buff.Remove();
-                }
+                player.Buffs.Remove(buffId);
             }
         } else {
             foreach (IActor monster in MonstersInBox(boxId)) {
-                if (monster.Buffs.Buffs.TryGetValue(buffId, out Buff? buff)) {
-                    buff.Remove();
-                }
+                monster.Buffs.Remove(buffId);
             }
         }
     }

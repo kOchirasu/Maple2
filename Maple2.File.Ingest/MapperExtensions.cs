@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Maple2.File.Ingest.Utils;
 using Maple2.File.Parser.Xml;
 using Maple2.File.Parser.Xml.Common;
@@ -278,7 +279,12 @@ public static class MapperExtensions {
             Level: beginCondition.level,
             Gender: (Gender) beginCondition.gender,
             Mesos: beginCondition.money,
+            Stat: beginCondition.stat.ToDictionary(),
             JobCode: beginCondition.job.Select(job => (JobCode) job.code).ToArray(),
+            Probability: beginCondition.probability,
+            OnlyShadowWorld: beginCondition.onlyShadowWorld || beginCondition.isShadowWorld,
+            OnlyFlyableMap: beginCondition.onlyFlyableMap,
+            Weapon: beginCondition.weapon.Select(weapon => new BeginConditionWeapon((byte) weapon.lh, (byte) weapon.rh)).ToArray(),
             Target: Convert(beginCondition.skillTarget),
             Owner: Convert(beginCondition.skillOwner),
             Caster: Convert(beginCondition.skillCaster));

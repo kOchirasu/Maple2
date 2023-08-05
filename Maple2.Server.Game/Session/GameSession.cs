@@ -232,7 +232,7 @@ public sealed partial class GameSession : Core.Network.Session {
         NpcScript = null;
 
         if (Field != null) {
-            Player.Buffs.RemoveMapBuffs();
+            Player.Buffs.LeaveField();
             Scheduler.Stop();
             Field.RemovePlayer(Player.ObjectId, out _);
         }

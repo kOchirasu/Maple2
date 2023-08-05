@@ -55,7 +55,9 @@ public record MapMetadataProperty(
     bool HomeReturnable,
     bool DeathPenalty,
     bool OnlyDarkTomb,
-    bool PkMode);
+    bool PkMode,
+    bool CanFly,
+    bool CanClimb);
 
 public record MapMetadataLimit(
     int Capacity,

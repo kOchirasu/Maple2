@@ -6,6 +6,7 @@ public enum BuffType {
     None = 0,
     Buff = 1,
     Debuff = 2,
+    Debuff2 = 3, // Also a debuff?
 }
 
 [Flags]
@@ -39,7 +40,7 @@ public enum BuffCategory {
 }
 
 public enum BuffEventType {
-    OnTick = 0,
+    None = 0,
     AutoFish = 1,
     SafeRiding = 2,
     AmphibiousRide = 3,
@@ -54,10 +55,10 @@ public enum BuffKeepCondition {
 }
 
 public enum BuffResetCondition {
-    ResetTimer = 0,
-    NoTimerReset = 1,
-    ResetTimer2 = 2, // ?
-    ChangeTimerNoOverride = 3, // ?
+    Reset = 0,
+    PersistEndTick = 1, // end tick does not reset 
+    Reset2 = 2, // behaves the same as Reset ??
+    Reset3 = 3, // also behaves like Reset ??
 }
 
 public enum BuffDotCondition {
