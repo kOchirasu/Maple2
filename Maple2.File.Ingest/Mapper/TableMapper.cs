@@ -55,6 +55,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "colorpalette.xml", Table = ParseColorPaletteTable()};
         yield return new TableMetadata {Name = "shop_beautycoupon.xml", Table = ParseShopBeautyCouponTable()};
         yield return new TableMetadata {Name = "gacha_info.xml", Table = ParseGachaInfoTable()};
+        yield return new TableMetadata {Name = "exp*.xml", Table = ParseExpTable()};
         // Fishing
         yield return new TableMetadata {Name = "fishingspot.xml", Table = ParseFishingSpot()};
         yield return new TableMetadata {Name = "fish.xml", Table = ParseFish()};
@@ -1126,5 +1127,26 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
 
         return new GachaInfoTable(results);
+    }
+
+    private ExpTable ParseExpTable() {
+        var baseResults = new Dictionary<int, IReadOnlyDictionary<int, long>>();
+        foreach ((int tableId, ExpBaseTable table) in parser.ParseExpBaseTable()) {
+            foreach (ExpBaseTable.Base tableBase in table.@base) {
+                if (!baseResults.ContainsKey(tableId)) {
+                    baseResults.Add(tableId, new Dictionary<int, long>{
+                            {tableBase.level, tableBase.exp},
+                    });
+                } else {
+                    (baseResults[tableId] as Dictionary<int, long>)!.Add(tableBase.level, tableBase.exp);
+                }
+            }
+        }
+        
+        var nextExpResults = new Dictionary<int, long>();
+        foreach ((int level, NextExp entry) in parser.ParseNextExp()) {
+            nextExpResults.Add(entry.level, entry.value);
+        }
+        return new ExpTable(baseResults, nextExpResults);
     }
 }
