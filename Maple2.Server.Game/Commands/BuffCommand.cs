@@ -3,9 +3,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using Maple2.Database.Storage;
-using Maple2.Model.Game;
 using Maple2.Model.Metadata;
-using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -26,23 +24,23 @@ public class BuffCommand : Command {
         this.skillStorage = skillStorage;
 
         var id = new Argument<int>("id", "Id of buff to activate.");
-        var level = new Option<short>(new[] {"--level", "-l"}, () => 1, "Buff level.");
-        var stack = new Option<byte>(new[] {"--stack", "-s"}, () => 1, "Amount of stacks on the buff.");
+        var level = new Option<int>(new[] {"--level", "-l"}, () => 1, "Buff level.");
+        var stack = new Option<int>(new[] {"--stack", "-s"}, () => 1, "Amount of stacks on the buff.");
 
         AddArgument(id);
         AddOption(level);
         AddOption(stack);
-        this.SetHandler<InvocationContext, int, short, byte>(Handle, id, level, stack);
+        this.SetHandler<InvocationContext, int, int, int>(Handle, id, level, stack);
     }
 
-    private void Handle(InvocationContext ctx, int buffId, short level, byte stack) {
+    private void Handle(InvocationContext ctx, int buffId, int level, int stack) {
         try {
-            if (!skillStorage.TryGetEffect(buffId, level, out AdditionalEffectMetadata? _)) {
+            if (!skillStorage.TryGetEffect(buffId, (short) level, out AdditionalEffectMetadata? _)) {
                 ctx.Console.Error.WriteLine($"Invalid buff: {buffId}, level: {level}");
                 return;
             }
 
-            session.Player.Buffs.AddBuff(session.Player, session.Player, buffId, level);
+            session.Player.Buffs.AddBuff(session.Player, session.Player, buffId, (short) level);
             if (stack > 1) {
                 session.Player.Buffs.Buffs[buffId].Stack(stack);
                 session.Field?.Broadcast(BuffPacket.Update(session.Player.Buffs.Buffs[buffId]));

@@ -73,7 +73,7 @@ public class Buff : IByteSerializable {
     public void RemoveStack(int amount = 1) {
         Stacks = Math.Max(0, Stacks - amount);
         if (Stacks == 0) {
-            //Remove();
+            Owner.Buffs.Remove(Id);
         }
     }
 
