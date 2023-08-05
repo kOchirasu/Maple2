@@ -13,9 +13,6 @@ public class BuffCommand : Command {
     private const string NAME = "buff";
     private const string DESCRIPTION = "Add buff to player.";
 
-    private const int MAX_RARITY = 6;
-    private const int MAX_SOCKET = 5;
-
     private readonly GameSession session;
     private readonly SkillMetadataStorage skillStorage;
 

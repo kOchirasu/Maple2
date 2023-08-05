@@ -141,11 +141,12 @@ public static class SkillUtils {
     }
 
     private static bool Check(this BeginConditionWeapon weapon, FieldPlayer player) {
-        bool IsValid(int handType, EquipSlot slot) {
-            if (handType == 0) return true;
-            Item? handItem = player.Session.Item.Equips.Get(slot);
-            return handItem != null && handItem.Type.Type == handType;
-        }
         return IsValid(weapon.LeftHand, EquipSlot.LH) && IsValid(weapon.RightHand, EquipSlot.RH);
+
+        bool IsValid(ItemType itemType, EquipSlot slot) {
+            if (itemType.Type == 0) return true;
+            Item? handItem = player.Session.Item.Equips.Get(slot);
+            return handItem != null && handItem.Type.Type == itemType.Type;
+        }
     }
 }

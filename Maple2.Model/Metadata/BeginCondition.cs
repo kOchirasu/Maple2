@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 
 namespace Maple2.Model.Metadata;
 
@@ -11,15 +12,15 @@ public record BeginCondition(
     float Probability,
     bool OnlyShadowWorld,
     bool OnlyFlyableMap,
-    Dictionary<BasicAttribute, long> Stat,
+    IReadOnlyDictionary<BasicAttribute, long> Stat,
     BeginConditionWeapon[]? Weapon,
     BeginConditionTarget? Target,
     BeginConditionTarget? Owner,
     BeginConditionTarget? Caster);
 
 public record BeginConditionWeapon(
-    byte LeftHand,
-    byte RightHand);
+    ItemType LeftHand,
+    ItemType RightHand);
 
 public record BeginConditionTarget(
     BeginConditionTarget.HasBuff[] Buff,

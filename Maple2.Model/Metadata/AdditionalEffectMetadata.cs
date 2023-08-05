@@ -12,7 +12,6 @@ public record AdditionalEffectMetadata(
     AdditionalEffectMetadataUpdate Update,
     AdditionalEffectMetadataStatus Status,
     AdditionalEffectMetadataRecovery? Recovery,
-    AdditionalEffectMetadataExp Exp,
     AdditionalEffectMetadataDot Dot,
     AdditionalEffectMetadataShield? Shield,
     AdditionalEffectMetadataInvokeEffect? InvokeEffect,
@@ -34,6 +33,7 @@ public record AdditionalEffectMetadataProperty(
     bool RemoveOnPvpZone,
     bool KeepOnEnterPvpZone,
     bool CasterIndividualBuff,
+    int Exp,
     BuffKeepCondition KeepCondition,
     BuffResetCondition ResetCondition,
     BuffDotCondition DotCondition);
@@ -79,9 +79,6 @@ public record AdditionalEffectMetadataRecovery(
     long EpValue,
     float EpRate,
     bool NotCrit);
-
-public record AdditionalEffectMetadataExp (
-    long Value);
 
 public record AdditionalEffectMetadataDot(
     AdditionalEffectMetadataDot.DotDamage? Damage,

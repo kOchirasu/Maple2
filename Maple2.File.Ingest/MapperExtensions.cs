@@ -5,6 +5,7 @@ using Maple2.File.Parser.Xml;
 using Maple2.File.Parser.Xml.Common;
 using Maple2.File.Parser.Xml.Skill;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using BeginCondition = Maple2.Model.Metadata.BeginCondition;
 using ItemOption = Maple2.Model.Metadata.ItemOption;
@@ -284,7 +285,9 @@ public static class MapperExtensions {
             Probability: beginCondition.probability,
             OnlyShadowWorld: beginCondition.onlyShadowWorld || beginCondition.isShadowWorld,
             OnlyFlyableMap: beginCondition.onlyFlyableMap,
-            Weapon: beginCondition.weapon.Select(weapon => new BeginConditionWeapon((byte) weapon.lh, (byte) weapon.rh)).ToArray(),
+            Weapon: beginCondition.weapon.Select(weapon => new BeginConditionWeapon(
+                new ItemType(1, (byte) weapon.lh), 
+                new ItemType(1, (byte) weapon.rh))).ToArray(),
             Target: Convert(beginCondition.skillTarget),
             Owner: Convert(beginCondition.skillOwner),
             Caster: Convert(beginCondition.skillCaster));

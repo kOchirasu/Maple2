@@ -39,6 +39,7 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                         RemoveOnPvpZone: data.BasicProperty.clearEffectFromPVPZone,
                         KeepOnEnterPvpZone: data.BasicProperty.doNotClearEffectFromEnterPVPZone,
                         CasterIndividualBuff: data.BasicProperty.casterIndividualEffect,
+                        Exp: data.ExpProperty.value,
                         KeepCondition: (BuffKeepCondition) data.BasicProperty.keepCondition,
                         ResetCondition: (BuffResetCondition) data.BasicProperty.resetCondition,
                         DotCondition: (BuffDotCondition) data.BasicProperty.dotCondition),
@@ -51,8 +52,6 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                     Dot: new AdditionalEffectMetadataDot(
                         Damage: Convert(data.DotDamageProperty),
                         Buff: Convert(data.DotBuffProperty)),
-                    Exp: new AdditionalEffectMetadataExp(
-                        Value: data.ExpProperty.value),
                     Shield: Convert(data.ShieldProperty),
                     InvokeEffect: Convert(data.InvokeEffectProperty),
                     Skills: data.conditionSkill.Concat(data.splashSkill).Select(skill => skill.Convert()).ToArray());

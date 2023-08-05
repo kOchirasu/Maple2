@@ -13,7 +13,7 @@ using Serilog;
 
 namespace Maple2.Server.Game.Model;
 
-public class Buff : IByteSerializable {
+public class Buff : IUpdatable, IByteSerializable {
     private readonly FieldManager field;
     public readonly AdditionalEffectMetadata Metadata;
     public readonly int ObjectId;
@@ -77,7 +77,7 @@ public class Buff : IByteSerializable {
         }
     }
 
-    public void Activate() {
+    public virtual void Update(long tickCount) {
         if (!activated) {
             if (Metadata.Update.Cancel != null) {
                 foreach (int id in Metadata.Update.Cancel.Ids) {
@@ -91,11 +91,24 @@ public class Buff : IByteSerializable {
 
             activated = true;
         }
+
+        if (canExpire && !canProc && tickCount > EndTick) {
+            Owner.Buffs.Remove(Id);
+            return;
+        }
+
+        if (!UpdateEnabled()) {
+            return;
+        }
+        
+        if (!canProc || tickCount < NextProcTick) {
+            return;
+        }
+
+        Proc();
     }
 
-    public bool Expired(long tickCount) => canExpire && !canProc && tickCount > EndTick;
-
-    public bool UpdateEnabled(bool notifyField = true) {
+    private bool UpdateEnabled(bool notifyField = true) {
         bool enabled = Metadata.Condition.Check(Caster, Owner, Owner);
         if (Enabled != enabled) {
             Enabled = enabled;
@@ -113,11 +126,7 @@ public class Buff : IByteSerializable {
     }
     public void Enable() => Enabled = true;
 
-    public void Proc(long tickCount) {
-        if (!canProc || tickCount < NextProcTick) {
-            return;
-        }
-
+    private void Proc() {
         ProcCount++;
 
         ApplyRecovery();

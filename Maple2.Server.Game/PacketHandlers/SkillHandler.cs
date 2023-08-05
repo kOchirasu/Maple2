@@ -105,7 +105,7 @@ public class SkillHandler : PacketHandler<GameSession> {
 
         packet.ReadInt(); // ClientTick
         record.Unknown = packet.ReadBool(); // UnkBool
-        long itemUid = packet.ReadLong(); // UnkLong
+        long itemUid = packet.ReadLong();
         record.IsHold = packet.ReadBool();
         if (record.IsHold) {
             record.HoldInt = packet.ReadInt();
@@ -115,11 +115,10 @@ public class SkillHandler : PacketHandler<GameSession> {
         if (itemUid > 0) {
             Item? item = session.Item.Inventory.Get(itemUid);
             // TODO: Check if item is valid for skill?
-            if (item == null) {
+            if (item == null || !session.Item.Inventory.Consume(item.Uid, 1)) {
                 session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert, StringCode.s_err_invalid_item));
                 return;
             }
-            session.Item.Inventory.Consume(item.Uid, 1);
         }
 
         session.Player.InBattle = itemUid <= 0;

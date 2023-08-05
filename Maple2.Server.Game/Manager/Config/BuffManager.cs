@@ -125,25 +125,7 @@ public class BuffManager : IUpdatable {
 
     public virtual void Update(long tickCount) {
         foreach (Buff buff in Buffs.Values) {
-            buff.Activate();
-
-            if (buff.Expired(tickCount)) {
-                Remove(buff.Id);
-                continue;
-            }
-
-            // TODO: Check conditions less frequently
-            if (!buff.UpdateEnabled()) {
-                continue;
-            }
-
-            // TODO: Move this to a better location?
-            if (actor.Field.Metadata.Property.Type == MapType.Pvp && buff.Metadata.Property.RemoveOnPvpZone) {
-                Remove(buff.Id);
-                continue;
-            }
-
-            buff.Proc(tickCount);
+            buff.Update(tickCount);
         }
     }
 
@@ -207,6 +189,8 @@ public class BuffManager : IUpdatable {
 
     public void RemoveAll() {
         Buffs.Clear();
+        Initialize();
+        LoadFieldBuffs();
     }
 
     public void OnDeath() {
