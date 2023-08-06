@@ -113,6 +113,8 @@ public class PlayerCommand : Command {
                 session.Config.Skill.SkillInfo.SetJob(job);
 
                 session.Player.Buffs.RemoveAll();
+                session.Player.Buffs.Initialize();
+                session.Player.Buffs.LoadFieldBuffs();
                 session.Stats.Refresh();
                 session.Field?.Broadcast(JobPacket.Awakening(session.Player, session.Config.Skill.SkillInfo));
                 ctx.ExitCode = 0;
