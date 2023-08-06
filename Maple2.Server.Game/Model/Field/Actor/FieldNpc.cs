@@ -154,8 +154,6 @@ public class FieldNpc : Actor<Npc> {
     }
 
     protected override void OnDeath() {
-        Buffs.RemoveAll();
-
         Owner?.Despawn(ObjectId);
         CurrentRoutine.OnCompleted();
         SendControl = false;

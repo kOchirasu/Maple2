@@ -187,12 +187,6 @@ public class BuffManager : IUpdatable {
 
     }
 
-    public void RemoveAll() {
-        Buffs.Clear();
-        Initialize();
-        LoadFieldBuffs();
-    }
-
     public void OnDeath() {
         foreach (Buff buff in Buffs.Values) {
             if (!buff.Metadata.Property.KeepOnDeath) {
