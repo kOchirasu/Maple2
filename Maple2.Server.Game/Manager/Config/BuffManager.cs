@@ -6,8 +6,10 @@ using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
+using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Util;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Serilog;
 
 namespace Maple2.Server.Game.Manager.Config;
@@ -25,6 +27,7 @@ public class BuffManager : IUpdatable {
     private readonly IActor actor;
     // TODO: Change this to support multiple buffs of the same id, different casters. Possibly also different levels?
     public ConcurrentDictionary<int, Buff> Buffs { get; } = new();
+    public ReflectRecord? Reflect; 
     private readonly ILogger logger = Log.ForContext<BuffManager>();
 
     public BuffManager(IActor actor) {
@@ -123,6 +126,11 @@ public class BuffManager : IUpdatable {
         }
     }
 
+    public void SetReflect(ReflectRecord record) {
+        // Does this get overwritten if a new reflect is applied?
+        Reflect = record;
+    }
+
     public virtual void Update(long tickCount) {
         foreach (Buff buff in Buffs.Values) {
             buff.Update(tickCount);
@@ -182,6 +190,9 @@ public class BuffManager : IUpdatable {
 
         //TODO: Check if buff is removable/should be removed
         Buffs.Remove(id, out _);
+        if (Reflect != null && Reflect.SourceBuffId == id) {
+            Reflect = null;
+        }
         actor.Field.Broadcast(BuffPacket.Remove(buff));
         return true;
 

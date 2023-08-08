@@ -46,6 +46,7 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                     Consume: new AdditionalEffectMetadataConsume(
                         HpRate: data.ConsumeProperty.hpRate,
                         SpRate: data.ConsumeProperty.spRate),
+                    Reflect: Convert(data.ReflectProperty),
                     Update: Convert(data),
                     Status: Convert(data.StatusProperty, data.OffensiveProperty, data.DefensiveProperty),
                     Recovery: Convert(data.RecoveryProperty),
@@ -82,6 +83,26 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
             ImmuneCategories: Array.ConvertAll(data.ImmuneEffectProperty.immuneBuffCategories, category => (BuffCategory) category),
             ResetCooldown: data.ResetSkillCoolDownTimeProperty.skillCodes,
             Duration: modifyDuration);
+    }
+
+    private static AdditionalEffectMetadataReflect Convert(ReflectProperty reflect) {
+        var values = new Dictionary<BasicAttribute, long>();
+        var rates = new Dictionary<BasicAttribute, float>();
+        
+        values.AddIfNotDefault(BasicAttribute.PhysicalAtk, reflect.physicalReflectionValue);
+        values.AddIfNotDefault(BasicAttribute.MagicalAtk, reflect.magicalReflectionValue);
+        
+        rates.AddIfNotDefault(BasicAttribute.PhysicalAtk, reflect.physicalReflectionRate);
+        rates.AddIfNotDefault(BasicAttribute.MagicalAtk, reflect.magicalReflectionRate);
+        return new AdditionalEffectMetadataReflect(
+            reflect.reflectionRate,
+            reflect.reflectionAdditionalEffectId,
+            reflect.reflectionAdditionalEffectLevel,
+            reflect.reflectionCount,
+            reflect.physicalReflectionRateLimit,
+            reflect.magicalReflectionRateLimit,
+            values,
+            rates);
     }
 
     private static AdditionalEffectMetadataStatus Convert(StatusProperty status, OffensiveProperty offensive, DefensiveProperty defensive) {

@@ -52,19 +52,18 @@ public class Buff : IUpdatable, IByteSerializable {
         IntervalTick = metadata.Property.IntervalTick > 0 ? metadata.Property.IntervalTick : metadata.Property.DurationTick + 1000;
 
         Stack();
+        Reflect();
         NextProcTick = StartTick + this.Metadata.Property.DelayTick + this.Metadata.Property.IntervalTick;
         UpdateEnabled(false);
-        // Buffs with KeepCondition == 99 will not proc?
         canProc = metadata.Property.KeepCondition != BuffKeepCondition.UnlimitedDuration;
-        // Buffs with a duration of 0 are permanent.
-        canExpire = EndTick > StartTick;
+        canExpire = metadata.Property.KeepCondition != BuffKeepCondition.UnlimitedDuration && EndTick >= StartTick;
     }
 
     public bool Stack(int amount = 1) {
         Stacks = Math.Min(Stacks + 1, Metadata.Property.MaxCount);
         StartTick = Environment.TickCount64;
 
-        if (Metadata.Property.ResetCondition != BuffResetCondition.PersistEndTick) {
+        if (Stacks == 1 || Metadata.Property.ResetCondition != BuffResetCondition.PersistEndTick) {
             EndTick = StartTick + Metadata.Property.DurationTick;
         }
         return true;
@@ -77,6 +76,16 @@ public class Buff : IUpdatable, IByteSerializable {
         }
     }
 
+    public void Reflect() {
+        if (Metadata.Reflect.EffectId == 0 || !field.SkillMetadata.TryGetEffect(Metadata.Reflect.EffectId, Metadata.Reflect.EffectLevel, 
+                out AdditionalEffectMetadata? _)) {
+            return;
+        }
+
+        var record = new ReflectRecord(Id, Metadata.Reflect);
+        Owner.Buffs.SetReflect(record);
+    }
+    
     public virtual void Update(long tickCount) {
         if (!activated) {
             if (Metadata.Update.Cancel != null) {

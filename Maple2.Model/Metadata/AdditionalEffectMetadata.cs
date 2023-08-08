@@ -9,6 +9,7 @@ public record AdditionalEffectMetadata(
     BeginCondition Condition,
     AdditionalEffectMetadataProperty Property,
     AdditionalEffectMetadataConsume Consume,
+    AdditionalEffectMetadataReflect Reflect,
     AdditionalEffectMetadataUpdate Update,
     AdditionalEffectMetadataStatus Status,
     AdditionalEffectMetadataRecovery? Recovery,
@@ -41,6 +42,16 @@ public record AdditionalEffectMetadataProperty(
 public record AdditionalEffectMetadataConsume(
     float HpRate,
     float SpRate);
+
+public record AdditionalEffectMetadataReflect(
+    float Rate,
+    int EffectId,
+    short EffectLevel,
+    int ReflectionCount,
+    int PhysicalReflectRateLimit,
+    int MagicReflectRateLimit,
+    IReadOnlyDictionary<BasicAttribute, long> ReflectValues,
+    IReadOnlyDictionary<BasicAttribute, float> ReflectRates);
 
 public record AdditionalEffectMetadataUpdate(
     AdditionalEffectMetadataUpdate.CancelEffect? Cancel,

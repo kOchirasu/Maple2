@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
-using System.Threading;
 using Maple2.Model.Enum;
-using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Manager.Field;
@@ -70,6 +66,7 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
 
             long damageAmount = 0;
             for (int i = 0; i < attack.Damage.Count; i++) {
+                Reflect(caster);
                 targetRecord.AddDamage(DamageType.Normal, -2000);
                 damageAmount -= 2000;
             }
@@ -81,6 +78,17 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
 
             damage.Targets.Add(targetRecord);
         }
+    }
+
+    public virtual void Reflect(IActor target) {
+        if (Buffs.Reflect == null || Buffs.Reflect.Counter >= Buffs.Reflect.MaxCount) {
+            Console.WriteLine("No reflect buff found");
+            return;
+        }
+        Buffs.Reflect.Counter++;
+        target.Buffs.AddBuff(this, target,  Buffs.Reflect.EffectId, Buffs.Reflect.EffectLevel);
+        
+        // TODO: Reflect should also amend the target's damage record from Reflect.ReflectValues and ReflectRates
     }
 
     public virtual void TargetAttack(SkillRecord record) {
