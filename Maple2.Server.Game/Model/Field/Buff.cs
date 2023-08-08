@@ -52,7 +52,6 @@ public class Buff : IUpdatable, IByteSerializable {
         IntervalTick = metadata.Property.IntervalTick > 0 ? metadata.Property.IntervalTick : metadata.Property.DurationTick + 1000;
 
         Stack();
-        Reflect();
         NextProcTick = StartTick + this.Metadata.Property.DelayTick + this.Metadata.Property.IntervalTick;
         UpdateEnabled(false);
         canProc = metadata.Property.KeepCondition != BuffKeepCondition.UnlimitedDuration;
@@ -74,16 +73,6 @@ public class Buff : IUpdatable, IByteSerializable {
         if (Stacks == 0) {
             Owner.Buffs.Remove(Id);
         }
-    }
-
-    public void Reflect() {
-        if (Metadata.Reflect.EffectId == 0 || !field.SkillMetadata.TryGetEffect(Metadata.Reflect.EffectId, Metadata.Reflect.EffectLevel, 
-                out AdditionalEffectMetadata? _)) {
-            return;
-        }
-
-        var record = new ReflectRecord(Id, Metadata.Reflect);
-        Owner.Buffs.SetReflect(record);
     }
     
     public virtual void Update(long tickCount) {

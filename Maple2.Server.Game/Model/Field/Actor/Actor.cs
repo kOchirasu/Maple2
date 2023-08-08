@@ -81,13 +81,21 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
     }
 
     public virtual void Reflect(IActor target) {
-        if (Buffs.Reflect == null || Buffs.Reflect.Counter >= Buffs.Reflect.MaxCount) {
-            Console.WriteLine("No reflect buff found");
+        if (Buffs.Reflect == null || Buffs.Reflect.Counter >= Buffs.Reflect.Metadata.Count) {
             return;
         }
-        Buffs.Reflect.Counter++;
-        target.Buffs.AddBuff(this, target,  Buffs.Reflect.EffectId, Buffs.Reflect.EffectLevel);
-        
+        ReflectRecord record = Buffs.Reflect;
+
+        if (record.Metadata.Rate is not 1 && record.Metadata.Rate < Random.Shared.NextDouble()) {
+            return;
+        }
+
+        record.Counter++;
+        if (record.Counter >= record.Metadata.Count) {
+            Buffs.Remove(record.SourceBuffId);
+        }
+        target.Buffs.AddBuff(this, target, record.Metadata.EffectId, record.Metadata.EffectLevel);
+
         // TODO: Reflect should also amend the target's damage record from Reflect.ReflectValues and ReflectRates
     }
 

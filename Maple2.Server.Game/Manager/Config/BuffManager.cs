@@ -114,6 +114,9 @@ public class BuffManager : IUpdatable {
             owner.Field.Broadcast(BuffPacket.Update(buff));
             return;
         }
+        
+        // Set Reflect if applicable
+        SetReflect(buff);
 
         if (!additionalEffect.Condition.Check(caster, owner, actor)) {
             buff.Disable();
@@ -126,8 +129,14 @@ public class BuffManager : IUpdatable {
         }
     }
 
-    public void SetReflect(ReflectRecord record) {
+    private void SetReflect(Buff buff) {
+        if (buff.Metadata.Reflect.EffectId == 0 || !actor.Field.SkillMetadata.TryGetEffect(buff.Metadata.Reflect.EffectId, buff.Metadata.Reflect.EffectLevel, 
+                out AdditionalEffectMetadata? _)) {
+            return;
+        }
+
         // Does this get overwritten if a new reflect is applied?
+        var record = new ReflectRecord(buff.Id, buff.Metadata.Reflect);
         Reflect = record;
     }
 

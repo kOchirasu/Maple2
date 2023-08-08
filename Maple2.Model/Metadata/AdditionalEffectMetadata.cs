@@ -47,11 +47,11 @@ public record AdditionalEffectMetadataReflect(
     float Rate,
     int EffectId,
     short EffectLevel,
-    int ReflectionCount,
-    int PhysicalReflectRateLimit,
-    int MagicReflectRateLimit,
-    IReadOnlyDictionary<BasicAttribute, long> ReflectValues,
-    IReadOnlyDictionary<BasicAttribute, float> ReflectRates);
+    int Count,
+    int PhysicalRateLimit,
+    int MagicalRateLimit,
+    IReadOnlyDictionary<BasicAttribute, long> Values,
+    IReadOnlyDictionary<BasicAttribute, float> Rates);
 
 public record AdditionalEffectMetadataUpdate(
     AdditionalEffectMetadataUpdate.CancelEffect? Cancel,

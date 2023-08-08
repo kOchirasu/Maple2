@@ -95,14 +95,14 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
         rates.AddIfNotDefault(BasicAttribute.PhysicalAtk, reflect.physicalReflectionRate);
         rates.AddIfNotDefault(BasicAttribute.MagicalAtk, reflect.magicalReflectionRate);
         return new AdditionalEffectMetadataReflect(
-            reflect.reflectionRate,
-            reflect.reflectionAdditionalEffectId,
-            reflect.reflectionAdditionalEffectLevel,
-            reflect.reflectionCount,
-            reflect.physicalReflectionRateLimit,
-            reflect.magicalReflectionRateLimit,
-            values,
-            rates);
+            Rate: reflect.reflectionRate,
+            EffectId: reflect.reflectionAdditionalEffectId,
+            EffectLevel: reflect.reflectionAdditionalEffectLevel,
+            Count: reflect.reflectionCount,
+            PhysicalRateLimit: reflect.physicalReflectionRateLimit,
+            MagicalRateLimit: reflect.magicalReflectionRateLimit,
+            Values: values,
+            Rates: rates);
     }
 
     private static AdditionalEffectMetadataStatus Convert(StatusProperty status, OffensiveProperty offensive, DefensiveProperty defensive) {
