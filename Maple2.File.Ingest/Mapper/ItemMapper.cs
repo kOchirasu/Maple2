@@ -200,6 +200,8 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                 ),
                 Skill: skill,
                 Function: function,
+                AdditionalEffects: data.AdditionalEffect.id.Zip(data.AdditionalEffect.level,
+                    (skillId, level) => new ItemMetadataAdditionalEffect(skillId, level)).ToArray(),
                 Option: option,
                 Music: music,
                 Housing: housing

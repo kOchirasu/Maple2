@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Numerics;
-using System.Threading;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
+using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
@@ -18,15 +17,6 @@ namespace Maple2.Server.Game.Model;
 /// </summary>
 /// <typeparam name="T">The type contained by this object</typeparam>
 public abstract class Actor<T> : IActor<T>, IDisposable {
-    #region ObjectId
-    private int idCounter;
-
-    /// <summary>
-    /// Generates an ObjectId unique to this specific actor instance.
-    /// </summary>
-    /// <returns>Returns a local ObjectId</returns>
-    protected int NextLocalId() => Interlocked.Increment(ref idCounter);
-    #endregion
 
     protected readonly ILogger Logger = Log.ForContext<T>();
 
@@ -42,12 +32,13 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
     public virtual bool IsDead { get; protected set; }
     public abstract IPrism Shape { get; }
 
-    public virtual ConcurrentDictionary<int, Buff> Buffs { get; } = new();
+    public BuffManager Buffs { get; }
 
     protected Actor(FieldManager field, int objectId, T value) {
         Field = field;
         ObjectId = objectId;
         Value = value;
+        Buffs = new BuffManager(this);
     }
 
     public void Dispose() {
@@ -57,11 +48,11 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
 
     protected virtual void Dispose(bool disposing) { }
 
-    public virtual void ApplyEffect(IActor caster, IActor owner, SkillEffectMetadata effect) {
+    public virtual void ApplyEffect(IActor caster, IActor owner, SkillEffectMetadata effect, bool notifyField = true) {
         Debug.Assert(effect.Condition != null);
 
         foreach (SkillEffectMetadata.Skill skill in effect.Skills) {
-            AddBuff(caster, owner, skill.Id, skill.Level);
+            Buffs.AddBuff(caster, owner, skill.Id, skill.Level, notifyField);
         }
     }
 
@@ -75,6 +66,7 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
 
             long damageAmount = 0;
             for (int i = 0; i < attack.Damage.Count; i++) {
+                Reflect(caster);
                 targetRecord.AddDamage(DamageType.Normal, -2000);
                 damageAmount -= 2000;
             }
@@ -88,36 +80,23 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
         }
     }
 
-    public virtual void AddBuff(IActor caster, IActor owner, int id, short level, bool notifyField = true) {
-        if (Buffs.TryGetValue(id, out Buff? existing)) {
-            existing.Stack();
-            if (notifyField) {
-                Field.Broadcast(BuffPacket.Update(existing));
-            }
+    public virtual void Reflect(IActor target) {
+        if (Buffs.Reflect == null || Buffs.Reflect.Counter >= Buffs.Reflect.Metadata.Count) {
+            return;
+        }
+        ReflectRecord record = Buffs.Reflect;
+
+        if (record.Metadata.Rate is not 1 && record.Metadata.Rate < Random.Shared.NextDouble()) {
             return;
         }
 
-        if (!Field.SkillMetadata.TryGetEffect(id, level, out AdditionalEffectMetadata? additionalEffect)) {
-            Logger.Error("Invalid buff: {SkillId},{Level}", id, level);
-            return;
+        record.Counter++;
+        if (record.Counter >= record.Metadata.Count) {
+            Buffs.Remove(record.SourceBuffId);
         }
+        target.Buffs.AddBuff(this, target, record.Metadata.EffectId, record.Metadata.EffectLevel);
 
-        // if (!SkillUtils.CheckCondition(additionalEffect.Condition, caster, owner, this)) {
-        //     Console.WriteLine($"Ignore buff {id}");
-        //     return;
-        // }
-
-        var buff = new Buff(Field, additionalEffect, NextLocalId(), caster, this);
-        if (!Buffs.TryAdd(id, buff)) {
-            Logger.Error("Buff already exists: {SkillId}", id);
-            return;
-        }
-
-        Logger.Information("{Id} AddBuff to {ObjectId}: {SkillId},{Level} for {Tick}ms", buff.ObjectId, ObjectId, id, level, buff.EndTick - buff.StartTick);
-        // Logger.Information("> {Data}", additionalEffect.Property);
-        if (notifyField) {
-            Field.Broadcast(BuffPacket.Add(buff));
-        }
+        // TODO: Reflect should also amend the target's damage record from Reflect.ReflectValues and ReflectRates
     }
 
     public virtual void TargetAttack(SkillRecord record) {
@@ -163,9 +142,7 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
             return;
         }
 
-        foreach (Buff buff in Buffs.Values) {
-            buff.Update(tickCount);
-        }
+        Buffs.Update(tickCount);
     }
 
     protected abstract void OnDeath();

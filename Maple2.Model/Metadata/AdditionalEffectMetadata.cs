@@ -9,6 +9,7 @@ public record AdditionalEffectMetadata(
     BeginCondition Condition,
     AdditionalEffectMetadataProperty Property,
     AdditionalEffectMetadataConsume Consume,
+    AdditionalEffectMetadataReflect Reflect,
     AdditionalEffectMetadataUpdate Update,
     AdditionalEffectMetadataStatus Status,
     AdditionalEffectMetadataRecovery? Recovery,
@@ -18,31 +19,48 @@ public record AdditionalEffectMetadata(
     SkillEffectMetadata[] Skills);
 
 public record AdditionalEffectMetadataProperty(
-    BuffType Type,           // 1,2,3
-    BuffSubType SubType,     // 0,1,2,4,6,8,16,32,64,128,256,512,1024
-    BuffCategory Category,   // 0,1,2,4,6,7,8,9,99,1007,2001
+    BuffType Type, // 1,2,3
+    BuffSubType SubType, // 0,1,2,4,6,8,16,32,64,128,256,512,1024
+    BuffCategory Category, // 0,1,2,4,6,7,8,9,99,1007,2001
     BuffEventType EventType, // 0,1,2,3,4
     int Group,
     int DurationTick,
     int IntervalTick,
     int DelayTick,
     int MaxCount,
-    int KeepCondition,
-    int ResetCondition,
-    int DotCondition);
+    bool KeepOnDeath,
+    bool RemoveOnLogout,
+    bool RemoveOnLeaveField,
+    bool RemoveOnPvpZone,
+    bool KeepOnEnterPvpZone,
+    bool CasterIndividualBuff,
+    int Exp,
+    BuffKeepCondition KeepCondition,
+    BuffResetCondition ResetCondition,
+    BuffDotCondition DotCondition);
 
 public record AdditionalEffectMetadataConsume(
     float HpRate,
     float SpRate);
 
+public record AdditionalEffectMetadataReflect(
+    float Rate,
+    int EffectId,
+    short EffectLevel,
+    int Count,
+    int PhysicalRateLimit,
+    int MagicalRateLimit,
+    IReadOnlyDictionary<BasicAttribute, long> Values,
+    IReadOnlyDictionary<BasicAttribute, float> Rates);
+
 public record AdditionalEffectMetadataUpdate(
     AdditionalEffectMetadataUpdate.CancelEffect? Cancel,
     int[] ImmuneIds,
-    int[] ImmuneCategories,
+    BuffCategory[] ImmuneCategories,
     int[] ResetCooldown,
     AdditionalEffectMetadataUpdate.ModifyDuration[] Duration
 ) {
-    public record CancelEffect(bool CheckSameCaster, bool PassiveEffect, int[] Ids, int[] Categories);
+    public record CancelEffect(bool CheckSameCaster, bool PassiveEffect, int[] Ids, BuffCategory[] Categories);
 
     public record ModifyDuration(int Id, float Rate, float Value);
 }
