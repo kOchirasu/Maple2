@@ -193,18 +193,16 @@ public class BuffManager : IUpdatable {
     }
 
     public bool Remove(int id) {
-        if (!Buffs.TryGetValue(id, out Buff? buff)) {
+        //TODO: Check if buff is removable/should be removed
+        if (!Buffs.Remove(id, out Buff? buff)) {
             return false;
         }
 
-        //TODO: Check if buff is removable/should be removed
-        Buffs.Remove(id, out _);
-        if (Reflect != null && Reflect.SourceBuffId == id) {
+        if (Reflect?.SourceBuffId == id) {
             Reflect = null;
         }
         actor.Field.Broadcast(BuffPacket.Remove(buff));
         return true;
-
     }
 
     public void OnDeath() {
