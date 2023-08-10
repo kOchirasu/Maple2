@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
 
@@ -37,9 +38,9 @@ public record MapMetadata(
 
 public record MapMetadataProperty(
     int Continent,
-    int Region,
+    MapRegion Region,
     int Category,
-    int Type,
+    MapType Type,
     bool BigCity,
     int ExploreType,
     int TutorialType,
@@ -54,7 +55,9 @@ public record MapMetadataProperty(
     bool HomeReturnable,
     bool DeathPenalty,
     bool OnlyDarkTomb,
-    bool PkMode);
+    bool PkMode,
+    bool CanFly,
+    bool CanClimb);
 
 public record MapMetadataLimit(
     int Capacity,

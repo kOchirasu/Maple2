@@ -1,4 +1,6 @@
-﻿using Maple2.Model.Enum;
+﻿using System.Collections.Generic;
+using Maple2.Model.Enum;
+using Maple2.Model.Game;
 
 namespace Maple2.Model.Metadata;
 
@@ -7,9 +9,18 @@ public record BeginCondition(
     long Mesos,
     Gender Gender,
     JobCode[] JobCode,
+    float Probability,
+    bool OnlyShadowWorld,
+    bool OnlyFlyableMap,
+    IReadOnlyDictionary<BasicAttribute, long> Stat,
+    BeginConditionWeapon[]? Weapon,
     BeginConditionTarget? Target,
     BeginConditionTarget? Owner,
     BeginConditionTarget? Caster);
+
+public record BeginConditionWeapon(
+    ItemType LeftHand,
+    ItemType RightHand);
 
 public record BeginConditionTarget(
     BeginConditionTarget.HasBuff[] Buff,

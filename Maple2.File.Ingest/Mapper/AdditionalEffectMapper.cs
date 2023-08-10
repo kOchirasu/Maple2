@@ -33,12 +33,20 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                         IntervalTick: data.BasicProperty.intervalTick,
                         DelayTick: data.BasicProperty.delayTick,
                         MaxCount: data.BasicProperty.maxBuffCount,
-                        KeepCondition: data.BasicProperty.keepCondition,
-                        ResetCondition: data.BasicProperty.resetCondition,
-                        DotCondition: data.BasicProperty.dotCondition),
+                        KeepOnDeath: data.BasicProperty.deadKeepEffect,
+                        RemoveOnLogout: data.BasicProperty.logoutClearEffect,
+                        RemoveOnLeaveField: data.BasicProperty.leaveFieldClearEffect, 
+                        RemoveOnPvpZone: data.BasicProperty.clearEffectFromPVPZone,
+                        KeepOnEnterPvpZone: data.BasicProperty.doNotClearEffectFromEnterPVPZone,
+                        CasterIndividualBuff: data.BasicProperty.casterIndividualEffect,
+                        Exp: data.ExpProperty.value,
+                        KeepCondition: (BuffKeepCondition) data.BasicProperty.keepCondition,
+                        ResetCondition: (BuffResetCondition) data.BasicProperty.resetCondition,
+                        DotCondition: (BuffDotCondition) data.BasicProperty.dotCondition),
                     Consume: new AdditionalEffectMetadataConsume(
                         HpRate: data.ConsumeProperty.hpRate,
                         SpRate: data.ConsumeProperty.spRate),
+                    Reflect: Convert(data.ReflectProperty),
                     Update: Convert(data),
                     Status: Convert(data.StatusProperty, data.OffensiveProperty, data.DefensiveProperty),
                     Recovery: Convert(data.RecoveryProperty),
@@ -60,7 +68,7 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
                 CheckSameCaster: cancel.cancelCheckSameCaster,
                 PassiveEffect: cancel.cancelPassiveEffect,
                 Ids: cancel.cancelEffectCodes,
-                Categories: cancel.cancelBuffCategories);
+                Categories: Array.ConvertAll(cancel.cancelBuffCategories, category => (BuffCategory) category));
         }
 
         ModifyEffectDurationProperty modify = data.ModifyEffectDurationProperty;
@@ -72,9 +80,29 @@ public class AdditionalEffectMapper : TypeMapper<AdditionalEffectMetadata> {
         return new AdditionalEffectMetadataUpdate(
             Cancel: cancelEffect,
             ImmuneIds: data.ImmuneEffectProperty.immuneEffectCodes,
-            ImmuneCategories: data.ImmuneEffectProperty.immuneBuffCategories,
+            ImmuneCategories: Array.ConvertAll(data.ImmuneEffectProperty.immuneBuffCategories, category => (BuffCategory) category),
             ResetCooldown: data.ResetSkillCoolDownTimeProperty.skillCodes,
             Duration: modifyDuration);
+    }
+
+    private static AdditionalEffectMetadataReflect Convert(ReflectProperty reflect) {
+        var values = new Dictionary<BasicAttribute, long>();
+        var rates = new Dictionary<BasicAttribute, float>();
+        
+        values.AddIfNotDefault(BasicAttribute.PhysicalAtk, reflect.physicalReflectionValue);
+        values.AddIfNotDefault(BasicAttribute.MagicalAtk, reflect.magicalReflectionValue);
+        
+        rates.AddIfNotDefault(BasicAttribute.PhysicalAtk, reflect.physicalReflectionRate);
+        rates.AddIfNotDefault(BasicAttribute.MagicalAtk, reflect.magicalReflectionRate);
+        return new AdditionalEffectMetadataReflect(
+            Rate: reflect.reflectionRate,
+            EffectId: reflect.reflectionAdditionalEffectId,
+            EffectLevel: reflect.reflectionAdditionalEffectLevel,
+            Count: reflect.reflectionCount,
+            PhysicalRateLimit: reflect.physicalReflectionRateLimit,
+            MagicalRateLimit: reflect.magicalReflectionRateLimit,
+            Values: values,
+            Rates: rates);
     }
 
     private static AdditionalEffectMetadataStatus Convert(StatusProperty status, OffensiveProperty offensive, DefensiveProperty defensive) {
