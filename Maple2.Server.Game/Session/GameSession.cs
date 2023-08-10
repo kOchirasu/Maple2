@@ -74,6 +74,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public ItemBoxManager ItemBox { get; set; }
     public BeautyManager Beauty { get; set; }
     public GameEventUserValueManager GameEventUserValue { get; set; }
+    public ExperienceManager Exp { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
 
@@ -120,6 +121,7 @@ public sealed partial class GameSession : Core.Network.Session {
         ItemBox = new ItemBoxManager(this);
         Beauty = new BeautyManager(this);
         GameEventUserValue = new GameEventUserValueManager(this);
+        Exp = new ExperienceManager(this, Lua);
 
         Guild = new GuildManager(this);
         Config = new ConfigManager(db, this);

@@ -1,5 +1,7 @@
 ﻿using System;
+using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Packets;
@@ -12,16 +14,18 @@ public class FieldInteract : FieldEntity<InteractObjectMetadata> {
     private long nextTick;
     private long reactTick;
 
+    public IInteractObject Object { get; init; }
     public InteractType Type => Value.Type;
 
     private int reactLimit;
     public InteractState State { get; private set; }
 
-    public FieldInteract(FieldManager field, int objectId, string entityId, InteractObjectMetadata value) : base(field, objectId, value) {
+    public FieldInteract(FieldManager field, int objectId, string entityId, InteractObjectMetadata value, IInteractObject interactObject) : base(field, objectId, value) {
         EntityId = entityId;
         State = InteractState.Normal;
         nextTick = Environment.TickCount64;
         reactLimit = Value.ReactCount > 0 ? Value.ReactCount : int.MaxValue;
+        Object = interactObject;
     }
 
     public bool React() {
@@ -58,6 +62,13 @@ public class FieldInteract : FieldEntity<InteractObjectMetadata> {
     }
 
     public override void Update(long tickCount) {
+        // TODO: Include treasure chests
+        if (Object is InteractBillBoardObject billboard && DateTime.Now.ToEpochSeconds() > billboard.ExpirationTime) {
+            SetState(InteractState.Hidden);
+            Field.RemoveInteract(EntityId);
+            return;
+        }
+
         if (nextTick == 0 || tickCount < nextTick) {
             return;
         }

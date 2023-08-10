@@ -257,7 +257,7 @@ public enum SendOp : ushort {
     ItemExchange = 0x0104,
     BindItem = 0x0105,
     TransferEnchant = 0x0106,
-    AdBalloon = 0x0107,
+    PlayerHost = 0x0107,
     GmCommand = 0x0108,
     GlamourAnvil = 0x0109,
     PetSkinBadge = 0x010A,

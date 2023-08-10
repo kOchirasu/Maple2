@@ -190,6 +190,7 @@ public sealed partial class FieldManager : IDisposable {
             foreach (FieldBreakable breakable in fieldBreakables.Values) breakable.Update(tickCount);
             foreach (FieldLiftable liftable in fieldLiftables.Values) liftable.Update(tickCount);
             foreach (FieldInteract interact in fieldInteracts.Values) interact.Update(tickCount);
+            foreach (FieldInteract interact in fieldAdBalloons.Values) interact.Update(tickCount);
             foreach (FieldItem item in fieldItems.Values) item.Update(tickCount);
             foreach (FieldMobSpawn mobSpawn in fieldMobSpawns.Values) mobSpawn.Update(tickCount);
             foreach (FieldSkill skill in fieldSkills.Values) skill.Update(tickCount);
@@ -246,7 +247,7 @@ public sealed partial class FieldManager : IDisposable {
 
     public ICollection<FieldInteract> EnumerateInteract() => fieldInteracts.Values;
     public bool TryGetInteract(string entityId, [NotNullWhen(true)] out FieldInteract? fieldInteract) {
-        return fieldInteracts.TryGetValue(entityId, out fieldInteract);
+        return fieldInteracts.TryGetValue(entityId, out fieldInteract) || fieldAdBalloons.TryGetValue(entityId, out fieldInteract);
     }
 
     public bool MoveToPortal(GameSession session, int portalId) {
