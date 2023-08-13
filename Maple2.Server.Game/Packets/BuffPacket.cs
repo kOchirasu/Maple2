@@ -41,7 +41,7 @@ public static class BuffPacket {
         pWriter.WriteInt(buff.Owner.ObjectId);
         pWriter.WriteInt(buff.ObjectId);
         pWriter.WriteInt(buff.Caster.ObjectId);
-        pWriter.Write<BuffFlag>(flag); // TODO: complete this...
+        pWriter.Write<BuffFlag>(flag);
         if (flag.HasFlag(BuffFlag.UpdateBuff)) {
             buff.WriteAdditionalEffect(pWriter);
         }

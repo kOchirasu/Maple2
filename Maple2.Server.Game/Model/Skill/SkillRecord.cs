@@ -44,7 +44,7 @@ public class SkillRecord {
         if (Metadata.Data.Motions.Length <= motionPoint) {
             return false;
         }
-        
+
         MotionPoint = motionPoint;
         return true;
     }

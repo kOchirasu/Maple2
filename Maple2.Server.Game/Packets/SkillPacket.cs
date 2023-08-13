@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
+﻿using System.Numerics;
 using Maple2.Model.Common;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;

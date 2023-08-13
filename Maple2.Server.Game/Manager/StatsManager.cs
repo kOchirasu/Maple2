@@ -24,20 +24,13 @@ public class StatsManager {
 
     public void Refresh() {
         Character character = session.Player.Value.Character;
-        Values.Reset(character.Job.Code(), character.Level);
-        AddEquips();
-        session.Send(StatsPacket.Init(session.Player));
-        session.Field?.Broadcast(StatsPacket.Update(session.Player), session);
-    }
-
-    public void Refresh2() {
-        Character character = session.Player.Value.Character;
 
         Values.Reset(character.Job.Code(), character.Level);
         AddEquips();
         AddBuffs();
         Values.Finalize();
         session.Field?.Broadcast(StatsPacket.Init(session.Player));
+        session.Field?.Broadcast(StatsPacket.Update(session.Player), session);
     }
 
     private void AddEquips() {
@@ -49,7 +42,7 @@ public class StatsManager {
             Values.GearScore += lua.CalcItemLevel(item.Metadata.Property.GearScore, item.Rarity, item.Type.Type, item.Enchant?.Enchants ?? 0, item.LimitBreak?.Level ?? 0).Item1;
 
             if (item.Socket != null) {
-                for (int index = 0; index < item.Socket.UnlockSlots; index ++) {
+                for (int index = 0; index < item.Socket.UnlockSlots; index++) {
                     ItemGemstone? gem = item.Socket.Sockets[index];
                     if (gem != null && gem.Stats != null) {
                         AddItemStats(gem.Stats);
@@ -61,10 +54,10 @@ public class StatsManager {
 
     private void AddBuffs() {
         foreach (Buff buff in session.Player.Buffs.Buffs.Values) {
-            foreach((BasicAttribute valueBasicAttribute, long value) in buff.Metadata.Status.Values) {
+            foreach ((BasicAttribute valueBasicAttribute, long value) in buff.Metadata.Status.Values) {
                 Values[valueBasicAttribute].AddTotal(value);
             }
-            foreach((BasicAttribute ratespecialAttribute, float rate) in buff.Metadata.Status.Rates) {
+            foreach ((BasicAttribute ratespecialAttribute, float rate) in buff.Metadata.Status.Rates) {
                 Values[ratespecialAttribute].AddRate(rate);
             }
             foreach ((SpecialAttribute valueSpecialAttribute, float value) in buff.Metadata.Status.SpecialValues) {

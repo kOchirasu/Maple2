@@ -130,10 +130,10 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
         foreach (SkillEffectMetadata effect in record.Attack.Skills) {
             if (effect.Condition != null) {
                 foreach (IActor actor in record.Targets) {
-                    // Condition check here is redundant. It's already checked in ApplyEffect
-                    if (effect.Condition.Condition.Check(record.Caster, actor, actor)) {
-                        actor.ApplyEffect(GetTarget(effect.Condition.Target, record.Caster, actor),
-                            GetTarget(effect.Condition.Target, record.Caster, actor), effect);
+                    IActor caster = GetTarget(effect.Condition.Target, record.Caster, actor);
+                    IActor owner = GetTarget(effect.Condition.Target, record.Caster, actor);
+                    if (effect.Condition.Condition.Check(caster, owner, actor)) {
+                        actor.ApplyEffect(caster,owner, effect);
                     }
                 }
             } else if (effect.Splash != null) {
@@ -145,11 +145,6 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
     }
 
     public virtual void ApplyEffect(IActor caster, IActor target, SkillEffectMetadata effect) {
-        if (effect.Condition != null && !effect.Condition.Condition.Check(caster, target, target)) {
-            return;
-        }
-
-
         foreach (SkillEffectMetadata.Skill skill in effect.Skills) {
             Buffs.AddBuff(caster, target, skill.Id, skill.Level);
         }

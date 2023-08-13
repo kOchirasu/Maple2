@@ -130,7 +130,7 @@ public class BuffManager : IUpdatable {
         // refresh stats if needed
         if (buff.Metadata.Status.Values.Any() || buff.Metadata.Status.Rates.Any() || buff.Metadata.Status.SpecialValues.Any() || buff.Metadata.Status.SpecialRates.Any()) {
             if (actor is FieldPlayer player) {
-                player.Session.Stats.Refresh2();
+                player.Session.Stats.Refresh();
             }
         }
 
@@ -145,6 +145,7 @@ public class BuffManager : IUpdatable {
         }
 
         logger.Information("{Id} AddBuff to {ObjectId}: {SkillId},{Level} for {Tick}ms", buff.ObjectId, owner.ObjectId, id, level, buff.EndTick - buff.StartTick);
+        // Logger.Information("> {Data}", additionalEffect.Property);
         if (notifyField) {
             owner.Field.Broadcast(BuffPacket.Add(buff));
         }
@@ -184,7 +185,7 @@ public class BuffManager : IUpdatable {
             }
 
             if (!Invokes.TryAdd(buff.Metadata.InvokeEffect.Types[i], new ConcurrentDictionary<int, InvokeRecord> {
-                    [buff.Id] = record
+                    [buff.Id] = record,
                 })) {
                 logger.Error("Could not add invoke record {Type} to {Object}", buff.Metadata.InvokeEffect.Types[i], actor.ObjectId);
             }
@@ -362,7 +363,7 @@ public class BuffManager : IUpdatable {
 
         if (buff.Metadata.Status.Values.Any() || buff.Metadata.Status.Rates.Any() || buff.Metadata.Status.SpecialValues.Any() || buff.Metadata.Status.SpecialRates.Any()) {
             if (actor is FieldPlayer player) {
-                player.Session.Stats.Refresh2();
+                player.Session.Stats.Refresh();
             }
         }
 
