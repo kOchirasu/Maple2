@@ -136,6 +136,7 @@ public class EquipManager {
             equips[slot] = item;
             session.Field?.Broadcast(EquipPacket.EquipItem(session.Player, item, 0));
             session.Player.Buffs.AddItemBuffs(item);
+            session.Stats.Refresh2();
             return true;
         }
     }
@@ -302,6 +303,7 @@ public class EquipManager {
 
         session.Field?.Broadcast(EquipPacket.UnequipItem(session.Player, unequipItem));
         session.Player.Buffs.RemoveItemBuffs(unequipItem);
+        session.Stats.Refresh2();
         return true;
     }
 

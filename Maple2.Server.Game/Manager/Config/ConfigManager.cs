@@ -9,6 +9,7 @@ using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Manager.Items;
+using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -27,6 +28,7 @@ public class ConfigManager {
     private IList<int> favoriteStickers;
     private readonly IDictionary<LapenshardSlot, int> lapenshards;
     private readonly StatAttributes statAttributes;
+    private readonly IDictionary<int, SkillCooldown> skillCooldowns;
 
     public readonly SkillManager Skill;
 
@@ -36,6 +38,7 @@ public class ConfigManager {
         hotBars = new List<HotBar>();
         skillMacros = new List<SkillMacro>();
         lapenshards = new Dictionary<LapenshardSlot, int>();
+        skillCooldowns = session.GetSkillCooldowns();
 
         (
             IList<KeyBind>? KeyBinds,
@@ -91,6 +94,47 @@ public class ConfigManager {
         }
     }
 
+    #region SkillCooldowns
+    public void SaveSkillCooldown(SkillMetadata skill) {
+        var cooldown = new SkillCooldown(skill.Id) {
+            EndTick = (long) (skill.Data.Condition.CooldownTime * TimeSpan.FromSeconds(1).TotalMilliseconds) + Environment.TickCount64,
+            OriginSkillId = skill.Data.Change?.Origin.Id ?? 0,
+        };
+        skillCooldowns[skill.Id] = cooldown;
+    }
+
+    public void SetSkillCooldown(int skillId, int endTick = 0) {
+        var cooldown = new SkillCooldown(skillId) {
+            EndTick = endTick,
+        };
+        skillCooldowns[skillId] = cooldown;
+
+        session.Send(SkillPacket.Cooldown(cooldown));
+    }
+
+    public void LoadSkillCooldowns() {
+        foreach ((int skillId, SkillCooldown cooldown) in skillCooldowns) {
+            if (Environment.TickCount64 > cooldown.EndTick) {
+                skillCooldowns.Remove(skillId);
+            }
+        }
+        if (skillCooldowns.Count > 0) {
+            session.Send(SkillPacket.Cooldown(skillCooldowns.Values.ToArray()));
+        }
+    }
+
+    public IList<SkillCooldown> GetCurrentSkillCooldowns() {
+        IList<SkillCooldown> cooldowns = new List<SkillCooldown>();
+        foreach ((int skillId, SkillCooldown cooldown) in skillCooldowns) {
+            if (Environment.TickCount64 > cooldown.EndTick) {
+                continue;
+            }
+            cooldowns.Add(cooldown);
+        }
+        return cooldowns;
+    }
+    #endregion
+
     #region PremiumClub
     public void UpdatePremiumTime(long hours) {
         if (session.Player.Value.Account.PremiumTime < DateTime.Now.ToEpochSeconds()) {
@@ -102,6 +146,15 @@ public class ConfigManager {
         }
 
         session.Send(PremiumCubPacket.Activate(session.Player.ObjectId, session.Player.Value.Account.PremiumTime));
+        RefreshPremiumClubBuffs();
+    }
+
+    public void RefreshPremiumClubBuffs() {
+        if (session.Player.Value.Account.PremiumTime > DateTime.Now.ToEpochSeconds()) {
+            foreach ((int buffId, PremiumClubTable.Buff buff) in session.TableMetadata.PremiumClubTable.Buffs) {
+                session.Player.Buffs.AddBuff(session.Player, session.Player, buff.Id, buff.Level);
+            }
+        }
     }
     #endregion
 

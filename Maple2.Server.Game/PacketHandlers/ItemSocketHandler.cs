@@ -259,10 +259,9 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
             }
 
             // item.Socket cannot be null after CheckSocketSlot()
-            var itemGemstone = new ItemGemstone(gem.Id, gem.Binding, gem.IsLocked, gem.UnlockTime);
+            var itemGemstone = new ItemGemstone(gem.Id, gem.Binding, gem.Stats, gem.IsLocked, gem.UnlockTime);
             item.Socket!.Sockets[socketSlot] = itemGemstone;
             session.Send(ItemSocketPacket.EquipGemstone(item.Uid, socketSlot, itemGemstone));
-            session.Player.Buffs.AddItemBuffs(gem);
         }
     }
 
@@ -303,7 +302,6 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
                 session.Send(ItemSocketPacket.Error(11, error: s_itemsocketsystem_error_server_default));
                 return;
             }
-            gem.Binding = gem.Binding;
 
             if (!session.Item.Inventory.Add(gem, true)) {
                 return; // Failed to add to inventory
@@ -311,7 +309,6 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
 
             item.Socket!.Sockets[socketSlot] = null;
             session.Send(ItemSocketPacket.UnequipGemstone(item.Uid, socketSlot));
-            session.Player.Buffs.RemoveItemBuffs(gem);
         }
 
         #region Local Function

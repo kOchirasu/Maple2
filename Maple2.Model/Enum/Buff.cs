@@ -66,3 +66,10 @@ public enum BuffDotCondition {
     Delayed = 1,
     Unknown = 2,
 }
+
+[Flags]
+public enum BuffFlag {
+    None = 0,
+    UpdateBuff = 1,
+    UpdateShield = 2,
+}

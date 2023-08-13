@@ -128,6 +128,8 @@ public class SkillHandler : PacketHandler<GameSession> {
         foreach (SkillEffectMetadata effect in metadata.Data.Skills) {
             session.Player.ApplyEffect(session.Player, session.Player, effect);
         }
+        
+        session.Config.SaveSkillCooldown(metadata);
     }
 
     private void HandlePoint(GameSession session, IByteReader packet) {

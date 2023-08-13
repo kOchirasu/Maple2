@@ -31,7 +31,7 @@ public enum BasicAttribute : byte {
     MinWeaponAtk = 27,
     MaxWeaponAtk = 28,
     Damage = 29,
-    Unknown = 30, // "Damage"
+    MaxDamage = 30,
     Piercing = 31,
     MountSpeed = 32,
     BonusAtk = 33,
