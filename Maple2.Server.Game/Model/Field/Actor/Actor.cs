@@ -6,6 +6,7 @@ using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.Server.Core.Formulas;
+using Maple2.Server.Game.Manager;
 using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Model.Skill;
@@ -27,7 +28,7 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
     public FieldManager Field { get; }
     public T Value { get; }
 
-    public virtual Stats Stats { get; } = new(0, 0);
+    public StatsManager Stats { get; }
 
     public int ObjectId { get; }
     public virtual Vector3 Position { get; set; }
@@ -43,6 +44,7 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
         ObjectId = objectId;
         Value = value;
         Buffs = new BuffManager(this);
+        Stats = new StatsManager(this);
     }
 
     public void Dispose() {
@@ -77,7 +79,7 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
             }
 
             if (damageAmount != 0) {
-                Stats[BasicAttribute.Health].Add(damageAmount);
+                Stats.Values[BasicAttribute.Health].Add(damageAmount);
                 Field.Broadcast(StatsPacket.Update(this, BasicAttribute.Health));
             }
 
@@ -133,7 +135,7 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
                     IActor caster = GetTarget(effect.Condition.Target, record.Caster, actor);
                     IActor owner = GetTarget(effect.Condition.Target, record.Caster, actor);
                     if (effect.Condition.Condition.Check(caster, owner, actor)) {
-                        actor.ApplyEffect(caster,owner, effect);
+                        actor.ApplyEffect(caster, owner, effect);
                     }
                 }
             } else if (effect.Splash != null) {
@@ -153,7 +155,7 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
     public virtual void Update(long tickCount) {
         if (IsDead) return;
 
-        if (Stats[BasicAttribute.Health].Current <= 0) {
+        if (Stats.Values[BasicAttribute.Health].Current <= 0) {
             IsDead = true;
             OnDeath();
             return;
@@ -178,55 +180,42 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
         }
 
         // Get hit rate
-        double hitRate = Damage.HitRate(this.Buffs.GetResistance(BasicAttribute.Accuracy), this.Stats[BasicAttribute.Evasion].Total, this.Stats[BasicAttribute.Dexterity].Total,
-            caster.Stats[BasicAttribute.Accuracy].Total, caster.Buffs.GetResistance(BasicAttribute.Evasion), caster.Stats[BasicAttribute.Luck].Total);
+        double hitRate = Damage.HitRate(this.Buffs.GetResistance(BasicAttribute.Accuracy), this.Stats.Values[BasicAttribute.Evasion].Total, this.Stats.Values[BasicAttribute.Dexterity].Total,
+            caster.Stats.Values[BasicAttribute.Accuracy].Total, caster.Buffs.GetResistance(BasicAttribute.Evasion), caster.Stats.Values[BasicAttribute.Luck].Total);
 
         if (Random.Shared.NextDouble() > hitRate) {
             return (DamageType.Miss, 0);
         }
 
-        double luckCoefficient = 1;
-        double attackDamage = 0;
-        DamageType damageType = DamageType.Normal;
-
-        if (caster is FieldPlayer casterPlayer) {
-            luckCoefficient = Damage.LuckCoefficient(casterPlayer.Value.Character.Job.Code());
-
-            double bonusAttack = casterPlayer.Stats[BasicAttribute.BonusAtk].Total + Constant.PetAttackMultiplier * casterPlayer.Stats[BasicAttribute.PetBonusAtk].Total;
-            double bonusAttackResistance = 1 / (1 + this.Buffs.GetResistance(BasicAttribute.BonusAtk));
-            double weaponAttackWeakness = 1 / (1 + this.Buffs.GetResistance(BasicAttribute.MaxWeaponAtk));
-            double bonusAttackCoefficient = bonusAttackResistance * BonusAttackCoefficient(casterPlayer);
-            double minDamage = weaponAttackWeakness * casterPlayer.Stats[BasicAttribute.MinWeaponAtk].Total + bonusAttackCoefficient * bonusAttack;
-            double maxDamage = weaponAttackWeakness * casterPlayer.Stats[BasicAttribute.MaxWeaponAtk].Total + bonusAttackCoefficient * bonusAttack;
-
-            attackDamage = minDamage + (maxDamage - minDamage) * Random.Shared.NextDouble();
-        }
+        var damageType = DamageType.Normal;
+        (double, double) casterBonusAttackDamage = caster.Stats.GetBonusAttack(Buffs.GetResistance(BasicAttribute.BonusAtk), this.Buffs.GetResistance(BasicAttribute.MaxWeaponAtk));
+        double attackDamage = casterBonusAttackDamage.Item1 + (casterBonusAttackDamage.Item2 - casterBonusAttackDamage.Item1) * Random.Shared.NextDouble();
 
         // change the NPCNormalDamage to be changed depending on target? 
-        double damageBonus = 1 + (caster.Stats[SpecialAttribute.TotalDamage].Multiplier()) + (caster.Stats[SpecialAttribute.NormalNpcDamage].Multiplier());
+        double damageBonus = 1 + (caster.Stats.Values[SpecialAttribute.TotalDamage].Multiplier()) + (caster.Stats.Values[SpecialAttribute.NormalNpcDamage].Multiplier());
         if (this is FieldNpc npc && npc.Value.IsBoss) {
-            damageBonus += caster.Stats[SpecialAttribute.BossNpcDamage].Multiplier();
+            damageBonus += caster.Stats.Values[SpecialAttribute.BossNpcDamage].Multiplier();
         }
 
         // Get elemental bonus
         switch (record.SkillMetadata.Property.Element) {
             case Element.Fire:
-                damageBonus += caster.Stats[SpecialAttribute.FireDamage].Multiplier();
+                damageBonus += caster.Stats.Values[SpecialAttribute.FireDamage].Multiplier();
                 break;
             case Element.Ice:
-                damageBonus += caster.Stats[SpecialAttribute.IceDamage].Multiplier();
+                damageBonus += caster.Stats.Values[SpecialAttribute.IceDamage].Multiplier();
                 break;
             case Element.Electric:
-                damageBonus += caster.Stats[SpecialAttribute.ElectricDamage].Multiplier();
+                damageBonus += caster.Stats.Values[SpecialAttribute.ElectricDamage].Multiplier();
                 break;
             case Element.Holy:
-                damageBonus += caster.Stats[SpecialAttribute.HolyDamage].Multiplier();
+                damageBonus += caster.Stats.Values[SpecialAttribute.HolyDamage].Multiplier();
                 break;
             case Element.Dark:
-                damageBonus += caster.Stats[SpecialAttribute.DarkDamage].Multiplier();
+                damageBonus += caster.Stats.Values[SpecialAttribute.DarkDamage].Multiplier();
                 break;
             case Element.Poison:
-                damageBonus += caster.Stats[SpecialAttribute.PoisonDamage].Multiplier();
+                damageBonus += caster.Stats.Values[SpecialAttribute.PoisonDamage].Multiplier();
                 break;
         }
 
@@ -235,14 +224,14 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
             case RangeType.None:
                 break;
             case RangeType.Melee:
-                damageBonus += caster.Stats[SpecialAttribute.MeleeDamage].Multiplier();
+                damageBonus += caster.Stats.Values[SpecialAttribute.MeleeDamage].Multiplier();
                 break;
             case RangeType.Range:
-                damageBonus += caster.Stats[SpecialAttribute.RangedDamage].Multiplier();
+                damageBonus += caster.Stats.Values[SpecialAttribute.RangedDamage].Multiplier();
                 break;
         }
 
-        damageBonus += -this.Buffs.GetResistance(BasicAttribute.AttackSpeed) * caster.Stats[BasicAttribute.AttackSpeed].Total;
+        damageBonus += -this.Buffs.GetResistance(BasicAttribute.AttackSpeed) * caster.Stats.Values[BasicAttribute.AttackSpeed].Total;
 
         // Check for crit and get crit damage
         /* TODO: DotDamage can be be NOT crit. Player skills yes. Will need to implement this */
@@ -251,13 +240,10 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
         }
 
         if (damageType != DamageType.Critical) {
-            damageType = Damage.RollCritical(caster.Stats[BasicAttribute.Luck].Total * luckCoefficient,
-                caster.Stats[BasicAttribute.CriticalRate].Total, caster.Buffs.TotalCompulsionRate(CompulsionEventType.CritChanceOverride, record.SkillId),
-                this.Stats[BasicAttribute.CriticalEvasion].Total);
+            damageType = caster.Stats.GetCriticalRate(this.Stats.Values[BasicAttribute.CriticalEvasion].Total, caster.Buffs.TotalCompulsionRate(CompulsionEventType.CritChanceOverride, record.SkillId));
         }
 
-        double finalCritDamage = damageType == DamageType.Critical ? Damage.FinalCriticalDamage(this.Buffs.GetResistance(BasicAttribute.CriticalDamage), caster.Stats[BasicAttribute.CriticalDamage].Total) : 1;
-        damageBonus *= finalCritDamage;
+        damageBonus *= damageType == DamageType.Critical ? caster.Stats.GetCriticalDamage(this.Buffs.GetResistance(BasicAttribute.CriticalDamage)) : 1;
 
         // Get invoked buff values
         // TODO: Need to make this flexible to get invoke values from skills or buffs. If buff -> InvokeEffectType.IncreaseDotDamage
@@ -265,8 +251,8 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
 
         double damageMultiplier = damageBonus * (1 + invokeValues.Item2) * (record.AttackMetadata.Damage.Rate + invokeValues.Item1);
 
-        double defensePierce = 1 - Math.Min(0.3, (1 / (1 + this.Buffs.GetResistance(BasicAttribute.Piercing)) * (caster.Stats[BasicAttribute.Piercing].Multiplier() - 1)));
-        damageMultiplier *= 1 / (Math.Max(this.Stats[BasicAttribute.Defense].Total, 1) * defensePierce);
+        double defensePierce = 1 - Math.Min(0.3, (1 / (1 + this.Buffs.GetResistance(BasicAttribute.Piercing)) * (caster.Stats.Values[BasicAttribute.Piercing].Multiplier() - 1)));
+        damageMultiplier *= 1 / (Math.Max(this.Stats.Values[BasicAttribute.Defense].Total, 1) * defensePierce);
 
         // Check resistances
         double attackTypeAmount = 0;
@@ -274,18 +260,18 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
         double finalDamage = 0;
         switch (record.SkillMetadata.Property.AttackType) {
             case AttackType.Physical:
-                resistance = Damage.CalculateResistance(this.Stats[BasicAttribute.PhysicalRes].Total, caster.Stats[SpecialAttribute.PhysicalPiercing].Multiplier());
-                attackTypeAmount = caster.Stats[BasicAttribute.PhysicalAtk].Total;
-                finalDamage = caster.Stats[SpecialAttribute.OffensivePhysicalDamage].Multiplier();
+                resistance = Damage.CalculateResistance(this.Stats.Values[BasicAttribute.PhysicalRes].Total, caster.Stats.Values[SpecialAttribute.PhysicalPiercing].Multiplier());
+                attackTypeAmount = caster.Stats.Values[BasicAttribute.PhysicalAtk].Total;
+                finalDamage = caster.Stats.Values[SpecialAttribute.OffensivePhysicalDamage].Multiplier();
                 break;
             case AttackType.Magic:
-                resistance = Damage.CalculateResistance(this.Stats[BasicAttribute.MagicalRes].Total, caster.Stats[SpecialAttribute.MagicalPiercing].Multiplier());
-                attackTypeAmount = caster.Stats[BasicAttribute.MagicalAtk].Total;
-                finalDamage = caster.Stats[SpecialAttribute.OffensiveMagicalDamage].Multiplier();
+                resistance = Damage.CalculateResistance(this.Stats.Values[BasicAttribute.MagicalRes].Total, caster.Stats.Values[SpecialAttribute.MagicalPiercing].Multiplier());
+                attackTypeAmount = caster.Stats.Values[BasicAttribute.MagicalAtk].Total;
+                finalDamage = caster.Stats.Values[SpecialAttribute.OffensiveMagicalDamage].Multiplier();
                 break;
             // If all, calculate the higher of the two
             case AttackType.All:
-                BasicAttribute attackTypeAttribute = caster.Stats[BasicAttribute.PhysicalAtk].Total >= caster.Stats[BasicAttribute.MagicalAtk].Total
+                BasicAttribute attackTypeAttribute = caster.Stats.Values[BasicAttribute.PhysicalAtk].Total >= caster.Stats.Values[BasicAttribute.MagicalAtk].Total
                     ? BasicAttribute.PhysicalAtk
                     : BasicAttribute.MagicalAtk;
                 SpecialAttribute piercingAttribute = attackTypeAttribute == BasicAttribute.PhysicalAtk
@@ -294,13 +280,13 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
                 SpecialAttribute finalDamageAttribute = attackTypeAttribute == BasicAttribute.PhysicalAtk
                     ? SpecialAttribute.OffensivePhysicalDamage
                     : SpecialAttribute.OffensiveMagicalDamage;
-                attackTypeAmount = Math.Max(caster.Stats[BasicAttribute.PhysicalAtk].Total, caster.Stats[BasicAttribute.MagicalAtk].Total) * 0.5f;
-                resistance = Damage.CalculateResistance(this.Stats[attackTypeAttribute].Total, caster.Stats[piercingAttribute].Multiplier());
-                finalDamage = caster.Stats[finalDamageAttribute].Multiplier();
+                attackTypeAmount = Math.Max(caster.Stats.Values[BasicAttribute.PhysicalAtk].Total, caster.Stats.Values[BasicAttribute.MagicalAtk].Total) * 0.5f;
+                resistance = Damage.CalculateResistance(this.Stats.Values[attackTypeAttribute].Total, caster.Stats.Values[piercingAttribute].Multiplier());
+                finalDamage = caster.Stats.Values[finalDamageAttribute].Multiplier();
                 break;
         }
 
-        damageMultiplier *= attackTypeAmount * resistance * finalDamage;
+        damageMultiplier *= attackTypeAmount * resistance * (finalDamage == 0 ? 1 : finalDamage);
         attackDamage *= damageMultiplier * Constant.AttackDamageFactor + record.AttackMetadata.Damage.Value;
 
         // Apply any shields
@@ -317,12 +303,6 @@ public abstract class Actor<T> : IActor<T>, IDisposable {
         }
 
         return (damageType, (long) attackDamage);
-
-        double BonusAttackCoefficient(FieldPlayer player) {
-            int leftHandRarity = player.Session.Item.Equips.Get(EquipSlot.RH)?.Rarity ?? 0;
-            int rightHandRarity = player.Session.Item.Equips.Get(EquipSlot.LH)?.Rarity ?? 0;
-            return BonusAttack.Coefficient(rightHandRarity, leftHandRarity, player.Value.Character.Job.Code());
-        }
     }
 
     private IActor GetTarget(SkillEntity entity, IActor caster, IActor target) {

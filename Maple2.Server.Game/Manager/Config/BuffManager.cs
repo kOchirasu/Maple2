@@ -10,6 +10,7 @@ using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Util;
+using Maple2.Tools.Extensions;
 using Serilog;
 
 namespace Maple2.Server.Game.Manager.Config;
@@ -27,14 +28,16 @@ public class BuffManager : IUpdatable {
     private readonly IActor actor;
     // TODO: Change this to support multiple buffs of the same id, different casters. Possibly also different levels?
     public ConcurrentDictionary<int, Buff> Buffs { get; } = new();
-    public ConcurrentDictionary<InvokeEffectType, ConcurrentDictionary<int, InvokeRecord>> Invokes { get; } = new();
-    public ConcurrentDictionary<CompulsionEventType, ConcurrentDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent>> Compulsions { get; } = new();
+    public IDictionary<InvokeEffectType, IDictionary<int, InvokeRecord>> Invokes { get; init; }
+    public IDictionary<CompulsionEventType, IDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent>> Compulsions { get; init; }
     private Dictionary<BasicAttribute, float> Resistances { get; } = new();
     public ReflectRecord? Reflect;
     private readonly ILogger logger = Log.ForContext<BuffManager>();
 
     public BuffManager(IActor actor) {
         this.actor = actor;
+        Invokes = new ConcurrentDictionary<InvokeEffectType, IDictionary<int, InvokeRecord>>();
+        Compulsions = new ConcurrentDictionary<CompulsionEventType, IDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent>>();
     }
 
     public void Initialize() {
@@ -129,9 +132,7 @@ public class BuffManager : IUpdatable {
 
         // refresh stats if needed
         if (buff.Metadata.Status.Values.Any() || buff.Metadata.Status.Rates.Any() || buff.Metadata.Status.SpecialValues.Any() || buff.Metadata.Status.SpecialRates.Any()) {
-            if (actor is FieldPlayer player) {
-                player.Session.Stats.Refresh();
-            }
+                actor.Stats.Refresh();
         }
 
         // Add resistances
@@ -175,8 +176,8 @@ public class BuffManager : IUpdatable {
             };
 
             // if exists, replace the record to support differentiating buff levels.
-            if (Invokes.TryGetValue(buff.Metadata.InvokeEffect.Types[i], out ConcurrentDictionary<int, InvokeRecord>? nestedInvokeDic)) {
-                NestedDictionaryUtil.Remove(Invokes, buff.Id);
+            if (Invokes.TryGetValue(buff.Metadata.InvokeEffect.Types[i], out IDictionary<int, InvokeRecord>? nestedInvokeDic)) {
+                Invokes.RemoveAll(buff.Id);
 
                 if (!nestedInvokeDic.TryAdd(buff.Id, record)) {
                     logger.Error("Could not add invoke record from {Id} to {Object}", buff.Id, actor.ObjectId);
@@ -198,8 +199,8 @@ public class BuffManager : IUpdatable {
         }
 
         CompulsionEventType eventType = buff.Metadata.Status.Compulsion.Type;
-        if (Compulsions.TryGetValue(eventType, out ConcurrentDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent>? nestedCompulsionDic)) {
-            NestedDictionaryUtil.Remove(Compulsions, buff.Id);
+        if (Compulsions.TryGetValue(eventType, out IDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent>? nestedCompulsionDic)) {
+            Compulsions.RemoveAll(buff.Id);
 
             if (!nestedCompulsionDic.TryAdd(buff.Id, buff.Metadata.Status.Compulsion)) {
                 logger.Error("Could not add compulsion event from {Id} to {Object}", buff.Id, actor.ObjectId);
@@ -215,7 +216,7 @@ public class BuffManager : IUpdatable {
     }
 
     public float TotalCompulsionRate(CompulsionEventType type, int skillId = 0) {
-        if (!Compulsions.TryGetValue(type, out ConcurrentDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent>? nestedCompulsionDic)) return 0;
+        if (!Compulsions.TryGetValue(type, out IDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent>? nestedCompulsionDic)) return 0;
         return skillId == 0 ? nestedCompulsionDic.Values.Sum(compulsion => compulsion.Rate) :
             nestedCompulsionDic.Values.Where(compulsion => compulsion.SkillIds.Contains(skillId)).Sum(compulsion => compulsion.Rate);
     }
@@ -230,7 +231,7 @@ public class BuffManager : IUpdatable {
     public (int, float) GetInvokeValues(InvokeEffectType invokeType, int skillId, params int[] skillGroup) {
         float value = 0;
         float rate = 0f;
-        if (Invokes.TryGetValue(invokeType, out ConcurrentDictionary<int, InvokeRecord>? nestedInvokeDic)) {
+        if (Invokes.TryGetValue(invokeType, out IDictionary<int, InvokeRecord>? nestedInvokeDic)) {
             foreach (InvokeRecord invoke in nestedInvokeDic.Values.Where(record => record.Metadata.SkillId == skillId || skillGroup.Contains(record.Metadata.SkillGroupId))) {
                 value += invoke.Value;
                 rate += invoke.Rate;
@@ -244,7 +245,7 @@ public class BuffManager : IUpdatable {
             if (buff.Metadata.Shield.HpValue > 0) {
                 buff.ShieldHealth = buff.Metadata.Shield.HpValue;
             } else if (buff.Metadata.Shield.HpByTargetMaxHp > 0f) {
-                buff.ShieldHealth = (long) (actor.Stats[BasicAttribute.Health].Total * buff.Metadata.Shield.HpByTargetMaxHp);
+                buff.ShieldHealth = (long) (actor.Stats.Values[BasicAttribute.Health].Total * buff.Metadata.Shield.HpByTargetMaxHp);
             }
         }
     }
@@ -349,17 +350,8 @@ public class BuffManager : IUpdatable {
             Resistances[attribute] = Math.Min(0, Resistances[attribute] - value);
         }
 
-        foreach ((InvokeEffectType _, ConcurrentDictionary<int, InvokeRecord> invokeRecords) in Invokes) {
-            if (invokeRecords.ContainsKey(id)) {
-                invokeRecords.Remove(id, out _);
-            }
-        }
-
-        foreach ((CompulsionEventType _, ConcurrentDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent> compulsionEvents) in Compulsions) {
-            if (compulsionEvents.ContainsKey(id)) {
-                compulsionEvents.Remove(id, out _);
-            }
-        }
+        Invokes.RemoveAll(id);
+        Compulsions.RemoveAll(id);
 
         if (buff.Metadata.Status.Values.Any() || buff.Metadata.Status.Rates.Any() || buff.Metadata.Status.SpecialValues.Any() || buff.Metadata.Status.SpecialRates.Any()) {
             if (actor is FieldPlayer player) {

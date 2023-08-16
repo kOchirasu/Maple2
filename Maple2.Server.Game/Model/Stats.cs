@@ -8,7 +8,7 @@ using Maple2.Server.Core.Formulas;
 namespace Maple2.Server.Game.Model;
 
 public class Stats {
-    public const int TOTAL = 35;
+    public const int BASIC_TOTAL = 35;
 
     private readonly Dictionary<BasicAttribute, Stat> basicValues;
     private readonly Dictionary<SpecialAttribute, Stat> specialValues;
@@ -70,7 +70,10 @@ public class Stats {
 #endif
     }
 
-    public void Finalize() {
+    /// <summary>
+    ///  Apply rate bonus to total value of each stat
+    /// </summary>
+    public void Total() {
         foreach (Stat stat in basicValues.Values) {
             long rateBonus = (long) (stat.Rate * (stat.Base + (stat.Total - stat.Base)));
             stat.AddTotal(rateBonus);

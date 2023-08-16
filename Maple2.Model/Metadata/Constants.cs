@@ -73,7 +73,7 @@ public static class Constant {
     public const int HairPaletteId = 2;
     public const int FacePaletteId = 3;
     
-    public const double PetAttackMultiplier = 0.396f;
+    public const double PetAttackMultiplier = 0.394;
     public const double AttackDamageFactor = 4;
     public const double CriticalConstant = 5.3;
     public const double CriticalPercentageConversion = 0.015;

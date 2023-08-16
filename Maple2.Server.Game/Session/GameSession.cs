@@ -72,7 +72,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public HousingManager Housing { get; set; }
     public CurrencyManager Currency { get; set; }
     public MasteryManager Mastery { get; set; }
-    public StatsManager Stats { get; set; }
+    public StatsManager Stats => Player.Stats;
     public ItemEnchantManager ItemEnchant { get; set; }
     public ItemBoxManager ItemBox { get; set; }
     public BeautyManager Beauty { get; set; }
@@ -129,7 +129,6 @@ public sealed partial class GameSession : Core.Network.Session {
         Config = new ConfigManager(db, this);
         Buddy = new BuddyManager(db, this);
         Item = new ItemManager(db, this, ItemStatsCalc);
-        Stats = new StatsManager(this, Lua);
 
         if (!PrepareField(player.Character.MapId)) {
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Numerics;
 using Maple2.Model.Enum;
+using Maple2.Server.Game.Manager;
 using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Tools.Collision;
@@ -19,11 +20,11 @@ internal sealed class FieldActor : IActor {
     public Vector3 Position { get; set; }
     public Vector3 Rotation { get; set; }
     public BuffManager Buffs { get; }
-    public Stats Stats { get; }
+    public StatsManager Stats { get; }
 
     public FieldActor(FieldManager field) {
         Field = field;
-        Stats = new Stats(0, 0);
+        Stats = new StatsManager(this);
         Buffs = new BuffManager(this);
     }
 

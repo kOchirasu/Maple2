@@ -78,6 +78,7 @@ public class GameServer : Server<GameSession> {
     }
 
     public IDictionary<int, SkillCooldown> FindPlayerCooldowns(long characterId) {
+        //TODO: Remove this and implement this in player config DB instead
         var cooldowns = new Dictionary<int, SkillCooldown>();
         if (!skillCooldownsCache.TryGetValue(characterId, out IList<SkillCooldown>? skillCooldowns)) {
             return cooldowns;

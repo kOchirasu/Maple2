@@ -2,8 +2,7 @@
 
 namespace Maple2.Server.Core.Formulas;
 
-public static class BonusAttack {
-
+public class BonusAttack {
     public static double Coefficient(int rightHandRarity, int leftHandRarity, JobCode jobCode) {
         if (rightHandRarity == 0) {
             return 0;
@@ -25,8 +24,7 @@ public static class BonusAttack {
             3 => 0.2883,
             4 => 0.5,
             5 => 1,
-            6 => 1,
-            _ => 0,
+            _ => 0, // This intentionally includes 6
         };
     }
     
@@ -44,7 +42,7 @@ public static class BonusAttack {
             JobCode.RuneBlader => 1.259,
             JobCode.Striker => 1.264,
             JobCode.SoulBinder => 1.177,
-            _ => 1.039,
+            _ => 1,
         };
     }
 }

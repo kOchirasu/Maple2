@@ -95,4 +95,11 @@ public static class EnumerableExtensions {
             dictionary[key] = value;
         }
     }
+    
+    public static void RemoveAll<TK1, TK2, TValue>(this IDictionary<TK1, IDictionary<TK2, TValue>> nestedDictionary, TK2 key)
+        where TK1 : notnull where TK2 : notnull {
+        foreach (IDictionary<TK2, TValue> innerDictionary in nestedDictionary.Values) {
+            innerDictionary.Remove(key);
+        }
+    }
 }

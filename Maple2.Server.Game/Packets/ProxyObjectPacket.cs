@@ -42,7 +42,7 @@ public static class ProxyObjectPacket {
         pWriter.WriteInt(player.Home.PlotNumber);
         pWriter.WriteInt(player.Home.ApartmentNumber);
         pWriter.WriteUnicodeString(player.Home.Indoor.Name);
-        pWriter.WriteInt(fieldPlayer.Stats.GearScore);
+        pWriter.WriteInt(fieldPlayer.Stats.Values.GearScore);
         pWriter.WriteShort((short) fieldPlayer.State);
         pWriter.Write<Trophy>(player.Account.Trophy);
 
@@ -80,7 +80,7 @@ public static class ProxyObjectPacket {
             pWriter.WriteUnicodeString(fieldPlayer.Value.Character.Motto);
         }
         if ((flag & 32) != 0) {
-            pWriter.WriteInt(fieldPlayer.Stats.GearScore);
+            pWriter.WriteInt(fieldPlayer.Stats.Values.GearScore);
         }
         if ((flag & 64) != 0) {
             pWriter.WriteShort((short) fieldPlayer.State);

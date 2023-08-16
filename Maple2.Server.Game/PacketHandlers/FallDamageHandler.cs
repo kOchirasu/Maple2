@@ -16,10 +16,10 @@ public class FallDamageHandler : PacketHandler<GameSession> {
 
     public override void Handle(GameSession session, IByteReader packet) {
         float distance = packet.ReadFloat();
-        int damage = CalcFallDamage(session.Player.Stats[BasicAttribute.Health].Total, distance);
+        int damage = CalcFallDamage(session.Player.Stats.Values[BasicAttribute.Health].Total, distance);
 
         if (damage > 0) {
-            session.Player.Stats[BasicAttribute.Health].Add(-damage);
+            session.Player.Stats.Values[BasicAttribute.Health].Add(-damage);
             session.Player.Field.Broadcast(StatsPacket.Update(session.Player, BasicAttribute.Health));
             session.Send(FallDamagePacket.FallDamage(session.Player.ObjectId, damage));
         }
