@@ -20,7 +20,7 @@ public class BuffManager : IUpdatable {
     private int idCounter;
 
     /// <summary>
-    /// Generates an ObjectId unique to this specific manager instance.
+    /// Generates an ObjectId unique to this specific actor instance.
     /// </summary>
     /// <returns>Returns a local ObjectId</returns>
     private int NextLocalId() => Interlocked.Increment(ref idCounter);
