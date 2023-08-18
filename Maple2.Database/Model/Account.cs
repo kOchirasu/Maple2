@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Maple2.Database.Extensions;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -16,7 +20,7 @@ internal class Account {
     public int MaxCharacters { get; set; }
     public int PrestigeLevel { get; set; }
     public long PrestigeExp { get; set; }
-    public Trophy Trophy { get; set; }
+    public IDictionary<int, TrophyEntry>? Trophy { get; set; }
     public long PremiumTime { get; set; }
     public IList<int> PremiumRewardsClaimed { get; set; } // TODO: clear list on daily reset
     public required AccountCurrency Currency { get; set; }
@@ -31,7 +35,11 @@ internal class Account {
 
     [return:NotNullIfNotNull(nameof(other))]
     public static implicit operator Account?(Maple2.Model.Game.Account? other) {
-        return other == null ? null : new Account {
+        if (other == null) {
+            return null;
+        }
+        
+        return new Account {
             LastModified = other.LastModified,
             Id = other.Id,
             Username = other.Username,
@@ -39,7 +47,6 @@ internal class Account {
             MaxCharacters = other.MaxCharacters,
             PrestigeLevel = other.PrestigeLevel,
             PrestigeExp = other.PrestigeExp,
-            Trophy = other.Trophy,
             PremiumTime = other.PremiumTime,
             PremiumRewardsClaimed = other.PremiumRewardsClaimed,
             Currency = new AccountCurrency(),
@@ -57,6 +64,23 @@ internal class Account {
             return null;
         }
 
+        Trophy accountTrophy = new Trophy();
+        if (other.Trophy != null)
+            foreach ((int id, TrophyEntry entry) in other.Trophy) {
+                switch (entry.Category) {
+                    case TrophyCategory.Combat:
+                        accountTrophy.Combat += entry.GradesReceived.Count;
+                        break;
+                    case TrophyCategory.Adventure:
+                        accountTrophy.Adventure += entry.GradesReceived.Count;
+                        break;
+                    case TrophyCategory.None:
+                    case TrophyCategory.Life:
+                        accountTrophy.Lifestyle += entry.GradesReceived.Count;
+                        break;
+                }
+            }
+        
         return new Maple2.Model.Game.Account {
             LastModified = other.LastModified,
             Id = other.Id,
@@ -65,12 +89,12 @@ internal class Account {
             MaxCharacters = other.MaxCharacters,
             PrestigeLevel = other.PrestigeLevel,
             PrestigeExp = other.PrestigeExp,
-            Trophy = other.Trophy,
             PremiumTime = other.PremiumTime,
             PremiumRewardsClaimed = other.PremiumRewardsClaimed,
             MesoMarketListed = other.MarketLimits.MesoListed,
             MesoMarketPurchased = other.MarketLimits.MesoPurchased,
             Online = other.Online,
+            Trophy = accountTrophy,
         };
     }
 
@@ -104,3 +128,60 @@ internal class MarketLimits {
     public int MesoListed { get; set; }
     public int MesoPurchased { get; set; }
 }
+
+internal class TrophyEntry {
+    public int Id { get; set; }
+    public int CurrentGrade { get; set; }
+    public int RewardGradeReceived { get; set; }
+    public bool Favorite { get; set; }
+    public long Counter { get; set; }
+    public TrophyCategory Category { get; set; }
+    public required IDictionary<int, long> GradesReceived { get; set; }
+
+    [return:NotNullIfNotNull(nameof(other))]
+    public static implicit operator TrophyEntry?(Maple2.Model.Game.TrophyEntry? other) {
+        if (other == null) {
+            return null;
+        }
+        return new TrophyEntry {
+            Id = other.Id,
+            CurrentGrade = other.CurrentGrade,
+            RewardGradeReceived = other.RewardGradeReceived,
+            Favorite = other.Favorite,
+            Counter = other.Counter,
+            Category = other.Category,
+            GradesReceived = other.GradesReceived,
+        };
+    }
+    
+    /*// Only used for PlayerLookUp trophy counting
+    [return:NotNullIfNotNull(nameof(other))]
+    public static implicit operator Maple2.Model.Game.TrophyEntry?(TrophyEntry? other) {
+        if (other == null) {
+            return null;
+        }
+
+        return new Maple2.Model.Game.TrophyEntry {
+            Id = other.Id,
+            CurrentGrade = other.CurrentGrade,
+            RewardGradeReceived = other.RewardGradeReceived,
+            Favorite = other.Favorite,
+            Counter = other.Counter,
+            Type = other.Type,
+            GradesReceived = other.GradesReceived,
+        };
+    }*/
+
+    // Use explicit Convert() here because we need metadata to construct TrophyEntry.
+    public Maple2.Model.Game.TrophyEntry Convert(TrophyMetadata metadata) {
+        return new Maple2.Model.Game.TrophyEntry(metadata) {
+            CurrentGrade = CurrentGrade,
+            RewardGradeReceived = RewardGradeReceived,
+            Favorite = Favorite,
+            Counter = Counter,
+            Category = Category,
+            GradesReceived = GradesReceived,
+        };
+    }
+}
+

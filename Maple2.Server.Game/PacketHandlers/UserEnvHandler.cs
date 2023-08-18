@@ -11,6 +11,7 @@ public class UserEnvHandler : PacketHandler<GameSession> {
 
     private enum Command : byte {
         ChangeTitle = 1,
+        TrophyProgress = 3,
     }
 
     public override void Handle(GameSession session, IByteReader packet) {
@@ -18,6 +19,9 @@ public class UserEnvHandler : PacketHandler<GameSession> {
         switch (command) {
             case Command.ChangeTitle:
                 HandleChangeTitle(session, packet);
+                break;
+            case Command.TrophyProgress:
+                HandleTrophyProgress(session);
                 break;
         }
     }
@@ -31,5 +35,13 @@ public class UserEnvHandler : PacketHandler<GameSession> {
 
         session.Player.Value.Character.Title = titleId;
         session.Field?.Broadcast(UserEnvPacket.UpdateTitle(session.Player.ObjectId, titleId));
+    }
+
+    private void HandleTrophyProgress(GameSession session) {
+        // TODO: Implement this trophy information.
+        // This is used for keeping track of trophies with lists of different requirements.
+        // For example 23300003 - Trend-setter. This requires to obtain all 6 DIFFERENT types of books.
+        // This will keep track of a users progress of which books they've collected already and quantity.
+        session.Send(UserEnvPacket.TrophyProgress());
     }
 }

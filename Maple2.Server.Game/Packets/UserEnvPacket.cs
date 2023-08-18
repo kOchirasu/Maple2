@@ -10,6 +10,7 @@ public static class UserEnvPacket {
         AddTitle = 0,
         UpdateTitles = 1,
         LoadTitles = 2,
+        TrophyProgress = 3,
         LifeSkillCount = 8,
         MasteryRewardsClaimed = 9,
     }
@@ -36,6 +37,20 @@ public static class UserEnvPacket {
         foreach (int title in titles) {
             pWriter.WriteInt(title);
         }
+
+        return pWriter;
+    }
+
+    public static ByteWriter TrophyProgress() {
+        var pWriter = Packet.Of(SendOp.UserEnv);
+        pWriter.Write<Command>(Command.TrophyProgress);
+        pWriter.WriteInt(); // count
+        
+        /*
+         * foreach loop
+         * pWriter.WiteInt(code ID) // item id
+         * pWriter.WriteByte() // quantity
+         */
 
         return pWriter;
     }

@@ -54,6 +54,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public required SkillMetadataStorage SkillMetadata { get; init; }
     public required TableMetadataStorage TableMetadata { get; init; }
     public required MapMetadataStorage MapMetadata { get; init; }
+    public required TrophyMetadataStorage TrophyMetadata { get; init; }
     public required FieldManager.Factory FieldFactory { private get; init; }
     public required Lua.Lua Lua { private get; init; }
     public required ItemStatsCalculator ItemStatsCalc { private get; init; }
@@ -75,6 +76,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public BeautyManager Beauty { get; set; }
     public GameEventUserValueManager GameEventUserValue { get; set; }
     public ExperienceManager Exp { get; set; }
+    public TrophyManager Trophy { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
 
@@ -122,7 +124,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Beauty = new BeautyManager(this);
         GameEventUserValue = new GameEventUserValueManager(this);
         Exp = new ExperienceManager(this, Lua);
-
+        Trophy = new TrophyManager(this);
         Guild = new GuildManager(this);
         Config = new ConfigManager(db, this);
         Buddy = new BuddyManager(db, this);
@@ -181,7 +183,7 @@ public sealed partial class GameSession : Core.Network.Session {
         // Send(QuestPacket.LoadKritiasMissions(Array.Empty<int>()));
         Send(QuestPacket.LoadQuestStates(player.Unlock.Quests.Values));
         // Send(QuestPacket.LoadQuests(Array.Empty<int>()));
-        // Achieve
+        Trophy.Load();
         // MaidCraftItem
         // UserMaid
         // UserEnv
@@ -296,6 +298,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Config.LoadStatAttributes();
         Send(PremiumCubPacket.Activate(Player.ObjectId, Player.Value.Account.PremiumTime));
         Send(PremiumCubPacket.LoadItems(Player.Value.Account.PremiumRewardsClaimed));
+        Trophy.Update(TrophyConditionType.map);
         return true;
     }
 
@@ -386,7 +389,7 @@ public sealed partial class GameSession : Core.Network.Session {
 
             using (GameStorage.Request db = GameStorage.Context()) {
                 db.BeginTransaction();
-                db.SavePlayer(Player);
+                db.SavePlayer(Player, Trophy.Values);
                 Config.Save(db);
                 Item.Save(db);
                 Housing.Save(db);

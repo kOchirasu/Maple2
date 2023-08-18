@@ -71,6 +71,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
 
     private static void HandleNormal(GameSession session, string message) {
         session.Field?.Broadcast(ChatPacket.Message(session.Player.Value, ChatType.Normal, message));
+        Console.Write(session.Player.Value.Account.Trophy.Total);
     }
 
     private void HandleWhisper(GameSession session, string message, string recipient) {
