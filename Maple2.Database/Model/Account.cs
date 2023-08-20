@@ -18,7 +18,6 @@ internal class Account {
     public int MaxCharacters { get; set; }
     public int PrestigeLevel { get; set; }
     public long PrestigeExp { get; set; }
-    public IDictionary<int, TrophyEntry>? Trophy { get; set; }
     public long PremiumTime { get; set; }
     public IList<int> PremiumRewardsClaimed { get; set; } // TODO: clear list on daily reset
     public required AccountCurrency Currency { get; set; }
@@ -61,23 +60,6 @@ internal class Account {
         if (other == null) {
             return null;
         }
-
-        Trophy accountTrophy = new Trophy();
-        if (other.Trophy != null)
-            foreach ((int id, TrophyEntry entry) in other.Trophy) {
-                switch (entry.Category) {
-                    case TrophyCategory.Combat:
-                        accountTrophy.Combat += entry.Grades.Count;
-                        break;
-                    case TrophyCategory.Adventure:
-                        accountTrophy.Adventure += entry.Grades.Count;
-                        break;
-                    case TrophyCategory.None:
-                    case TrophyCategory.Life:
-                        accountTrophy.Lifestyle += entry.Grades.Count;
-                        break;
-                }
-            }
         
         return new Maple2.Model.Game.Account {
             LastModified = other.LastModified,
@@ -92,7 +74,6 @@ internal class Account {
             MesoMarketListed = other.MarketLimits.MesoListed,
             MesoMarketPurchased = other.MarketLimits.MesoPurchased,
             Online = other.Online,
-            Trophy = accountTrophy,
         };
     }
 
@@ -104,7 +85,6 @@ internal class Account {
         builder.Property(account => account.MaxCharacters)
             .HasDefaultValue(4);
         builder.HasMany(account => account.Characters);
-        builder.Property(account => account.Trophy).HasJsonConversion().IsRequired();
         builder.Property(account => account.Currency).HasJsonConversion().IsRequired();
         builder.Property(account => account.MarketLimits).HasJsonConversion().IsRequired();
         builder.Property(account => account.PremiumRewardsClaimed).HasJsonConversion();
@@ -125,43 +105,5 @@ internal class AccountCurrency {
 internal class MarketLimits {
     public int MesoListed { get; set; }
     public int MesoPurchased { get; set; }
-}
-
-internal class TrophyEntry {
-    public int Id { get; set; }
-    public int CurrentGrade { get; set; }
-    public int RewardGrade { get; set; }
-    public bool Favorite { get; set; }
-    public long Counter { get; set; }
-    public TrophyCategory Category { get; set; }
-    public required IDictionary<int, long> Grades { get; set; }
-
-    [return:NotNullIfNotNull(nameof(other))]
-    public static implicit operator TrophyEntry?(Maple2.Model.Game.TrophyEntry? other) {
-        if (other == null) {
-            return null;
-        }
-        return new TrophyEntry {
-            Id = other.Id,
-            CurrentGrade = other.CurrentGrade,
-            RewardGrade = other.RewardGrade,
-            Favorite = other.Favorite,
-            Counter = other.Counter,
-            Category = other.Category,
-            Grades = other.Grades,
-        };
-    }
-
-    // Use explicit Convert() here because we need metadata to construct TrophyEntry.
-    public Maple2.Model.Game.TrophyEntry Convert(TrophyMetadata metadata) {
-        return new Maple2.Model.Game.TrophyEntry(metadata) {
-            CurrentGrade = CurrentGrade,
-            RewardGrade = RewardGrade,
-            Favorite = Favorite,
-            Counter = Counter,
-            Category = Category,
-            Grades = Grades,
-        };
-    }
 }
 

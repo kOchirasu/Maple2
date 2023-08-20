@@ -21,7 +21,7 @@ public sealed class MetadataContext : DbContext {
     public DbSet<ScriptMetadata> ScriptMetadata { get; set; } = null!;
     public DbSet<StoredSkillMetadata> SkillMetadata { get; set; } = null!;
     public DbSet<TableMetadata> TableMetadata { get; set; } = null!;
-    public DbSet<TrophyMetadata> TrophyMetadata { get; set; } = null!;
+    public DbSet<AchievementMetadata> AchievementMetadata { get; set; } = null!;
     public DbSet<UgcMapMetadata> UgcMapMetadata { get; set; } = null!;
 
     public MetadataContext(DbContextOptions options) : base(options) { }
@@ -42,7 +42,7 @@ public sealed class MetadataContext : DbContext {
         modelBuilder.Entity<ScriptMetadata>(ConfigureScriptMetadata);
         modelBuilder.Entity<StoredSkillMetadata>(ConfigureSkillMetadata);
         modelBuilder.Entity<TableMetadata>(ConfigureTableMetadata);
-        modelBuilder.Entity<TrophyMetadata>(ConfigureTrophyMetadata);
+        modelBuilder.Entity<AchievementMetadata>(ConfigureTrophyMetadata);
         modelBuilder.Entity<UgcMapMetadata>(ConfigureUgcMapMetadata);
     }
 
@@ -164,11 +164,11 @@ public sealed class MetadataContext : DbContext {
         builder.Property(table => table.Table).HasJsonConversion().IsRequired();
     }
     
-    private static void ConfigureTrophyMetadata(EntityTypeBuilder<TrophyMetadata> builder) {
-        builder.ToTable("trophy");
-        builder.HasKey(trophy => trophy.Id);
-        builder.Property(trophy => trophy.CategoryTags).HasJsonConversion();
-        builder.Property(trophy => trophy.Grades).HasJsonConversion();
+    private static void ConfigureTrophyMetadata(EntityTypeBuilder<AchievementMetadata> builder) {
+        builder.ToTable("achievement");
+        builder.HasKey(achievement => achievement.Id);
+        builder.Property(achievement => achievement.CategoryTags).HasJsonConversion();
+        builder.Property(achievement => achievement.Grades).HasJsonConversion();
     }
 
     private static void ConfigureUgcMapMetadata(EntityTypeBuilder<UgcMapMetadata> builder) {

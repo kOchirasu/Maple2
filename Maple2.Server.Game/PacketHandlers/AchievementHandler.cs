@@ -2,12 +2,11 @@
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
-using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
-public class TrophyHandler : PacketHandler<GameSession> {
+public class AchievementHandler : PacketHandler<GameSession> {
     public override RecvOp OpCode => RecvOp.Achieve;
 
     private enum Command : byte {
@@ -28,19 +27,19 @@ public class TrophyHandler : PacketHandler<GameSession> {
     }
 
     private void HandleReward(GameSession session, IByteReader packet) {
-        int trophyId = packet.ReadInt();
+        int achievementId = packet.ReadInt();
         
-        session.Trophy.Reward(trophyId, true);
+        session.Achievement.Reward(achievementId, true);
     }
     
     private void HandleToggleFavorite(GameSession session, IByteReader packet) {
-        int trophyId = packet.ReadInt();
+        int achievementId = packet.ReadInt();
         bool favorite = packet.ReadBool();
 
-        if (!session.Trophy.Values.TryGetValue(trophyId, out TrophyEntry? trophy)) {
+        if (!session.Achievement.Values.TryGetValue(achievementId, out Achievement? achievement)) {
             return;
         }
         
-        trophy.Favorite = favorite;
+        achievement.Favorite = favorite;
     }
 }

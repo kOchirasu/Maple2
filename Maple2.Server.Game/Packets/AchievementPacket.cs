@@ -7,7 +7,7 @@ using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.Packets;
 
-public static class TrophyPacket {
+public static class AchievementPacket {
     private enum Command : byte {
         Initialize = 0,
         Load = 1,
@@ -22,34 +22,34 @@ public static class TrophyPacket {
         return pWriter;
     }
 
-    public static ByteWriter Load(IList<TrophyEntry> trophies) {
+    public static ByteWriter Load(IList<Achievement> achievements) {
         var pWriter = Packet.Of(SendOp.Achieve);
         pWriter.Write<Command>(Command.Load);
-        pWriter.WriteInt(trophies.Count);
+        pWriter.WriteInt(achievements.Count);
 
-        foreach (TrophyEntry trophy in trophies) {
-            pWriter.WriteInt(trophy.Id);
+        foreach (Achievement achievement in achievements) {
+            pWriter.WriteInt(achievement.Id);
             pWriter.WriteInt(1); // Unknown
-            pWriter.WriteClass<TrophyEntry>(trophy);
+            pWriter.WriteClass<Achievement>(achievement);
         }
 
         return pWriter;
     }
 
-    public static ByteWriter Update(TrophyEntry trophy) {
+    public static ByteWriter Update(Achievement achievement) {
         var pWriter = Packet.Of(SendOp.Achieve);
         pWriter.Write<Command>(Command.Update);
-        pWriter.WriteInt(trophy.Id);
-        pWriter.WriteClass<TrophyEntry>(trophy);
+        pWriter.WriteInt(achievement.Id);
+        pWriter.WriteClass<Achievement>(achievement);
 
         return pWriter;
     }
 
-    public static ByteWriter Favorite(TrophyEntry trophy) {
+    public static ByteWriter Favorite(Achievement achievement) {
         var pWriter = Packet.Of(SendOp.Achieve);
         pWriter.Write<Command>(Command.Favorite);
-        pWriter.WriteInt(trophy.Id);
-        pWriter.WriteBool(trophy.Favorite);
+        pWriter.WriteInt(achievement.Id);
+        pWriter.WriteBool(achievement.Favorite);
 
         return pWriter;
     }

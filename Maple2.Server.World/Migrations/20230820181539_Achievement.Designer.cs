@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Maple2.Server.World.Migrations
 {
     [DbContext(typeof(Ms2Context))]
-    [Migration("20230820081211_UserEnvUnlocks")]
-    partial class UserEnvUnlocks
+    [Migration("20230820181539_Achievement")]
+    partial class Achievement
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -69,10 +69,6 @@ namespace Maple2.Server.World.Migrations
                     b.Property<int>("PrestigeLevel")
                         .HasColumnType("int");
 
-                    b.Property<string>("Trophy")
-                        .IsRequired()
-                        .HasColumnType("json");
-
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
@@ -83,6 +79,43 @@ namespace Maple2.Server.World.Migrations
                         .IsUnique();
 
                     b.ToTable("Account");
+                });
+
+            modelBuilder.Entity("Maple2.Database.Model.Achievement", b =>
+                {
+                    b.Property<long>("AccountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CharacterId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<long>("Counter")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("CurrentGrade")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Favorite")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Grades")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<int>("RewardGrade")
+                        .HasColumnType("int");
+
+                    b.HasKey("AccountId", "CharacterId", "Id");
+
+                    b.HasIndex("CharacterId");
+
+                    b.ToTable("Achievement");
                 });
 
             modelBuilder.Entity("Maple2.Database.Model.Buddy", b =>
@@ -1156,6 +1189,21 @@ namespace Maple2.Server.World.Migrations
                     b.HasIndex("UgcMapId");
 
                     b.ToTable("ugcmap-cube", (string)null);
+                });
+
+            modelBuilder.Entity("Maple2.Database.Model.Achievement", b =>
+                {
+                    b.HasOne("Maple2.Database.Model.Account", null)
+                        .WithMany()
+                        .HasForeignKey("AccountId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Maple2.Database.Model.Character", null)
+                        .WithMany()
+                        .HasForeignKey("CharacterId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Maple2.Database.Model.Buddy", b =>

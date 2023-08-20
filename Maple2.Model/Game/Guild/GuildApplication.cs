@@ -21,7 +21,7 @@ public class GuildApplication : IByteSerializable {
         writer.Write<Job>(Applicant.Job);
         writer.WriteInt((int) Applicant.Job.Code());
         writer.WriteInt(Applicant.Level);
-        writer.WriteClass<Trophy>(Applicant.Trophy);
+        writer.WriteClass<AchievementInfo>(Applicant.AchievementInfo);
         writer.WriteLong(CreationTime);
     }
 }

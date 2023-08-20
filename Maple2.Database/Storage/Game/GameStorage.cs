@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Maple2.Database.Context;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model;
@@ -7,7 +8,7 @@ using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using TrophyEntry = Maple2.Database.Model.TrophyEntry;
+using Achievement = Maple2.Database.Model.Achievement;
 
 namespace Maple2.Database.Storage;
 
@@ -15,14 +16,14 @@ public partial class GameStorage {
     private readonly DbContextOptions options;
     private readonly ItemMetadataStorage itemMetadata;
     private readonly MapMetadataStorage mapMetadata;
-    private readonly TrophyMetadataStorage trophyMetadata;
+    private readonly AchievementMetadataStorage achievementMetadata;
     private readonly ILogger logger;
 
-    public GameStorage(DbContextOptions options, ItemMetadataStorage itemMetadata, MapMetadataStorage mapMetadata, TrophyMetadataStorage trophyMetadata, ILogger<GameStorage> logger) {
+    public GameStorage(DbContextOptions options, ItemMetadataStorage itemMetadata, MapMetadataStorage mapMetadata, AchievementMetadataStorage achievementMetadata, ILogger<GameStorage> logger) {
         this.options = options;
         this.itemMetadata = itemMetadata;
         this.mapMetadata = mapMetadata;
-        this.trophyMetadata = trophyMetadata;
+        this.achievementMetadata = achievementMetadata;
         this.logger = logger;
     }
 
@@ -42,28 +43,46 @@ public partial class GameStorage {
             this.game = game;
         }
         
-        private static PlayerInfo BuildPlayerInfo(Model.Character character, UgcMap indoor, UgcMap? outdoor, IDictionary<int, TrophyEntry> trophy) {
-            Trophy playerTrophy = new Trophy();
-            foreach ((int id, TrophyEntry entry) in trophy) {
-                switch (entry.Category) {
-                    case TrophyCategory.Combat:
-                        playerTrophy.Combat += entry.Grades.Count;
+        private static PlayerInfo BuildPlayerInfo(Model.Character character, UgcMap indoor, UgcMap? outdoor, IEnumerable<Achievement> accountAchievements, IEnumerable<Achievement> characterAchievements) {
+            AchievementInfo achievements = new AchievementInfo();
+            foreach (Achievement trophy in accountAchievements) {
+                if (trophy.CharacterId == character.Id) {
+                    continue;
+                }
+                switch (trophy.Category) {
+                    case AchievementCategory.Combat:
+                        achievements.Combat += trophy.Grades.Count;
                         break;
-                    case TrophyCategory.Adventure:
-                        playerTrophy.Adventure += entry.Grades.Count;
+                    case AchievementCategory.Adventure:
+                        achievements.Adventure += trophy.Grades.Count;
                         break;
-                    case TrophyCategory.None:
-                    case TrophyCategory.Life:
-                        playerTrophy.Lifestyle += entry.Grades.Count;
+                    case AchievementCategory.None:
+                    case AchievementCategory.Life:
+                        achievements.Lifestyle += trophy.Grades.Count;
+                        break;
+                }
+            }
+
+            foreach (Achievement trophy in characterAchievements) {
+                switch (trophy.Category) {
+                    case AchievementCategory.Combat:
+                        achievements.Combat += trophy.Grades.Count;
+                        break;
+                    case AchievementCategory.Adventure:
+                        achievements.Adventure += trophy.Grades.Count;
+                        break;
+                    case AchievementCategory.None:
+                    case AchievementCategory.Life:
+                        achievements.Lifestyle += trophy.Grades.Count;
                         break;
                 }
             }
             
             if (outdoor == null) {
-                return new PlayerInfo(character, indoor.Name, playerTrophy);
+                return new PlayerInfo(character, indoor.Name, achievements);
             }
 
-            return new PlayerInfo(character, outdoor.Name, playerTrophy) {
+            return new PlayerInfo(character, outdoor.Name, achievements) {
                 PlotMapId = outdoor.MapId,
                 PlotNumber = outdoor.Number,
                 ApartmentNumber = outdoor.ApartmentNumber,

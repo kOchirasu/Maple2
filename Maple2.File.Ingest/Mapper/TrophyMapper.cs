@@ -7,31 +7,31 @@ using Maple2.Model.Metadata;
 
 namespace Maple2.File.Ingest.Mapper;
 
-public class TrophyMapper : TypeMapper<TrophyMetadata> {
+public class TrophyMapper : TypeMapper<AchievementMetadata> {
     private readonly AchieveParser parser;
 
     public TrophyMapper(M2dReader xmlReader) {
         parser = new AchieveParser(xmlReader);
     }
 
-    protected override IEnumerable<TrophyMetadata> Map() {
+    protected override IEnumerable<AchievementMetadata> Map() {
         foreach ((int id, string name, AchieveData data) in parser.Parse()) {
-            var grades = new Dictionary<int, TrophyMetadataGrade>();
+            var grades = new Dictionary<int, AchievementMetadataGrade>();
             foreach (Grade grade in data.grade) {
-                grades.Add(grade.value, new TrophyMetadataGrade(
-                    Condition: new TrophyMetadataCondition(
-                        Type: (TrophyConditionType) grade.condition.type,
+                grades.Add(grade.value, new AchievementMetadataGrade(
+                    Condition: new AchievementMetadataCondition(
+                        Type: (AchievementConditionType) grade.condition.type,
                         Codes: GetCodes(grade.condition.code),
                         Value: grade.condition.value,
                         Target: GetCodes(grade.condition.target)),
-                    Reward: grade.reward.type == AchieveRewardType.unknown ? null : new TrophyMetadataReward(
-                        Type: (TrophyRewardType) grade.reward.type,
+                    Reward: grade.reward.type == AchieveRewardType.unknown ? null : new AchievementMetadataReward(
+                        Type: (AchievementRewardType) grade.reward.type,
                         Code: grade.reward.code,
                         Value: grade.reward.value,
                         Rank: grade.reward.rank)));
             }
 
-            TrophyCategory category = TrophyCategory.Life;
+            AchievementCategory category = AchievementCategory.Life;
             string[] tags = data.categoryTag;
             if (data.categoryTag.Length > 0) {
                 // skip the first in the array and use it as the trophy category
@@ -40,7 +40,7 @@ public class TrophyMapper : TypeMapper<TrophyMetadata> {
 
             }
 
-            yield return new TrophyMetadata(
+            yield return new AchievementMetadata(
                 Id: id,
                 Name: name,
                 AccountWide: data.account,
@@ -50,16 +50,16 @@ public class TrophyMapper : TypeMapper<TrophyMetadata> {
         }
     }
 
-    private static TrophyCategory GetTrophyCategory(string tag) {
+    private static AchievementCategory GetTrophyCategory(string tag) {
         return tag switch {
-            "combat" => TrophyCategory.Combat,
-            "adventure" => TrophyCategory.Adventure,
-            "living" => TrophyCategory.Life,
-            _ => TrophyCategory.Life,
+            "combat" => AchievementCategory.Combat,
+            "adventure" => AchievementCategory.Adventure,
+            "living" => AchievementCategory.Life,
+            _ => AchievementCategory.Life,
         };
     }
 
-    private TrophyMetadataCondition.Code? GetCodes(string[] codes) {
+    private AchievementMetadataCondition.Parameters? GetCodes(string[] codes) {
         if (codes.Length == 0) {
             return null;
         }
@@ -75,7 +75,7 @@ public class TrophyMapper : TypeMapper<TrophyMetadata> {
                 }
             }
 
-            return new TrophyMetadataCondition.Code(
+            return new AchievementMetadataCondition.Parameters(
                 Strings: strings.Count == 0 ? null : strings.ToArray(),
                 Integers: integers.Count == 0 ? null : integers.ToArray(),
                 Range: null);
@@ -83,19 +83,19 @@ public class TrophyMapper : TypeMapper<TrophyMetadata> {
 
         string[] split = codes[0].Split('-');
         if (split.Length > 1) {
-            return new TrophyMetadataCondition.Code(
+            return new AchievementMetadataCondition.Parameters(
                 Strings: null,
                 Integers: null,
-                Range: new TrophyMetadataCondition.Range<int>(int.Parse(split[0]), int.Parse(split[1])));
+                Range: new AchievementMetadataCondition.Range<int>(int.Parse(split[0]), int.Parse(split[1])));
         }
 
         if (!int.TryParse(codes[0], out int integerResult)) {
-            return new TrophyMetadataCondition.Code(
+            return new AchievementMetadataCondition.Parameters(
                 Strings: new[] {codes[0]},
                 Range: null,
                 Integers: null);
         }
-        return new TrophyMetadataCondition.Code(
+        return new AchievementMetadataCondition.Parameters(
             Strings: null,
             Range: null,
             Integers: new[] {integerResult});

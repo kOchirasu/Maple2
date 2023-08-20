@@ -67,7 +67,7 @@ public class Buddy : IByteSerializable, IDisposable {
             Info.PlotNumber = 0;
             Info.ApartmentNumber = 0;
             Info.PlotExpiryTime = 0;
-            Info.Trophy = default;
+            Info.AchievementInfo = default;
         }
     }
 
@@ -96,7 +96,7 @@ public class Buddy : IByteSerializable, IDisposable {
         writer.WriteInt(Info.ApartmentNumber);
         writer.WriteUnicodeString(Info.HomeName);
         writer.WriteLong(Info.PlotExpiryTime); // Home expiry time?
-        writer.WriteClass<Trophy>(Info.Trophy);
+        writer.WriteClass<AchievementInfo>(Info.AchievementInfo);
     }
 
     public void Dispose() {

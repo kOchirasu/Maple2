@@ -45,13 +45,16 @@ public partial class GameStorage {
         public IList<ClubMember> GetClubMembers(long clubId) {
             return (from member in Context.ClubMember where member.ClubId == clubId
                     join account in Context.Account on member.Character.AccountId equals account.Id
+                    join achievement1 in Context.Achievement on member.Character.AccountId equals achievement1.AccountId into accountTrophies
+                    join achievement2 in Context.Achievement on member.Character.Id equals achievement2.CharacterId into characterTrophies
                     join indoor in Context.UgcMap on
                         new {OwnerId=member.Character.AccountId, Indoor=true} equals new {indoor.OwnerId, indoor.Indoor}
                     join outdoor in Context.UgcMap on
                         new {OwnerId=member.Character.AccountId, Indoor=true} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
                     from outdoor in plot.DefaultIfEmpty()
+
                     select new ClubMember(
-                        BuildPlayerInfo(member.Character, indoor, outdoor, account.Trophy),
+                        BuildPlayerInfo(member.Character, indoor, outdoor, accountTrophies.ToList(), characterTrophies.ToList()),
                         member.CreationTime.ToEpochSeconds(),
                         member.Character.LastModified.ToEpochSeconds())).ToList();
         }

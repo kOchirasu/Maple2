@@ -7,21 +7,21 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game;
 
-public class Trophy : IByteSerializable {
+public class AchievementInfo : IByteSerializable {
     public int Combat { get; set; }
     public int Adventure { get; set; }
     public int Lifestyle { get; set; }
 
-    public static Trophy operator +(in Trophy a, in Trophy b) {
-        return new Trophy {
+    public static AchievementInfo operator +(in AchievementInfo a, in AchievementInfo b) {
+        return new AchievementInfo {
             Combat = a.Combat + b.Combat,
             Adventure = a.Adventure + b.Adventure,
             Lifestyle = a.Lifestyle + b.Lifestyle,
         };
     }
 
-    public static Trophy operator -(in Trophy a, in Trophy b) {
-        return new Trophy {
+    public static AchievementInfo operator -(in AchievementInfo a, in AchievementInfo b) {
+        return new AchievementInfo {
             Combat = a.Combat - b.Combat,
             Adventure = a.Adventure - b.Adventure,
             Lifestyle = a.Lifestyle - b.Lifestyle,
@@ -36,27 +36,27 @@ public class Trophy : IByteSerializable {
     }
 }
 
-public class TrophyEntry : IByteSerializable {
-    public readonly TrophyMetadata Metadata;
+public class Achievement : IByteSerializable {
+    public readonly AchievementMetadata Metadata;
     public readonly int Id;
     public bool Completed => CurrentGrade == Grades.Count;
-    public TrophyStatus Status => Completed ? TrophyStatus.Completed : TrophyStatus.InProgress;
+    public AchievementStatus Status => Completed ? AchievementStatus.Completed : AchievementStatus.InProgress;
     public int CurrentGrade;
     public int RewardGrade;
     public bool Favorite;
     public long Counter;
-    public TrophyCategory Category { get; init; }
+    public AchievementCategory Category { get; init; }
 
     public IDictionary<int, long> Grades { get; set; } = new Dictionary<int, long>();
 
-    public TrophyEntry(TrophyMetadata metadata) {
+    public Achievement(AchievementMetadata metadata) {
         Metadata = metadata;
         Category = metadata.Category;
         Id = metadata.Id;
     }
 
     public void WriteTo(IByteWriter writer) {
-        writer.Write<TrophyStatus>(Status);
+        writer.Write<AchievementStatus>(Status);
         writer.WriteInt(Completed ? 1 : 0);
         writer.WriteInt(CurrentGrade);
         writer.WriteInt(RewardGrade);

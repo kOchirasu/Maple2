@@ -14,25 +14,32 @@ using Serilog;
 
 namespace Maple2.Server.Game.Manager;
 
-public sealed class TrophyManager {
+public sealed class AchievementManager {
     private const int BATCH_SIZE = 60;
     private readonly GameSession session;
 
-    public IDictionary<int, TrophyEntry> Values { get; }
+    public IDictionary<int, Achievement> Values => session.Player.Value.Character.Achievements;
 
-    private readonly ILogger logger = Log.Logger.ForContext<TrophyManager>();
+    private readonly ILogger logger = Log.Logger.ForContext<AchievementManager>();
 
-    public TrophyManager(GameSession session) {
+    public AchievementManager(GameSession session) {
         this.session = session;
 
-        using GameStorage.Request db = session.GameStorage.Context();
-        Values = db.GetAccountTrophy(session.AccountId);
+        /*using GameStorage.Request db = session.GameStorage.Context();
+        Values = db.GetAccountAchievements(session.AccountId);
+        IDictionary<int, Achievement> characterAchievements = db.GetCharacterAchievements(session.CharacterId);
+        foreach ((int id, Achievement achievement) in characterAchievements) {
+            if (Values.ContainsKey(id)) {
+                continue;
+            }
+            Values.Add(id, achievement);
+        }*/
     }
 
     public void Load() {
-        session.Send(TrophyPacket.Initialize());
-        foreach (ImmutableList<TrophyEntry> batch in Values.Values.Batch(BATCH_SIZE)) {
-            session.Send(TrophyPacket.Load(batch));
+        session.Send(AchievementPacket.Initialize());
+        foreach (ImmutableList<Achievement> batch in Values.Values.Batch(BATCH_SIZE)) {
+            session.Send(AchievementPacket.Load(batch));
         }
     }
 
@@ -46,11 +53,11 @@ public sealed class TrophyManager {
     /// <param name="targetLong">Trophy grade condition target parameter in long.</param>
     /// <param name="codeString">Trophy grade condition code parameter in string.</param>
     /// <param name="codeLong">Trophy grade condition code parameter in long.</param>
-    public void Update(TrophyConditionType conditionType, long count = 1, string targetString = "", long targetLong = 0, string codeString = "", long codeLong = 0) {
-        IEnumerable<TrophyMetadata> metadatas = session.TrophyMetadata.GetMany(conditionType);
+    public void Update(AchievementConditionType conditionType, long count = 1, string targetString = "", long targetLong = 0, string codeString = "", long codeLong = 0) {
+        IEnumerable<AchievementMetadata> metadatas = session.AchievementMetadata.GetMany(conditionType);
 
-        foreach (TrophyMetadata metadata in metadatas) {
-            if (!Values.TryGetValue(metadata.Id, out TrophyEntry? trophy) || !metadata.Grades.TryGetValue(trophy.CurrentGrade, out TrophyMetadataGrade? grade)) {
+        foreach (AchievementMetadata metadata in metadatas) {
+            if (!Values.TryGetValue(metadata.Id, out Achievement? achievement) || !metadata.Grades.TryGetValue(achievement.CurrentGrade, out AchievementMetadataGrade? grade)) {
                 grade = metadata.Grades[1];
             }
 
@@ -62,50 +69,50 @@ public sealed class TrophyManager {
                 continue;
             }
 
-            if (trophy == null) {
-                trophy = new TrophyEntry(metadata) {
+            if (achievement == null) {
+                achievement = new Achievement(metadata) {
                     CurrentGrade = 1,
                     RewardGrade = 1,
                 };
-                Values.Add(metadata.Id, trophy);
+                Values.Add(metadata.Id, achievement);
             }
 
-            if (!RankUp(trophy, count)) {
-                session.Send(TrophyPacket.Update(trophy));
+            if (!RankUp(achievement, count)) {
+                session.Send(AchievementPacket.Update(achievement));
             }
         }
     }
 
-    private bool CheckCode(TrophyMetadataCondition condition, string stringValue = "", long longValue = 0) {
-        TrophyMetadataCondition.Code code = condition.Codes!;
+    private bool CheckCode(AchievementMetadataCondition condition, string stringValue = "", long longValue = 0) {
+        AchievementMetadataCondition.Parameters parameters = condition.Codes!;
         switch (condition.Type) {
-            case TrophyConditionType.map:
-                if (code.Range != null && InRange((TrophyMetadataCondition.Range<int>) code.Range, session.Player.Value.Character.MapId)) {
+            case AchievementConditionType.map:
+                if (parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, session.Player.Value.Character.MapId)) {
                     return true;
                 }
 
-                if (code.Integers != null && code.Integers.Contains(session.Player.Value.Character.MapId)) {
+                if (parameters.Integers != null && parameters.Integers.Contains(session.Player.Value.Character.MapId)) {
                     return true;
                 }
                 break;
-            case TrophyConditionType.jump:
-            case TrophyConditionType.meso:
-            case TrophyConditionType.taxifind:
-            case TrophyConditionType.fall_damage:
+            case AchievementConditionType.jump:
+            case AchievementConditionType.meso:
+            case AchievementConditionType.taxifind:
+            case AchievementConditionType.fall_damage:
                 return true;
-            case TrophyConditionType.emotion:
-                if (code.Strings != null && code.Strings.Contains(stringValue)) {
+            case AchievementConditionType.emotion:
+                if (parameters.Strings != null && parameters.Strings.Contains(stringValue)) {
                     return true;
                 }
                 break;
-            case TrophyConditionType.trophy_point:
-                if (code.Range != null && InRange((TrophyMetadataCondition.Range<int>) code.Range, longValue)) {
+            case AchievementConditionType.trophy_point:
+                if (parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) {
                     return true;
                 }
                 break;
-            case TrophyConditionType.interact_object:
-                if ((code.Range != null && InRange((TrophyMetadataCondition.Range<int>) code.Range, longValue)) ||
-                    (code.Integers != null && code.Integers.Contains((int) longValue))) {
+            case AchievementConditionType.interact_object:
+                if ((parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) ||
+                    (parameters.Integers != null && parameters.Integers.Contains((int) longValue))) {
                     if (session.Player.Value.Unlock.InteractedObjects.Contains((int) longValue)) {
                         return false;
                     }
@@ -113,10 +120,10 @@ public sealed class TrophyManager {
                     return true;
                 }
                 break;
-            case TrophyConditionType.item_collect:
-            case TrophyConditionType.item_collect_revise:
-                if ((code.Range != null && InRange((TrophyMetadataCondition.Range<int>) code.Range, longValue)) ||
-                    (code.Integers != null && code.Integers.Contains((int) longValue))) {
+            case AchievementConditionType.item_collect:
+            case AchievementConditionType.item_collect_revise:
+                if ((parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) ||
+                    (parameters.Integers != null && parameters.Integers.Contains((int) longValue))) {
                     if (session.Player.Value.Unlock.ItemCollects.ContainsKey((int) longValue)) {
                         session.Player.Value.Unlock.ItemCollects[(int) longValue]++;
                         return false;
@@ -130,28 +137,28 @@ public sealed class TrophyManager {
         }
         return false;
 
-        bool InRange(TrophyMetadataCondition.Range<int> range, long value) {
+        bool InRange(AchievementMetadataCondition.Range<int> range, long value) {
             return value >= range.Min && value <= range.Max;
         }
     }
 
-    private bool CheckTarget(TrophyMetadataCondition condition, long longValue = 0) {
-        TrophyMetadataCondition.Code target = condition.Target!;
+    private bool CheckTarget(AchievementMetadataCondition condition, long longValue = 0) {
+        AchievementMetadataCondition.Parameters target = condition.Target!;
         switch (condition.Type) {
-            case TrophyConditionType.map:
-            case TrophyConditionType.jump:
-            case TrophyConditionType.meso:
-            case TrophyConditionType.taxifind:
-            case TrophyConditionType.trophy_point:
-            case TrophyConditionType.interact_object:
+            case AchievementConditionType.map:
+            case AchievementConditionType.jump:
+            case AchievementConditionType.meso:
+            case AchievementConditionType.taxifind:
+            case AchievementConditionType.trophy_point:
+            case AchievementConditionType.interact_object:
                 return true;
-            case TrophyConditionType.emotion:
+            case AchievementConditionType.emotion:
                 if (target.Range != null && target.Range.Value.Min >= session.Player.Value.Character.MapId &&
                     target.Range.Value.Max <= session.Player.Value.Character.MapId) {
                     return true;
                 }
                 break;
-            case TrophyConditionType.fall_damage:
+            case AchievementConditionType.fall_damage:
                 if (target.Range != null && target.Range.Value.Min >= longValue &&
                     target.Range.Value.Max <= longValue) {
                     return true;
@@ -168,50 +175,50 @@ public sealed class TrophyManager {
     /// <summary>
     /// Checks if trophy has reached a new grade. Provides rewards only on certain reward types.
     /// </summary>
-    /// <param name="trophy">Trophy entry from player</param>
+    /// <param name="achievement">Trophy entry from player</param>
     /// <param name="count">Count amount to increment on for the trophy.</param>
     /// <returns>False if there is no rank up possible or condition value has not been met.</returns>
-    private bool RankUp(TrophyEntry trophy, long count = 1) {
-        trophy.Counter += count;
+    private bool RankUp(Achievement achievement, long count = 1) {
+        achievement.Counter += count;
 
-        if (!trophy.Metadata.Grades.TryGetValue(trophy.CurrentGrade, out TrophyMetadataGrade? grade)) {
+        if (!achievement.Metadata.Grades.TryGetValue(achievement.CurrentGrade, out AchievementMetadataGrade? grade)) {
             return false;
         }
 
         int newGradesCount = 0;
-        while (trophy.Counter >= grade.Condition.Value) {
-            if (trophy.Completed) {
+        while (achievement.Counter >= grade.Condition.Value) {
+            if (achievement.Completed) {
                 break;
             }
-            trophy.Grades.Add(trophy.CurrentGrade, DateTime.Now.ToEpochSeconds());
+            achievement.Grades.Add(achievement.CurrentGrade, DateTime.Now.ToEpochSeconds());
             newGradesCount++;
 
-            if (trophy.Grades.Count < trophy.Metadata.Grades.Count) {
-                trophy.CurrentGrade++;
-                Reward(trophy.Id);
+            if (achievement.Grades.Count < achievement.Metadata.Grades.Count) {
+                achievement.CurrentGrade++;
+                Reward(achievement.Id);
             }
 
             // Update count on player
-            switch (trophy.Category) {
-                case TrophyCategory.Combat:
-                    session.Player.Value.Account.Trophy.Combat++;
+            switch (achievement.Category) {
+                case AchievementCategory.Combat:
+                    session.Player.Value.Character.AchievementInfo.Combat++;
                     break;
-                case TrophyCategory.Adventure:
-                    session.Player.Value.Account.Trophy.Adventure++;
+                case AchievementCategory.Adventure:
+                    session.Player.Value.Character.AchievementInfo.Adventure++;
                     break;
-                case TrophyCategory.Life:
-                    session.Player.Value.Account.Trophy.Lifestyle++;
+                case AchievementCategory.Life:
+                    session.Player.Value.Character.AchievementInfo.Lifestyle++;
                     break;
             }
 
-            session.Send(TrophyPacket.Update(trophy));
-            if (!trophy.Metadata.Grades.TryGetValue(trophy.CurrentGrade, out grade)) {
+            session.Send(AchievementPacket.Update(achievement));
+            if (!achievement.Metadata.Grades.TryGetValue(achievement.CurrentGrade, out grade)) {
                 break;
             }
         }
 
         if (newGradesCount > 0) {
-            Update(TrophyConditionType.trophy_point, newGradesCount, codeLong: trophy.Id);
+            Update(AchievementConditionType.trophy_point, newGradesCount, codeLong: achievement.Id);
             return true;
         }
         return false;
@@ -224,7 +231,7 @@ public sealed class TrophyManager {
     /// <param name="manualClaim">If true, assumes player requested the reward. it will give the player rewards for items, titles, skill points, and attribute points.
     /// These are never given automatically upon newly awarded trophy grade.</param>
     public void Reward(int trophyId, bool manualClaim = false) {
-        if (!Values.TryGetValue(trophyId, out TrophyEntry? trophy)) {
+        if (!Values.TryGetValue(trophyId, out Achievement? trophy)) {
             return;
         }
 
@@ -233,7 +240,7 @@ public sealed class TrophyManager {
         }
 
         for (int startGrade = trophy.RewardGrade; startGrade <= trophy.CurrentGrade; startGrade++) {
-            if (!trophy.Metadata.Grades.TryGetValue(startGrade, out TrophyMetadataGrade? grade)) {
+            if (!trophy.Metadata.Grades.TryGetValue(startGrade, out AchievementMetadataGrade? grade)) {
                 continue;
             }
 
@@ -243,12 +250,12 @@ public sealed class TrophyManager {
             }
 
             if (trophy.RewardGrade == trophy.CurrentGrade && !trophy.Completed) {
-                session.Send(TrophyPacket.Update(trophy));
+                session.Send(AchievementPacket.Update(trophy));
                 break;
             }
 
             switch (grade.Reward.Type) {
-                case TrophyRewardType.item:
+                case AchievementRewardType.item:
                     if (!manualClaim) {
                         return;
                     }
@@ -260,7 +267,7 @@ public sealed class TrophyManager {
                         session.Item.MailItem(item);
                     }
                     break;
-                case TrophyRewardType.title:
+                case AchievementRewardType.title:
                     if (!manualClaim) {
                         return;
                     }
@@ -271,21 +278,21 @@ public sealed class TrophyManager {
                     session.Send(UserEnvPacket.AddTitle(grade.Reward.Code));
                     session.Player.Value.Unlock.Titles.Add(grade.Reward.Code);
                     break;
-                case TrophyRewardType.dynamicaction:
+                case AchievementRewardType.dynamicaction:
                     if (session.Player.Value.Unlock.Emotes.Contains(grade.Reward.Code)) {
                         break;
                     }
                     session.Player.Value.Unlock.Emotes.Add(grade.Reward.Code);
                     session.Send(EmotePacket.Learn(new Emote(grade.Reward.Code)));
                     break;
-                case TrophyRewardType.beauty_hair:
-                case TrophyRewardType.beauty_makeup:
-                case TrophyRewardType.beauty_skin:
-                case TrophyRewardType.itemcoloring:
-                case TrophyRewardType.shop_build:
-                case TrophyRewardType.shop_ride:
-                case TrophyRewardType.shop_weapon:
-                case TrophyRewardType.etc: // currently used as quest unlocks
+                case AchievementRewardType.beauty_hair:
+                case AchievementRewardType.beauty_makeup:
+                case AchievementRewardType.beauty_skin:
+                case AchievementRewardType.itemcoloring:
+                case AchievementRewardType.shop_build:
+                case AchievementRewardType.shop_ride:
+                case AchievementRewardType.shop_weapon:
+                case AchievementRewardType.etc: // currently used as quest unlocks
                     // I don't think anything is supposed to happen here. Just client sided visuals?
                     break;
                 default:
@@ -294,7 +301,11 @@ public sealed class TrophyManager {
             }
 
             trophy.RewardGrade++;
-            session.Send(TrophyPacket.Update(trophy));
+            session.Send(AchievementPacket.Update(trophy));
         }
+    }
+
+    public void Save(GameStorage.Request db) {
+        db.SaveAchievements(session.AccountId, session.CharacterId, Values.Values.ToList());
     }
 }

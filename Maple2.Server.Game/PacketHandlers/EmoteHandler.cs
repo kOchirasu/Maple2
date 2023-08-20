@@ -64,6 +64,6 @@ public class EmoteHandler : PacketHandler<GameSession> {
             return;
         }
         
-        session.Trophy.Update(TrophyConditionType.emotion, codeString: aniKey);
+        session.Achievement.Update(AchievementConditionType.emotion, codeString: aniKey);
     }
 }

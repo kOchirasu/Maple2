@@ -2,19 +2,19 @@
 
 namespace Maple2.Model.Enum;
 
-public enum TrophyStatus : byte {
+public enum AchievementStatus : byte {
     InProgress = 2,
     Completed = 3,
 }
 
-public enum TrophyCategory {
+public enum AchievementCategory {
     None = 0,
     Combat = 1,
     Adventure = 2,
     Life = 3,
 }
 
-public enum TrophyRewardType {
+public enum AchievementRewardType {
     none = 0,
     item = 1,
     title = 2,
@@ -31,7 +31,7 @@ public enum TrophyRewardType {
     etc = 13,
 }
 
-public enum TrophyConditionType {
+public enum AchievementConditionType {
     unknown = 0,
     empty = 1,
     item_pickup = 2,

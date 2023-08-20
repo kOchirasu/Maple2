@@ -71,7 +71,7 @@ public class GuildMember : IByteSerializable, IDisposable {
         writer.WriteInt(info.PlotNumber);
         writer.WriteInt(info.ApartmentNumber);
         writer.WriteLong(info.PlotExpiryTime);
-        writer.WriteClass<Trophy>(info.Trophy);
+        writer.WriteClass<AchievementInfo>(info.AchievementInfo);
     }
 
     public void Dispose() {

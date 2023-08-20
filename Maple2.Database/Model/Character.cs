@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Maple2.Database.Extensions;
 using Maple2.Model.Common;
@@ -101,6 +102,7 @@ internal class Character {
             StorageCooldown = other.Cooldown.Storage,
             DeleteTime = other.DeleteTime.ToEpochSeconds(),
             Channel = other.Channel,
+            Achievements = new Dictionary<int, Maple2.Model.Game.Achievement>(),
         };
     }
 

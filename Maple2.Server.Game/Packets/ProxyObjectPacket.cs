@@ -45,7 +45,7 @@ public static class ProxyObjectPacket {
         pWriter.WriteUnicodeString(player.Home.Indoor.Name);
         pWriter.WriteInt(fieldPlayer.Stats.GearScore);
         pWriter.WriteShort((short) fieldPlayer.State);
-        pWriter.WriteClass<Trophy>(player.Account.Trophy);
+        pWriter.WriteClass<AchievementInfo>(player.Character.AchievementInfo);
 
         return pWriter;
     }

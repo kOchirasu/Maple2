@@ -22,7 +22,7 @@ public class FallDamageHandler : PacketHandler<GameSession> {
             session.Player.Stats[BasicAttribute.Health].Add(-damage);
             session.Player.Field.Broadcast(StatsPacket.Update(session.Player, BasicAttribute.Health));
             session.Send(FallDamagePacket.FallDamage(session.Player.ObjectId, damage));
-            session.Trophy.Update(TrophyConditionType.fall_damage, targetLong: damage);
+            session.Achievement.Update(AchievementConditionType.fall_damage, targetLong: damage);
         }
     }
 
