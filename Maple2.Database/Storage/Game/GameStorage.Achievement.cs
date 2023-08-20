@@ -11,27 +11,17 @@ namespace Maple2.Database.Storage;
 
 public partial class GameStorage {
     public partial class Request {
-        public IDictionary<int, Achievement> GetAccountAchievements(long accountId) {
-            return Context.Achievement.Where(achievement => achievement.AccountId == accountId)
+        public IDictionary<int, Achievement> GetAchievements(long ownerId) {
+            return Context.Achievement.Where(achievement => achievement.OwnerId == ownerId)
                 .AsEnumerable()
                 .Select(ToAchievement)
                 .Where(achievement => achievement != null)
-                .Where(achievement => achievement!.Metadata.AccountWide)
-                .ToDictionary(achievement => achievement!.Id, achievement => achievement!);
-        }
-
-        public IDictionary<int, Achievement> GetCharacterAchievements(long characterId) {
-            return Context.Achievement.Where(achievement => achievement.CharacterId == characterId)
-                .AsEnumerable()
-                .Select(ToAchievement)
-                .Where(achievement => achievement != null)
-                .Where(achievement => !achievement!.Metadata.AccountWide)
                 .ToDictionary(achievement => achievement!.Id, achievement => achievement!);
         }
 
         public IDictionary<int, Achievement> GetCharacterAndAccountAchievements(long accountId, long characterId) {
-            IDictionary<int, Achievement> accountAchievements = GetAccountAchievements(accountId);
-            IDictionary<int, Achievement> characterAchievements = GetCharacterAchievements(characterId);
+            IDictionary<int, Achievement> accountAchievements = GetAchievements(accountId);
+            IDictionary<int, Achievement> characterAchievements = GetAchievements(characterId);
 
             foreach ((int id, Achievement achievement) in accountAchievements) {
                 if (characterAchievements.ContainsKey(id)) {
@@ -65,7 +55,7 @@ public partial class GameStorage {
         public bool SaveAchievements(long accountId, long characterId, IList<Achievement> values) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
 
-            Dictionary<int, Model.Achievement> existing = Context.Achievement.Where(model => model.AccountId == accountId)
+            Dictionary<int, Model.Achievement> existing = Context.Achievement.Where(model => model.OwnerId == accountId || model.OwnerId == characterId)
                 .ToDictionary(model => model.Id, model => model);
 
             foreach (Achievement value in values) {
@@ -74,8 +64,10 @@ public partial class GameStorage {
                     Context.Achievement.Update(model);
                 } else {
                     model = value;
-                    model.CharacterId = characterId;
-                    model.AccountId = accountId;
+                    if (value.Metadata.AccountWide) {
+                        model.OwnerId = accountId;
+                    }
+                    model.OwnerId = value.Metadata.AccountWide ? accountId : characterId;
                     Context.Achievement.Add(model);
                 }
             }

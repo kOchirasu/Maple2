@@ -34,8 +34,7 @@ namespace Maple2.Server.World.Migrations
                 name: "Achievement",
                 columns: table => new
                 {
-                    AccountId = table.Column<long>(type: "bigint", nullable: false),
-                    CharacterId = table.Column<long>(type: "bigint", nullable: false),
+                    OwnerId = table.Column<long>(type: "bigint", nullable: false),
                     Id = table.Column<int>(type: "int", nullable: false),
                     CurrentGrade = table.Column<int>(type: "int", nullable: false),
                     RewardGrade = table.Column<int>(type: "int", nullable: false),
@@ -47,26 +46,9 @@ namespace Maple2.Server.World.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Achievement", x => new { x.AccountId, x.CharacterId, x.Id });
-                    table.ForeignKey(
-                        name: "FK_Achievement_Account_AccountId",
-                        column: x => x.AccountId,
-                        principalTable: "Account",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Achievement_Character_CharacterId",
-                        column: x => x.CharacterId,
-                        principalTable: "Character",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                    table.PrimaryKey("PK_Achievement", x => new { x.OwnerId, x.Id });
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Achievement_CharacterId",
-                table: "Achievement",
-                column: "CharacterId");
         }
 
         /// <inheritdoc />

@@ -80,10 +80,7 @@ namespace Maple2.Server.World.Migrations
 
             modelBuilder.Entity("Maple2.Database.Model.Achievement", b =>
                 {
-                    b.Property<long>("AccountId")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("CharacterId")
+                    b.Property<long>("OwnerId")
                         .HasColumnType("bigint");
 
                     b.Property<int>("Id")
@@ -108,9 +105,7 @@ namespace Maple2.Server.World.Migrations
                     b.Property<int>("RewardGrade")
                         .HasColumnType("int");
 
-                    b.HasKey("AccountId", "CharacterId", "Id");
-
-                    b.HasIndex("CharacterId");
+                    b.HasKey("OwnerId", "Id");
 
                     b.ToTable("Achievement");
                 });
@@ -1186,21 +1181,6 @@ namespace Maple2.Server.World.Migrations
                     b.HasIndex("UgcMapId");
 
                     b.ToTable("ugcmap-cube", (string)null);
-                });
-
-            modelBuilder.Entity("Maple2.Database.Model.Achievement", b =>
-                {
-                    b.HasOne("Maple2.Database.Model.Account", null)
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Maple2.Database.Model.Character", null)
-                        .WithMany()
-                        .HasForeignKey("CharacterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Maple2.Database.Model.Buddy", b =>

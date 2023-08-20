@@ -39,12 +39,13 @@ public class AchievementInfo : IByteSerializable {
 public class Achievement : IByteSerializable {
     public readonly AchievementMetadata Metadata;
     public readonly int Id;
+    public long OwnerId { get; set; }
     public bool Completed => CurrentGrade == Grades.Count;
     public AchievementStatus Status => Completed ? AchievementStatus.Completed : AchievementStatus.InProgress;
-    public int CurrentGrade;
-    public int RewardGrade;
-    public bool Favorite;
-    public long Counter;
+    public int CurrentGrade { get; set; }
+    public int RewardGrade { get; set; }
+    public bool Favorite { get; set; }
+    public long Counter { get; set; }
     public AchievementCategory Category { get; init; }
 
     public IDictionary<int, long> Grades { get; set; } = new Dictionary<int, long>();

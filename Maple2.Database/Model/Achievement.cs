@@ -8,8 +8,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 namespace Maple2.Database.Model;
 
 internal class Achievement {
-    public long AccountId { get; set; }
-    public long CharacterId { get; set; }
+    public long OwnerId { get; set; }
     public int Id { get; set; }
 
     public int CurrentGrade { get; set; }
@@ -26,6 +25,7 @@ internal class Achievement {
         }
         return new Achievement {
             Id = other.Id,
+            OwnerId = other.OwnerId,
             CurrentGrade = other.CurrentGrade,
             RewardGrade = other.RewardGrade,
             Favorite = other.Favorite,
@@ -39,6 +39,7 @@ internal class Achievement {
     public Maple2.Model.Game.Achievement Convert(AchievementMetadata metadata) {
         return new Maple2.Model.Game.Achievement(metadata) {
             CurrentGrade = CurrentGrade,
+            OwnerId = OwnerId,
             RewardGrade = RewardGrade,
             Favorite = Favorite,
             Counter = Counter,
@@ -48,16 +49,7 @@ internal class Achievement {
     }
     
     public static void Configure(EntityTypeBuilder<Achievement> builder) {
-        builder.HasKey(achieve => new {achieve.AccountId, achieve.CharacterId, achieve.Id});
-
-        builder.HasOne<Account>()
-            .WithMany()
-            .HasForeignKey(achieve => achieve.AccountId)
-            .IsRequired();
-        builder.HasOne<Character>()
-            .WithMany()
-            .HasForeignKey(achieve => achieve.CharacterId)
-            .IsRequired();
+        builder.HasKey(achieve => new {achieve.OwnerId, achieve.Id});
         builder.Property(achieve => achieve.Grades).HasJsonConversion().IsRequired();
     }
 }

@@ -65,7 +65,7 @@ public partial class GameStorage {
             if (accountId < 0) {
                 Character? characterFind = Context.Character.Find(characterId);
                 if (characterFind != null) {
-                    characterFind.Achievements = GetCharacterAchievements(characterId);
+                    characterFind.Achievements = GetAchievements(characterId);
                     characterFind.AchievementInfo = GetAchievementInfo(characterFind.Achievements);
                 }
             }
@@ -94,8 +94,8 @@ public partial class GameStorage {
             Account? account = Context.Account.FirstOrDefault(a => a.Id == character.AccountId);
             if(account == null) return null;
 
-            IEnumerable<Achievement> accountTrophies = Context.Achievement.Where(a => a.AccountId == character.AccountId).AsEnumerable();
-            IEnumerable<Achievement> characterTrophies = Context.Achievement.Where(a => a.Id == character.Id).AsEnumerable();
+            IEnumerable<Achievement> accountTrophies = Context.Achievement.Where(a => a.OwnerId == character.AccountId).AsEnumerable();
+            IEnumerable<Achievement> characterTrophies = Context.Achievement.Where(a => a.OwnerId == character.Id).AsEnumerable();
 
             UgcMap? indoor = Context.UgcMap.FirstOrDefault(u => u.OwnerId == character.AccountId && u.Indoor);
             UgcMap? outdoor = Context.UgcMap.FirstOrDefault(u => u.OwnerId == character.AccountId && !u.Indoor);

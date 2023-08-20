@@ -44,9 +44,6 @@ public partial class GameStorage {
         private static PlayerInfo BuildPlayerInfo(Model.Character character, UgcMap indoor, UgcMap? outdoor, IEnumerable<Achievement> accountAchievements, IEnumerable<Achievement> characterAchievements) {
             AchievementInfo achievements = new AchievementInfo();
             foreach (Achievement trophy in accountAchievements) {
-                if (trophy.CharacterId == character.Id) {
-                    continue;
-                }
                 switch (trophy.Category) {
                     case AchievementCategory.Combat:
                         achievements.Combat += trophy.Grades.Count;
