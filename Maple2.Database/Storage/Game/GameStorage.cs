@@ -47,14 +47,14 @@ public partial class GameStorage {
             foreach ((int id, TrophyEntry entry) in trophy) {
                 switch (entry.Category) {
                     case TrophyCategory.Combat:
-                        playerTrophy.Combat += entry.GradesReceived.Count;
+                        playerTrophy.Combat += entry.Grades.Count;
                         break;
                     case TrophyCategory.Adventure:
-                        playerTrophy.Adventure += entry.GradesReceived.Count;
+                        playerTrophy.Adventure += entry.Grades.Count;
                         break;
                     case TrophyCategory.None:
                     case TrophyCategory.Life:
-                        playerTrophy.Lifestyle += entry.GradesReceived.Count;
+                        playerTrophy.Lifestyle += entry.Grades.Count;
                         break;
                 }
             }

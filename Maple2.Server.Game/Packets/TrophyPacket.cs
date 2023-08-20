@@ -49,7 +49,7 @@ public static class TrophyPacket {
         var pWriter = Packet.Of(SendOp.Achieve);
         pWriter.Write<Command>(Command.Favorite);
         pWriter.WriteInt(trophy.Id);
-        //pWriter.WriteBool(favorited);
+        pWriter.WriteBool(trophy.Favorite);
 
         return pWriter;
     }

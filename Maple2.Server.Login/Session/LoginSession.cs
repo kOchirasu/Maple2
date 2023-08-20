@@ -59,9 +59,7 @@ public class LoginSession : Core.Network.Session {
         ChannelsResponse response = World.Channels(new ChannelsRequest());
         Send(BannerListPacket.SetBanner());
         Send(ServerListPacket.Load(Target.SERVER_NAME,
-            new[] {
-                new IPEndPoint(Target.LoginIp, Server.Port)
-            }, response.Channels));
+            new []{new IPEndPoint(Target.LoginIp, Server.Port)}, response.Channels));
     }
 
     public void ListCharacters() {
@@ -131,11 +129,7 @@ public class LoginSession : Core.Network.Session {
 
         Send(CharacterListPacket.SetMax(account.MaxCharacters, Constant.ServerMaxCharacters));
         Send(CharacterListPacket.AppendEntry(account, character,
-            new Dictionary<ItemGroup, List<Item>> {
-                {
-                    ItemGroup.Outfit, outfits
-                }
-            }));
+            new Dictionary<ItemGroup, List<Item>> {{ItemGroup.Outfit, outfits}}));
     }
 
     #region Dispose

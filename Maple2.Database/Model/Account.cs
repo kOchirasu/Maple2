@@ -69,14 +69,14 @@ internal class Account {
             foreach ((int id, TrophyEntry entry) in other.Trophy) {
                 switch (entry.Category) {
                     case TrophyCategory.Combat:
-                        accountTrophy.Combat += entry.GradesReceived.Count;
+                        accountTrophy.Combat += entry.Grades.Count;
                         break;
                     case TrophyCategory.Adventure:
-                        accountTrophy.Adventure += entry.GradesReceived.Count;
+                        accountTrophy.Adventure += entry.Grades.Count;
                         break;
                     case TrophyCategory.None:
                     case TrophyCategory.Life:
-                        accountTrophy.Lifestyle += entry.GradesReceived.Count;
+                        accountTrophy.Lifestyle += entry.Grades.Count;
                         break;
                 }
             }
@@ -132,11 +132,11 @@ internal class MarketLimits {
 internal class TrophyEntry {
     public int Id { get; set; }
     public int CurrentGrade { get; set; }
-    public int RewardGradeReceived { get; set; }
+    public int RewardGrade { get; set; }
     public bool Favorite { get; set; }
     public long Counter { get; set; }
     public TrophyCategory Category { get; set; }
-    public required IDictionary<int, long> GradesReceived { get; set; }
+    public required IDictionary<int, long> Grades { get; set; }
 
     [return:NotNullIfNotNull(nameof(other))]
     public static implicit operator TrophyEntry?(Maple2.Model.Game.TrophyEntry? other) {
@@ -146,41 +146,23 @@ internal class TrophyEntry {
         return new TrophyEntry {
             Id = other.Id,
             CurrentGrade = other.CurrentGrade,
-            RewardGradeReceived = other.RewardGrade,
+            RewardGrade = other.RewardGrade,
             Favorite = other.Favorite,
             Counter = other.Counter,
             Category = other.Category,
-            GradesReceived = other.Grades,
+            Grades = other.Grades,
         };
     }
-    
-    /*// Only used for PlayerLookUp trophy counting
-    [return:NotNullIfNotNull(nameof(other))]
-    public static implicit operator Maple2.Model.Game.TrophyEntry?(TrophyEntry? other) {
-        if (other == null) {
-            return null;
-        }
-
-        return new Maple2.Model.Game.TrophyEntry {
-            Id = other.Id,
-            CurrentGrade = other.CurrentGrade,
-            RewardGradeReceived = other.RewardGradeReceived,
-            Favorite = other.Favorite,
-            Counter = other.Counter,
-            Type = other.Type,
-            GradesReceived = other.GradesReceived,
-        };
-    }*/
 
     // Use explicit Convert() here because we need metadata to construct TrophyEntry.
     public Maple2.Model.Game.TrophyEntry Convert(TrophyMetadata metadata) {
         return new Maple2.Model.Game.TrophyEntry(metadata) {
             CurrentGrade = CurrentGrade,
-            RewardGrade = RewardGradeReceived,
+            RewardGrade = RewardGrade,
             Favorite = Favorite,
             Counter = Counter,
             Category = Category,
-            Grades = GradesReceived,
+            Grades = Grades,
         };
     }
 }
