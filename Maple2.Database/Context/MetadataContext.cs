@@ -42,7 +42,7 @@ public sealed class MetadataContext : DbContext {
         modelBuilder.Entity<ScriptMetadata>(ConfigureScriptMetadata);
         modelBuilder.Entity<StoredSkillMetadata>(ConfigureSkillMetadata);
         modelBuilder.Entity<TableMetadata>(ConfigureTableMetadata);
-        modelBuilder.Entity<AchievementMetadata>(ConfigureTrophyMetadata);
+        modelBuilder.Entity<AchievementMetadata>(ConfigureAchievementMetadata);
         modelBuilder.Entity<UgcMapMetadata>(ConfigureUgcMapMetadata);
     }
 
@@ -164,7 +164,7 @@ public sealed class MetadataContext : DbContext {
         builder.Property(table => table.Table).HasJsonConversion().IsRequired();
     }
     
-    private static void ConfigureTrophyMetadata(EntityTypeBuilder<AchievementMetadata> builder) {
+    private static void ConfigureAchievementMetadata(EntityTypeBuilder<AchievementMetadata> builder) {
         builder.ToTable("achievement");
         builder.HasKey(achievement => achievement.Id);
         builder.Property(achievement => achievement.CategoryTags).HasJsonConversion();

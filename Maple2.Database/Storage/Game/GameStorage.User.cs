@@ -179,7 +179,7 @@ public partial class GameStorage {
 
             player.Character.GuildId = guild.Item1;
             player.Character.GuildName = guild.Item2;
-            
+
             player.Character.Achievements = GetCharacterAndAccountAchievements(accountId, characterId);
             player.Character.AchievementInfo = GetAchievementInfo(player.Character.Achievements);
 
@@ -297,16 +297,12 @@ public partial class GameStorage {
             Model.Account model = account;
             model.Id = 0;
 #if DEBUG
-            model.Currency = new AccountCurrency {
-                Meret = 99999
-            };
+            model.Currency = new AccountCurrency {Meret = 99999};
 #endif
             Context.Account.Add(model);
             Context.SaveChanges(); // Exception if failed.
 
-            Context.Home.Add(new Home {
-                AccountId = model.Id
-            });
+            Context.Home.Add(new Home {AccountId = model.Id});
             Context.UgcMap.Add(new UgcMap {
                 OwnerId = model.Id,
                 MapId = Constant.DefaultHomeMapId,
@@ -322,9 +318,7 @@ public partial class GameStorage {
             Model.Character model = character;
             model.Id = 0;
 #if DEBUG
-            model.Currency = new CharacterCurrency {
-                Meso = 999999999
-            };
+            model.Currency = new CharacterCurrency {Meso = 999999999};
 #endif
             Context.Character.Add(model);
             return Context.TrySaveChanges() ? model : null;
@@ -335,9 +329,7 @@ public partial class GameStorage {
             model.CharacterId = characterId;
             Context.CharacterUnlock.Add(model);
 
-            SkillTab? defaultTab = CreateSkillTab(characterId, new SkillTab("Build 1") {
-                Id = characterId
-            });
+            SkillTab? defaultTab = CreateSkillTab(characterId, new SkillTab("Build 1") {Id = characterId});
             if (defaultTab == null) {
                 return false;
             }

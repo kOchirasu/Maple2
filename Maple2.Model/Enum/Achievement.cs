@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices;
-
-namespace Maple2.Model.Enum;
+﻿namespace Maple2.Model.Enum;
 
 public enum AchievementStatus : byte {
     InProgress = 2,

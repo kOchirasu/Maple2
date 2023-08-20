@@ -24,16 +24,6 @@ public sealed class AchievementManager {
 
     public AchievementManager(GameSession session) {
         this.session = session;
-
-        /*using GameStorage.Request db = session.GameStorage.Context();
-        Values = db.GetAccountAchievements(session.AccountId);
-        IDictionary<int, Achievement> characterAchievements = db.GetCharacterAchievements(session.CharacterId);
-        foreach ((int id, Achievement achievement) in characterAchievements) {
-            if (Values.ContainsKey(id)) {
-                continue;
-            }
-            Values.Add(id, achievement);
-        }*/
     }
 
     public void Load() {

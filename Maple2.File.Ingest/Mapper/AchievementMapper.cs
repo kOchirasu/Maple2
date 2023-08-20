@@ -7,10 +7,10 @@ using Maple2.Model.Metadata;
 
 namespace Maple2.File.Ingest.Mapper;
 
-public class TrophyMapper : TypeMapper<AchievementMetadata> {
+public class AchievementMapper : TypeMapper<AchievementMetadata> {
     private readonly AchieveParser parser;
 
-    public TrophyMapper(M2dReader xmlReader) {
+    public AchievementMapper(M2dReader xmlReader) {
         parser = new AchieveParser(xmlReader);
     }
 
