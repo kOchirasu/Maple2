@@ -146,11 +146,11 @@ internal class TrophyEntry {
         return new TrophyEntry {
             Id = other.Id,
             CurrentGrade = other.CurrentGrade,
-            RewardGradeReceived = other.RewardGradeReceived,
+            RewardGradeReceived = other.RewardGrade,
             Favorite = other.Favorite,
             Counter = other.Counter,
             Category = other.Category,
-            GradesReceived = other.GradesReceived,
+            GradesReceived = other.Grades,
         };
     }
     
@@ -176,11 +176,11 @@ internal class TrophyEntry {
     public Maple2.Model.Game.TrophyEntry Convert(TrophyMetadata metadata) {
         return new Maple2.Model.Game.TrophyEntry(metadata) {
             CurrentGrade = CurrentGrade,
-            RewardGradeReceived = RewardGradeReceived,
+            RewardGrade = RewardGradeReceived,
             Favorite = Favorite,
             Counter = Counter,
             Category = Category,
-            GradesReceived = GradesReceived,
+            Grades = GradesReceived,
         };
     }
 }

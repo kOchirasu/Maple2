@@ -15,7 +15,7 @@ public enum TrophyCategory {
 }
 
 public enum TrophyRewardType {
-    unknown = 0,
+    none = 0,
     item = 1,
     title = 2,
     statpoint = 3,
@@ -28,7 +28,7 @@ public enum TrophyRewardType {
     beauty_skin = 10,
     beauty_hair = 11,
     dynamicaction = 12,
-    etc = 12,
+    etc = 13,
 }
 
 public enum TrophyConditionType {

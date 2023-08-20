@@ -188,6 +188,7 @@ public sealed partial class GameSession : Core.Network.Session {
         // UserMaid
         // UserEnv
         Send(UserEnvPacket.LoadTitles(Player.Value.Unlock.Titles));
+        Send(UserEnvPacket.InteractedObjects(Player.Value.Unlock.InteractedObjects));
         Send(UserEnvPacket.LoadClaimedRewards(Player.Value.Unlock.MasteryRewardsClaimed));
         Send(FishingPacket.LoadAlbum(Player.Value.Unlock.FishAlbum.Values));
         Pet?.Load();

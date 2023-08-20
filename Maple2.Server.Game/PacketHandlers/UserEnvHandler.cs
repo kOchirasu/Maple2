@@ -38,10 +38,6 @@ public class UserEnvHandler : PacketHandler<GameSession> {
     }
 
     private void HandleTrophyProgress(GameSession session) {
-        // TODO: Implement this trophy information.
-        // This is used for keeping track of trophies with lists of different requirements.
-        // For example 23300003 - Trend-setter. This requires to obtain all 6 DIFFERENT types of books.
-        // This will keep track of a users progress of which books they've collected already and quantity.
-        session.Send(UserEnvPacket.TrophyProgress());
+        session.Send(UserEnvPacket.ItemCollects(session.Player.Value.Unlock.ItemCollects));
     }
 }

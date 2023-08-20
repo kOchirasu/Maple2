@@ -40,6 +40,9 @@ public class TrophyMetadataStorage : MetadataStorage<int, TrophyMetadata> {
     }
 
     public IEnumerable<TrophyMetadata> GetMany(TrophyConditionType type) {
-        return Context.TrophyMetadata.Where(trophy => trophy.ConditionType == type);
+        return Context.TrophyMetadata
+            .AsEnumerable()
+            .Where(trophy => trophy.Grades.Values.Any(grade => grade.Condition.Type == type))
+            .ToList();
     }
 }

@@ -6,6 +6,7 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Model;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.Packets;
 
@@ -44,7 +45,7 @@ public static class ProxyObjectPacket {
         pWriter.WriteUnicodeString(player.Home.Indoor.Name);
         pWriter.WriteInt(fieldPlayer.Stats.GearScore);
         pWriter.WriteShort((short) fieldPlayer.State);
-        pWriter.Write<Trophy>(player.Account.Trophy);
+        pWriter.WriteClass<Trophy>(player.Account.Trophy);
 
         return pWriter;
     }

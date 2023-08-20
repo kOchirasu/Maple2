@@ -276,7 +276,7 @@ public static class FieldPacket {
         writer.WriteInt(session.Stats.Values.GearScore);
         writer.Write<SkinColor>(character.SkinColor);
         writer.WriteLong(character.CreationTime);
-        writer.Write<Trophy>(account.Trophy);
+        writer.WriteClass<Trophy>(account.Trophy);
         writer.WriteLong(character.GuildId);
         writer.WriteUnicodeString(character.GuildName);
         writer.WriteUnicodeString(character.Motto);

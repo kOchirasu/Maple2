@@ -3,6 +3,7 @@ using System.Threading;
 using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
@@ -70,7 +71,7 @@ public class GuildMember : IByteSerializable, IDisposable {
         writer.WriteInt(info.PlotNumber);
         writer.WriteInt(info.ApartmentNumber);
         writer.WriteLong(info.PlotExpiryTime);
-        writer.Write<Trophy>(info.Trophy);
+        writer.WriteClass<Trophy>(info.Trophy);
     }
 
     public void Dispose() {

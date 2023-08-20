@@ -1,4 +1,5 @@
 ﻿using Maple2.Model;
+using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
@@ -62,5 +63,7 @@ public class EmoteHandler : PacketHandler<GameSession> {
             // Not sure if there is a way to prevent an emote from being used.
             return;
         }
+        
+        session.Trophy.Update(TrophyConditionType.emotion, codeString: aniKey);
     }
 }

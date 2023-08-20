@@ -1,5 +1,6 @@
 ﻿using System.Numerics;
 using Maple2.Database.Storage;
+using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -96,8 +97,8 @@ public class TaxiHandler : PacketHandler<GameSession> {
     private static void HandleDiscoverTaxi(GameSession session) {
         int mapId = session.Player.Value.Character.MapId;
         session.Player.Value.Unlock.Taxis.Add(mapId);
-
         session.Send(RevealTaxi(mapId));
+        session.Trophy.Update(TrophyConditionType.taxifind);
     }
 
     private static ByteWriter RevealTaxi(params int[] taxis) {

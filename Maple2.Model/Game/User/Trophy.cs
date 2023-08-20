@@ -13,8 +13,7 @@ using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
-[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 12)]
-public struct Trophy {
+public class Trophy : IByteSerializable {
     public int Combat { get; set; }
     public int Adventure { get; set; }
     public int Lifestyle { get; set; }
@@ -35,20 +34,26 @@ public struct Trophy {
         };
     }
     public int Total => Combat + Adventure + Lifestyle;
+    
+    public void WriteTo(IByteWriter writer) {
+        writer.WriteInt(Combat);
+        writer.WriteInt(Adventure);
+        writer.WriteInt(Lifestyle);
+    }
 }
 
 public class TrophyEntry : IByteSerializable {
     public readonly TrophyMetadata Metadata;
-    public int Id;
-    public bool Completed => CurrentGrade == Metadata.Grades.Count;
+    public readonly int Id;
+    public bool Completed => CurrentGrade == Grades.Count;
     public TrophyStatus Status => Completed ? TrophyStatus.Completed : TrophyStatus.InProgress;
     public int CurrentGrade;
-    public int RewardGradeReceived;
+    public int RewardGrade;
     public bool Favorite;
     public long Counter;
     public TrophyCategory Category { get; init; }
 
-    public IDictionary<int, long> GradesReceived { get; set; } = new Dictionary<int, long>();
+    public IDictionary<int, long> Grades { get; set; } = new Dictionary<int, long>();
 
     public TrophyEntry(TrophyMetadata metadata) {
         Metadata = metadata;
@@ -56,27 +61,18 @@ public class TrophyEntry : IByteSerializable {
         Id = metadata.Id;
     }
 
-    public void RankUp() {
-        if (!Metadata.Grades.TryGetValue(CurrentGrade + 1, out TrophyMetadataGrade? gradeMetadata)) {
-            return;
-        }
-
-        CurrentGrade++;
-        
-    }
-
     public void WriteTo(IByteWriter writer) {
         writer.Write<TrophyStatus>(Status);
         writer.WriteInt(Completed ? 1 : 0);
         writer.WriteInt(CurrentGrade);
-        writer.WriteInt(RewardGradeReceived);
+        writer.WriteInt(RewardGrade);
         writer.WriteBool(Favorite);
         writer.WriteLong(Counter);
-        writer.WriteInt(GradesReceived.Count);
+        writer.WriteInt(Grades.Count);
 
-        foreach ((int grade, long timeAcquired) in GradesReceived.OrderBy(grade => grade.Key).ToList()) {
+        foreach ((int grade, long timeAcquired) in Grades.OrderBy(grade => grade.Key).ToList()) {
             writer.WriteInt(grade);
             writer.WriteLong(timeAcquired);
-        }    
+        }
     }
 }

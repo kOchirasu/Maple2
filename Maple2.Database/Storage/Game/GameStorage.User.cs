@@ -183,7 +183,7 @@ public partial class GameStorage {
         Console.WriteLine($"> Begin Save... {Context.ContextId}");
         
         IDictionary<int, Model.TrophyEntry> trophy = new Dictionary<int, Model.TrophyEntry>();
-        foreach ((int id, TrophyEntry entry) in accountTrophies) {
+        foreach ((int id, TrophyEntry entry) in accountTrophies.Where(accountTrophy => accountTrophy.Value.Metadata.AccountWide)) {
             trophy.Add(id, entry);
         }
         

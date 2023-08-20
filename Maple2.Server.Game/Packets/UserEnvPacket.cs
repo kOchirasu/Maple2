@@ -10,7 +10,8 @@ public static class UserEnvPacket {
         AddTitle = 0,
         UpdateTitles = 1,
         LoadTitles = 2,
-        TrophyProgress = 3,
+        ItemCollects = 3,
+        InteractedObjects = 4,
         LifeSkillCount = 8,
         MasteryRewardsClaimed = 9,
     }
@@ -41,16 +42,25 @@ public static class UserEnvPacket {
         return pWriter;
     }
 
-    public static ByteWriter TrophyProgress() {
+    public static ByteWriter ItemCollects(IDictionary<int, byte> itemCollects) {
         var pWriter = Packet.Of(SendOp.UserEnv);
-        pWriter.Write<Command>(Command.TrophyProgress);
-        pWriter.WriteInt(); // count
-        
-        /*
-         * foreach loop
-         * pWriter.WiteInt(code ID) // item id
-         * pWriter.WriteByte() // quantity
-         */
+        pWriter.Write<Command>(Command.ItemCollects);
+        pWriter.WriteInt(itemCollects.Count);
+        foreach((int itemId, byte quantity) in itemCollects) {
+            pWriter.WriteInt(itemId);
+            pWriter.WriteByte(quantity);
+        }
+
+        return pWriter;
+    }
+    
+    public static ByteWriter InteractedObjects(ISet<int> interactedObjects) {
+        var pWriter = Packet.Of(SendOp.UserEnv);
+        pWriter.Write<Command>(Command.InteractedObjects);
+        pWriter.WriteInt(interactedObjects.Count);
+        foreach(int id in interactedObjects) {
+            pWriter.WriteInt(id);
+        }
 
         return pWriter;
     }

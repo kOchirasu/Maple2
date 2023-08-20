@@ -59,7 +59,9 @@ public class LoginSession : Core.Network.Session {
         ChannelsResponse response = World.Channels(new ChannelsRequest());
         Send(BannerListPacket.SetBanner());
         Send(ServerListPacket.Load(Target.SERVER_NAME,
-            new []{new IPEndPoint(Target.LoginIp, Server.Port)}, response.Channels));
+            new[] {
+                new IPEndPoint(Target.LoginIp, Server.Port)
+            }, response.Channels));
     }
 
     public void ListCharacters() {
@@ -93,14 +95,31 @@ public class LoginSession : Core.Network.Session {
         }
 
         var unlock = new Unlock();
-        unlock.Emotes.UnionWith(new[] {
+        int[] defaultEmotes = {
             90200011, // Greet
             90200004, // Scheme
             90200024, // Reject
             90200041, // Sit
             90200042, // Ledge Sit
+            90200057, // Possessed Fan Dance
             90200043, // Epiphany
-        });
+            90200022, // Bow
+            90200031, // Cry
+            90200005, // Dejected
+            90200006, // Like
+            90200003, // Pout
+            90200092, // High Five
+            90200077, // Catch of the Day
+            90200073, // Make It Rain
+            90200023, // Surprise
+            90200001, // Anger
+            90200019, // Scissors
+            90200020, // Rock
+            90200021, // Paper
+        };
+        foreach (int emoteId in defaultEmotes) {
+            unlock.Emotes.Add(emoteId);
+        }
         db.InitNewCharacter(character.Id, unlock);
 
         List<Item>? outfits = db.CreateItems(character.Id, createOutfits.ToArray());
@@ -112,7 +131,11 @@ public class LoginSession : Core.Network.Session {
 
         Send(CharacterListPacket.SetMax(account.MaxCharacters, Constant.ServerMaxCharacters));
         Send(CharacterListPacket.AppendEntry(account, character,
-            new Dictionary<ItemGroup, List<Item>> {{ItemGroup.Outfit, outfits}}));
+            new Dictionary<ItemGroup, List<Item>> {
+                {
+                    ItemGroup.Outfit, outfits
+                }
+            }));
     }
 
     #region Dispose

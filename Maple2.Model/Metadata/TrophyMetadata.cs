@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Numerics;
 using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
@@ -7,20 +8,27 @@ public record TrophyMetadata(
     int Id,
     string? Name,
     bool AccountWide,
-    int NoticePercent,
     TrophyCategory Category,
     string[] CategoryTags,
-    TrophyConditionType ConditionType,
     IReadOnlyDictionary<int, TrophyMetadataGrade> Grades) : ISearchResult;
 
 public record TrophyMetadataGrade(
     TrophyMetadataCondition Condition,
-    TrophyMetadataReward Reward);
+    TrophyMetadataReward? Reward);
 
 public record TrophyMetadataCondition(
-    string[] Code,
+    TrophyConditionType Type,
+    TrophyMetadataCondition.Code? Codes,
     long Value,
-    string[] Target);
+    TrophyMetadataCondition.Code? Target) {
+
+
+    public record Code(
+        string[]? Strings,
+        Range<int>? Range,
+        int[]? Integers);
+    public readonly record struct Range<T>(T Min, T Max) where T : INumber<T>;
+}
 
 public record TrophyMetadataReward(
     TrophyRewardType Type,

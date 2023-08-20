@@ -96,7 +96,7 @@ public class Buddy : IByteSerializable, IDisposable {
         writer.WriteInt(Info.ApartmentNumber);
         writer.WriteUnicodeString(Info.HomeName);
         writer.WriteLong(Info.PlotExpiryTime); // Home expiry time?
-        writer.Write<Trophy>(Info.Trophy);
+        writer.WriteClass<Trophy>(Info.Trophy);
     }
 
     public void Dispose() {
