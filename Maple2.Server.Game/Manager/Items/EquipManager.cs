@@ -7,6 +7,7 @@ using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Server.Core.Packets;
+using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -134,7 +135,7 @@ public class EquipManager {
             item.Slot = (short) slot;
             equips[slot] = item;
             session.Field?.Broadcast(EquipPacket.EquipItem(session.Player, item, 0));
-
+            session.Player.Buffs.AddItemBuffs(item);
             return true;
         }
     }
@@ -300,6 +301,7 @@ public class EquipManager {
         }
 
         session.Field?.Broadcast(EquipPacket.UnequipItem(session.Player, unequipItem));
+        session.Player.Buffs.RemoveItemBuffs(unequipItem);
         return true;
     }
 

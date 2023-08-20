@@ -95,8 +95,8 @@ public partial class TriggerContext {
     public void NpcRemoveAdditionalEffect(int spawnId, int additionalEffectId) {
         WarnLog("[NpcRemoveAdditionalEffect] spawnId:{SpawnId}", spawnId);
         foreach (FieldNpc npc in Field.Npcs.Values) {
-            if (npc.SpawnPointId == spawnId && npc.Buffs.TryGetValue(additionalEffectId, out Buff? buff)) {
-                buff.Remove();
+            if (npc.SpawnPointId == spawnId) {
+                npc.Buffs.Remove(additionalEffectId);
             }
         }
     }

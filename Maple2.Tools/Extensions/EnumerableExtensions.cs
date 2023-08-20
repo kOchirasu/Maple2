@@ -91,7 +91,7 @@ public static class EnumerableExtensions {
     }
 
     public static void AddIfNotDefault<TK, TV>(this IDictionary<TK, TV> dictionary, TK key, TV value) where TK : notnull where TV : notnull {
-        if (!value.Equals(default)) {
+        if (!value.Equals(default(TV))) {
             dictionary[key] = value;
         }
     }

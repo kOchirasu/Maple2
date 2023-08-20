@@ -56,6 +56,7 @@ public sealed class MetadataContext : DbContext {
         builder.Property(effect => effect.Status).HasJsonConversion();
         builder.Property(effect => effect.Recovery).HasJsonConversion();
         builder.Property(effect => effect.Dot).HasJsonConversion();
+        builder.Property(effect => effect.Reflect).HasJsonConversion();
         builder.Property(effect => effect.Shield).HasJsonConversion();
         builder.Property(effect => effect.InvokeEffect).HasJsonConversion();
         builder.Property(effect => effect.Skills).HasJsonConversion();
@@ -78,6 +79,7 @@ public sealed class MetadataContext : DbContext {
         builder.Property(item => item.Limit).HasJsonConversion();
         builder.Property(item => item.Skill).HasJsonConversion();
         builder.Property(item => item.Function).HasJsonConversion();
+        builder.Property(item => item.AdditionalEffects).HasJsonConversion();
         builder.Property(item => item.Option).HasJsonConversion();
         builder.Property(item => item.Music).HasJsonConversion();
         builder.Property(item => item.Housing).HasJsonConversion();

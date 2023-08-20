@@ -84,8 +84,8 @@ public static class FieldPacket {
             pWriter.WriteDeflated(buffer.Buffer, 0, buffer.Length);
         }
 
-        pWriter.WriteShort((short) session.Player.Buffs.Count);
-        foreach (Buff buff in session.Player.Buffs.Values) {
+        pWriter.WriteShort((short) session.Player.Buffs.Buffs.Count);
+        foreach (Buff buff in session.Player.Buffs.Buffs.Values) {
             pWriter.WriteInt(buff.Owner.ObjectId);
             pWriter.WriteInt(buff.ObjectId);
             pWriter.WriteInt(buff.Caster.ObjectId);
@@ -149,8 +149,8 @@ public static class FieldPacket {
         pWriter.WriteNpcStats(npc.Stats);
         pWriter.WriteBool(npc.IsDead);
 
-        pWriter.WriteShort((short) npc.Buffs.Count);
-        foreach (Buff buff in npc.Buffs.Values) {
+        pWriter.WriteShort((short) npc.Buffs.Buffs.Count);
+        foreach (Buff buff in npc.Buffs.Buffs.Values) {
             pWriter.WriteInt(buff.Owner.ObjectId);
             pWriter.WriteInt(buff.ObjectId);
             pWriter.WriteInt(buff.Caster.ObjectId);
@@ -164,8 +164,8 @@ public static class FieldPacket {
 
         if (npc.Value.IsBoss) {
             pWriter.WriteUnicodeString(); // EffectStr
-            pWriter.WriteInt(npc.Buffs.Count);
-            foreach (Buff buff in npc.Buffs.Values) {
+            pWriter.WriteInt(npc.Buffs.Buffs.Count);
+            foreach (Buff buff in npc.Buffs.Buffs.Values) {
                 pWriter.WriteInt(buff.Id);
                 pWriter.WriteShort(buff.Level);
             }
