@@ -181,7 +181,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
                 session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert | NoticePacket.Flags.Message, StringCode.s_err_invalid_item));
                 return;
             }
-            session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert | NoticePacket.Flags.Message, StringCode.s_worldchat_use_coupon));
+            session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert | NoticePacket.Flags.Message, StringCode.s_channelchat_use_coupon));
         } else {
             int meretCost = Constant.MeretConsumeChannelChat;
             using GameStorage.Request db = GameStorage.Context();
