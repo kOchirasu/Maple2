@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +12,7 @@ using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Manager.Field;
+using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Session;
 
 namespace Maple2.Server.Game;
@@ -21,6 +23,7 @@ public class GameServer : Server<GameSession> {
     private readonly HashSet<GameSession> connectingSessions;
     private readonly Dictionary<long, GameSession> sessions;
     private readonly Dictionary<string, GameEvent> eventCache = new();
+    private readonly Dictionary<long, IList<SkillCooldown>> skillCooldownsCache = new();
     private readonly GameStorage gameStorage;
 
     public int Channel => Target.GameChannel;
@@ -73,6 +76,30 @@ public class GameServer : Server<GameSession> {
         }
 
         return gameEvent;
+    }
+
+    public IDictionary<int, SkillCooldown> FindPlayerCooldowns(long characterId) {
+        //TODO: Remove this and implement this in player config DB instead
+        var cooldowns = new Dictionary<int, SkillCooldown>();
+        if (!skillCooldownsCache.TryGetValue(characterId, out IList<SkillCooldown>? skillCooldowns)) {
+            return cooldowns;
+        }
+
+        foreach (SkillCooldown cooldown in skillCooldowns) {
+            if (Environment.TickCount64 > cooldown.EndTick) {
+                continue;
+            }
+            long timeDifference = cooldown.EndTick - Environment.TickCount64;
+            cooldown.EndTick = Environment.TickCount64 + timeDifference;
+            cooldowns.TryAdd(cooldown.SkillId, cooldown);
+        }
+
+        skillCooldownsCache.Remove(characterId);
+        return cooldowns;
+    }
+    
+    public void StorePlayerCooldowns(long characterId, IList<SkillCooldown> cooldowns) {
+        skillCooldownsCache[characterId] = cooldowns;
     }
 
     public override Task StopAsync(CancellationToken cancellationToken) {

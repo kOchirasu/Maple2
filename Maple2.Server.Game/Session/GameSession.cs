@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Sockets;
@@ -22,6 +24,7 @@ using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Manager.Items;
 using Maple2.Server.Game.Model;
+using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Util;
 using Maple2.Server.Game.Util.Sync;
@@ -70,7 +73,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public HousingManager Housing { get; set; }
     public CurrencyManager Currency { get; set; }
     public MasteryManager Mastery { get; set; }
-    public StatsManager Stats { get; set; }
+    public StatsManager Stats => Player.Stats;
     public ItemEnchantManager ItemEnchant { get; set; }
     public ItemBoxManager ItemBox { get; set; }
     public BeautyManager Beauty { get; set; }
@@ -115,7 +118,6 @@ public sealed partial class GameSession : Core.Network.Session {
         Player = new FieldPlayer(this, player);
         Currency = new CurrencyManager(this);
         Mastery = new MasteryManager(this);
-        Stats = new StatsManager(this);
         Housing = new HousingManager(this);
         Mail = new MailManager(this);
         ItemEnchant = new ItemEnchantManager(this, Lua);
@@ -133,7 +135,6 @@ public sealed partial class GameSession : Core.Network.Session {
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
             return false;
         }
-        Player.Buffs.Initialize();
 
         var playerUpdate = new PlayerUpdateRequest {
             AccountId = accountId,
@@ -235,7 +236,6 @@ public sealed partial class GameSession : Core.Network.Session {
         NpcScript = null;
 
         if (Field != null) {
-            Player.Buffs.LeaveField();
             Scheduler.Stop();
             Field.RemovePlayer(Player.ObjectId, out _);
         }
@@ -257,7 +257,7 @@ public sealed partial class GameSession : Core.Network.Session {
 
         Field = newField;
         Player = Field.SpawnPlayer(this, Player, portalId, position, rotation);
-        Player.Buffs.LoadFieldBuffs();
+        Config.Skill.UpdatePassiveBuffs();
 
         return true;
     }
@@ -290,6 +290,7 @@ public sealed partial class GameSession : Core.Network.Session {
 
         Send(EmotePacket.Load(Player.Value.Unlock.Emotes.Select(id => new Emote(id)).ToList()));
         Config.LoadMacros();
+        Config.LoadSkillCooldowns();
 
         Send(CubePacket.UpdateProfile(Player, true));
         Send(CubePacket.ReturnMap(Player.Value.Character.ReturnMapId));
@@ -297,7 +298,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Send(RevivalPacket.Count(0)); // TODO: Consumed daily revivals?
         Send(RevivalPacket.Confirm(Player));
         Config.LoadStatAttributes();
-        Player.Buffs.Initialize();
+        Player.Buffs.LoadFieldBuffs();
         Send(PremiumCubPacket.Activate(Player.ObjectId, Player.Value.Account.PremiumTime));
         Send(PremiumCubPacket.LoadItems(Player.Value.Account.PremiumRewardsClaimed));
         return true;
@@ -328,6 +329,14 @@ public sealed partial class GameSession : Core.Network.Session {
     
     public void ChannelBroadcast(ByteWriter packet) {
         server.Broadcast(packet);
+    }
+
+    public IDictionary<int, SkillCooldown> GetSkillCooldowns() {
+        return server.FindPlayerCooldowns(CharacterId);
+    }
+
+    public void CacheSkillCooldowns() {
+        server.StorePlayerCooldowns(CharacterId, Config.GetCurrentSkillCooldowns());
     }
 
     public bool Temp() {
@@ -391,7 +400,7 @@ public sealed partial class GameSession : Core.Network.Session {
 #endif
             Guild.Dispose();
             Buddy.Dispose();
-
+            CacheSkillCooldowns();
             using (GameStorage.Request db = GameStorage.Context()) {
                 db.BeginTransaction();
                 db.SavePlayer(Player);

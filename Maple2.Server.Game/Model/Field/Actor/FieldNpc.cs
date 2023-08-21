@@ -5,6 +5,7 @@ using System.Numerics;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PathEngine;
+using Maple2.Server.Game.Manager;
 using Maple2.Server.Game.Manager.Field;
 using Maple2.Server.Game.Model.Routine;
 using Maple2.Server.Game.Model.State;
@@ -77,7 +78,6 @@ public class FieldNpc : Actor<Npc> {
     // Used for trigger spawn tracking.
     public int SpawnPointId = -1;
 
-    public override Stats Stats { get; }
     public int TargetId = 0;
 
     public FieldNpc(FieldManager field, int objectId, Agent agent, Npc npc) : base (field, objectId, npc) {
@@ -90,7 +90,6 @@ public class FieldNpc : Actor<Npc> {
 
         Navigation = Field.Navigation.ForAgent(this, agent);
         CurrentRoutine = new WaitRoutine(this, -1, 1f);
-        Stats = new Stats(npc.Metadata.Stat);
 
         State = new NpcState();
         SequenceId = -1;

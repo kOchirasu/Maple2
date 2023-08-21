@@ -85,11 +85,11 @@ public static class PlayerInfoPacket {
         // 6 buffers: 280, 280, 280, 140, 720, 720
         #region Stats
         for (int i = 0; i < Stat.TOTAL; i++) {
-            for (int j = 0; j < Stats.TOTAL; j++) {
-                buffer.WriteLong(fieldPlayer.Stats[(BasicAttribute) j][i]);
+            for (int j = 0; j < Stats.BASIC_TOTAL; j++) {
+                buffer.WriteLong(fieldPlayer.Stats.Values[(BasicAttribute) j][i]);
             }
         }
-        for (int i = 0; i < Stats.TOTAL; i++) {
+        for (int i = 0; i < Stats.BASIC_TOTAL; i++) {
             buffer.WriteFloat(0f);
         }
 
@@ -118,7 +118,7 @@ public static class PlayerInfoPacket {
         }
 
         buffer.WriteInt(player.Account.Trophy.Total);
-        buffer.WriteInt(fieldPlayer.Stats.GearScore);
+        buffer.WriteInt(fieldPlayer.Stats.Values.GearScore);
         buffer.WriteLong(player.Character.LastModified.ToEpochSeconds()); // Time entered map/logged in
         buffer.WriteInt();
         buffer.WriteInt();

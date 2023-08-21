@@ -61,11 +61,11 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
         if (!TableMetadata.PremiumClubTable.Items.TryGetValue(benefitId, out PremiumClubTable.Item? premiumMetadata)) {
             return;
         }
-        
+
         Item? item = session.Item.CreateItem(premiumMetadata.Id, premiumMetadata.Rarity, premiumMetadata.Amount);
         if (item == null || !session.Item.Inventory.CanAdd(item)) {
             return;
-        } 
+        }
 
         if (session.Player.Value.Account.PremiumRewardsClaimed.Contains(benefitId)) {
             return;
@@ -92,7 +92,8 @@ public class PremiumClubHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (DateTimeOffset.UtcNow.ToUnixTimeSeconds() < premiumMetadata.StartDate || DateTimeOffset.UtcNow.ToUnixTimeSeconds() > premiumMetadata.EndDate) {
+        if (premiumMetadata.StartDate > 0 && premiumMetadata.EndDate > 0 &&
+            (DateTimeOffset.UtcNow.ToUnixTimeSeconds() < premiumMetadata.StartDate || DateTimeOffset.UtcNow.ToUnixTimeSeconds() > premiumMetadata.EndDate)) {
             return;
         }
 

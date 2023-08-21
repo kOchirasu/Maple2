@@ -71,7 +71,13 @@ public static class Constant {
     public const ItemTag BeautySkinVoucherTag = ItemTag.beauty_skin;
     public const ItemTag BeautyItemColorVoucherTag = ItemTag.beauty_itemcolor;
     public const int HairPaletteId = 2;
-
+    public const int FacePaletteId = 3;
+    
+    public const double PetAttackMultiplier = 0.394;
+    public const double AttackDamageFactor = 4;
+    public const double CriticalConstant = 5.3;
+    public const double CriticalPercentageConversion = 0.015;
+    public const double MaxCriticalRate = 0.4;
 
     public const long FurnishingBaseId = 2870000000000000000;
 

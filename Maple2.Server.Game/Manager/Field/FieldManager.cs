@@ -37,7 +37,7 @@ public sealed partial class FieldManager : IDisposable {
     public SkillMetadataStorage SkillMetadata { get; init; } = null!;
     public TableMetadataStorage TableMetadata { get; init; } = null!;
     public ItemStatsCalculator ItemStatsCalc { get; init; } = null!;
-    public Lua.Lua Lua { private get; init; } = null!;
+    public Lua.Lua Lua { get; init; } = null!;
     // ReSharper restore All
     #endregion
 

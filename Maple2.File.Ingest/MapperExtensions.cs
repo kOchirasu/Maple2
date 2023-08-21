@@ -275,6 +275,24 @@ public static class MapperExtensions {
             Splash: splash);
     }
 
+    public static SkillMetadataChange Convert(this ChangeSkill change) {
+        return new SkillMetadataChange(
+            Origin: new SkillMetadataChange.Skill(
+                Id: change.originSkillID,
+                Level: change.originSkillLevel),
+            Effects: change.changeSkillCheckEffectID
+                .Zip(change.changeSkillCheckEffectLevel, (effectId, effectLevel) => new {
+                    effectId,
+                    effectLevel
+                })
+                .Zip(change.changeSkillCheckEffectOverlapCount, (effect, overlapCount) => new SkillMetadataChange.Effect(effect.effectId, effect.effectLevel, overlapCount))
+                .ToArray(),
+            Skills: change.changeSkillID
+                .Zip(change.changeSkillLevel, (skillId, level) => new SkillMetadataChange.Skill(skillId, level))
+                .ToArray()
+        );
+    }
+
     public static BeginCondition Convert(this Maple2.File.Parser.Xml.Skill.BeginCondition beginCondition) {
         return new BeginCondition(
             Level: beginCondition.level,
@@ -283,6 +301,7 @@ public static class MapperExtensions {
             Stat: beginCondition.stat.ToDictionary(),
             JobCode: beginCondition.job.Select(job => (JobCode) job.code).ToArray(),
             Probability: beginCondition.probability,
+            CooldownTime: beginCondition.cooldownTime,
             OnlyShadowWorld: beginCondition.onlyShadowWorld || beginCondition.isShadowWorld,
             OnlyFlyableMap: beginCondition.onlyFlyableMap,
             Weapon: beginCondition.weapon.Select(weapon => new BeginConditionWeapon(

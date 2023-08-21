@@ -43,7 +43,7 @@ public enum AttackType : byte {
     Physical = 1,
     [Description("s_word_magic: Magic")]
     Magic = 2,
-    Unknown = 3,
+    All = 3,
 }
 
 public enum Element : byte {
@@ -147,4 +147,11 @@ public enum EventConditionType {
     UnknownKritiasPuzzleEvent = 20, // owner
     UnknownWizardEvent = 102,
     UnknownStrikerEvent = 103, // owner
+}
+
+public enum CompulsionType {
+    None = 0,
+    Unknown1 = 1,
+    Critical = 2,
+    Unknown3 = 3,
 }

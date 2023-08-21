@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -9,7 +10,7 @@ using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Util;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Maple2.Tools.Extensions;
 using Serilog;
 
 namespace Maple2.Server.Game.Manager.Config;
@@ -27,11 +28,16 @@ public class BuffManager : IUpdatable {
     private readonly IActor actor;
     // TODO: Change this to support multiple buffs of the same id, different casters. Possibly also different levels?
     public ConcurrentDictionary<int, Buff> Buffs { get; } = new();
-    public ReflectRecord? Reflect; 
+    public IDictionary<InvokeEffectType, IDictionary<int, InvokeRecord>> Invokes { get; init; }
+    public IDictionary<CompulsionEventType, IDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent>> Compulsions { get; init; }
+    private Dictionary<BasicAttribute, float> Resistances { get; } = new();
+    public ReflectRecord? Reflect;
     private readonly ILogger logger = Log.ForContext<BuffManager>();
 
     public BuffManager(IActor actor) {
         this.actor = actor;
+        Invokes = new ConcurrentDictionary<InvokeEffectType, IDictionary<int, InvokeRecord>>();
+        Compulsions = new ConcurrentDictionary<CompulsionEventType, IDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent>>();
     }
 
     public void Initialize() {
@@ -70,6 +76,9 @@ public class BuffManager : IUpdatable {
         // Game Events
         // Prestige
         AddMapBuffs();
+        if (actor is FieldPlayer player) {
+            player.Session.Config.RefreshPremiumClubBuffs();
+        }
     }
 
     public void AddBuff(IActor caster, IActor owner, int id, short level, bool notifyField = true) {
@@ -79,7 +88,7 @@ public class BuffManager : IUpdatable {
         }
 
         // Check if immune to any present buffs
-        if (!CheckImmunity(additionalEffect.Update)) {
+        if (!CheckImmunity(id, additionalEffect.Property.Category)) {
             return;
         }
 
@@ -114,9 +123,23 @@ public class BuffManager : IUpdatable {
             owner.Field.Broadcast(BuffPacket.Update(buff));
             return;
         }
-        
-        // Set Reflect if applicable
+
         SetReflect(buff);
+        SetInvoke(buff);
+        SetCompulsionEvent(buff);
+        SetShield(buff);
+        SetUpdates(buff);
+
+        // refresh stats if needed
+        if (buff.Metadata.Status.Values.Any() || buff.Metadata.Status.Rates.Any() || buff.Metadata.Status.SpecialValues.Any() || buff.Metadata.Status.SpecialRates.Any()) {
+                actor.Stats.Refresh();
+        }
+
+        // Add resistances
+        foreach ((BasicAttribute attribute, float value) in additionalEffect.Status.Resistances) {
+            Resistances.TryGetValue(attribute, out float existingValue);
+            Resistances[attribute] = existingValue + value;
+        }
 
         if (!additionalEffect.Condition.Check(caster, owner, actor)) {
             buff.Disable();
@@ -130,7 +153,7 @@ public class BuffManager : IUpdatable {
     }
 
     private void SetReflect(Buff buff) {
-        if (buff.Metadata.Reflect.EffectId == 0 || !actor.Field.SkillMetadata.TryGetEffect(buff.Metadata.Reflect.EffectId, buff.Metadata.Reflect.EffectLevel, 
+        if (buff.Metadata.Reflect.EffectId == 0 || !actor.Field.SkillMetadata.TryGetEffect(buff.Metadata.Reflect.EffectId, buff.Metadata.Reflect.EffectLevel,
                 out AdditionalEffectMetadata? _)) {
             return;
         }
@@ -138,6 +161,127 @@ public class BuffManager : IUpdatable {
         // Does this get overwritten if a new reflect is applied?
         var record = new ReflectRecord(buff.Id, buff.Metadata.Reflect);
         Reflect = record;
+    }
+
+
+    private void SetInvoke(Buff buff) {
+        if (buff.Metadata.InvokeEffect == null) {
+            return;
+        }
+
+        for (int i = 0; i < buff.Metadata.InvokeEffect.Types.Length; i++) {
+            var record = new InvokeRecord(buff.Id, buff.Metadata.InvokeEffect) {
+                Value = buff.Metadata.InvokeEffect.Values[i],
+                Rate = buff.Metadata.InvokeEffect.Rates[i],
+            };
+
+            // if exists, replace the record to support differentiating buff levels.
+            if (Invokes.TryGetValue(buff.Metadata.InvokeEffect.Types[i], out IDictionary<int, InvokeRecord>? nestedInvokeDic)) {
+                Invokes.RemoveAll(buff.Id);
+
+                if (!nestedInvokeDic.TryAdd(buff.Id, record)) {
+                    logger.Error("Could not add invoke record from {Id} to {Object}", buff.Id, actor.ObjectId);
+                }
+                continue;
+            }
+
+            if (!Invokes.TryAdd(buff.Metadata.InvokeEffect.Types[i], new ConcurrentDictionary<int, InvokeRecord> {
+                    [buff.Id] = record,
+                })) {
+                logger.Error("Could not add invoke record {Type} to {Object}", buff.Metadata.InvokeEffect.Types[i], actor.ObjectId);
+            }
+        }
+    }
+
+    private void SetCompulsionEvent(Buff buff) {
+        if (buff.Metadata.Status.Compulsion == null) {
+            return;
+        }
+
+        CompulsionEventType eventType = buff.Metadata.Status.Compulsion.Type;
+        if (Compulsions.TryGetValue(eventType, out IDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent>? nestedCompulsionDic)) {
+            Compulsions.RemoveAll(buff.Id);
+
+            if (!nestedCompulsionDic.TryAdd(buff.Id, buff.Metadata.Status.Compulsion)) {
+                logger.Error("Could not add compulsion event from {Id} to {Object}", buff.Id, actor.ObjectId);
+            }
+            return;
+        }
+
+        if (!Compulsions.TryAdd(eventType, new ConcurrentDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent> {
+                [buff.Id] = buff.Metadata.Status.Compulsion
+            })) {
+            logger.Error("Could not add compulsion event {Type} to {Object}", eventType, actor.ObjectId);
+        }
+    }
+
+    public float TotalCompulsionRate(CompulsionEventType type, int skillId = 0) {
+        if (!Compulsions.TryGetValue(type, out IDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent>? nestedCompulsionDic)) return 0;
+        return skillId == 0 ? nestedCompulsionDic.Values.Sum(compulsion => compulsion.Rate) :
+            nestedCompulsionDic.Values.Where(compulsion => compulsion.SkillIds.Contains(skillId)).Sum(compulsion => compulsion.Rate);
+    }
+
+    public float GetResistance(BasicAttribute attribute) {
+        if (Resistances.TryGetValue(attribute, out float value)) {
+            return value;
+        }
+        return 0;
+    }
+
+    public (int, float) GetInvokeValues(InvokeEffectType invokeType, int skillId, params int[] skillGroup) {
+        float value = 0;
+        float rate = 0f;
+        if (Invokes.TryGetValue(invokeType, out IDictionary<int, InvokeRecord>? nestedInvokeDic)) {
+            foreach (InvokeRecord invoke in nestedInvokeDic.Values.Where(record => record.Metadata.SkillId == skillId || skillGroup.Contains(record.Metadata.SkillGroupId))) {
+                value += invoke.Value;
+                rate += invoke.Rate;
+            }
+        }
+        return ((int, float)) (value, rate);
+    }
+
+    private void SetShield(Buff buff) {
+        if (buff.Metadata.Shield != null) {
+            if (buff.Metadata.Shield.HpValue > 0) {
+                buff.ShieldHealth = buff.Metadata.Shield.HpValue;
+            } else if (buff.Metadata.Shield.HpByTargetMaxHp > 0f) {
+                buff.ShieldHealth = (long) (actor.Stats.Values[BasicAttribute.Health].Total * buff.Metadata.Shield.HpByTargetMaxHp);
+            }
+        }
+    }
+
+    private void SetUpdates(Buff buff) {
+        if (buff.Metadata.Update.Cancel != null) {
+            CancelBuffs(buff, buff.Metadata.Update.Cancel);
+        }
+
+        // Reset skill cooldowns
+        if (buff.Metadata.Update.ResetCooldown.Length > 0 && actor is FieldPlayer player) {
+            foreach (int skillId in buff.Metadata.Update.ResetCooldown) {
+                player.Session.Config.SetSkillCooldown(skillId);
+            }
+        }
+    }
+
+    private void CancelBuffs(Buff buff, AdditionalEffectMetadataUpdate.CancelEffect cancel) {
+        foreach (int cancelId in cancel.Ids) {
+            if (Buffs.TryGetValue(cancelId, out Buff? cancelBuff)) {
+                if (cancel.CheckSameCaster) {
+                    if (cancelBuff.Caster != buff.Caster) {
+                        continue;
+                    }
+                }
+                Remove(cancelId);
+            }
+        }
+
+        foreach (BuffCategory category in cancel.Categories) {
+            foreach (Buff cancelCategoryBuff in Buffs.Values) {
+                if (cancelCategoryBuff.Metadata.Property.Category == category) {
+                    Remove(cancelCategoryBuff.Id);
+                }
+            }
+        }
     }
 
     public virtual void Update(long tickCount) {
@@ -201,6 +345,20 @@ public class BuffManager : IUpdatable {
         if (Reflect?.SourceBuffId == id) {
             Reflect = null;
         }
+
+        foreach ((BasicAttribute attribute, float value) in buff.Metadata.Status.Resistances) {
+            Resistances[attribute] = Math.Min(0, Resistances[attribute] - value);
+        }
+
+        Invokes.RemoveAll(id);
+        Compulsions.RemoveAll(id);
+
+        if (buff.Metadata.Status.Values.Any() || buff.Metadata.Status.Rates.Any() || buff.Metadata.Status.SpecialValues.Any() || buff.Metadata.Status.SpecialRates.Any()) {
+            if (actor is FieldPlayer player) {
+                player.Session.Stats.Refresh();
+            }
+        }
+
         actor.Field.Broadcast(BuffPacket.Remove(buff));
         return true;
     }
@@ -213,18 +371,12 @@ public class BuffManager : IUpdatable {
         }
     }
 
-    private bool CheckImmunity(AdditionalEffectMetadataUpdate metadataUpdate) {
-        if (metadataUpdate.ImmuneIds.Any(buffId => Buffs.ContainsKey(buffId))) {
-            return false;
-        }
-
-        if (metadataUpdate.ImmuneCategories.Any(category => Buffs.Values.Any(buff => buff.Metadata.Property.Category == category)))
-            foreach (BuffCategory category in metadataUpdate.ImmuneCategories) {
-                if (Buffs.Values.Any(buff => buff.Metadata.Property.Category == category)) {
-                    return false;
-                }
+    private bool CheckImmunity(int newBuffId, BuffCategory category) {
+        foreach ((int id, Buff buff) in Buffs) {
+            if (buff.Metadata.Update.ImmuneIds.Contains(newBuffId) || buff.Metadata.Update.ImmuneCategories.Contains(category)) {
+                return false;
             }
-
+        }
         return true;
     }
 }

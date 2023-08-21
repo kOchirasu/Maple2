@@ -2,6 +2,7 @@
 using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Server.Game.Manager;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Collision;
@@ -13,7 +14,6 @@ public class FieldPlayer : Actor<Player> {
     public readonly GameSession Session;
     public Vector3 LastGroundPosition;
 
-    public override Stats Stats => Session.Stats.Values;
     public override IPrism Shape => new Prism(new Circle(new Vector2(Position.X, Position.Y), 10), Position.Z, 100);
     public ActorState State { get; set; }
     public ActorSubState SubState { get; set; }

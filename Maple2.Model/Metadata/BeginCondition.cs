@@ -10,6 +10,7 @@ public record BeginCondition(
     Gender Gender,
     JobCode[] JobCode,
     float Probability,
+    float CooldownTime,
     bool OnlyShadowWorld,
     bool OnlyFlyableMap,
     IReadOnlyDictionary<BasicAttribute, long> Stat,
