@@ -196,17 +196,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
             session.Currency.Meret -= meretCost;
         }
 
-        var request = new ChatRequest {
-            AccountId = session.AccountId,
-            CharacterId = session.CharacterId,
-            Name = session.PlayerName,
-            Message = message,
-            Channel = new ChatRequest.Types.Channel {ChannelId = session.Player.Value.Character.Channel},
-        };
-
-        try {
-            World.Chat(request);
-        } catch (RpcException) { }
+        session.ChannelBroadcast(ChatPacket.Message(session.AccountId, session.CharacterId, session.PlayerName, ChatType.Channel, message));
     }
 
     private void HandleSuper(GameSession session, string message) {

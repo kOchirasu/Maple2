@@ -23,8 +23,6 @@ public partial class WorldService {
                 return Task.FromResult(new ChatResponse());
             case ChatRequest.ChatOneofCase.Wedding:
                 return Task.FromResult(new ChatResponse());
-            case ChatRequest.ChatOneofCase.Channel:
-                return ChannelChat(request);
             default:
                 throw new RpcException(
                     new Status(StatusCode.InvalidArgument, $"Invalid chat type: {request.ChatCase}"));
@@ -75,15 +73,5 @@ public partial class WorldService {
             client.Chat(request);
         }
         return Task.FromResult(new ChatResponse());
-    }
-    
-    private Task<ChatResponse> ChannelChat(ChatRequest request) {
-        if (!channelClients.TryGetClient(request.Channel.ChannelId, out ChannelClient? channelClient)) {
-            logger.Error("No registry for channel: {Channel}", request.Channel.ChannelId);
-            throw new RpcException(new Status(StatusCode.InvalidArgument,
-                $"Unable to chat on channel: {request.Channel.ChannelId}"));
-        }
-        
-        return Task.FromResult(channelClient.Chat(request));
     }
 }
