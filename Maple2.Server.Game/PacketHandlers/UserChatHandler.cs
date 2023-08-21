@@ -149,8 +149,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
             session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert | NoticePacket.Flags.Message, StringCode.s_worldchat_use_coupon));
         } else {
             int meretCost = Constant.MeretConsumeWorldChat;
-            using GameStorage.Request db = GameStorage.Context();
-            if (db.FindEvent(nameof(SaleChat))?.EventInfo is SaleChat gameEvent) {
+            if (session.FindEvent<SaleChat>()?.EventInfo is SaleChat gameEvent) {
                 meretCost -= (int) (meretCost * Convert.ToSingle(gameEvent.WorldChatDiscount) / 10000);
             }
 
@@ -184,8 +183,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
             session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert | NoticePacket.Flags.Message, StringCode.s_channelchat_use_coupon));
         } else {
             int meretCost = Constant.MeretConsumeChannelChat;
-            using GameStorage.Request db = GameStorage.Context();
-            if (db.FindEvent(nameof(SaleChat))?.EventInfo is SaleChat gameEvent) {
+            if (session.FindEvent<SaleChat>()?.EventInfo is SaleChat gameEvent) {
                 meretCost -= (int) (meretCost * Convert.ToSingle(gameEvent.ChannelChatDiscount) / 10000);
             }
 
