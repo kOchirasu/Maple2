@@ -13,6 +13,7 @@ using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Game.Event;
 using Maple2.Model.Metadata;
+using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
@@ -324,6 +325,10 @@ public sealed partial class GameSession : Core.Network.Session {
 
     public GameEvent? FindEvent<T>() where T : GameEventInfo {
         return server.FindEvent<T>();
+    }
+    
+    public void ChannelBroadcast(ByteWriter packet) {
+        server.Broadcast(packet);
     }
 
     public IDictionary<int, SkillCooldown> GetSkillCooldowns() {
