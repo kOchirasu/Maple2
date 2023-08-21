@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Grpc.Core;
+using Maple2.Model.Enum;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -16,8 +17,10 @@ public partial class ChannelService {
             case ChatRequest.ChatOneofCase.Guild:
                 return Task.FromResult(new ChatResponse());
             case ChatRequest.ChatOneofCase.World:
+                WorldChat(request);
                 return Task.FromResult(new ChatResponse());
             case ChatRequest.ChatOneofCase.Super:
+                SuperChat(request);
                 return Task.FromResult(new ChatResponse());
             case ChatRequest.ChatOneofCase.Club:
                 return Task.FromResult(new ChatResponse());
@@ -35,5 +38,13 @@ public partial class ChannelService {
         }
 
         session.Send(ChatPacket.Whisper(request.AccountId, request.CharacterId, request.Name, request.Message, request.Name));
+    }
+
+    private void WorldChat(ChatRequest request) {
+        server.Broadcast(ChatPacket.Message(request.AccountId, request.CharacterId, request.Name, ChatType.World, request.Message));
+    }
+    
+    private void SuperChat(ChatRequest request) {
+        server.Broadcast(ChatPacket.Message(request.AccountId, request.CharacterId, request.Name, ChatType.Super, request.Message, request.Super.ItemId));
     }
 }

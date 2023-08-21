@@ -35,6 +35,34 @@ public static class ChatPacket {
 
         return pWriter;
     }
+    
+    public static ByteWriter Message(long accountId, long characterId, string characterName, ChatType type, string message, int superChatId = 0) {
+        var pWriter = Packet.Of(SendOp.UserChat);
+        pWriter.WriteLong(accountId);
+        pWriter.WriteLong(characterId);
+        pWriter.WriteUnicodeString(characterName);
+        pWriter.WriteBool(false);
+        pWriter.WriteUnicodeString(message);
+        pWriter.Write<ChatType>(type);
+        pWriter.WriteBool(false);
+        pWriter.WriteInt();
+
+        switch (type) {
+            case ChatType.WhisperFrom:
+                pWriter.WriteUnicodeString();
+                break;
+            case ChatType.Super:
+                pWriter.WriteInt(superChatId);
+                break;
+            case ChatType.Club:
+                pWriter.WriteLong();
+                break;
+        }
+
+        pWriter.WriteBool(false);
+
+        return pWriter;
+    }
 
     public static ByteWriter Whisper(long accountId, long characterId, string name, string message, string? unknown = null) {
         ChatType type = unknown == null ? ChatType.WhisperTo : ChatType.WhisperFrom;

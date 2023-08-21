@@ -6,6 +6,7 @@ using Autofac;
 using Maple2.Database.Storage;
 using Maple2.Model.Game;
 using Maple2.Model.Game.Event;
+using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
@@ -88,5 +89,11 @@ public class GameServer : Server<GameSession> {
         }
 
         return base.StopAsync(cancellationToken);
+    }
+
+    public void Broadcast(ByteWriter packet) {
+        foreach (GameSession session in sessions.Values) {
+            session.Send(packet);
+        }
     }
 }

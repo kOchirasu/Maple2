@@ -16,9 +16,9 @@ public partial class WorldService {
             case ChatRequest.ChatOneofCase.Guild:
                 return Task.FromResult(new ChatResponse());
             case ChatRequest.ChatOneofCase.World:
-                return Task.FromResult(new ChatResponse());
+                return WorldChat(request);
             case ChatRequest.ChatOneofCase.Super:
-                return Task.FromResult(new ChatResponse());
+                return SuperChat(request);
             case ChatRequest.ChatOneofCase.Club:
                 return Task.FromResult(new ChatResponse());
             case ChatRequest.ChatOneofCase.Wedding:
@@ -59,5 +59,27 @@ public partial class WorldService {
             logger.Information("{CharacterId} not found...", request.CharacterId);
             return Task.FromResult(new ChatResponse());
         }
+    }
+    
+    private Task<ChatResponse> WorldChat(ChatRequest request) {
+        foreach ((int, ChannelClient) channel in channelClients) {
+            try {
+                channel.Item2.Chat(request);
+            } catch (RpcException ex) when (ex.StatusCode is StatusCode.NotFound) {
+                logger.Information("{channelId} not found...", channel.Item1);
+            }
+        }
+        return Task.FromResult(new ChatResponse());
+    }
+    
+    private Task<ChatResponse> SuperChat(ChatRequest request) {
+        foreach ((int, ChannelClient) channel in channelClients) {
+            try {
+                channel.Item2.Chat(request);
+            } catch (RpcException ex) when (ex.StatusCode is StatusCode.NotFound) {
+                logger.Information("{channelId} not found...", channel.Item1);
+            }
+        }
+        return Task.FromResult(new ChatResponse());
     }
 }
