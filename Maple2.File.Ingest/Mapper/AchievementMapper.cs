@@ -37,7 +37,6 @@ public class AchievementMapper : TypeMapper<AchievementMetadata> {
                 // skip the first in the array and use it as the trophy category
                 category = GetTrophyCategory(tags[0]);
                 tags = tags.Skip(1).ToArray();
-
             }
 
             yield return new AchievementMetadata(
@@ -69,8 +68,7 @@ public class AchievementMapper : TypeMapper<AchievementMetadata> {
             foreach (string code in codes) {
                 if (!int.TryParse(code, out int intCode)) {
                     strings.Add(code);
-                }
-                else {
+                } else {
                     integers.Add(intCode);
                 }
             }
@@ -84,20 +82,14 @@ public class AchievementMapper : TypeMapper<AchievementMetadata> {
         string[] split = codes[0].Split('-');
         if (split.Length > 1) {
             return new AchievementMetadataCondition.Parameters(
-                Strings: null,
-                Integers: null,
                 Range: new AchievementMetadataCondition.Range<int>(int.Parse(split[0]), int.Parse(split[1])));
         }
 
         if (!int.TryParse(codes[0], out int integerResult)) {
             return new AchievementMetadataCondition.Parameters(
-                Strings: new[] {codes[0]},
-                Range: null,
-                Integers: null);
+                Strings: new[] {codes[0]});
         }
         return new AchievementMetadataCondition.Parameters(
-            Strings: null,
-            Range: null,
             Integers: new[] {integerResult});
     }
 }

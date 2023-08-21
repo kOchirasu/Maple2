@@ -262,6 +262,10 @@ namespace Maple2.Server.World.Migrations
                     b.Property<long>("CharacterId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("CollectedItems")
+                        .IsRequired()
+                        .HasColumnType("json");
+
                     b.Property<string>("Emotes")
                         .IsRequired()
                         .HasColumnType("json");
@@ -278,10 +282,6 @@ namespace Maple2.Server.World.Migrations
                         .HasColumnType("smallint");
 
                     b.Property<string>("InteractedObjects")
-                        .IsRequired()
-                        .HasColumnType("json");
-
-                    b.Property<string>("ItemCollects")
                         .IsRequired()
                         .HasColumnType("json");
 

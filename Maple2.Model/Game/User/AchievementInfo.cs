@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
@@ -7,7 +8,8 @@ using Maple2.Tools;
 
 namespace Maple2.Model.Game;
 
-public class AchievementInfo : IByteSerializable {
+[StructLayout(LayoutKind.Sequential, Pack = 4, Size = 12)]
+public struct AchievementInfo {
     public int Combat { get; set; }
     public int Adventure { get; set; }
     public int Lifestyle { get; set; }
@@ -28,12 +30,6 @@ public class AchievementInfo : IByteSerializable {
         };
     }
     public int Total => Combat + Adventure + Lifestyle;
-    
-    public void WriteTo(IByteWriter writer) {
-        writer.WriteInt(Combat);
-        writer.WriteInt(Adventure);
-        writer.WriteInt(Lifestyle);
-    }
 }
 
 public class Achievement : IByteSerializable {

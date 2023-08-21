@@ -52,8 +52,7 @@ public partial class GameStorage {
             IList<Character>? characters = model.Characters?.Select<Model.Character, Character>(c => c).ToList();
             if (characters != null) {
                 foreach (Character character in characters) {
-                    character.Achievements = GetCharacterAndAccountAchievements(accountId, character.Id);
-                    character.AchievementInfo = GetAchievementInfo(character.Achievements);
+                    character.AchievementInfo = GetAchievementInfo(accountId, character.Id);
                 }    
             }
 
@@ -65,8 +64,7 @@ public partial class GameStorage {
             if (accountId < 0) {
                 Character? characterFind = Context.Character.Find(characterId);
                 if (characterFind != null) {
-                    characterFind.Achievements = GetAchievements(characterId);
-                    characterFind.AchievementInfo = GetAchievementInfo(characterFind.Achievements);
+                    characterFind.AchievementInfo = GetAchievementInfo(accountId, characterId);
                 }
             }
 
@@ -74,8 +72,7 @@ public partial class GameStorage {
            Character? character = Context.Character.FirstOrDefault(character =>
                 character.Id == characterId && character.AccountId == accountId);
            if (character != null) {
-               character.Achievements = GetCharacterAndAccountAchievements(accountId, characterId);
-               character.AchievementInfo = GetAchievementInfo(character.Achievements);
+               character.AchievementInfo = GetAchievementInfo(accountId, characterId);
            }
            return character;
         }
@@ -86,8 +83,7 @@ public partial class GameStorage {
                 .FirstOrDefault();
         }
 
-        public PlayerInfo? GetPlayerInfo(long characterId) 
-        {
+        public PlayerInfo? GetPlayerInfo(long characterId) {
             Character? character = Context.Character.FirstOrDefault(c => c.Id == characterId);
             if(character == null) return null;
 
@@ -180,8 +176,7 @@ public partial class GameStorage {
             player.Character.GuildId = guild.Item1;
             player.Character.GuildName = guild.Item2;
 
-            player.Character.Achievements = GetCharacterAndAccountAchievements(accountId, characterId);
-            player.Character.AchievementInfo = GetAchievementInfo(player.Character.Achievements);
+            player.Character.AchievementInfo = GetAchievementInfo(accountId, characterId);
 
             return player;
         }

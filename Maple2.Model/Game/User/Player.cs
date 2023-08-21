@@ -39,7 +39,7 @@ public class Unlock {
     
     // Used for trophies
     public readonly ISet<int> InteractedObjects = new SortedSet<int>();
-    public readonly IDictionary<int, byte> ItemCollects = new Dictionary<int, byte>();
+    public readonly IDictionary<int, byte> CollectedItems = new Dictionary<int, byte>();
 }
 
 public class Currency {

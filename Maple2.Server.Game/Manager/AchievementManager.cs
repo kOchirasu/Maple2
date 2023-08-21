@@ -18,17 +18,25 @@ public sealed class AchievementManager {
     private const int BATCH_SIZE = 60;
     private readonly GameSession session;
 
-    public IDictionary<int, Achievement> Values => session.Player.Value.Character.Achievements;
+    public IDictionary<int, Achievement> AccountValues { get; set; }
+    public IDictionary<int, Achievement> CharacterValues { get; set; }
 
     private readonly ILogger logger = Log.Logger.ForContext<AchievementManager>();
 
     public AchievementManager(GameSession session) {
         this.session = session;
+        
+        using GameStorage.Request db = session.GameStorage.Context();
+        AccountValues = db.GetAchievements(session.AccountId);
+        CharacterValues = db.GetAchievements(session.CharacterId);
     }
 
     public void Load() {
         session.Send(AchievementPacket.Initialize());
-        foreach (ImmutableList<Achievement> batch in Values.Values.Batch(BATCH_SIZE)) {
+        foreach (ImmutableList<Achievement> batch in CharacterValues.Values.Batch(BATCH_SIZE)) {
+            session.Send(AchievementPacket.Load(batch));
+        }
+        foreach (ImmutableList<Achievement> batch in AccountValues.Values.Batch(BATCH_SIZE)) {
             session.Send(AchievementPacket.Load(batch));
         }
     }
@@ -47,7 +55,8 @@ public sealed class AchievementManager {
         IEnumerable<AchievementMetadata> metadatas = session.AchievementMetadata.GetMany(conditionType);
 
         foreach (AchievementMetadata metadata in metadatas) {
-            if (!Values.TryGetValue(metadata.Id, out Achievement? achievement) || !metadata.Grades.TryGetValue(achievement.CurrentGrade, out AchievementMetadataGrade? grade)) {
+            IDictionary<int, Achievement> achievements = metadata.AccountWide ? AccountValues : CharacterValues;
+            if (!achievements.TryGetValue(metadata.Id, out Achievement? achievement) || !metadata.Grades.TryGetValue(achievement.CurrentGrade, out AchievementMetadataGrade? grade)) {
                 grade = metadata.Grades[1];
             }
 
@@ -64,7 +73,12 @@ public sealed class AchievementManager {
                     CurrentGrade = 1,
                     RewardGrade = 1,
                 };
-                Values.Add(metadata.Id, achievement);
+                GameStorage.Request db = session.GameStorage.Context();
+                achievement = db.CreateAchievement(metadata.AccountWide ? session.AccountId : session.CharacterId, achievement);
+                if (achievement == null) {
+                    throw new InvalidOperationException($"Failed to create achievement: {metadata.Id}");
+                }
+                achievements.Add(metadata.Id, achievement);
             }
 
             if (!RankUp(achievement, count)) {
@@ -114,12 +128,12 @@ public sealed class AchievementManager {
             case AchievementConditionType.item_collect_revise:
                 if ((parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) ||
                     (parameters.Integers != null && parameters.Integers.Contains((int) longValue))) {
-                    if (session.Player.Value.Unlock.ItemCollects.ContainsKey((int) longValue)) {
-                        session.Player.Value.Unlock.ItemCollects[(int) longValue]++;
+                    if (session.Player.Value.Unlock.CollectedItems.ContainsKey((int) longValue)) {
+                        session.Player.Value.Unlock.CollectedItems[(int) longValue]++;
                         return false;
                     }
                     
-                    session.Player.Value.Unlock.ItemCollects.Add((int) longValue, 1);
+                    session.Player.Value.Unlock.CollectedItems.Add((int) longValue, 1);
                     return true;
                 }
                 break;
@@ -221,7 +235,7 @@ public sealed class AchievementManager {
     /// <param name="manualClaim">If true, assumes player requested the reward. it will give the player rewards for items, titles, skill points, and attribute points.
     /// These are never given automatically upon newly awarded trophy grade.</param>
     public void Reward(int trophyId, bool manualClaim = false) {
-        if (!Values.TryGetValue(trophyId, out Achievement? trophy)) {
+        if (!AccountValues.TryGetValue(trophyId, out Achievement? trophy) && !CharacterValues.TryGetValue(trophyId, out trophy)) {
             return;
         }
 
@@ -296,6 +310,7 @@ public sealed class AchievementManager {
     }
 
     public void Save(GameStorage.Request db) {
-        db.SaveAchievements(session.AccountId, session.CharacterId, Values.Values.ToList());
+        db.SaveAchievements(CharacterValues.Values.ToList());
+        db.SaveAchievements(AccountValues.Values.ToList());
     }
 }

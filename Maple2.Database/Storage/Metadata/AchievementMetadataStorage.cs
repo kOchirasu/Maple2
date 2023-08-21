@@ -39,7 +39,7 @@ public class AchievementMetadataStorage : MetadataStorage<int, AchievementMetada
         return true;
     }
 
-    public IEnumerable<AchievementMetadata> GetMany(AchievementConditionType type) {
+    public ICollection<AchievementMetadata> GetMany(AchievementConditionType type) {
         return Context.AchievementMetadata
             .AsEnumerable()
             .Where(achievement => achievement.Grades.Values.Any(grade => grade.Condition.Type == type))

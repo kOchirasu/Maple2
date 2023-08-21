@@ -15,18 +15,18 @@ namespace Maple2.Server.World.Migrations
                 table: "Account");
 
             migrationBuilder.AddColumn<string>(
-                name: "InteractedObjects",
+                name: "CollectedItems",
                 table: "character-unlock",
                 type: "json",
-                defaultValue: "[]",
+                defaultValue: "{}",
                 nullable: false)
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.AddColumn<string>(
-                name: "ItemCollects",
+                name: "InteractedObjects",
                 table: "character-unlock",
                 type: "json",
-                defaultValue: "{}",
+                defaultValue: "[]",
                 nullable: false)
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -58,11 +58,11 @@ namespace Maple2.Server.World.Migrations
                 name: "Achievement");
 
             migrationBuilder.DropColumn(
-                name: "InteractedObjects",
+                name: "CollectedItems",
                 table: "character-unlock");
 
             migrationBuilder.DropColumn(
-                name: "ItemCollects",
+                name: "InteractedObjects",
                 table: "character-unlock");
 
             migrationBuilder.AddColumn<string>(

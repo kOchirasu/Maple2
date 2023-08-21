@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Maple2.Server.World.Migrations
 {
     [DbContext(typeof(Ms2Context))]
-    [Migration("20230820231728_Achievement")]
+    [Migration("20230821082350_Achievement")]
     partial class Achievement
     {
         /// <inheritdoc />
@@ -265,6 +265,10 @@ namespace Maple2.Server.World.Migrations
                     b.Property<long>("CharacterId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("CollectedItems")
+                        .IsRequired()
+                        .HasColumnType("json");
+
                     b.Property<string>("Emotes")
                         .IsRequired()
                         .HasColumnType("json");
@@ -281,10 +285,6 @@ namespace Maple2.Server.World.Migrations
                         .HasColumnType("smallint");
 
                     b.Property<string>("InteractedObjects")
-                        .IsRequired()
-                        .HasColumnType("json");
-
-                    b.Property<string>("ItemCollects")
                         .IsRequired()
                         .HasColumnType("json");
 

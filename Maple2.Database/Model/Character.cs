@@ -102,7 +102,6 @@ internal class Character {
             StorageCooldown = other.Cooldown.Storage,
             DeleteTime = other.DeleteTime.ToEpochSeconds(),
             Channel = other.Channel,
-            Achievements = new Dictionary<int, Maple2.Model.Game.Achievement>(),
         };
     }
 

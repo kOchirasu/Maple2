@@ -118,8 +118,7 @@ public class LoginSession : Core.Network.Session {
         foreach (int emoteId in defaultEmotes) {
             unlock.Emotes.Add(emoteId);
         }
-        character.Achievements = db.GetAchievements(AccountId);
-        character.AchievementInfo = db.GetAchievementInfo(character.Achievements);
+        character.AchievementInfo = db.GetAchievementInfo(AccountId, character.Id);
         
         db.InitNewCharacter(character.Id, unlock);
 

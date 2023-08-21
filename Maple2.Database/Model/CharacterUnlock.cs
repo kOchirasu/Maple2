@@ -21,7 +21,7 @@ internal class CharacterUnlock {
     public required IList<FishEntry> FishAlbum { get; set; }
     public required IList<Quest> Quests { get; set; }
     public required ISet<int> InteractedObjects { get; set; }
-    public required IDictionary<int, byte> ItemCollects { get; set; }
+    public required IDictionary<int, byte> CollectedItems { get; set; }
     public required InventoryExpand Expand { get; set; }
     public short HairSlotExpand { get; set; }
     public DateTime LastModified { get; init; }
@@ -39,7 +39,7 @@ internal class CharacterUnlock {
             Quests = new List<Quest>(),
             Expand = new InventoryExpand(),
             InteractedObjects = new SortedSet<int>(),
-            ItemCollects = new Dictionary<int, byte>(),
+            CollectedItems = new Dictionary<int, byte>(),
         } : new CharacterUnlock {
             LastModified = other.LastModified,
             Expand = new InventoryExpand {
@@ -70,7 +70,7 @@ internal class CharacterUnlock {
             FishAlbum = other.FishAlbum.Values.Select<Maple2.Model.Game.FishEntry, FishEntry>(fish => fish).ToArray(),
             Quests = other.Quests.Values.Select<Maple2.Model.Game.Quest, Quest>(quest => quest).ToArray(),
             InteractedObjects = other.InteractedObjects,
-            ItemCollects = other.ItemCollects,
+            CollectedItems = other.CollectedItems,
         };
     }
 
@@ -124,8 +124,8 @@ internal class CharacterUnlock {
         foreach (FishEntry entry in other.FishAlbum) {
             unlock.FishAlbum[entry.Id] = entry;
         }
-        foreach ((int itemId, byte quantity) in other.ItemCollects) {
-            unlock.ItemCollects[itemId] = quantity;
+        foreach ((int itemId, byte quantity) in other.CollectedItems) {
+            unlock.CollectedItems[itemId] = quantity;
         }
 
         return unlock;
@@ -147,7 +147,7 @@ internal class CharacterUnlock {
         builder.Property(unlock => unlock.FishAlbum).HasJsonConversion().IsRequired();
         builder.Property(unlock => unlock.Quests).HasJsonConversion().IsRequired();
         builder.Property(unlock => unlock.InteractedObjects).HasJsonConversion().IsRequired();
-        builder.Property(unlock => unlock.ItemCollects).HasJsonConversion().IsRequired();
+        builder.Property(unlock => unlock.CollectedItems).HasJsonConversion().IsRequired();
 
         builder.Property(unlock => unlock.LastModified).IsRowVersion();
     }

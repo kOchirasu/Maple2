@@ -23,9 +23,9 @@ public record AchievementMetadataCondition(
     AchievementMetadataCondition.Parameters? Target) {
 
     public record Parameters(
-        string[]? Strings,
-        Range<int>? Range,
-        int[]? Integers);
+        string[]? Strings = null,
+        Range<int>? Range = null,
+        int[]? Integers = null);
 
     public readonly record struct Range<T>(T Min, T Max) where T : INumber<T>;
 }

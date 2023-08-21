@@ -38,6 +38,6 @@ public class UserEnvHandler : PacketHandler<GameSession> {
     }
 
     private void HandleTrophyProgress(GameSession session) {
-        session.Send(UserEnvPacket.ItemCollects(session.Player.Value.Unlock.ItemCollects));
+        session.Send(UserEnvPacket.ItemCollects(session.Player.Value.Unlock.CollectedItems));
     }
 }

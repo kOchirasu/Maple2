@@ -45,6 +45,5 @@ public class Character {
     public string GuildName = string.Empty;
     public long GuildId;
     public required Mastery Mastery;
-    public required IDictionary<int, Achievement> Achievements = new Dictionary<int, Achievement>();
     public AchievementInfo AchievementInfo;
 }

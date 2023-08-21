@@ -36,7 +36,7 @@ public class AchievementHandler : PacketHandler<GameSession> {
         int achievementId = packet.ReadInt();
         bool favorite = packet.ReadBool();
 
-        if (!session.Achievement.Values.TryGetValue(achievementId, out Achievement? achievement)) {
+        if (!session.Achievement.AccountValues.TryGetValue(achievementId, out Achievement? achievement) || !session.Achievement.CharacterValues.TryGetValue(achievementId, out achievement)) {
             return;
         }
         
