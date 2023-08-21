@@ -23,6 +23,8 @@ public partial class WorldService {
                 return Task.FromResult(new ChatResponse());
             case ChatRequest.ChatOneofCase.Wedding:
                 return Task.FromResult(new ChatResponse());
+            case ChatRequest.ChatOneofCase.Channel:
+                return ChannelChat(request);
             default:
                 throw new RpcException(
                     new Status(StatusCode.InvalidArgument, $"Invalid chat type: {request.ChatCase}"));
@@ -62,24 +64,26 @@ public partial class WorldService {
     }
     
     private Task<ChatResponse> WorldChat(ChatRequest request) {
-        foreach ((int, ChannelClient) channel in channelClients) {
-            try {
-                channel.Item2.Chat(request);
-            } catch (RpcException ex) when (ex.StatusCode is StatusCode.NotFound) {
-                logger.Information("{channelId} not found...", channel.Item1);
-            }
+        foreach ((int channel, ChannelClient client) in channelClients) {
+            client.Chat(request);
         }
         return Task.FromResult(new ChatResponse());
     }
     
     private Task<ChatResponse> SuperChat(ChatRequest request) {
-        foreach ((int, ChannelClient) channel in channelClients) {
-            try {
-                channel.Item2.Chat(request);
-            } catch (RpcException ex) when (ex.StatusCode is StatusCode.NotFound) {
-                logger.Information("{channelId} not found...", channel.Item1);
-            }
+        foreach ((int channel, ChannelClient client) in channelClients) {
+            client.Chat(request);
         }
         return Task.FromResult(new ChatResponse());
+    }
+    
+    private Task<ChatResponse> ChannelChat(ChatRequest request) {
+        if (!channelClients.TryGetClient(request.Channel.ChannelId, out ChannelClient? channelClient)) {
+            logger.Error("No registry for channel: {Channel}", request.Channel.ChannelId);
+            throw new RpcException(new Status(StatusCode.InvalidArgument,
+                $"Unable to chat on channel: {request.Channel.ChannelId}"));
+        }
+        
+        return Task.FromResult(channelClient.Chat(request));
     }
 }

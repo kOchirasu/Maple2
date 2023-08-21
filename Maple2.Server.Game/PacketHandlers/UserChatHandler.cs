@@ -174,8 +174,39 @@ public class UserChatHandler : PacketHandler<GameSession> {
         } catch (RpcException) { }
     }
 
-    private static void HandleChannel(GameSession session, string message) {
+    private void HandleChannel(GameSession session, string message) {
+        var voucher = session.Item.Inventory.Filter(item => item.Metadata.Property.Tag == ItemTag.FreeChannelChatCoupon).FirstOrDefault();
+        if (voucher != null) {
+            if (!session.Item.Inventory.Consume(voucher.Uid, 1)) {
+                session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert | NoticePacket.Flags.Message, StringCode.s_err_invalid_item));
+                return;
+            }
+            session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert | NoticePacket.Flags.Message, StringCode.s_worldchat_use_coupon));
+        } else {
+            int meretCost = Constant.MeretConsumeChannelChat;
+            using GameStorage.Request db = GameStorage.Context();
+            if (db.FindEvent(nameof(SaleChat))?.EventInfo is SaleChat gameEvent) {
+                meretCost -= (int) (meretCost * Convert.ToSingle(gameEvent.ChannelChatDiscount) / 10000);
+            }
 
+            if (session.Currency.Meret < meretCost) {
+                session.Send(ChatPacket.Alert(StringCode.s_err_lack_merat));
+                return;
+            }
+            session.Currency.Meret -= meretCost;
+        }
+
+        var request = new ChatRequest {
+            AccountId = session.AccountId,
+            CharacterId = session.CharacterId,
+            Name = session.PlayerName,
+            Message = message,
+            Channel = new ChatRequest.Types.Channel {ChannelId = session.Player.Value.Character.Channel},
+        };
+
+        try {
+            World.Chat(request);
+        } catch (RpcException) { }
     }
 
     private void HandleSuper(GameSession session, string message) {

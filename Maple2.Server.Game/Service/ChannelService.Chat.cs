@@ -26,6 +26,9 @@ public partial class ChannelService {
                 return Task.FromResult(new ChatResponse());
             case ChatRequest.ChatOneofCase.Wedding:
                 return Task.FromResult(new ChatResponse());
+            case ChatRequest.ChatOneofCase.Channel:
+                ChannelChat(request);
+                return Task.FromResult(new ChatResponse());
             default:
                 throw new RpcException(
                     new Status(StatusCode.InvalidArgument, $"Invalid chat type: {request.ChatCase}"));
@@ -46,5 +49,9 @@ public partial class ChannelService {
     
     private void SuperChat(ChatRequest request) {
         server.Broadcast(ChatPacket.Message(request.AccountId, request.CharacterId, request.Name, ChatType.Super, request.Message, request.Super.ItemId));
+    }
+    
+    private void ChannelChat(ChatRequest request) {
+        server.Broadcast(ChatPacket.Message(request.AccountId, request.CharacterId, request.Name, ChatType.Channel, request.Message));
     }
 }
