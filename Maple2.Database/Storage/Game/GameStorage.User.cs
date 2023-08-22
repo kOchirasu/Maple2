@@ -65,6 +65,7 @@ public partial class GameStorage {
                 if (characterFind != null) {
                     characterFind.AchievementInfo = GetAchievementInfo(accountId, characterId);
                 }
+                return characterFind;
             }
 
             // Limit character fetching to those owned by account.
