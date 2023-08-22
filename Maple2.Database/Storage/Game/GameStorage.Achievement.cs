@@ -28,38 +28,24 @@ public partial class GameStorage {
                 .ToDictionary(achievement => achievement!.Id, achievement => achievement!);
         }
 
-        private IDictionary<int, Achievement> GetCharacterAndAccountAchievements(long accountId, long characterId) {
-            IDictionary<int, Achievement> accountAchievements = GetAchievements(accountId);
-            IDictionary<int, Achievement> characterAchievements = GetAchievements(characterId);
-
-            foreach ((int id, Achievement achievement) in accountAchievements) {
-                if (characterAchievements.ContainsKey(id)) {
-                    continue;
-                }
-                characterAchievements.Add(id, achievement);
-            }
-
-            return characterAchievements;
-        }
-
         public AchievementInfo GetAchievementInfo(long accountId, long characterId) {
-            IDictionary<int, Achievement> achievements = GetCharacterAndAccountAchievements(accountId, characterId);
-            AchievementInfo info = new AchievementInfo();
-            foreach (Achievement trophy in achievements.Values) {
-                switch (trophy.Category) {
-                    case AchievementCategory.Combat:
-                        info.Combat += trophy.Grades.Count;
-                        break;
-                    case AchievementCategory.Adventure:
-                        info.Adventure += trophy.Grades.Count;
-                        break;
-                    case AchievementCategory.None:
-                    case AchievementCategory.Life:
-                        info.Lifestyle += trophy.Grades.Count;
-                        break;
-                }
-            }
-            return info;
+            return new AchievementInfo {
+                Combat = Context.Achievement
+                    .Where(achievement => achievement.OwnerId == accountId || achievement.OwnerId == characterId)
+                    .Where(achievement => achievement.Category == AchievementCategory.Combat)
+                    .Select(achievement => achievement.CurrentGrade)
+                    .Sum(),
+                Adventure = Context.Achievement
+                    .Where(achievement => achievement.OwnerId == accountId || achievement.OwnerId == characterId)
+                    .Where(achievement => achievement.Category == AchievementCategory.Adventure)
+                    .Select(achievement => achievement.CurrentGrade)
+                    .Sum(),
+                Lifestyle = Context.Achievement
+                    .Where(achievement => achievement.OwnerId == accountId || achievement.OwnerId == characterId)
+                    .Where(achievement => achievement.Category == AchievementCategory.Life || achievement.Category == AchievementCategory.None)
+                    .Select(achievement => achievement.CurrentGrade)
+                    .Sum(),
+            };
         }
 
         public bool SaveAchievements(long ownerId, ICollection<Achievement> achievements) {
