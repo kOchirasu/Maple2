@@ -11,6 +11,7 @@ internal class Achievement {
     public long OwnerId { get; set; }
     public int Id { get; set; }
 
+    public int CompletedCount { get; set; }
     public int CurrentGrade { get; set; }
     public int RewardGrade { get; set; }
     public bool Favorite { get; set; }
@@ -25,6 +26,7 @@ internal class Achievement {
         }
         return new Achievement {
             Id = other.Id,
+            CompletedCount = other.Grades.Count,
             CurrentGrade = other.CurrentGrade,
             RewardGrade = other.RewardGrade,
             Favorite = other.Favorite,

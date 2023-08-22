@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Maple2.Server.World.Migrations
 {
     [DbContext(typeof(Ms2Context))]
-    [Migration("20230821082350_Achievement")]
+    [Migration("20230822011738_Achievement")]
     partial class Achievement
     {
         /// <inheritdoc />
@@ -90,6 +90,9 @@ namespace Maple2.Server.World.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CompletedCount")
                         .HasColumnType("int");
 
                     b.Property<long>("Counter")

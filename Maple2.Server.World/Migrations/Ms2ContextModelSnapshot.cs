@@ -89,6 +89,9 @@ namespace Maple2.Server.World.Migrations
                     b.Property<int>("Category")
                         .HasColumnType("int");
 
+                    b.Property<int>("CompletedCount")
+                        .HasColumnType("int");
+
                     b.Property<long>("Counter")
                         .HasColumnType("bigint");
 

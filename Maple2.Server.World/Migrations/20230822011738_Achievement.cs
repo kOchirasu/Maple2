@@ -18,7 +18,6 @@ namespace Maple2.Server.World.Migrations
                 name: "CollectedItems",
                 table: "character-unlock",
                 type: "json",
-                defaultValue: "{}",
                 nullable: false)
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -26,7 +25,6 @@ namespace Maple2.Server.World.Migrations
                 name: "InteractedObjects",
                 table: "character-unlock",
                 type: "json",
-                defaultValue: "[]",
                 nullable: false)
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -36,6 +34,7 @@ namespace Maple2.Server.World.Migrations
                 {
                     OwnerId = table.Column<long>(type: "bigint", nullable: false),
                     Id = table.Column<int>(type: "int", nullable: false),
+                    CompletedCount = table.Column<int>(type: "int", nullable: false),
                     CurrentGrade = table.Column<int>(type: "int", nullable: false),
                     RewardGrade = table.Column<int>(type: "int", nullable: false),
                     Favorite = table.Column<bool>(type: "tinyint(1)", nullable: false),

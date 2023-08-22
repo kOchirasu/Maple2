@@ -33,17 +33,17 @@ public partial class GameStorage {
                 Combat = Context.Achievement
                     .Where(achievement => achievement.OwnerId == accountId || achievement.OwnerId == characterId)
                     .Where(achievement => achievement.Category == AchievementCategory.Combat)
-                    .Select(achievement => achievement.CurrentGrade)
+                    .Select(achievement => achievement.CompletedCount)
                     .Sum(),
                 Adventure = Context.Achievement
                     .Where(achievement => achievement.OwnerId == accountId || achievement.OwnerId == characterId)
                     .Where(achievement => achievement.Category == AchievementCategory.Adventure)
-                    .Select(achievement => achievement.CurrentGrade)
+                    .Select(achievement => achievement.CompletedCount)
                     .Sum(),
                 Lifestyle = Context.Achievement
                     .Where(achievement => achievement.OwnerId == accountId || achievement.OwnerId == characterId)
                     .Where(achievement => achievement.Category == AchievementCategory.Life || achievement.Category == AchievementCategory.None)
-                    .Select(achievement => achievement.CurrentGrade)
+                    .Select(achievement => achievement.CompletedCount)
                     .Sum(),
             };
         }
