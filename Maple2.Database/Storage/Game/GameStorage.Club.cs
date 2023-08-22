@@ -52,7 +52,7 @@ public partial class GameStorage {
                               new {OwnerId=member.Character.AccountId, Indoor=true} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
                           from outdoor in plot.DefaultIfEmpty()
                           select new {account, member, indoor, outdoor})
-                .ToList();
+                .AsEnumerable();
 
             return results.Select(result => {
                 AchievementInfo achievementInfo = GetAchievementInfo(result.account.Id, result.member.CharacterId);
