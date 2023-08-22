@@ -45,9 +45,9 @@ public partial class WorldService {
                 },
             },
             Trophy = new TrophyInfo {
-                Combat = info.Trophy.Combat,
-                Adventure = info.Trophy.Adventure,
-                Lifestyle = info.Trophy.Lifestyle,
+                Combat = info.AchievementInfo.Combat,
+                Adventure = info.AchievementInfo.Adventure,
+                Lifestyle = info.AchievementInfo.Lifestyle,
             },
         });
     }

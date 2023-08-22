@@ -117,7 +117,7 @@ public static class PlayerInfoPacket {
             buffer.WriteInt(title);
         }
 
-        buffer.WriteInt(player.Account.Trophy.Total);
+        buffer.WriteInt(player.Character.AchievementInfo.Total);
         buffer.WriteInt(fieldPlayer.Stats.GearScore);
         buffer.WriteLong(player.Character.LastModified.ToEpochSeconds()); // Time entered map/logged in
         buffer.WriteInt();

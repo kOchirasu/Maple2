@@ -3,6 +3,7 @@ using System.Threading;
 using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
@@ -66,7 +67,7 @@ public class Buddy : IByteSerializable, IDisposable {
             Info.PlotNumber = 0;
             Info.ApartmentNumber = 0;
             Info.PlotExpiryTime = 0;
-            Info.Trophy = default;
+            Info.AchievementInfo = default;
         }
     }
 
@@ -95,7 +96,7 @@ public class Buddy : IByteSerializable, IDisposable {
         writer.WriteInt(Info.ApartmentNumber);
         writer.WriteUnicodeString(Info.HomeName);
         writer.WriteLong(Info.PlotExpiryTime); // Home expiry time?
-        writer.Write<Trophy>(Info.Trophy);
+        writer.Write<AchievementInfo>(Info.AchievementInfo);
     }
 
     public void Dispose() {

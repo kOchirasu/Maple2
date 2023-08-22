@@ -1,6 +1,7 @@
 ﻿using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
@@ -20,7 +21,7 @@ public class GuildApplication : IByteSerializable {
         writer.Write<Job>(Applicant.Job);
         writer.WriteInt((int) Applicant.Job.Code());
         writer.WriteInt(Applicant.Level);
-        writer.Write<Trophy>(Applicant.Trophy);
+        writer.Write<AchievementInfo>(Applicant.AchievementInfo);
         writer.WriteLong(CreationTime);
     }
 }

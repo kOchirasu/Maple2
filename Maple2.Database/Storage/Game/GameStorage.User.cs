@@ -48,18 +48,33 @@ public partial class GameStorage {
                 return (null, null);
             }
 
-            return (model, model.Characters?.Select<Model.Character, Character>(c => c).ToList());
+            IList<Character>? characters = model.Characters?.Select<Model.Character, Character>(c => c).ToList();
+            if (characters != null) {
+                foreach (Character character in characters) {
+                    character.AchievementInfo = GetAchievementInfo(accountId, character.Id);
+                }
+            }
+
+            return (model, characters);
         }
 
         //  If accountId is specified, only characters for the account will be returned.
         public Character? GetCharacter(long characterId, long accountId = -1) {
             if (accountId < 0) {
-                return Context.Character.Find(characterId);
+                Character? characterFind = Context.Character.Find(characterId);
+                if (characterFind != null) {
+                    characterFind.AchievementInfo = GetAchievementInfo(accountId, characterId);
+                }
+                return characterFind;
             }
 
             // Limit character fetching to those owned by account.
-            return Context.Character.FirstOrDefault(character =>
+           Character? character = Context.Character.FirstOrDefault(character =>
                 character.Id == characterId && character.AccountId == accountId);
+           if (character != null) {
+               character.AchievementInfo = GetAchievementInfo(accountId, characterId);
+           }
+           return character;
         }
 
         public long GetCharacterId(string name) {
@@ -69,15 +84,21 @@ public partial class GameStorage {
         }
 
         public PlayerInfo? GetPlayerInfo(long characterId) {
-            return (from character in Context.Character where character.Id == characterId
-                    join account in Context.Account on character.AccountId equals account.Id
-                    join indoor in Context.UgcMap on
-                        new {OwnerId = character.AccountId, Indoor = true} equals new {indoor.OwnerId, indoor.Indoor}
-                    join outdoor in Context.UgcMap on
-                        new {OwnerId = character.AccountId, Indoor = false} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
-                    from outdoor in plot.DefaultIfEmpty()
-                    select BuildPlayerInfo(character, indoor, outdoor, account.Trophy))
+            var result = (from character in Context.Character where character.Id == characterId
+                          join account in Context.Account on character.AccountId equals account.Id
+                          join indoor in Context.UgcMap on
+                              new {OwnerId = character.AccountId, Indoor = true} equals new {indoor.OwnerId, indoor.Indoor}
+                          join outdoor in Context.UgcMap on
+                              new {OwnerId = character.AccountId, Indoor = false} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
+                          from outdoor in plot.DefaultIfEmpty()
+                          select new {character, indoor, outdoor})
                 .FirstOrDefault();
+            if (result == null) {
+                return null;
+            }
+
+            AchievementInfo achievementInfo = GetAchievementInfo(result.character.AccountId, result.character.Id);
+            return BuildPlayerInfo(result.character, result.indoor, result.outdoor, achievementInfo);
         }
 
         public Home? GetHome(long ownerId) {
@@ -135,7 +156,7 @@ public partial class GameStorage {
             }
 
             var player = new Player(account, character, objectId) {
-                Currency = new Currency{
+                Currency = new Currency {
                     Meret = account.Currency.Meret,
                     GameMeret = account.Currency.GameMeret,
                     Meso = character.Currency.Meso,
@@ -157,11 +178,14 @@ public partial class GameStorage {
             player.Character.GuildId = guild.Item1;
             player.Character.GuildName = guild.Item2;
 
+            player.Character.AchievementInfo = GetAchievementInfo(accountId, characterId);
+
             return player;
         }
 
         public bool SavePlayer(Player player) {
             Console.WriteLine($"> Begin Save... {Context.ContextId}");
+
             Model.Account account = player.Account;
             account.Currency = new AccountCurrency {
                 Meret = player.Currency.Meret,
@@ -356,4 +380,5 @@ public partial class GameStorage {
         }
         #endregion
     }
+
 }

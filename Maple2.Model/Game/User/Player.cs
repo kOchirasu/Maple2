@@ -29,13 +29,17 @@ public class Unlock {
     public readonly ISet<int> Maps = new SortedSet<int>();
     public readonly ISet<int> Taxis = new SortedSet<int>();
     public readonly ISet<int> Titles = new SortedSet<int>();
-    public readonly ISet<int> Emotes = new SortedSet<int>();
+    public readonly IList<int> Emotes = new List<int>();
     public readonly IDictionary<int, long> StickerSets = new Dictionary<int, long>();
     public readonly IDictionary<int, bool> MasteryRewardsClaimed = new Dictionary<int, bool>();
     public readonly IDictionary<int, short> Pets = new SortedDictionary<int, short>();
     public readonly IDictionary<int, FishEntry> FishAlbum = new Dictionary<int, FishEntry>();
     // TODO: Determine where to save this data.
     public readonly IDictionary<int, Quest> Quests = new Dictionary<int, Quest>();
+    
+    // Used for trophies
+    public readonly ISet<int> InteractedObjects = new SortedSet<int>();
+    public readonly IDictionary<int, byte> CollectedItems = new Dictionary<int, byte>();
 }
 
 public class Currency {

@@ -45,7 +45,7 @@ public class PlayerInfoStorage {
                 Channel = (short) response.Channel,
                 UpdateTime = response.UpdateTime,
             };
-            var trophy = new Trophy {
+            var trophy = new AchievementInfo {
                 Adventure = response.Trophy.Adventure,
                 Combat = response.Trophy.Combat,
                 Lifestyle = response.Trophy.Lifestyle,
