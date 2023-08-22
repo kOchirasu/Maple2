@@ -44,7 +44,7 @@ public partial class GameStorage {
         }
 
         public IList<ClubMember> GetClubMembers(long clubId) {
-            var result = (from member in Context.ClubMember where member.ClubId == clubId
+            var results = (from member in Context.ClubMember where member.ClubId == clubId
                           join account in Context.Account on member.Character.AccountId equals account.Id
                           join indoor in Context.UgcMap on
                               new {OwnerId=member.Character.AccountId, Indoor=true} equals new {indoor.OwnerId, indoor.Indoor}
@@ -54,11 +54,11 @@ public partial class GameStorage {
                           select new {account, member, indoor, outdoor})
                 .ToList();
 
-            return (from entry in result 
-                    let achievementInfo = GetAchievementInfo(entry.account.Id, entry.member.CharacterId) 
-                    select new ClubMember(BuildPlayerInfo(entry.member.Character, entry.indoor, entry.outdoor, achievementInfo), 
-                        entry.member.CreationTime.ToEpochSeconds(), 
-                        entry.member.Character.LastModified.ToEpochSeconds())).ToList();
+            return results.Select(result => {
+                AchievementInfo achievementInfo = GetAchievementInfo(result.account.Id, result.member.CharacterId);
+                PlayerInfo playerInfo = BuildPlayerInfo(result.member.Character, result.indoor, result.outdoor, achievementInfo);
+                return new ClubMember(playerInfo, result.member.CreationTime.ToEpochSeconds(), result.member.Character.LastModified.ToEpochSeconds());
+            }).ToList();
         }
     }
 }
