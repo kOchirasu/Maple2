@@ -28,18 +28,18 @@ public class AchievementHandler : PacketHandler<GameSession> {
 
     private void HandleReward(GameSession session, IByteReader packet) {
         int achievementId = packet.ReadInt();
-        
+
         session.Achievement.Reward(achievementId, true);
     }
-    
+
     private void HandleToggleFavorite(GameSession session, IByteReader packet) {
         int achievementId = packet.ReadInt();
         bool favorite = packet.ReadBool();
 
-        if (!session.Achievement.AccountValues.TryGetValue(achievementId, out Achievement? achievement) || !session.Achievement.CharacterValues.TryGetValue(achievementId, out achievement)) {
+        if (!session.Achievement.TryGetAchievement(achievementId, out Achievement? achievement)) {
             return;
         }
-        
+
         achievement.Favorite = favorite;
     }
 }

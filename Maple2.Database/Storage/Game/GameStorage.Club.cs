@@ -54,7 +54,7 @@ public partial class GameStorage {
                     from outdoor in plot.DefaultIfEmpty()
 
                     select new ClubMember(
-                        BuildPlayerInfo(member.Character, indoor, outdoor, accountTrophies.ToList(), characterTrophies.ToList()),
+                        BuildPlayerInfo(member.Character, indoor, outdoor, accountTrophies.Concat(characterTrophies)),
                         member.CreationTime.ToEpochSeconds(),
                         member.Character.LastModified.ToEpochSeconds())).ToList();
         }

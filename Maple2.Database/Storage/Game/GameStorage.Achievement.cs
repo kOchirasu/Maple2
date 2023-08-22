@@ -62,8 +62,11 @@ public partial class GameStorage {
             return info;
         }
 
-        public bool SaveAchievements(IList<Achievement> achievements) {
+        public bool SaveAchievements(long ownerId, ICollection<Achievement> achievements) {
             foreach (Achievement achievement in achievements) {
+                Model.Achievement model = achievement;
+                model.OwnerId = ownerId;
+
                 Context.Achievement.Update(achievement);
             }
 

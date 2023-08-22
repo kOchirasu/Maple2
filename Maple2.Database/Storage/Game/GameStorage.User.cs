@@ -10,7 +10,6 @@ using Maple2.Server.Game.Manager.Config;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Account = Maple2.Model.Game.Account;
-using Achievement = Maple2.Database.Model.Achievement;
 using Character = Maple2.Model.Game.Character;
 using SkillMacro = Maple2.Model.Game.SkillMacro;
 using SkillBook = Maple2.Model.Game.SkillBook;
@@ -53,7 +52,7 @@ public partial class GameStorage {
             if (characters != null) {
                 foreach (Character character in characters) {
                     character.AchievementInfo = GetAchievementInfo(accountId, character.Id);
-                }    
+                }
             }
 
             return (model, characters);
@@ -84,19 +83,17 @@ public partial class GameStorage {
         }
 
         public PlayerInfo? GetPlayerInfo(long characterId) {
-            Character? character = Context.Character.FirstOrDefault(c => c.Id == characterId);
-            if(character == null) return null;
-
-            Account? account = Context.Account.FirstOrDefault(a => a.Id == character.AccountId);
-            if(account == null) return null;
-
-            IEnumerable<Achievement> accountTrophies = Context.Achievement.Where(a => a.OwnerId == character.AccountId).AsEnumerable();
-            IEnumerable<Achievement> characterTrophies = Context.Achievement.Where(a => a.OwnerId == character.Id).AsEnumerable();
-
-            UgcMap? indoor = Context.UgcMap.FirstOrDefault(u => u.OwnerId == character.AccountId && u.Indoor);
-            UgcMap? outdoor = Context.UgcMap.FirstOrDefault(u => u.OwnerId == character.AccountId && !u.Indoor);
-
-            return BuildPlayerInfo(character, indoor, outdoor, accountTrophies, characterTrophies);
+            return (from character in Context.Character where character.Id == characterId
+                    join account in Context.Account on character.AccountId equals account.Id
+                    join achievement1 in Context.Achievement on character.AccountId equals achievement1.OwnerId into accountTrophies
+                    join achievement2 in Context.Achievement on character.Id equals achievement2.OwnerId into characterTrophies
+                    join indoor in Context.UgcMap on
+                        new {OwnerId = character.AccountId, Indoor = true} equals new {indoor.OwnerId, indoor.Indoor}
+                    join outdoor in Context.UgcMap on
+                        new {OwnerId = character.AccountId, Indoor = false} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
+                    from outdoor in plot.DefaultIfEmpty()
+                    select BuildPlayerInfo(character, indoor, outdoor, accountTrophies.Concat(characterTrophies)))
+                .FirstOrDefault();
         }
 
         public Home? GetHome(long ownerId) {
@@ -190,7 +187,7 @@ public partial class GameStorage {
                 GameMeret = player.Currency.GameMeret,
                 MesoToken = player.Currency.MesoToken,
             };
-            
+
             Model.Character character = player.Character;
             character.Currency = new CharacterCurrency {
                 Meso = player.Currency.Meso,
@@ -247,15 +244,15 @@ public partial class GameStorage {
         }
 
         public bool SaveCharacterConfig(
-            long characterId,
-            IList<KeyBind> keyBinds,
-            IList<QuickSlot[]> hotBars,
-            IEnumerable<SkillMacro> skillMacros,
-            IEnumerable<Wardrobe> wardrobes,
-            IList<int> favoriteStickers,
-            IDictionary<LapenshardSlot, int> lapenshards,
-            StatAttributes.PointAllocation allocation,
-            SkillBook skillBook) {
+                long characterId,
+                IList<KeyBind> keyBinds,
+                IList<QuickSlot[]> hotBars,
+                IEnumerable<SkillMacro> skillMacros,
+                IEnumerable<Wardrobe> wardrobes,
+                IList<int> favoriteStickers,
+                IDictionary<LapenshardSlot, int> lapenshards,
+                StatAttributes.PointAllocation allocation,
+                SkillBook skillBook) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
 
             CharacterConfig? config = Context.CharacterConfig.Find(characterId);

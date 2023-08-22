@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Database.Storage;
@@ -18,29 +20,32 @@ public sealed class AchievementManager {
     private const int BATCH_SIZE = 60;
     private readonly GameSession session;
 
-    public IDictionary<int, Achievement> AccountValues { get; set; }
-    public IDictionary<int, Achievement> CharacterValues { get; set; }
+    private readonly IDictionary<int, Achievement> accountValues;
+    private readonly IDictionary<int, Achievement> characterValues;
 
     private readonly ILogger logger = Log.Logger.ForContext<AchievementManager>();
 
     public AchievementManager(GameSession session) {
         this.session = session;
-        
+
         using GameStorage.Request db = session.GameStorage.Context();
-        AccountValues = db.GetAchievements(session.AccountId);
-        CharacterValues = db.GetAchievements(session.CharacterId);
+        accountValues = new ConcurrentDictionary<int, Achievement>(db.GetAchievements(session.AccountId));
+        characterValues = new ConcurrentDictionary<int, Achievement>(db.GetAchievements(session.CharacterId));
     }
 
     public void Load() {
         session.Send(AchievementPacket.Initialize());
-        foreach (ImmutableList<Achievement> batch in CharacterValues.Values.Batch(BATCH_SIZE)) {
+        foreach (ImmutableList<Achievement> batch in accountValues.Values.Batch(BATCH_SIZE)) {
             session.Send(AchievementPacket.Load(batch));
         }
-        foreach (ImmutableList<Achievement> batch in AccountValues.Values.Batch(BATCH_SIZE)) {
+        foreach (ImmutableList<Achievement> batch in characterValues.Values.Batch(BATCH_SIZE)) {
             session.Send(AchievementPacket.Load(batch));
         }
     }
 
+    public bool TryGetAchievement(int achievementId, [NotNullWhen(true)] out Achievement? achievement) {
+        return accountValues.TryGetValue(achievementId, out achievement) || characterValues.TryGetValue(achievementId, out achievement);
+    }
 
     /// <summary>
     /// Checks for any possible trophies under stated TrophyConditionType. If there is a trophy that can have any progress updated to it, update or add to player if it hasn't existed yet.
@@ -52,10 +57,8 @@ public sealed class AchievementManager {
     /// <param name="codeString">Trophy grade condition code parameter in string.</param>
     /// <param name="codeLong">Trophy grade condition code parameter in long.</param>
     public void Update(AchievementConditionType conditionType, long count = 1, string targetString = "", long targetLong = 0, string codeString = "", long codeLong = 0) {
-        IEnumerable<AchievementMetadata> metadatas = session.AchievementMetadata.GetMany(conditionType);
-
-        foreach (AchievementMetadata metadata in metadatas) {
-            IDictionary<int, Achievement> achievements = metadata.AccountWide ? AccountValues : CharacterValues;
+        foreach (AchievementMetadata metadata in session.AchievementMetadata.GetType(conditionType)) {
+            IDictionary<int, Achievement> achievements = metadata.AccountWide ? accountValues : characterValues;
             if (!achievements.TryGetValue(metadata.Id, out Achievement? achievement) || !metadata.Grades.TryGetValue(achievement.CurrentGrade, out AchievementMetadataGrade? grade)) {
                 grade = metadata.Grades[1];
             }
@@ -132,7 +135,7 @@ public sealed class AchievementManager {
                         session.Player.Value.Unlock.CollectedItems[(int) longValue]++;
                         return false;
                     }
-                    
+
                     session.Player.Value.Unlock.CollectedItems.Add((int) longValue, 1);
                     return true;
                 }
@@ -213,6 +216,8 @@ public sealed class AchievementManager {
                 case AchievementCategory.Life:
                     session.Player.Value.Character.AchievementInfo.Lifestyle++;
                     break;
+                default:
+                    continue; // Invalid category, just skip.
             }
 
             session.Send(AchievementPacket.Update(achievement));
@@ -221,40 +226,41 @@ public sealed class AchievementManager {
             }
         }
 
-        if (newGradesCount > 0) {
-            Update(AchievementConditionType.trophy_point, newGradesCount, codeLong: achievement.Id);
-            return true;
+        if (newGradesCount <= 0) {
+            return false;
         }
-        return false;
+
+        Update(AchievementConditionType.trophy_point, newGradesCount, codeLong: achievement.Id);
+        return true;
     }
 
     /// <summary>
     /// Gives rewards (if applicable) from awarded trophy grades. If there is no reward, it'll increment up on the reward grade.
     /// </summary>
-    /// <param name="trophyId">Trophy Id</param>
+    /// <param name="achievementId">Achievement Id</param>
     /// <param name="manualClaim">If true, assumes player requested the reward. it will give the player rewards for items, titles, skill points, and attribute points.
     /// These are never given automatically upon newly awarded trophy grade.</param>
-    public void Reward(int trophyId, bool manualClaim = false) {
-        if (!AccountValues.TryGetValue(trophyId, out Achievement? trophy) && !CharacterValues.TryGetValue(trophyId, out trophy)) {
+    public void Reward(int achievementId, bool manualClaim = false) {
+        if (!TryGetAchievement(achievementId, out Achievement? achievement)) {
             return;
         }
 
-        if (trophy.CurrentGrade < trophy.RewardGrade) {
+        if (achievement.CurrentGrade < achievement.RewardGrade) {
             return;
         }
 
-        for (int startGrade = trophy.RewardGrade; startGrade <= trophy.CurrentGrade; startGrade++) {
-            if (!trophy.Metadata.Grades.TryGetValue(startGrade, out AchievementMetadataGrade? grade)) {
+        for (int startGrade = achievement.RewardGrade; startGrade <= achievement.CurrentGrade; startGrade++) {
+            if (!achievement.Metadata.Grades.TryGetValue(startGrade, out AchievementMetadataGrade? grade)) {
                 continue;
             }
 
             if (grade.Reward == null) {
-                trophy.RewardGrade++;
+                achievement.RewardGrade++;
                 continue;
             }
 
-            if (trophy.RewardGrade == trophy.CurrentGrade && !trophy.Completed) {
-                session.Send(AchievementPacket.Update(trophy));
+            if (achievement.RewardGrade == achievement.CurrentGrade && !achievement.Completed) {
+                session.Send(AchievementPacket.Update(achievement));
                 break;
             }
 
@@ -304,13 +310,13 @@ public sealed class AchievementManager {
                     break;
             }
 
-            trophy.RewardGrade++;
-            session.Send(AchievementPacket.Update(trophy));
+            achievement.RewardGrade++;
+            session.Send(AchievementPacket.Update(achievement));
         }
     }
 
     public void Save(GameStorage.Request db) {
-        db.SaveAchievements(CharacterValues.Values.ToList());
-        db.SaveAchievements(AccountValues.Values.ToList());
+        db.SaveAchievements(session.AccountId, accountValues.Values.ToList());
+        db.SaveAchievements(session.CharacterId, characterValues.Values.ToList());
     }
 }

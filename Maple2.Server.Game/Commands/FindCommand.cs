@@ -17,11 +17,13 @@ public class FindCommand : Command {
     private const string DESCRIPTION = "Search database for ids.";
 
     public FindCommand(GameSession session,
+                       AchievementMetadataStorage achievementStorage,
                        ItemMetadataStorage itemStorage,
                        MapMetadataStorage mapStorage,
                        NpcMetadataStorage npcStorage,
                        QuestMetadataStorage questStorage,
                        SkillMetadataStorage skillStorage) : base(NAME, DESCRIPTION) {
+        AddCommand(new FindSubCommand<AchievementMetadata>("achievement", session, achievementStorage));
         AddCommand(new FindSubCommand<ItemMetadata>("item", session, itemStorage));
         AddCommand(new FindSubCommand<MapMetadata>("map", session, mapStorage));
         AddCommand(new FindSubCommand<NpcMetadata>("npc", session, npcStorage));

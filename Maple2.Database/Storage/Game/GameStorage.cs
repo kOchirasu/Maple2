@@ -6,7 +6,6 @@ using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Achievement = Maple2.Database.Model.Achievement;
 
 namespace Maple2.Database.Storage;
 
@@ -40,44 +39,29 @@ public partial class GameStorage {
         public Request(GameStorage game, Ms2Context context, ILogger logger) : base(context, logger) {
             this.game = game;
         }
-        
-        private static PlayerInfo BuildPlayerInfo(Model.Character character, UgcMap indoor, UgcMap? outdoor, IEnumerable<Achievement> accountAchievements, IEnumerable<Achievement> characterAchievements) {
-            AchievementInfo achievements = new AchievementInfo();
-            foreach (Achievement trophy in accountAchievements) {
-                switch (trophy.Category) {
+
+        private static PlayerInfo BuildPlayerInfo(Model.Character character, UgcMap indoor, UgcMap? outdoor, IEnumerable<Model.Achievement> achievements) {
+            var achievementInfo = new AchievementInfo();
+            foreach (Model.Achievement achievement in achievements) {
+                switch (achievement.Category) {
                     case AchievementCategory.Combat:
-                        achievements.Combat += trophy.Grades.Count;
+                        achievementInfo.Combat += achievement.Grades.Count;
                         break;
                     case AchievementCategory.Adventure:
-                        achievements.Adventure += trophy.Grades.Count;
+                        achievementInfo.Adventure += achievement.Grades.Count;
                         break;
                     case AchievementCategory.None:
                     case AchievementCategory.Life:
-                        achievements.Lifestyle += trophy.Grades.Count;
+                        achievementInfo.Lifestyle += achievement.Grades.Count;
                         break;
                 }
             }
 
-            foreach (Achievement trophy in characterAchievements) {
-                switch (trophy.Category) {
-                    case AchievementCategory.Combat:
-                        achievements.Combat += trophy.Grades.Count;
-                        break;
-                    case AchievementCategory.Adventure:
-                        achievements.Adventure += trophy.Grades.Count;
-                        break;
-                    case AchievementCategory.None:
-                    case AchievementCategory.Life:
-                        achievements.Lifestyle += trophy.Grades.Count;
-                        break;
-                }
-            }
-            
             if (outdoor == null) {
-                return new PlayerInfo(character, indoor.Name, achievements);
+                return new PlayerInfo(character, indoor.Name, achievementInfo);
             }
 
-            return new PlayerInfo(character, outdoor.Name, achievements) {
+            return new PlayerInfo(character, outdoor.Name, achievementInfo) {
                 PlotMapId = outdoor.MapId,
                 PlotNumber = outdoor.Number,
                 ApartmentNumber = outdoor.ApartmentNumber,
@@ -85,6 +69,4 @@ public partial class GameStorage {
             };
         }
     }
-
-
 }

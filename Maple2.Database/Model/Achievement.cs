@@ -25,7 +25,6 @@ internal class Achievement {
         }
         return new Achievement {
             Id = other.Id,
-            OwnerId = other.OwnerId,
             CurrentGrade = other.CurrentGrade,
             RewardGrade = other.RewardGrade,
             Favorite = other.Favorite,
@@ -39,7 +38,6 @@ internal class Achievement {
     public Maple2.Model.Game.Achievement Convert(AchievementMetadata metadata) {
         return new Maple2.Model.Game.Achievement(metadata) {
             CurrentGrade = CurrentGrade,
-            OwnerId = OwnerId,
             RewardGrade = RewardGrade,
             Favorite = Favorite,
             Counter = Counter,
@@ -47,7 +45,7 @@ internal class Achievement {
             Grades = Grades,
         };
     }
-    
+
     public static void Configure(EntityTypeBuilder<Achievement> builder) {
         builder.HasKey(achieve => new {achieve.OwnerId, achieve.Id});
         builder.Property(achieve => achieve.Grades).HasJsonConversion().IsRequired();

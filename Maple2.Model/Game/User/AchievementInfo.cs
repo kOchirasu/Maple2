@@ -35,7 +35,7 @@ public struct AchievementInfo {
 public class Achievement : IByteSerializable {
     public readonly AchievementMetadata Metadata;
     public readonly int Id;
-    public long OwnerId { get; set; }
+
     public bool Completed => CurrentGrade == Grades.Count;
     public AchievementStatus Status => Completed ? AchievementStatus.Completed : AchievementStatus.InProgress;
     public int CurrentGrade { get; set; }
