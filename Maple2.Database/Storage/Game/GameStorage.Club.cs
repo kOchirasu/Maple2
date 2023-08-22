@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
+using Maple2.Model.Game;
 using Club = Maple2.Model.Game.Club;
 using ClubMember = Maple2.Model.Game.ClubMember;
 
@@ -43,20 +44,21 @@ public partial class GameStorage {
         }
 
         public IList<ClubMember> GetClubMembers(long clubId) {
-            return (from member in Context.ClubMember where member.ClubId == clubId
-                    join account in Context.Account on member.Character.AccountId equals account.Id
-                    join achievement1 in Context.Achievement on member.Character.AccountId equals achievement1.OwnerId into accountTrophies
-                    join achievement2 in Context.Achievement on member.Character.Id equals achievement2.OwnerId into characterTrophies
-                    join indoor in Context.UgcMap on
-                        new {OwnerId=member.Character.AccountId, Indoor=true} equals new {indoor.OwnerId, indoor.Indoor}
-                    join outdoor in Context.UgcMap on
-                        new {OwnerId=member.Character.AccountId, Indoor=true} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
-                    from outdoor in plot.DefaultIfEmpty()
+            var result = (from member in Context.ClubMember where member.ClubId == clubId
+                          join account in Context.Account on member.Character.AccountId equals account.Id
+                          join indoor in Context.UgcMap on
+                              new {OwnerId=member.Character.AccountId, Indoor=true} equals new {indoor.OwnerId, indoor.Indoor}
+                          join outdoor in Context.UgcMap on
+                              new {OwnerId=member.Character.AccountId, Indoor=true} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
+                          from outdoor in plot.DefaultIfEmpty()
+                          select new {account, member, indoor, outdoor})
+                .ToList();
 
-                    select new ClubMember(
-                        BuildPlayerInfo(member.Character, indoor, outdoor, accountTrophies.Concat(characterTrophies)),
-                        member.CreationTime.ToEpochSeconds(),
-                        member.Character.LastModified.ToEpochSeconds())).ToList();
+            return (from entry in result 
+                    let achievementInfo = GetAchievementInfo(entry.account.Id, entry.member.CharacterId) 
+                    select new ClubMember(BuildPlayerInfo(entry.member.Character, entry.indoor, entry.outdoor, achievementInfo), 
+                        entry.member.CreationTime.ToEpochSeconds(), 
+                        entry.member.Character.LastModified.ToEpochSeconds())).ToList();
         }
     }
 }

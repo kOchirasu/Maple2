@@ -40,23 +40,7 @@ public partial class GameStorage {
             this.game = game;
         }
 
-        private static PlayerInfo BuildPlayerInfo(Model.Character character, UgcMap indoor, UgcMap? outdoor, IEnumerable<Model.Achievement> achievements) {
-            var achievementInfo = new AchievementInfo();
-            foreach (Model.Achievement achievement in achievements) {
-                switch (achievement.Category) {
-                    case AchievementCategory.Combat:
-                        achievementInfo.Combat += achievement.Grades.Count;
-                        break;
-                    case AchievementCategory.Adventure:
-                        achievementInfo.Adventure += achievement.Grades.Count;
-                        break;
-                    case AchievementCategory.None:
-                    case AchievementCategory.Life:
-                        achievementInfo.Lifestyle += achievement.Grades.Count;
-                        break;
-                }
-            }
-
+        private static PlayerInfo BuildPlayerInfo(Model.Character character, UgcMap indoor, UgcMap? outdoor, AchievementInfo achievementInfo) {
             if (outdoor == null) {
                 return new PlayerInfo(character, indoor.Name, achievementInfo);
             }

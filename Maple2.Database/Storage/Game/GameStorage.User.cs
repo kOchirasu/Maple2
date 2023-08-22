@@ -83,17 +83,21 @@ public partial class GameStorage {
         }
 
         public PlayerInfo? GetPlayerInfo(long characterId) {
-            return (from character in Context.Character where character.Id == characterId
-                    join account in Context.Account on character.AccountId equals account.Id
-                    join achievement1 in Context.Achievement on character.AccountId equals achievement1.OwnerId into accountTrophies
-                    join achievement2 in Context.Achievement on character.Id equals achievement2.OwnerId into characterTrophies
-                    join indoor in Context.UgcMap on
-                        new {OwnerId = character.AccountId, Indoor = true} equals new {indoor.OwnerId, indoor.Indoor}
-                    join outdoor in Context.UgcMap on
-                        new {OwnerId = character.AccountId, Indoor = false} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
-                    from outdoor in plot.DefaultIfEmpty()
-                    select BuildPlayerInfo(character, indoor, outdoor, accountTrophies.Concat(characterTrophies)))
+            var result = (from character in Context.Character where character.Id == characterId
+                          join account in Context.Account on character.AccountId equals account.Id
+                          join indoor in Context.UgcMap on
+                              new {OwnerId = character.AccountId, Indoor = true} equals new {indoor.OwnerId, indoor.Indoor}
+                          join outdoor in Context.UgcMap on
+                              new {OwnerId = character.AccountId, Indoor = false} equals new {outdoor.OwnerId, outdoor.Indoor} into plot
+                          from outdoor in plot.DefaultIfEmpty()
+                          select new {character, indoor, outdoor})
                 .FirstOrDefault();
+            if (result == null) {
+                return null;
+            }
+
+            AchievementInfo achievementInfo = GetAchievementInfo(result.character.AccountId, result.character.Id);
+            return BuildPlayerInfo(result.character, result.indoor, result.outdoor, achievementInfo);
         }
 
         public Home? GetHome(long ownerId) {

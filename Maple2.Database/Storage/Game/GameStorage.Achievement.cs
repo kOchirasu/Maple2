@@ -29,22 +29,20 @@ public partial class GameStorage {
         }
 
         public AchievementInfo GetAchievementInfo(long accountId, long characterId) {
+            Dictionary<AchievementCategory, int> achievementCounts = Context.Achievement
+                .Where(achievement => achievement.OwnerId == accountId || achievement.OwnerId == characterId)
+                .GroupBy(achievement => achievement.Category)
+                .Select(group => new {
+                    Category = group.Key,
+                    Count = group.Sum(g => g.CompletedCount),
+                })
+                .ToDictionary(entry => entry.Category, entry => entry.Count);
+
             return new AchievementInfo {
-                Combat = Context.Achievement
-                    .Where(achievement => achievement.OwnerId == accountId || achievement.OwnerId == characterId)
-                    .Where(achievement => achievement.Category == AchievementCategory.Combat)
-                    .Select(achievement => achievement.CompletedCount)
-                    .Sum(),
-                Adventure = Context.Achievement
-                    .Where(achievement => achievement.OwnerId == accountId || achievement.OwnerId == characterId)
-                    .Where(achievement => achievement.Category == AchievementCategory.Adventure)
-                    .Select(achievement => achievement.CompletedCount)
-                    .Sum(),
-                Lifestyle = Context.Achievement
-                    .Where(achievement => achievement.OwnerId == accountId || achievement.OwnerId == characterId)
-                    .Where(achievement => achievement.Category == AchievementCategory.Life || achievement.Category == AchievementCategory.None)
-                    .Select(achievement => achievement.CompletedCount)
-                    .Sum(),
+                Combat = achievementCounts.GetValueOrDefault(AchievementCategory.Combat, 0),
+                Adventure = achievementCounts.GetValueOrDefault(AchievementCategory.Adventure, 0),
+                Lifestyle = achievementCounts.GetValueOrDefault(AchievementCategory.Life, 0)
+                            + achievementCounts.GetValueOrDefault(AchievementCategory.None, 0),
             };
         }
 
@@ -53,7 +51,7 @@ public partial class GameStorage {
                 Model.Achievement model = achievement;
                 model.OwnerId = ownerId;
 
-                Context.Achievement.Update(achievement);
+                Context.Achievement.Update(model);
             }
 
             return Context.TrySaveChanges();
