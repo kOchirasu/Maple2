@@ -63,6 +63,7 @@ public sealed class BeautyManager : IDisposable {
         }
         items.Add(hairCopy);
         session.Send(BeautyPacket.SaveHair(hair, hairCopy));
+        session.Achievement.Update(AchievementConditionType.beauty_style_add, codeLong: hairCopy.Id);
     }
 
     public bool RemoveHair(long uid) {
@@ -111,6 +112,7 @@ public sealed class BeautyManager : IDisposable {
             return false;
         }
         session.Send(BeautyPacket.ApplySavedHair());
+        session.Achievement.Update(AchievementConditionType.beauty_style_apply, codeLong: copy.Id);
         return true;
     }
 }

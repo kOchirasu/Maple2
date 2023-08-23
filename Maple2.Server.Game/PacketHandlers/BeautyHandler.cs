@@ -186,7 +186,9 @@ public class BeautyHandler : PacketHandler<GameSession> {
             }
         }
 
-        ModifyBeauty(session, packet, session.BeautyShop.ShopType, entry.ItemId);
+        if (ModifyBeauty(session, packet, session.BeautyShop.ShopType, entry.ItemId)) {
+            session.Achievement.Update(AchievementConditionType.beauty_add, codeLong: itemId);
+        }
     }
 
     private void HandleUpdateBeauty(GameSession session, IByteReader packet) {
@@ -220,8 +222,14 @@ public class BeautyHandler : PacketHandler<GameSession> {
                 return;
             }
         }
-
-        ModifyBeauty(session, packet, session.BeautyShop.ShopType, cosmetic.Id);
+        
+        EquipColor? startColor = cosmetic.Appearance?.Color;
+        if (ModifyBeauty(session, packet, session.BeautyShop.ShopType, cosmetic.Id) && startColor != null) {
+            Item newCosmetic = session.Item.Equips.Get(cosmetic.Metadata.SlotNames.First())!;
+            if (!Equals(newCosmetic.Appearance?.Color, startColor)) {
+                session.Achievement.Update(AchievementConditionType.beauty_change_color, codeLong: cosmetic.Id);
+            }
+        }
     }
 
     private void HandleUpdateSkin(GameSession session, IByteReader packet) {
@@ -313,6 +321,7 @@ public class BeautyHandler : PacketHandler<GameSession> {
 
         session.Item.Equips.EquipCosmetic(newHair, EquipSlot.HR);
         session.Send(BeautyPacket.RandomHair(prevHair.Id, newHair.Id));
+        session.Achievement.Update(AchievementConditionType.beauty_random, codeLong: newHair.Id);
     }
     private void HandleWarp(GameSession session, IByteReader packet) {
         short type = packet.ReadShort();
@@ -551,10 +560,10 @@ public class BeautyHandler : PacketHandler<GameSession> {
         return true;
     }
 
-    private static void ModifyBeauty(GameSession session, IByteReader packet, BeautyShopType type, int itemId) {
+    private static bool ModifyBeauty(GameSession session, IByteReader packet, BeautyShopType type, int itemId) {
         Item? newCosmetic = session.Item.CreateItem(itemId, 1, 1);
         if (newCosmetic == null) {
-            return;
+            return false;
         }
 
         newCosmetic.Appearance = type switch {
@@ -568,9 +577,9 @@ public class BeautyHandler : PacketHandler<GameSession> {
         using GameStorage.Request db = session.GameStorage.Context();
         newCosmetic = db.CreateItem(session.CharacterId, newCosmetic);
         if (newCosmetic == null) {
-            return;
+            return false;
         }
 
-        session.Item.Equips.EquipCosmetic(newCosmetic, newCosmetic.Metadata.SlotNames.First());
+        return session.Item.Equips.EquipCosmetic(newCosmetic, newCosmetic.Metadata.SlotNames.First());
     }
 }

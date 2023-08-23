@@ -60,21 +60,22 @@ public sealed class AchievementManager {
         foreach (AchievementMetadata metadata in session.AchievementMetadata.GetType(conditionType)) {
             IDictionary<int, Achievement> achievements = metadata.AccountWide ? accountValues : characterValues;
             if (!achievements.TryGetValue(metadata.Id, out Achievement? achievement) || !metadata.Grades.TryGetValue(achievement.CurrentGrade, out AchievementMetadataGrade? grade)) {
-                grade = metadata.Grades[1];
+                int lowestgradeValue = metadata.Grades.Keys.Min();
+                grade = metadata.Grades[lowestgradeValue];
             }
 
             if (grade.Condition.Codes != null && !CheckCode(grade.Condition, codeString, codeLong)) {
                 continue;
             }
 
-            if (grade.Condition.Target != null && !CheckTarget(grade.Condition)) {
+            if (grade.Condition.Target != null && !CheckTarget(grade.Condition, targetLong)) {
                 continue;
             }
 
             if (achievement == null) {
                 achievement = new Achievement(metadata) {
-                    CurrentGrade = 1,
-                    RewardGrade = 1,
+                    CurrentGrade = grade.Grade,
+                    RewardGrade = grade.Grade,
                 };
                 GameStorage.Request db = session.GameStorage.Context();
                 achievement = db.CreateAchievement(metadata.AccountWide ? session.AccountId : session.CharacterId, achievement);
@@ -93,20 +94,6 @@ public sealed class AchievementManager {
     private bool CheckCode(AchievementMetadataCondition condition, string stringValue = "", long longValue = 0) {
         AchievementMetadataCondition.Parameters parameters = condition.Codes!;
         switch (condition.Type) {
-            case AchievementConditionType.map:
-                if (parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, session.Player.Value.Character.MapId)) {
-                    return true;
-                }
-
-                if (parameters.Integers != null && parameters.Integers.Contains(session.Player.Value.Character.MapId)) {
-                    return true;
-                }
-                break;
-            case AchievementConditionType.jump:
-            case AchievementConditionType.meso:
-            case AchievementConditionType.taxifind:
-            case AchievementConditionType.fall_damage:
-                return true;
             case AchievementConditionType.emotion:
                 if (parameters.Strings != null && parameters.Strings.Contains(stringValue)) {
                     return true;
@@ -140,7 +127,47 @@ public sealed class AchievementManager {
                     return true;
                 }
                 break;
+            case AchievementConditionType.map:
+            case AchievementConditionType.fish:
+            case AchievementConditionType.fish_big:
+            case AchievementConditionType.mastery_grade:
+            case AchievementConditionType.set_mastery_grade:
+            case AchievementConditionType.item_add:
+            case AchievementConditionType.beauty_add:
+            case AchievementConditionType.beauty_change_color:
+            case AchievementConditionType.beauty_random:
+            case AchievementConditionType.beauty_style_add:
+            case AchievementConditionType.beauty_style_apply:
+                if (parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) {
+                    return true;
+                }
 
+                if (parameters.Integers != null && parameters.Integers.Contains((int) longValue)) {
+                    return true;
+                }
+                break;
+            case AchievementConditionType.fish_collect:
+            case AchievementConditionType.fish_goldmedal:
+                if ((parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) ||
+                    (parameters.Integers != null && parameters.Integers.Contains((int) longValue))) {
+                    return !session.Player.Value.Unlock.FishAlbum.ContainsKey((int) longValue);
+                }
+                break;
+            case AchievementConditionType.jump:
+            case AchievementConditionType.meso:
+            case AchievementConditionType.taxifind:
+            case AchievementConditionType.fall_damage:
+            case AchievementConditionType.gemstone_upgrade:
+            case AchievementConditionType.gemstone_upgrade_success:
+            case AchievementConditionType.gemstone_upgrade_try:
+            case AchievementConditionType.socket_unlock_success:
+            case AchievementConditionType.socket_unlock_try:
+            case AchievementConditionType.socket_unlock:
+            case AchievementConditionType.gemstone_puton:
+            case AchievementConditionType.gemstone_putoff:
+            case AchievementConditionType.fish_fail:
+            case AchievementConditionType.music_play_grade:
+                return true;
         }
         return false;
 
@@ -152,29 +179,55 @@ public sealed class AchievementManager {
     private bool CheckTarget(AchievementMetadataCondition condition, long longValue = 0) {
         AchievementMetadataCondition.Parameters target = condition.Target!;
         switch (condition.Type) {
-            case AchievementConditionType.map:
-            case AchievementConditionType.jump:
-            case AchievementConditionType.meso:
-            case AchievementConditionType.taxifind:
-            case AchievementConditionType.trophy_point:
-            case AchievementConditionType.interact_object:
-                return true;
             case AchievementConditionType.emotion:
                 if (target.Range != null && target.Range.Value.Min >= session.Player.Value.Character.MapId &&
                     target.Range.Value.Max <= session.Player.Value.Character.MapId) {
                     return true;
                 }
                 break;
+            case AchievementConditionType.fish:
+            case AchievementConditionType.fish_big:
             case AchievementConditionType.fall_damage:
                 if (target.Range != null && target.Range.Value.Min >= longValue &&
                     target.Range.Value.Max <= longValue) {
                     return true;
                 }
 
-                if (target.Integers != null && target.Integers.Any(value => value >= longValue)) {
+                if (target.Integers != null && target.Integers.Any(value => longValue >= value)) {
                     return true;
                 }
                 break;
+            case AchievementConditionType.gemstone_upgrade:
+            case AchievementConditionType.socket_unlock:
+                if (target.Integers != null && target.Integers.Any(value => longValue >= value)) {
+                    return true;
+                }
+                break;
+            case AchievementConditionType.map:
+            case AchievementConditionType.jump:
+            case AchievementConditionType.meso:
+            case AchievementConditionType.taxifind:
+            case AchievementConditionType.trophy_point:
+            case AchievementConditionType.interact_object:
+            case AchievementConditionType.gemstone_upgrade_success:
+            case AchievementConditionType.gemstone_upgrade_try:
+            case AchievementConditionType.socket_unlock_success:
+            case AchievementConditionType.socket_unlock_try:
+            case AchievementConditionType.gemstone_puton:
+            case AchievementConditionType.gemstone_putoff:
+            case AchievementConditionType.fish_fail:
+            case AchievementConditionType.fish_collect:
+            case AchievementConditionType.fish_goldmedal:
+            case AchievementConditionType.mastery_grade:
+            case AchievementConditionType.set_mastery_grade:
+            case AchievementConditionType.music_play_grade:
+            case AchievementConditionType.item_add:
+            case AchievementConditionType.beauty_add:
+            case AchievementConditionType.beauty_change_color:
+            case AchievementConditionType.beauty_random:
+            case AchievementConditionType.beauty_style_add:
+            case AchievementConditionType.beauty_style_apply:
+                return true;
         }
         return false;
     }
@@ -202,7 +255,6 @@ public sealed class AchievementManager {
 
             if (achievement.Grades.Count < achievement.Metadata.Grades.Count) {
                 achievement.CurrentGrade++;
-                Reward(achievement.Id);
             }
 
             // Update count on player
@@ -220,6 +272,8 @@ public sealed class AchievementManager {
                     continue; // Invalid category, just skip.
             }
 
+            GiveReward(achievement);
+
             session.Send(AchievementPacket.Update(achievement));
             if (!achievement.Metadata.Grades.TryGetValue(achievement.CurrentGrade, out grade)) {
                 break;
@@ -230,87 +284,87 @@ public sealed class AchievementManager {
             return false;
         }
 
-        Update(AchievementConditionType.trophy_point, newGradesCount, codeLong: achievement.Id);
         return true;
     }
 
     /// <summary>
-    /// Gives rewards (if applicable) from awarded trophy grades. If there is no reward, it'll increment up on the reward grade.
+    /// Gives rewards (if applicable) from awarded trophy grades. If there is no reward, it'll increment up on the reward grade. Will not increment if there is a item, title, skill point, or attribute point to give.
     /// </summary>
-    /// <param name="achievementId">Achievement Id</param>
+    /// <param name="achievement">Achievement entry from user</param>
     /// <param name="manualClaim">If true, assumes player requested the reward. it will give the player rewards for items, titles, skill points, and attribute points.
     /// These are never given automatically upon newly awarded trophy grade.</param>
-    public void Reward(int achievementId, bool manualClaim = false) {
-        if (!TryGetAchievement(achievementId, out Achievement? achievement)) {
-            return;
-        }
-
+    private void GiveReward(Achievement achievement, bool manualClaim = false) {
         if (achievement.CurrentGrade < achievement.RewardGrade) {
             return;
         }
 
-        for (int startGrade = achievement.RewardGrade; startGrade <= achievement.CurrentGrade; startGrade++) {
-            if (!achievement.Metadata.Grades.TryGetValue(startGrade, out AchievementMetadataGrade? grade)) {
-                continue;
-            }
+        if (!achievement.Metadata.Grades.TryGetValue(achievement.RewardGrade, out AchievementMetadataGrade? grade)) {
+            return;
+        }
 
-            if (grade.Reward == null) {
-                achievement.RewardGrade++;
-                continue;
-            }
-
-            if (achievement.RewardGrade == achievement.CurrentGrade && !achievement.Completed) {
-                session.Send(AchievementPacket.Update(achievement));
-                break;
-            }
-
-            switch (grade.Reward.Type) {
-                case AchievementRewardType.item:
-                    if (!manualClaim) {
-                        return;
-                    }
-                    Item? item = session.Item.CreateItem(grade.Reward.Code, grade.Reward.Rank, grade.Reward.Value);
-                    if (item == null) {
-                        continue;
-                    }
-                    if (!session.Item.Inventory.Add(item, true)) {
-                        session.Item.MailItem(item);
-                    }
-                    break;
-                case AchievementRewardType.title:
-                    if (!manualClaim) {
-                        return;
-                    }
-
-                    if (session.Player.Value.Unlock.Titles.Contains(grade.Reward.Code)) {
-                        break;
-                    }
-                    session.Send(UserEnvPacket.AddTitle(grade.Reward.Code));
-                    session.Player.Value.Unlock.Titles.Add(grade.Reward.Code);
-                    break;
-                case AchievementRewardType.dynamicaction:
-                    if (session.Player.Value.Unlock.Emotes.Contains(grade.Reward.Code)) {
-                        break;
-                    }
-                    session.Player.Value.Unlock.Emotes.Add(grade.Reward.Code);
-                    session.Send(EmotePacket.Learn(new Emote(grade.Reward.Code)));
-                    break;
-                case AchievementRewardType.beauty_hair:
-                case AchievementRewardType.beauty_makeup:
-                case AchievementRewardType.beauty_skin:
-                case AchievementRewardType.itemcoloring:
-                case AchievementRewardType.shop_build:
-                case AchievementRewardType.shop_ride:
-                case AchievementRewardType.shop_weapon:
-                case AchievementRewardType.etc: // currently used as quest unlocks
-                    // I don't think anything is supposed to happen here. Just client sided visuals?
-                    break;
-                default:
-                    logger.Error("Unimplemented trophy reward type {RewardType}", grade.Reward.Type);
-                    break;
-            }
-
+        if (grade.Reward == null) {
             achievement.RewardGrade++;
+            return;
+        }
+
+        switch (grade.Reward.Type) {
+            case AchievementRewardType.item:
+                if (!manualClaim) {
+                    return;
+                }
+                Item? item = session.Item.CreateItem(grade.Reward.Code, grade.Reward.Rank, grade.Reward.Value);
+                if (item == null) {
+                    return;
+                }
+                if (!session.Item.Inventory.Add(item, true)) {
+                    session.Item.MailItem(item);
+                }
+                break;
+            case AchievementRewardType.title:
+                if (!manualClaim) {
+                    return;
+                }
+                if (session.Player.Value.Unlock.Titles.Contains(grade.Reward.Code)) {
+                    break;
+                }
+                session.Send(UserEnvPacket.AddTitle(grade.Reward.Code));
+                session.Player.Value.Unlock.Titles.Add(grade.Reward.Code);
+                break;
+            case AchievementRewardType.dynamicaction:
+                if (session.Player.Value.Unlock.Emotes.Contains(grade.Reward.Code)) {
+                    break;
+                }
+                session.Player.Value.Unlock.Emotes.Add(grade.Reward.Code);
+                session.Send(EmotePacket.Learn(new Emote(grade.Reward.Code)));
+                break;
+            case AchievementRewardType.beauty_hair:
+            case AchievementRewardType.beauty_makeup:
+            case AchievementRewardType.beauty_skin:
+            case AchievementRewardType.itemcoloring:
+            case AchievementRewardType.shop_build:
+            case AchievementRewardType.shop_ride:
+            case AchievementRewardType.shop_weapon:
+            case AchievementRewardType.etc: // currently used as quest unlocks
+                // I don't think anything is supposed to happen here. Just client sided visuals?
+                break;
+            default:
+                logger.Error("Unimplemented trophy reward type {RewardType}", grade.Reward.Type);
+                break;
+        }
+        achievement.RewardGrade++;
+    }
+
+    /// <summary>
+    /// Claims rewards from trophy grades. If there is no reward, it'll increment up on the reward grade. Loops until it catches up to the current grade + 1.
+    /// </summary>
+    /// <param name="achievementId"></param>
+    public void ClaimReward(int achievementId) {
+        if (!TryGetAchievement(achievementId, out Achievement? achievement)) {
+            return;
+        }
+
+        for (int startGrade = achievement.RewardGrade; startGrade <= achievement.CurrentGrade; startGrade++) {
+            GiveReward(achievement, true);
             session.Send(AchievementPacket.Update(achievement));
         }
     }
