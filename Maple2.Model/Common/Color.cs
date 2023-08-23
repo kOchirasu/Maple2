@@ -32,15 +32,6 @@ public readonly struct SkinColor {
 
 [StructLayout(LayoutKind.Sequential, Size = 20)]
 public readonly struct EquipColor {
-    public bool Equals(EquipColor other) {
-        return Primary.Equals(other.Primary) && Secondary.Equals(other.Secondary) && Tertiary.Equals(other.Tertiary) && Index == other.Index && PaletteId == other.PaletteId;
-    }
-    public override bool Equals(object? obj) {
-        return obj is EquipColor other && Equals(other);
-    }
-    public override int GetHashCode() {
-        return HashCode.Combine(Primary, Secondary, Tertiary, Index, PaletteId);
-    }
     public Color Primary { get; }
     public Color Secondary { get; }
     public Color Tertiary { get; }
@@ -53,6 +44,16 @@ public readonly struct EquipColor {
         this.Tertiary = color;
         this.Index = -1;
         this.PaletteId = 0;
+    }
+    
+    public bool Equals(EquipColor other) {
+        return Primary.Equals(other.Primary) && Secondary.Equals(other.Secondary) && Tertiary.Equals(other.Tertiary) && Index == other.Index && PaletteId == other.PaletteId;
+    }
+    public override bool Equals(object? obj) {
+        return obj is EquipColor other && Equals(other);
+    }
+    public override int GetHashCode() {
+        return HashCode.Combine(Primary, Secondary, Tertiary, Index, PaletteId);
     }
 
     [JsonConstructor]
