@@ -30,11 +30,13 @@ public sealed class ItemStatsCalculator {
         int job = (int) item.Metadata.Limit.JobLimits.FirstOrDefault(JobCode.Newbie);
 
         ItemOptionPickTable.Option? pick = TableMetadata.ItemOptionPickTable.Options.GetValueOrDefault(item.Metadata.Option.PickId, item.Rarity);
-        GetConstantOption(item, job, pick, out ItemStats.Option? constantOption);
-        stats[ItemStats.Type.Constant] = new ItemStats.Option(constantOption?.Basic, constantOption?.Special);
+        if (GetConstantOption(item, job, pick, out ItemStats.Option? constantOption)) {
+            stats[ItemStats.Type.Constant] = constantOption;
+        }
 
-        GetStaticOption(item, job, pick, out ItemStats.Option? staticOption);
-        stats[ItemStats.Type.Static] = new ItemStats.Option(staticOption?.Basic, staticOption?.Special);
+        if (GetStaticOption(item, job, pick, out ItemStats.Option? staticOption)) {
+            stats[ItemStats.Type.Static] = staticOption;
+        }
 
         if (GetRandomOption(item, out ItemStats.Option? option)) {
             RandomizeValues(item.Type, ref option);
