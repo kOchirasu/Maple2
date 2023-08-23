@@ -226,7 +226,7 @@ public class BeautyHandler : PacketHandler<GameSession> {
         EquipColor? startColor = cosmetic.Appearance?.Color;
         if (ModifyBeauty(session, packet, session.BeautyShop.ShopType, cosmetic.Id) && startColor != null) {
             Item newCosmetic = session.Item.Equips.Get(cosmetic.Metadata.SlotNames.First())!;
-            if (newCosmetic.Appearance != null && !Equals(newCosmetic.Appearance?.Color, startColor)) {
+            if (!Equals(newCosmetic.Appearance?.Color, startColor)) {
                 session.Achievement.Update(AchievementConditionType.beauty_change_color, codeLong: cosmetic.Id);
             }
         }
