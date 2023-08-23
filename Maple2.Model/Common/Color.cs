@@ -55,14 +55,6 @@ public readonly struct EquipColor {
         this.Index = index;
     }
 
-    public static bool operator ==(EquipColor color1, EquipColor color2) {
-        return color1.Equals(color2);
-    }
-
-    public static bool operator !=(EquipColor color1, EquipColor color2) {
-        return !color1.Equals(color2);
-    }
-
     public override string ToString() =>
         $"Primary:{Primary}|Secondary:{Secondary}|Tertiary:{Tertiary}|Index:{Index}";
 }
