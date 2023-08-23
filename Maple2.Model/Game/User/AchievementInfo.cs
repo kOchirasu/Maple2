@@ -36,7 +36,7 @@ public class Achievement : IByteSerializable {
     public readonly AchievementMetadata Metadata;
     public readonly int Id;
 
-    public bool Completed => CurrentGrade == Grades.Count;
+    public bool Completed => Metadata.Grades.Count == Grades.Count;
     public AchievementStatus Status => Completed ? AchievementStatus.Completed : AchievementStatus.InProgress;
     public int CurrentGrade { get; set; }
     public int RewardGrade { get; set; }

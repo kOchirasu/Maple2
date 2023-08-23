@@ -29,7 +29,7 @@ public class AchievementHandler : PacketHandler<GameSession> {
     private void HandleReward(GameSession session, IByteReader packet) {
         int achievementId = packet.ReadInt();
 
-        session.Achievement.Reward(achievementId, true);
+        session.Achievement.ClaimReward(achievementId);
     }
 
     private void HandleToggleFavorite(GameSession session, IByteReader packet) {
