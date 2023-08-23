@@ -150,7 +150,7 @@ public sealed class ItemStatsCalculator {
 
         if (item.Metadata.Option.LevelFactor > 50 && pick != null) {
             if (option == null) {
-                option = new ItemStats.Option(new Dictionary<BasicAttribute, BasicOption>(), new Dictionary<SpecialAttribute, SpecialOption>());
+                option = new ItemStats.Option();
             }
 
             foreach ((BasicAttribute attribute, int deviation) in pick.ConstantValue) {
@@ -180,7 +180,7 @@ public sealed class ItemStatsCalculator {
 
         if (pick != null) {
             if (option == null) {
-                option = new ItemStats.Option(new Dictionary<BasicAttribute, BasicOption>(), new Dictionary<SpecialAttribute, SpecialOption>());
+                option = new ItemStats.Option();
             }
             foreach ((BasicAttribute attribute, int deviation) in pick.StaticValue) {
                 int currentValue = option.Basic.TryGetValue(attribute, out BasicOption basicOption) ? basicOption.Value : 0;
