@@ -45,16 +45,6 @@ public readonly struct EquipColor {
         this.Index = -1;
         this.PaletteId = 0;
     }
-    
-    public bool Equals(EquipColor other) {
-        return Primary.Equals(other.Primary) && Secondary.Equals(other.Secondary) && Tertiary.Equals(other.Tertiary) && Index == other.Index && PaletteId == other.PaletteId;
-    }
-    public override bool Equals(object? obj) {
-        return obj is EquipColor other && Equals(other);
-    }
-    public override int GetHashCode() {
-        return HashCode.Combine(Primary, Secondary, Tertiary, Index, PaletteId);
-    }
 
     [JsonConstructor]
     public EquipColor(Color primary, Color secondary, Color tertiary, int paletteId, int index = -1) {
