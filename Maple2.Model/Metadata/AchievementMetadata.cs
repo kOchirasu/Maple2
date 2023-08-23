@@ -13,6 +13,7 @@ public record AchievementMetadata(
     IReadOnlyDictionary<int, AchievementMetadataGrade> Grades) : ISearchResult;
 
 public record AchievementMetadataGrade(
+    int Grade,
     AchievementMetadataCondition Condition,
     AchievementMetadataReward? Reward);
 

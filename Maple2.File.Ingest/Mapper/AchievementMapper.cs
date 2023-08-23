@@ -19,6 +19,7 @@ public class AchievementMapper : TypeMapper<AchievementMetadata> {
             var grades = new Dictionary<int, AchievementMetadataGrade>();
             foreach (Grade grade in data.grade) {
                 grades.Add(grade.value, new AchievementMetadataGrade(
+                    Grade: grade.value,
                     Condition: new AchievementMetadataCondition(
                         Type: (AchievementConditionType) grade.condition.type,
                         Codes: GetCodes(grade.condition.code),

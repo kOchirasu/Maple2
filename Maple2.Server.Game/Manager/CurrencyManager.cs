@@ -102,41 +102,65 @@ public class CurrencyManager {
                     delta = Math.Min(value, Constant.HonorTokenMax) - Currency.ValorToken;
                     overflow = Math.Max(0, value - Constant.HonorTokenMax);
                     Currency.ValorToken = Math.Min(value, Constant.HonorTokenMax);
+                    if (delta > 0) {
+                        session.Achievement.Update(AchievementConditionType.get_honor_token, delta);
+                    }
                     break;
                 case CurrencyType.Treva:
                     delta = Math.Min(value, Constant.KarmaTokenMax) - Currency.Treva;
                     overflow = Math.Max(0, value - Constant.KarmaTokenMax);
                     Currency.Treva = Math.Min(value, Constant.KarmaTokenMax);
+                    if (delta > 0) {
+                        session.Achievement.Update(AchievementConditionType.get_karma_token, delta);
+                    }
                     break;
                 case CurrencyType.Rue:
                     delta = Math.Min(value, Constant.LuTokenMax) - Currency.Rue;
                     overflow = Math.Max(0, value - Constant.LuTokenMax);
                     Currency.Rue = Math.Min(value, Constant.LuTokenMax);
+                    if (delta > 0) {
+                        session.Achievement.Update(AchievementConditionType.get_lu_token, delta);
+                    }
                     break;
                 case CurrencyType.HaviFruit:
                     delta = Math.Min(value, Constant.HaviTokenMax) - Currency.HaviFruit;
                     overflow = Math.Max(0, value - Constant.HaviTokenMax);
                     Currency.HaviFruit = Math.Min(value, Constant.HaviTokenMax);
+                    if (delta > 0) {
+                        session.Achievement.Update(AchievementConditionType.get_habi_token, delta);
+                    }
                     break;
                 case CurrencyType.ReverseCoin:
                     delta = Math.Min(value, Constant.ReverseCoinMax) - Currency.ReverseCoin;
                     overflow = Math.Max(0, value - Constant.ReverseCoinMax);
                     Currency.ReverseCoin = Math.Min(value, Constant.ReverseCoinMax);
+                    if (delta > 0) {
+                        session.Achievement.Update(AchievementConditionType.get_reverse_coin, delta);
+                    }
                     break;
                 case CurrencyType.MentorToken:
                     delta = Math.Min(value, Constant.MentorTokenMax) - Currency.MentorToken;
                     overflow = Math.Max(0, value - Constant.MentorTokenMax);
                     Currency.MentorToken = Math.Min(value, Constant.MentorTokenMax);
+                    if (delta > 0) {
+                        session.Achievement.Update(AchievementConditionType.get_mentor_token, delta);
+                    }
                     break;
                 case CurrencyType.MenteeToken:
                     delta = Math.Min(value, Constant.MenteeTokenMax) - Currency.MenteeToken;
                     overflow = Math.Max(0, value - Constant.MenteeTokenMax);
                     Currency.MenteeToken = Math.Min(value, Constant.MenteeTokenMax);
+                    if (delta > 0) {
+                        session.Achievement.Update(AchievementConditionType.get_mentee_token, delta);
+                    }
                     break;
                 case CurrencyType.StarPoint:
                     delta = Math.Min(value, Constant.StarPointMax) - Currency.StarPoint;
                     overflow = Math.Max(0, value - Constant.StarPointMax);
                     Currency.StarPoint = Math.Min(value, Constant.StarPointMax);
+                    if (delta > 0) {
+                        session.Achievement.Update(AchievementConditionType.get_star_point, delta);
+                    }
                     break;
                 case CurrencyType.MesoToken:
                     delta = Math.Min(value, Constant.MesoTokenMax) - Currency.MesoToken;
