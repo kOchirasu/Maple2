@@ -23,6 +23,7 @@ public class LoginSession : Core.Network.Session {
     public readonly LoginServer Server;
 
     public long AccountId { get; private set; }
+    public long CharacterId { get; private set; } // Used only as a temporary variable
     public Guid MachineId { get; private set; }
 
     #region Autofac Autowired
@@ -91,6 +92,7 @@ public class LoginSession : Core.Network.Session {
         if (character == null) {
             throw new InvalidOperationException($"Failed to create character: {createCharacter.Id}");
         }
+        CharacterId = character.Id;
 
         var unlock = new Unlock();
         int[] defaultEmotes = {

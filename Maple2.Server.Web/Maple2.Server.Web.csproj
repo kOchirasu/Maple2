@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>11</LangVersion>
+        <RootNamespace>Maple2.Web</RootNamespace>
+    </PropertyGroup>
+
+
+
+    <ItemGroup>
+      <PackageReference Include="Maple2.PacketLib" Version="1.0.2" />
+      <PackageReference Include="Serilog.AspNetCore" Version="7.0.0" />
+      <PackageReference Include="Serilog.Expressions" Version="3.4.2-dev-00120" />
+      <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    </ItemGroup>
+
+
+
+
+    <ItemGroup>
+      <ProjectReference Include="..\Maple2.Database\Maple2.Database.csproj" />
+      <ProjectReference Include="..\Maple2.Model\Maple2.Model.csproj" />
+    </ItemGroup>
+
+
+
+</Project>
