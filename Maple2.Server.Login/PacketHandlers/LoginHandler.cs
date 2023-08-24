@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using Grpc.Core;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -61,7 +62,7 @@ public class LoginHandler : PacketHandler<LoginSession> {
                     session.Init(response.AccountId, machineId);
 
                     session.Send(LoginResultPacket.Success(response.AccountId));
-                    //session.Send(UgcPacket.SetEndpoint("http://127.0.0.1/ws.asmx?wsdl", "http://127.0.0.1"));
+                    session.Send(UgcPacket.SetEndpoint(new IPEndPoint(Target.WebIp, Target.WebPort)));
 
                     session.ListCharacters();
                     return;
