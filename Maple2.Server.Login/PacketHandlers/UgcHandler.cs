@@ -32,8 +32,6 @@ public class UgcHandler : PacketHandler<LoginSession> {
             case Command.ProfilePicture:
                 HandleProfilePicture(session, packet);
                 break;
-            default:
-                return;
         }
     }
 
