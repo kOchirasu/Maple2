@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Sockets;
@@ -26,6 +28,7 @@ using Maple2.Server.Game.Util;
 using Maple2.Server.Game.Util.Sync;
 using Maple2.Server.World.Service;
 using Maple2.Tools.Scheduler;
+using BannerListPacket = Maple2.Server.Core.Packets.BannerListPacket;
 using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
 namespace Maple2.Server.Game.Session;
@@ -193,7 +196,7 @@ public sealed partial class GameSession : Core.Network.Session {
         // DailyWonder*
         GameEventUserValue.Load();
         Send(GameEventPacket.Load(db.GetEvents()));
-        // BannerList
+        Send(BannerListPacket.Load(db.GetBanners()));
         // RoomDungeon
         // FieldEntrance
         // InGameRank
@@ -314,9 +317,18 @@ public sealed partial class GameSession : Core.Network.Session {
             : FieldEnterPacket.Error(MigrationError.s_move_err_default));
     }
 
-    public GameEvent? FindEvent<T>() where T : GameEventInfo {
-        return server.FindEvent<T>();
+    public GameEvent? FindEvent<T>() where T : GameEventInfo => server.FindEvent<T>();
+
+    public IEnumerable<PremiumMarketEntry> GetPremiumMarketEntries(int tabId) {
+        List<PremiumMarketEntry> entries = server.GetPremiumMarketEntries(tabId).Where(entry => entry.ParentId == 0).ToList();
+        var test = server.GetPremiumMarketEntries(tabId).Where(entry => entry.ParentId != 0).ToList();
+        foreach (PremiumMarketEntry entry in server.GetPremiumMarketEntries(tabId).Where(entry => entry.ParentId != 0)) {
+            entries.FirstOrDefault(item => item.Id == entry.ParentId)?.AdditionalQuantities.Add(entry);
+        }
+        return entries;
     }
+
+    public PremiumMarketEntry? GetPremiumMarketEntry(int id) => server.GetPremiumMarketEntry(id);
 
     public bool Temp() {
         // -> RequestMoveField

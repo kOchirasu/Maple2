@@ -30,6 +30,8 @@ public sealed class Ms2Context : DbContext {
     internal DbSet<ShopItem> ShopItem { get; set; } = null!;
     internal DbSet<GameEvent> GameEvent { get; set; } = null!;
     internal DbSet<GameEventUserValue> GameEventUserValue { get; set; } = null!;
+    internal DbSet<PromoBanner> PromoBanner { get; set; } = null!;
+    internal DbSet<PremiumMarketEntry> PremiumMarketEntry { get; set; } = null!;
 
     public Ms2Context(DbContextOptions options) : base(options) { }
 
@@ -53,6 +55,8 @@ public sealed class Ms2Context : DbContext {
         modelBuilder.Entity<UgcMap>(Maple2.Database.Model.UgcMap.Configure);
         modelBuilder.Entity<UgcMapCube>(Maple2.Database.Model.UgcMapCube.Configure);
         modelBuilder.Entity<Mail>(Maple2.Database.Model.Mail.Configure);
+        modelBuilder.Entity<PromoBanner>(Maple2.Database.Model.PromoBanner.Configure);
+        modelBuilder.Entity<PremiumMarketEntry>(Maple2.Database.Model.PremiumMarketEntry.Configure);
 
         modelBuilder.Entity<MesoListing>(MesoListing.Configure);
         modelBuilder.Entity<SoldMesoListing>(SoldMesoListing.Configure);

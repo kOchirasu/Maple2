@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -12,6 +14,98 @@ public static class ModelExtensions {
 
     public static bool IsAwakening(this Job job) {
         return ((int) job % 10) != 0;
+    }
+
+    public static JobFlag Flag(this Job job) {
+        return job switch {
+            Job.Archer or Job.ArcherII => JobFlag.Archer,
+            Job.Assassin or Job.AssassinII => JobFlag.Assassin,
+            Job.Berserker or Job.BerserkerII => JobFlag.Berserker,
+            Job.HeavyGunner or Job.HeavyGunnerII => JobFlag.HeavyGunner,
+            Job.Knight or Job.KnightII => JobFlag.Knight,
+            Job.Priest or Job.PriestII => JobFlag.Priest,
+            Job.RuneBlader or Job.RuneBladerII => JobFlag.RuneBlader,
+            Job.SoulBinder or Job.SoulBinderII => JobFlag.SoulBinder,
+            Job.Striker or Job.StrikerII => JobFlag.Striker,
+            Job.Thief or Job.ThiefII => JobFlag.Thief,
+            Job.Wizard or Job.WizardII => JobFlag.Wizard,
+            Job.Newbie => JobFlag.Newbie,
+            _ => throw new ArgumentException($"Unknown job {job}"),
+        };
+    }
+
+    public static JobFlag Flag(this JobCode job) {
+        return job switch {
+            JobCode.None => JobFlag.None,
+            JobCode.Newbie => JobFlag.Newbie,
+            JobCode.Knight => JobFlag.Knight,
+            JobCode.Berserker => JobFlag.Berserker,
+            JobCode.Wizard => JobFlag.Wizard,
+            JobCode.Priest => JobFlag.Priest,
+            JobCode.Archer => JobFlag.Archer,
+            JobCode.HeavyGunner => JobFlag.HeavyGunner,
+            JobCode.Thief => JobFlag.Thief,
+            JobCode.Assassin => JobFlag.Assassin,
+            JobCode.RuneBlader => JobFlag.RuneBlader,
+            JobCode.Striker => JobFlag.Striker,
+            JobCode.SoulBinder => JobFlag.SoulBinder,
+            _ => throw new ArgumentOutOfRangeException(nameof(job), job, null)
+        };
+    }
+
+    public static JobFlag Flag(this IEnumerable<JobCode> jobs) {
+        return jobs.Aggregate(JobFlag.None, (current, job) => current | job.Flag());
+    }
+
+    public static GenderFlag Flag(this Gender gender) {
+        return gender switch {
+            Gender.All => GenderFlag.Male | GenderFlag.Female,
+            Gender.Female => GenderFlag.Female,
+            Gender.Male => GenderFlag.Male,
+            _ => throw new ArgumentOutOfRangeException(nameof(gender), gender, null)
+        };
+    }
+
+    public static IEnumerable<JobCode> Code(this JobFlag flag) {
+        if (flag.HasFlag(Job.Newbie)) {
+            yield return JobCode.Newbie;
+        }
+
+        if (flag.HasFlag(JobFlag.Knight)) {
+            yield return JobCode.Knight;
+        }
+        
+        if (flag.HasFlag(JobFlag.Berserker)) {
+            yield return JobCode.Berserker;
+        }
+        
+        if (flag.HasFlag(JobFlag.Wizard)) {
+            yield return JobCode.Wizard;
+        }
+        
+        if (flag.HasFlag(JobFlag.Priest)) {
+            yield return JobCode.Priest;
+        }
+        
+        if (flag.HasFlag(JobFlag.Archer)) {
+            yield return JobCode.Archer;
+        }
+        
+        if (flag.HasFlag(JobFlag.HeavyGunner)) {
+            yield return JobCode.HeavyGunner;
+        }
+        
+        if (flag.HasFlag(JobFlag.Thief)) {
+            yield return JobCode.Thief;
+        }
+
+        if (flag.HasFlag(JobFlag.RuneBlader)) {
+            yield return JobCode.RuneBlader;
+        }
+
+        if (flag.HasFlag(JobFlag.SoulBinder)) {
+            yield return JobCode.SoulBinder;
+        }
     }
 
     public static InventoryType Inventory(this ItemMetadata metadata) {

@@ -70,6 +70,32 @@ public class UserChatHandler : PacketHandler<GameSession> {
     }
 
     private static void HandleNormal(GameSession session, string message) {
+        if (!session.ItemMetadata.TryGet(70100005, out ItemMetadata? metadata)) {
+            return;
+        }
+        /*PremiumMarketEntry entr = new PremiumMarketEntry(10000, metadata) {
+            BannerName = "",
+            BonusQuantity = 0,
+            ItemDuration = 0,
+            Label = MeretMarketItemLabel.None,
+            ItemId = 70100005,
+            JobRequirement = JobFlag.Knight | JobFlag.Berserker | JobFlag.Priest | JobFlag.Wizard | JobFlag.Archer | JobFlag.HeavyGunner | JobFlag.Thief | JobFlag.Assassin | JobFlag.Newbie | JobFlag.RuneBlader | JobFlag.Striker | JobFlag.SoulBinder,
+            RequireMaxLevel = 0,
+            RequireMinLevel = 0,
+            PcCafe = false,
+            Price = 360,
+            Quantity = 1,
+            Rarity = 1,
+            SalePrice = 360,
+            SellBeginTime = 1262304000,
+            SellEndTime = 4102444800,
+            CurrencyType = MeretMarketCurrencyType.Meret,
+            TabId = 40300,
+        };
+        
+        using GameStorage.Request db = session.GameStorage.Context();
+        db.SaveMarketEntry(entr);*/
+        
         session.Field?.Broadcast(ChatPacket.Message(session.Player.Value, ChatType.Normal, message));
     }
 

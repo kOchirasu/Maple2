@@ -1,5 +1,7 @@
 ﻿// ReSharper disable InconsistentNaming, IdentifierTypo
 
+using System;
+
 namespace Maple2.Model.Enum;
 
 // table/jobgroup.xml
@@ -45,4 +47,21 @@ public enum Job {
     SoulBinder = 1100,
     SoulBinderII = 1101,
     //GameMaster = 999,
+}
+
+[Flags]
+public enum JobFlag {
+    None = 0,
+    Newbie = 1,
+    Knight = 2,
+    Berserker = 4,
+    Wizard = 8,
+    Priest = 16,
+    Archer = 32,
+    HeavyGunner = 64,
+    Thief = 128,
+    Assassin = 256,
+    RuneBlader = 512,
+    Striker = 1024,
+    SoulBinder = 2048,
 }

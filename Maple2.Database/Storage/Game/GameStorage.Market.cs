@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
+using Maple2.Model.Enum;
+using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using MesoListing = Maple2.Model.Game.MesoListing;
 
 namespace Maple2.Database.Storage;
@@ -53,6 +56,62 @@ public partial class GameStorage {
 
             Context.MesoMarket.Remove(listing);
             return Context.TrySaveChanges();
+        }
+        
+        public List<PremiumMarketEntry> GetAllPremiumMarketEntries() {
+            //TODO: Fix this before PR
+            /*var list = new List<PremiumMarketEntry>();
+            foreach (Model.PremiumMarketEntry entry in Context.PremiumMarketEntry) {
+                if (!game.itemMetadata.TryGet(entry.ItemId, out ItemMetadata? metadata)) {
+                    continue;
+                }
+                
+                list.Add(new PremiumMarketEntry(entry.Id, metadata));
+
+            }*/
+            /*if (tabId == 0) {
+                return Context.PremiumMarketEntry
+                    .AsEnumerable()
+                    .Select(ToMarketEntry)
+                    .Where(entry => entry != null)
+                    .ToList()!;
+            }*/
+            return Context.PremiumMarketEntry
+                .AsEnumerable()
+                .Select(ToMarketEntry)
+                .Where(entry => entry != null)
+                .ToList()!;
+            
+            List<PremiumMarketEntry?> results = Context.PremiumMarketEntry
+                .AsEnumerable()
+                .Select(ToMarketEntry)
+                .Where(entry => entry != null && 
+                                entry.ParentId == 0)
+                .ToList();
+            
+            List<PremiumMarketEntry?> subResults = Context.PremiumMarketEntry
+                .AsEnumerable()
+                .Select(ToMarketEntry)
+                .Where(entry => entry != null && 
+                                entry.ParentId != 0)
+                .ToList();
+
+            foreach (PremiumMarketEntry? entry in subResults) {
+                if (entry == null) {
+                    continue;
+                }
+                results.FirstOrDefault(item => item?.Id == entry.ParentId)?.AdditionalQuantities.Add(entry);
+            }
+
+            return results!;
+        }
+        
+        private PremiumMarketEntry? ToMarketEntry(Model.PremiumMarketEntry? model) {
+            if (model == null) {
+                return null;
+            }
+
+            return game.itemMetadata.TryGet(model.ItemId, out ItemMetadata? metadata) ? model.Convert(metadata) : null;
         }
     }
 }
