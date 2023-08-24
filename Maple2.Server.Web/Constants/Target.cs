@@ -1,6 +1,6 @@
 ﻿using System.Net;
 
-namespace Maple2.Web.Constants;
+namespace Maple2.Server.Web.Constants;
 
 public static class Target {
     public static readonly IPAddress WebIp = IPAddress.Loopback;

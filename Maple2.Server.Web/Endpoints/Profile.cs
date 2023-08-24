@@ -1,15 +1,12 @@
-﻿using Maple2.Web.Constants;
+﻿using Maple2.Server.Web.Constants;
 using Microsoft.AspNetCore.Http;
 
-namespace Maple2.Web.Endpoints; 
+namespace Maple2.Server.Web.Endpoints;
 
-public static class ProfileEndpoint
-{
-    public static IResult Get(long characterId, string hash)
-    {
+public static class ProfileEndpoint {
+    public static IResult Get(long characterId, string hash) {
         string fullPath = $"{Target.DataDir}/profiles/{characterId}/{hash}.png";
-        if (!File.Exists(fullPath))
-        {
+        if (!File.Exists(fullPath)) {
             return Results.BadRequest();
         }
 

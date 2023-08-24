@@ -1,10 +1,10 @@
 ﻿using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
-using Maple2.Web.Constants;
+using Maple2.Server.Web.Constants;
 using Microsoft.AspNetCore.Http;
 using Serilog;
 
-namespace Maple2.Web.Endpoints;
+namespace Maple2.Server.Web.Endpoints;
 
 public static class UploadEndpoint {
     public static async Task<IResult> Post(HttpRequest request) {
@@ -41,8 +41,8 @@ public static class UploadEndpoint {
         string uniqueFileName = Guid.NewGuid().ToString();
 
         // Deleting old files in the character folder
-        DirectoryInfo di = new(filePath);
-        foreach (FileInfo file in di.GetFiles()) {
+        var directory = new DirectoryInfo(filePath);
+        foreach (FileInfo file in directory.GetFiles()) {
             file.Delete();
         }
 
@@ -56,13 +56,9 @@ public static class UploadEndpoint {
     }
 
     private static async Task<MemoryStream> CopyStream(Stream input) {
-        MemoryStream output = new();
-        byte[] buffer = new byte[16 * 1024];
-        int read;
-        while ((read = await input.ReadAsync(buffer)) > 0) {
-            output.Write(buffer, 0, read);
-        }
-
+        var output = new MemoryStream();
+        await input.CopyToAsync(output);
+        output.Position = 0; // reset position to beginning of stream before returning
         return output;
     }
 }

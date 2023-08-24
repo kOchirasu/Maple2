@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
-using Maple2.Web.Constants;
-using Maple2.Web.Endpoints;
+using Maple2.Server.Web.Constants;
+using Maple2.Server.Web.Endpoints;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
