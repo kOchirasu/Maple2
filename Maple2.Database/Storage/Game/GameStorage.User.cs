@@ -218,6 +218,11 @@ public partial class GameStorage {
             return Context.TrySaveChanges();
         }
 
+        public bool SaveCharacter(Character character) {
+            Context.Character.Update(character);
+            return Context.TrySaveChanges();
+        }
+
         public (IList<KeyBind>? KeyBinds, IList<QuickSlot[]>? HotBars, List<SkillMacro>?, List<Wardrobe>?, List<int>? FavoriteStickers, IDictionary<LapenshardSlot, int>? Lapenshards, IDictionary<BasicAttribute, int>?, SkillBook?) LoadCharacterConfig(long characterId) {
             CharacterConfig? config = Context.CharacterConfig.Find(characterId);
             if (config == null) {

@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.Server.Game", "Maple
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.Server.Tests", "Maple2.Server.Tests\Maple2.Server.Tests.csproj", "{3A8B9906-C9F0-4655-ACF2-4DBC7C8271DF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Maple2.Server.Web", "Maple2.Server.Web\Maple2.Server.Web.csproj", "{0250B255-044A-4C19-8F2F-AB019B01D498}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,5 +62,9 @@ Global
 		{3A8B9906-C9F0-4655-ACF2-4DBC7C8271DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3A8B9906-C9F0-4655-ACF2-4DBC7C8271DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3A8B9906-C9F0-4655-ACF2-4DBC7C8271DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0250B255-044A-4C19-8F2F-AB019B01D498}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0250B255-044A-4C19-8F2F-AB019B01D498}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0250B255-044A-4C19-8F2F-AB019B01D498}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0250B255-044A-4C19-8F2F-AB019B01D498}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
