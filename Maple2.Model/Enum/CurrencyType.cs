@@ -1,6 +1,7 @@
 ﻿namespace Maple2.Model.Enum;
 
 public enum CurrencyType : byte {
+    None = 0,
     ValorToken = 3,
     Treva = 4,
     Rue = 5,

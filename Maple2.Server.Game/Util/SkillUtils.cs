@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using Maple2.Model;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
 using Maple2.Tools.Collision;
@@ -71,6 +72,15 @@ public static class SkillUtils {
 
     public static bool Check(this BeginCondition condition, IActor caster, IActor owner, IActor target) {
         if (caster is FieldPlayer player) {
+            if (condition is not {Probability: 1} && condition.Probability < Random.Shared.NextDouble()) {
+                return false;
+            }
+            if (condition.OnlyShadowWorld && caster.Field.Metadata.Property.Type != MapType.Shadow) {
+                return false;
+            }
+            if (condition.OnlyFlyableMap && !caster.Field.Metadata.Property.CanFly) {
+                return false;
+            }
             if (player.Value.Character.Level < condition.Level) {
                 return false;
             }
@@ -83,6 +93,16 @@ public static class SkillUtils {
             if (condition.JobCode.Length > 0 && !condition.JobCode.Contains(player.Value.Character.Job.Code())) {
                 return false;
             }
+            if (condition.Weapon?.Length > 0) {
+                if (!condition.Weapon.Any(weapon => weapon.Check(player))) {
+                    return false;
+                }
+            }
+            foreach ((BasicAttribute stat, long value) in condition.Stat) {
+                if (player.Stats[stat].Total < value) {
+                    return false;
+                }
+            }
         }
 
         return condition.Caster.Check(caster) && condition.Owner.Check(owner) && condition.Target.Check(target);
@@ -94,7 +114,7 @@ public static class SkillUtils {
         }
 
         foreach ((int id, short level, bool owned, int count, CompareType compare) in condition.Buff) {
-            if (!target.Buffs.TryGetValue(id, out Buff? buff)) {
+            if (!target.Buffs.Buffs.TryGetValue(id, out Buff? buff)) {
                 return false;
             }
             if (buff.Level < level) {
@@ -118,5 +138,15 @@ public static class SkillUtils {
         }
 
         return true;
+    }
+
+    private static bool Check(this BeginConditionWeapon weapon, FieldPlayer player) {
+        return IsValid(weapon.LeftHand, EquipSlot.LH) && IsValid(weapon.RightHand, EquipSlot.RH);
+
+        bool IsValid(ItemType itemType, EquipSlot slot) {
+            if (itemType.Type == 0) return true;
+            Item? handItem = player.Session.Item.Equips.Get(slot);
+            return handItem != null && handItem.Type.Type == itemType.Type;
+        }
     }
 }

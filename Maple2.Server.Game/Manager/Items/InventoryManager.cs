@@ -195,6 +195,8 @@ public class InventoryManager {
                 if (notifyNew) {
                     session.Send(ItemInventoryPacket.NotifyNew(item.Uid, added));
                 }
+                session.Achievement.Update(AchievementConditionType.item_collect, codeLong: item.Id);
+                session.Achievement.Update(AchievementConditionType.item_add, count: item.Amount, codeLong: item.Id);
             }
 
             return true;

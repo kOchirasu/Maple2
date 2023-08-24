@@ -1,5 +1,7 @@
-﻿using M2dXmlGenerator;
+﻿using System.Numerics;
+using M2dXmlGenerator;
 using Maple2.Database.Extensions;
+using Maple2.File.Ingest.Utils;
 using Maple2.File.IO;
 using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.Item;
@@ -70,6 +72,40 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                 expirationDuration = data.life.usePeriod;
             }
 
+            var hairList = new List<DefaultHairMetadata>();
+            // parse default hair positions
+            foreach (Slot slot in data.slots.slot.Where(dataSlots => dataSlots.name == "HR")) {
+
+                // not sure what the difference/significance is within the multiple scale entries. Currently just using the first one
+                float minScale = slot.scale.ElementAtOrDefault(0)?.min ?? 0f;
+                float maxScale = slot.scale.ElementAtOrDefault(0)?.max ?? 0f;
+                switch (slot.asset.Count) {
+                    case 3: // Hair has front and back positionable hair section
+                        for (int index = 0; index < slot.asset[1].custom.Count; index++) {
+                            hairList.Add(new DefaultHairMetadata(
+                                BackPosition: slot.asset[1].custom[index].position,
+                                BackRotation: slot.asset[1].custom[index].rotation,
+                                FrontPosition: slot.asset[2].custom[index].position,
+                                FrontRotation: slot.asset[2].custom[index].rotation,
+                                MinScale: minScale,
+                                MaxScale: maxScale));
+                        }
+                        break;
+                    case 2: // Hair has one positionable hair section
+                        foreach (Slot.Custom custom in slot.asset[1].custom) {
+                            hairList.Add(new DefaultHairMetadata(
+                                BackPosition: custom.position,
+                                BackRotation: custom.rotation,
+                                MinScale: minScale,
+                                MaxScale: maxScale));
+                        }
+                        break;
+                    default: // No positionable hair section
+                        hairList.Add(new DefaultHairMetadata());
+                        break;
+                }
+            }
+
             ItemMetadataSkill? skill = data.skill.skillID == 0 && data.objectWeaponSkill.skillID == 0 ? null : new ItemMetadataSkill(
                 Id: data.skill.skillID,
                 Level: data.skill.skillID != 0 ? data.skill.skillLevel : (short) 0,
@@ -115,6 +151,7 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     .Select(slot => Enum.Parse<EquipSlot>(slot.name, true))
                     .ToArray(),
                 Mesh: data.ucc.mesh,
+                DefaultHairs: hairList.ToArray(),
                 Life: new ItemMetadataLife(
                     ExpirationDuration: expirationDuration,
                     ExpirationTimestamp: expirationTimestamp
@@ -163,6 +200,8 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                 ),
                 Skill: skill,
                 Function: function,
+                AdditionalEffects: data.AdditionalEffect.id.Zip(data.AdditionalEffect.level,
+                    (skillId, level) => new ItemMetadataAdditionalEffect(skillId, level)).ToArray(),
                 Option: option,
                 Music: music,
                 Housing: housing

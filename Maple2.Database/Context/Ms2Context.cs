@@ -32,6 +32,9 @@ public sealed class Ms2Context : DbContext {
     internal DbSet<GameEventUserValue> GameEventUserValue { get; set; } = null!;
     internal DbSet<PromoBanner> PromoBanner { get; set; } = null!;
     internal DbSet<PremiumMarketEntry> PremiumMarketEntry { get; set; } = null!;
+    internal DbSet<BeautyShop> BeautyShop { get; set; } = null!;
+    internal DbSet<BeautyShopEntry> BeautyShopEntry { get; set; } = null!;
+    internal DbSet<Achievement> Achievement { get; set; } = null!;
 
     public Ms2Context(DbContextOptions options) : base(options) { }
 
@@ -57,11 +60,14 @@ public sealed class Ms2Context : DbContext {
         modelBuilder.Entity<Mail>(Maple2.Database.Model.Mail.Configure);
         modelBuilder.Entity<PromoBanner>(Maple2.Database.Model.PromoBanner.Configure);
         modelBuilder.Entity<PremiumMarketEntry>(Maple2.Database.Model.PremiumMarketEntry.Configure);
+        modelBuilder.Entity<Achievement>(Maple2.Database.Model.Achievement.Configure);
 
         modelBuilder.Entity<MesoListing>(MesoListing.Configure);
         modelBuilder.Entity<SoldMesoListing>(SoldMesoListing.Configure);
         modelBuilder.Entity<Shop>(Maple2.Database.Model.Shop.Shop.Configure);
         modelBuilder.Entity<ShopItem>(Maple2.Database.Model.Shop.ShopItem.Configure);
+        modelBuilder.Entity<BeautyShop>(Maple2.Database.Model.Shop.BeautyShop.Configure);
+        modelBuilder.Entity<BeautyShopEntry>(Maple2.Database.Model.Shop.BeautyShopEntry.Configure);
 
         modelBuilder.Entity<GameEvent>(Maple2.Database.Model.Event.GameEvent.Configure);
         modelBuilder.Entity<GameEventUserValue>(Maple2.Database.Model.Event.GameEventUserValue.Configure);

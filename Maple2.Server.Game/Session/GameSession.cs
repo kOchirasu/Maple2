@@ -13,6 +13,7 @@ using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Game.Event;
 using Maple2.Model.Metadata;
+using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
@@ -57,6 +58,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public required SkillMetadataStorage SkillMetadata { get; init; }
     public required TableMetadataStorage TableMetadata { get; init; }
     public required MapMetadataStorage MapMetadata { get; init; }
+    public required AchievementMetadataStorage AchievementMetadata { get; init; }
     public required FieldManager.Factory FieldFactory { private get; init; }
     public required Lua.Lua Lua { private get; init; }
     public required ItemStatsCalculator ItemStatsCalc { private get; init; }
@@ -75,7 +77,10 @@ public sealed partial class GameSession : Core.Network.Session {
     public StatsManager Stats { get; set; }
     public ItemEnchantManager ItemEnchant { get; set; }
     public ItemBoxManager ItemBox { get; set; }
+    public BeautyManager Beauty { get; set; }
     public GameEventUserValueManager GameEventUserValue { get; set; }
+    public ExperienceManager Exp { get; set; }
+    public AchievementManager Achievement { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
 
@@ -120,8 +125,10 @@ public sealed partial class GameSession : Core.Network.Session {
         Mail = new MailManager(this);
         ItemEnchant = new ItemEnchantManager(this, Lua);
         ItemBox = new ItemBoxManager(this);
+        Beauty = new BeautyManager(this);
         GameEventUserValue = new GameEventUserValueManager(this);
-
+        Exp = new ExperienceManager(this, Lua);
+        Achievement = new AchievementManager(this);
         Guild = new GuildManager(this);
         Config = new ConfigManager(db, this);
         Buddy = new BuddyManager(db, this);
@@ -131,6 +138,7 @@ public sealed partial class GameSession : Core.Network.Session {
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
             return false;
         }
+        Player.Buffs.Initialize();
 
         var playerUpdate = new PlayerUpdateRequest {
             AccountId = accountId,
@@ -180,11 +188,12 @@ public sealed partial class GameSession : Core.Network.Session {
         // Send(QuestPacket.LoadKritiasMissions(Array.Empty<int>()));
         Send(QuestPacket.LoadQuestStates(player.Unlock.Quests.Values));
         // Send(QuestPacket.LoadQuests(Array.Empty<int>()));
-        // Achieve
+        Achievement.Load();
         // MaidCraftItem
         // UserMaid
         // UserEnv
         Send(UserEnvPacket.LoadTitles(Player.Value.Unlock.Titles));
+        Send(UserEnvPacket.InteractedObjects(Player.Value.Unlock.InteractedObjects));
         Send(UserEnvPacket.LoadClaimedRewards(Player.Value.Unlock.MasteryRewardsClaimed));
         Send(FishingPacket.LoadAlbum(Player.Value.Unlock.FishAlbum.Values));
         Pet?.Load();
@@ -232,6 +241,7 @@ public sealed partial class GameSession : Core.Network.Session {
         NpcScript = null;
 
         if (Field != null) {
+            Player.Buffs.LeaveField();
             Scheduler.Stop();
             Field.RemovePlayer(Player.ObjectId, out _);
         }
@@ -253,7 +263,7 @@ public sealed partial class GameSession : Core.Network.Session {
 
         Field = newField;
         Player = Field.SpawnPlayer(this, Player, portalId, position, rotation);
-        Config.Skill.UpdatePassiveBuffs();
+        Player.Buffs.LoadFieldBuffs();
 
         return true;
     }
@@ -293,8 +303,10 @@ public sealed partial class GameSession : Core.Network.Session {
         Send(RevivalPacket.Count(0)); // TODO: Consumed daily revivals?
         Send(RevivalPacket.Confirm(Player));
         Config.LoadStatAttributes();
+        Player.Buffs.Initialize();
         Send(PremiumCubPacket.Activate(Player.ObjectId, Player.Value.Account.PremiumTime));
         Send(PremiumCubPacket.LoadItems(Player.Value.Account.PremiumRewardsClaimed));
+        Achievement.Update(AchievementConditionType.map, codeLong: Player.Value.Character.MapId);
         return true;
     }
 
@@ -326,6 +338,10 @@ public sealed partial class GameSession : Core.Network.Session {
             entries.FirstOrDefault(item => item.Id == entry.ParentId)?.AdditionalQuantities.Add(entry);
         }
         return entries;
+    }
+    
+    public void ChannelBroadcast(ByteWriter packet) {
+        server.Broadcast(packet);
     }
 
     public PremiumMarketEntry? GetPremiumMarketEntry(int id) => server.GetPremiumMarketEntry(id);
@@ -399,6 +415,7 @@ public sealed partial class GameSession : Core.Network.Session {
                 Item.Save(db);
                 Housing.Save(db);
                 GameEventUserValue.Save(db);
+                Achievement.Save(db);
             }
 
             base.Dispose(disposing);

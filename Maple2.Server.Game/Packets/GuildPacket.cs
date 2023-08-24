@@ -706,7 +706,7 @@ public static class GuildPacket {
             pWriter.WriteLong(application.Guild.Id);
             pWriter.WriteUnicodeString(application.Guild.Name);
             pWriter.WriteUnicodeString(application.Guild.Emblem);
-            pWriter.Write<Trophy>(application.Guild.Trophy);
+            pWriter.Write<AchievementInfo>(application.Guild.AchievementInfo);
             pWriter.WriteInt(application.Guild.Members.Count);
             pWriter.WriteInt(application.Guild.Capacity);
             pWriter.WriteUnicodeString();
@@ -727,7 +727,7 @@ public static class GuildPacket {
             pWriter.WriteLong(guild.Id);
             pWriter.WriteUnicodeString(guild.Name);
             pWriter.WriteUnicodeString(guild.Emblem);
-            pWriter.Write<Trophy>(guild.Trophy);
+            pWriter.Write<AchievementInfo>(guild.AchievementInfo);
             pWriter.WriteInt(guild.Members.Count);
             pWriter.WriteInt(guild.Capacity);
             pWriter.Write<GuildFocus>(guild.Focus);

@@ -175,8 +175,7 @@ public class UserChatHandler : PacketHandler<GameSession> {
             session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert | NoticePacket.Flags.Message, StringCode.s_worldchat_use_coupon));
         } else {
             int meretCost = Constant.MeretConsumeWorldChat;
-            using GameStorage.Request db = GameStorage.Context();
-            if (db.FindEvent(nameof(SaleChat))?.EventInfo is SaleChat gameEvent) {
+            if (session.FindEvent<SaleChat>()?.EventInfo is SaleChat gameEvent) {
                 meretCost -= (int) (meretCost * Convert.ToSingle(gameEvent.WorldChatDiscount) / 10000);
             }
 
@@ -200,8 +199,28 @@ public class UserChatHandler : PacketHandler<GameSession> {
         } catch (RpcException) { }
     }
 
-    private static void HandleChannel(GameSession session, string message) {
+    private void HandleChannel(GameSession session, string message) {
+        var voucher = session.Item.Inventory.Filter(item => item.Metadata.Property.Tag == ItemTag.FreeChannelChatCoupon).FirstOrDefault();
+        if (voucher != null) {
+            if (!session.Item.Inventory.Consume(voucher.Uid, 1)) {
+                session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert | NoticePacket.Flags.Message, StringCode.s_err_invalid_item));
+                return;
+            }
+            session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert | NoticePacket.Flags.Message, StringCode.s_channelchat_use_coupon));
+        } else {
+            int meretCost = Constant.MeretConsumeChannelChat;
+            if (session.FindEvent<SaleChat>()?.EventInfo is SaleChat gameEvent) {
+                meretCost -= (int) (meretCost * Convert.ToSingle(gameEvent.ChannelChatDiscount) / 10000);
+            }
 
+            if (session.Currency.Meret < meretCost) {
+                session.Send(ChatPacket.Alert(StringCode.s_err_lack_merat));
+                return;
+            }
+            session.Currency.Meret -= meretCost;
+        }
+
+        session.ChannelBroadcast(ChatPacket.Message(session.AccountId, session.CharacterId, session.PlayerName, ChatType.Channel, message));
     }
 
     private void HandleSuper(GameSession session, string message) {

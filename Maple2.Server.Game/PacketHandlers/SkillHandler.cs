@@ -2,10 +2,12 @@
 using System.Numerics;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
+using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Server.Game.Packets;
@@ -103,14 +105,23 @@ public class SkillHandler : PacketHandler<GameSession> {
 
         packet.ReadInt(); // ClientTick
         record.Unknown = packet.ReadBool(); // UnkBool
-        packet.ReadLong(); // UnkLong
+        long itemUid = packet.ReadLong();
         record.IsHold = packet.ReadBool();
         if (record.IsHold) {
             record.HoldInt = packet.ReadInt();
             record.HoldString = packet.ReadUnicodeString();
         }
 
-        session.Player.InBattle = true;
+        if (itemUid > 0) {
+            Item? item = session.Item.Inventory.Get(itemUid);
+            // TODO: Check if item is valid for skill?
+            if (item == null || !session.Item.Inventory.Consume(item.Uid, 1)) {
+                session.Send(NoticePacket.Notice(NoticePacket.Flags.Alert, StringCode.s_err_invalid_item));
+                return;
+            }
+        }
+
+        session.Player.InBattle = itemUid <= 0;
         session.ActiveSkills.Add(record);
         session.Field?.Broadcast(SkillPacket.Use(record));
 

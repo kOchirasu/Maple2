@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Items;
@@ -267,7 +268,7 @@ public class ItemCollectionTest {
         var fakeCustomize = new ItemMetadataCustomize(0, 0);
         var fakeLimit = new ItemMetadataLimit(Gender.All, 0, 0, 4, true, true, true, true, true, false, false, 0, Array.Empty<JobCode>(), Array.Empty<JobCode>());
         var fakeLife = new ItemMetadataLife(0, 0);
-        var fakeMetadata = new ItemMetadata(id, $"{id}", Array.Empty<EquipSlot>(), "", fakeLife, fakeProperty, fakeCustomize, fakeLimit, null, null, null, null, null);
+        var fakeMetadata = new ItemMetadata(id, $"{id}", Array.Empty<EquipSlot>(), "", Array.Empty<DefaultHairMetadata>(), fakeLife, fakeProperty, fakeCustomize, fakeLimit, null, null, Array.Empty<ItemMetadataAdditionalEffect>(), null, null, null);
         return new Model.Game.Item(fakeMetadata, rarity, amount) {Uid = Rng.NextInt64()};
     }
 }
