@@ -1,4 +1,4 @@
-﻿using System.Net;
+﻿using System;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
@@ -12,11 +12,11 @@ public static class UgcPacket {
         SetEndpoint = 17,
     }
 
-    public static ByteWriter SetEndpoint(IPEndPoint endPoint, Locale locale = Locale.NA) {
+    public static ByteWriter SetEndpoint(Uri uri, Locale locale = Locale.NA) {
         var pWriter = Packet.Of(SendOp.Ugc);
         pWriter.Write(Command.SetEndpoint);
-        pWriter.WriteUnicodeString($"http://{endPoint.Address}:{endPoint.Port}/ws.asmx?wsdl");
-        pWriter.WriteUnicodeString($"http://{endPoint.Address}:{endPoint.Port}");
+        pWriter.WriteUnicodeString($"{uri.Scheme}://{uri.Authority}/ws.asmx?wsdl");
+        pWriter.WriteUnicodeString($"{uri.Scheme}://{uri.Authority}");
         pWriter.WriteUnicodeString(locale.ToString().ToLower());
         pWriter.Write<Locale>(locale);
 
@@ -32,7 +32,7 @@ public static class UgcPacket {
 
         return pWriter;
     }
-    
+
     public static ByteWriter ProfilePicture(Character character) {
         var pWriter = Packet.Of(SendOp.Ugc);
         pWriter.Write<Command>(Command.ProfilePicture);

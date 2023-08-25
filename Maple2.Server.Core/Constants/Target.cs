@@ -13,9 +13,8 @@ public static class Target {
     public static readonly IPAddress GameIp = IPAddress.Loopback;
     public static readonly ushort GamePort = 20002;
     public static readonly short GameChannel = 1;
-    
-    public static readonly IPAddress WebIp = IPAddress.Loopback;
-    public static readonly ushort WebPort = 30000;
+
+    public static readonly Uri WebUri = new("http://localhost");
 
     public static readonly ushort GrpcWorldPort = 21001;
     public static readonly ushort GrpcChannelPort = 21002;
@@ -44,12 +43,9 @@ public static class Target {
         if (ushort.TryParse(Environment.GetEnvironmentVariable("GRPC_CHANNEL_PORT"), out ushort grpcChannelPortOverride)) {
             GrpcChannelPort = grpcChannelPortOverride;
         }
-        
-        if (IPAddress.TryParse(Environment.GetEnvironmentVariable("WEB_IP"), out IPAddress? webIpAddress)) {
-            WebIp = webIpAddress;
-        }
-        if (ushort.TryParse(Environment.GetEnvironmentVariable("WEB_PORT"), out ushort webPortOverride)) {
-            WebPort = webPortOverride;
+
+        if (Uri.TryCreate(Environment.GetEnvironmentVariable("WEB_URI"), UriKind.Absolute, out Uri? webUriOverride)) {
+            WebUri = webUriOverride;
         }
     }
 }
