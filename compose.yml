@@ -29,6 +29,7 @@ services:
       DATA_DB_CONNECTION: "Server=host.docker.internal;Database=maple-data;User=root;Password=maplestory;oldguids=true"
       WORLD_SERVICE: "world"
       LOGIN_IP: "127.0.0.1"
+      WEB_URI: "http://127.0.0.1"
 
   game-main:
     build:
@@ -67,3 +68,12 @@ services:
       GRPC_CHANNEL_PORT: 21003
       WORLD_SERVICE: "world"
       GAME_IP: "127.0.0.1"
+
+  web:
+    build:
+      context: .
+      dockerfile: ./Maple2.Server.Web/Dockerfile
+    image: maple2-web:dev
+    ports:
+      - "80:80"
+      - "443:443"

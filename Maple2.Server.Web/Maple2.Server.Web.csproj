@@ -3,10 +3,9 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net7.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
         <LangVersion>11</LangVersion>
-        <RootNamespace>Maple2.Server.Web</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -19,5 +18,11 @@
     <ItemGroup>
         <ProjectReference Include="..\Maple2.Database\Maple2.Database.csproj"/>
         <ProjectReference Include="..\Maple2.Model\Maple2.Model.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="appsettings.json">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 </Project>

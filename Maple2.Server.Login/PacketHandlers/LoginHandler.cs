@@ -62,7 +62,7 @@ public class LoginHandler : PacketHandler<LoginSession> {
                     session.Init(response.AccountId, machineId);
 
                     session.Send(LoginResultPacket.Success(response.AccountId));
-                    session.Send(UgcPacket.SetEndpoint(new IPEndPoint(Target.WebIp, Target.WebPort)));
+                    session.Send(UgcPacket.SetEndpoint(Target.WebUri));
 
                     session.ListCharacters();
                     return;
