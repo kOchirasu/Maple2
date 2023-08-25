@@ -20,7 +20,8 @@ namespace Maple2.Server.World.Migrations
                 name: "Lapenshards",
                 table: "character-config",
                 type: "json",
-                nullable: true)
+                nullable: true,
+                defaultValue: "{}")
                 .Annotation("MySql:CharSet", "utf8mb4");
         }
 
