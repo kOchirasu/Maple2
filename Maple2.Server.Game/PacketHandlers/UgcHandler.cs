@@ -22,39 +22,72 @@ public class UgcHandler : PacketHandler<GameSession> {
 
     private enum Command : byte {
         Upload = 1,
+        Confirmation = 3,
         ProfilePicture = 11,
         LoadCubes = 18,
+        ReserveBanner = 19,
     }
 
     public override void Handle(GameSession session, IByteReader packet) {
         var command = packet.Read<Command>();
         switch (command) {
             case Command.Upload:
-                break;
+                HandleUpload(session, packet);
+                return;
+            case Command.Confirmation:
+                HandleConfirmation(session, packet);
+                return;
             case Command.ProfilePicture:
                 HandleProfilePicture(session, packet);
-                break;
+                return;
             case Command.LoadCubes:
                 HandleLoadCubes(session, packet);
+                return;
+            case Command.ReserveBanner:
+                HandleReserveBanner(session, packet);
                 return;
         }
     }
 
     private void HandleUpload(GameSession session, IByteReader packet) {
         packet.ReadLong();
-        var type = packet.Read<UgcType>();
-        packet.ReadByte();
-        packet.ReadByte();
-        packet.ReadInt();
-        long accountId = packet.ReadLong();
-        long characterId = packet.ReadLong();
+        var info = packet.Read<UgcInfo>();
         packet.ReadLong();
         packet.ReadInt();
         packet.ReadShort();
-        packet.ReadShort();
+        packet.ReadShort(); // -256
+
+        switch (info.Type) {
+            case UgcType.Item:
+            case UgcType.Furniture:
+            case UgcType.Mount:
+                long itemUid = packet.ReadLong();
+                int itemId = packet.ReadInt();
+                int amount = packet.ReadInt();
+                string name = packet.ReadUnicodeString();
+                packet.ReadByte();
+                long cost = packet.ReadLong();
+                bool useVoucher = packet.ReadBool();
+                break;
+            case UgcType.Banner:
+                long bannerId = packet.ReadLong();
+                byte hours = packet.ReadByte();
+                for (int i = 0; i < hours; i++) {
+                    var reservation = packet.Read<UgcBannerReservation>();
+                }
+                break;
+        }
 
         // using WebStorage.Request request = WebStorage.Context();
-        // request.CreateUgc(characterId, "/path");
+        // request.CreateUgc(info.CharacterId, "/path");
+    }
+
+    private void HandleConfirmation(GameSession session, IByteReader packet) {
+        var info = packet.Read<UgcInfo>();
+        packet.ReadInt();
+        long ugcUid = packet.ReadLong();
+        string ugcGuid = packet.ReadUnicodeString();
+        packet.ReadShort(); // -255
     }
 
     private void HandleProfilePicture(GameSession session, IByteReader packet) {
@@ -83,6 +116,14 @@ public class UgcHandler : PacketHandler<GameSession> {
                 session.Send(LoadCubesPacket.PlotState(ownedPlots));
                 session.Send(LoadCubesPacket.PlotExpiry(ownedPlots));
             }
+        }
+    }
+
+    private void HandleReserveBanner(GameSession session, IByteReader packet) {
+        long bannerId = packet.ReadLong();
+        int hours = packet.ReadInt();
+        for (int i = 0; i < hours; i++) {
+            var reservation = packet.Read<UgcBannerReservation>();
         }
     }
 }
