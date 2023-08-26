@@ -1,16 +1,29 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading.Tasks;
+using Maple2.Database.Storage;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
-using Maple2.Server.Web.Constants;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Serilog;
 
 namespace Maple2.Server.Web.Endpoints;
 
-public static class UploadEndpoint {
-    public static async Task<IResult> Post(HttpRequest request) {
+[Route("")]
+public class UploadEndpoint : ControllerBase {
+    private static readonly string SolutionDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../.."));
+    private static readonly string RootDir = Path.Combine(SolutionDir, "Maple2.Server.Web/Data");
+
+    private readonly WebStorage webStorage;
+
+    public UploadEndpoint(WebStorage webStorage) {
+        this.webStorage = webStorage;
+    }
+
+    [HttpPost("urq.aspx")]
+    public async Task<IResult> Post(HttpRequest request) {
         Stream bodyStream = request.Body;
         var memoryStream = new MemoryStream();
         await bodyStream.CopyToAsync(memoryStream);
@@ -21,7 +34,7 @@ public static class UploadEndpoint {
         IByteReader packet = new ByteReader(memoryStream.ToArray());
 
         packet.ReadInt();
-        var type = packet.Read<UgcType>();
+        var type = (UgcType) packet.ReadInt();
         packet.ReadLong();
         long characterId = packet.ReadLong();
         long ugcUid = packet.ReadLong();
@@ -31,14 +44,28 @@ public static class UploadEndpoint {
 
         byte[]? fileBytes = packet.ReadBytes(packet.Available);
 
+        if (ugcUid != 0) {
+            using WebStorage.Request db = webStorage.Context();
+            UgcResource? resource = db.GetUgc(ugcUid);
+            if (resource == null) {
+                return Results.NotFound($"{ugcUid} does not exist.");
+            }
+            if (System.IO.File.Exists(resource.Path)) {
+                return Results.Conflict("file already exists.");
+            }
+
+            await System.IO.File.WriteAllBytesAsync(resource.Path, fileBytes);
+            return Results.Text($"0,{resource.Path}");
+        }
+
         return type switch {
             UgcType.ProfileAvatar => HandleProfileAvatar(fileBytes, characterId),
-            _ => HandleUnknownMode(type)
+            _ => HandleUnknownMode(type),
         };
     }
 
-    private static IResult HandleProfileAvatar(byte[] fileBytes, long characterId) {
-        string filePath = $"{Target.DataDir}/profiles/{characterId}/";
+    private IResult HandleProfileAvatar(byte[] fileBytes, long characterId) {
+        string filePath = $"{RootDir}/profiles/{characterId}/";
         Directory.CreateDirectory(filePath);
 
         string uniqueFileName = Guid.NewGuid().ToString();
@@ -49,7 +76,7 @@ public static class UploadEndpoint {
             file.Delete();
         }
 
-        File.WriteAllBytes($"{filePath}/{uniqueFileName}.png", fileBytes);
+        System.IO.File.WriteAllBytes($"{filePath}/{uniqueFileName}.png", fileBytes);
         return Results.Text($"0,data/profiles/avatar/{characterId}/{uniqueFileName}.png");
     }
 

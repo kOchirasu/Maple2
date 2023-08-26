@@ -1,5 +1,5 @@
-﻿using System.Diagnostics;
-using System.Linq;
+﻿using System.Linq;
+using Maple2.Database.Storage;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
@@ -14,7 +14,14 @@ namespace Maple2.Server.Game.PacketHandlers;
 public class UgcHandler : PacketHandler<GameSession> {
     public override RecvOp OpCode => RecvOp.Ugc;
 
+    #region Autofac Autowired
+    // ReSharper disable MemberCanBePrivate.Global
+    public required WebStorage WebStorage { private get; init; }
+    // ReSharper restore All
+    #endregion
+
     private enum Command : byte {
+        Upload = 1,
         ProfilePicture = 11,
         LoadCubes = 18,
     }
@@ -22,6 +29,8 @@ public class UgcHandler : PacketHandler<GameSession> {
     public override void Handle(GameSession session, IByteReader packet) {
         var command = packet.Read<Command>();
         switch (command) {
+            case Command.Upload:
+                break;
             case Command.ProfilePicture:
                 HandleProfilePicture(session, packet);
                 break;
@@ -29,6 +38,23 @@ public class UgcHandler : PacketHandler<GameSession> {
                 HandleLoadCubes(session, packet);
                 return;
         }
+    }
+
+    private void HandleUpload(GameSession session, IByteReader packet) {
+        packet.ReadLong();
+        var type = packet.Read<UgcType>();
+        packet.ReadByte();
+        packet.ReadByte();
+        packet.ReadInt();
+        long accountId = packet.ReadLong();
+        long characterId = packet.ReadLong();
+        packet.ReadLong();
+        packet.ReadInt();
+        packet.ReadShort();
+        packet.ReadShort();
+
+        // using WebStorage.Request request = WebStorage.Context();
+        // request.CreateUgc(characterId, "/path");
     }
 
     private void HandleProfilePicture(GameSession session, IByteReader packet) {
@@ -40,7 +66,9 @@ public class UgcHandler : PacketHandler<GameSession> {
 
     private void HandleLoadCubes(GameSession session, IByteReader packet) {
         int mapId = packet.ReadInt();
-        Debug.Assert(mapId == session.Field?.MapId);
+        if (mapId != session.Field?.MapId) {
+            return;
+        }
 
         lock (session.Field.Plots) {
             session.Send(LoadCubesPacket.PlotOwners(session.Field.Plots.Values));
