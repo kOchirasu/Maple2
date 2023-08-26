@@ -41,13 +41,16 @@ builder.WebHost.UseKestrel(options => {
     // });
 });
 builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(15));
-builder.Services.AddControllers().AddControllersAsServices();
-builder.Services.AddAutofac(autofac => {
-    autofac.RegisterModule<WebDbModule>();
-});
+builder.Services.AddControllers();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(dispose: true);
+
+builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
+builder.Host.ConfigureContainer<ContainerBuilder>(autofac => {
+    // Database
+    autofac.RegisterModule<WebDbModule>();
+});
 
 WebApplication app = builder.Build();
 app.MapControllers();

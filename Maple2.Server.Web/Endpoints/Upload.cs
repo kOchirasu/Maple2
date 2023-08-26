@@ -23,8 +23,8 @@ public class UploadEndpoint : ControllerBase {
     }
 
     [HttpPost("urq.aspx")]
-    public async Task<IResult> Post(HttpRequest request) {
-        Stream bodyStream = request.Body;
+    public async Task<IResult> Post() {
+        Stream bodyStream = Request.Body;
         var memoryStream = new MemoryStream();
         await bodyStream.CopyToAsync(memoryStream);
         memoryStream.Position = 0; // reset position to beginning of stream before returning
