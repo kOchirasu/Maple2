@@ -270,6 +270,10 @@ public sealed partial class GameSession : Core.Network.Session {
             return false;
         }
 
+        //if (!Player.Value.Unlock.Maps.Contains(Player.Value.Character.MapId)) {
+            // Figure out what maps give exp. MapType >= 1 < 5 || 11 ?
+            //Exp.AddExp(ExpType.mapCommon);
+        //}
         Player.Value.Unlock.Maps.Add(Player.Value.Character.MapId);
 
         Field.OnAddPlayer(Player);

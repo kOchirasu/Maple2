@@ -138,6 +138,8 @@ public sealed class AchievementManager {
             case AchievementConditionType.beauty_random:
             case AchievementConditionType.beauty_style_add:
             case AchievementConditionType.beauty_style_apply:
+            case AchievementConditionType.level:
+            case AchievementConditionType.level_up:
                 if (parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) {
                     return true;
                 }
@@ -199,6 +201,7 @@ public sealed class AchievementManager {
                 break;
             case AchievementConditionType.gemstone_upgrade:
             case AchievementConditionType.socket_unlock:
+            case AchievementConditionType.level_up:
                 if (target.Integers != null && target.Integers.Any(value => longValue >= value)) {
                     return true;
                 }
@@ -227,6 +230,7 @@ public sealed class AchievementManager {
             case AchievementConditionType.beauty_random:
             case AchievementConditionType.beauty_style_add:
             case AchievementConditionType.beauty_style_apply:
+            case AchievementConditionType.level:
                 return true;
         }
         return false;

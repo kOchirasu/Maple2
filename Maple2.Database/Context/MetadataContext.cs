@@ -100,6 +100,7 @@ public sealed class MetadataContext : DbContext {
         builder.HasKey(map => map.Id);
         builder.Property(map => map.Property).HasJsonConversion();
         builder.Property(map => map.Limit).HasJsonConversion();
+        builder.Property(map => map.Drop).HasJsonConversion();
         builder.Property(map => map.Spawns).HasJsonConversion();
         builder.Property(map => map.CashCall).HasJsonConversion();
         builder.Property(map => map.EntranceBuffs).HasJsonConversion();

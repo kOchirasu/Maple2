@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using System.Runtime.InteropServices;
 using Maple2.Database.Storage;
@@ -148,7 +149,24 @@ public class InstrumentHandler : PacketHandler<GameSession> {
             return;
         }
 
-        // TODO: Exp gain (Prestige, Mastery, Exp)
+        // TODO: Prestige exp
+        int totalTickTime = Environment.TickCount - session.Instrument.StartTick;
+        if (session.ItemMetadata.TryGet(session.Instrument.Value.EquipId, out ItemMetadata? metadata) && metadata.Music != null) {
+            session.Mastery[MasteryType.Music] += Math.Min(totalTickTime * metadata.Music.MasteryValue / 1000, metadata.Music.MasteryValueMax);
+        }
+
+        short masteryLevel = session.Mastery.GetLevel(MasteryType.Music);
+        ExpType expType = masteryLevel switch {
+            1 => ExpType.musicMastery1,
+            2 => ExpType.musicMastery2,
+            3 => ExpType.musicMastery3,
+            4 => ExpType.musicMastery4,
+            _ => ExpType.musicMastery1,
+        };
+
+        // Subtracting 500ms to account for the delay between the client and server and exp abuse.
+        // Modifier is the number of 500ms ticks that have passed.
+        session.Exp.AddExp(expType, (totalTickTime - 500) / 500);
 
         session.Field.Broadcast(InstrumentPacket.StopScore(session.Instrument));
         session.Instrument = null;
@@ -267,6 +285,7 @@ public class InstrumentHandler : PacketHandler<GameSession> {
         }
 
         fieldInstrument = session.Field!.SpawnInstrument(session.Player, metadata);
+        fieldInstrument.StartTick = Environment.TickCount;
         return true;
     }
 
