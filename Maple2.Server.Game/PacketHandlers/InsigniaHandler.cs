@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Database.Storage;
 using Maple2.Model.Enum;
@@ -44,32 +45,19 @@ public class InsigniaHandler : PacketHandler<GameSession> {
                 display = session.Player.Value.Unlock.Titles.Contains(newInsigniaMetadata.Code);
                 break;
             case InsigniaConditionType.adventure_level:
-                if (session.Player.Value.Account.PrestigeLevel >= 100) {
-                    display = true;
-                }
+                display = session.Player.Value.Account.PrestigeLevel >= 100;
                 break;
             case InsigniaConditionType.trophy_point:
-                if (session.Player.Value.Character.AchievementInfo.Total > 1000) {
-                    display = true;
-                }
+                display = session.Player.Value.Character.AchievementInfo.Total >= 1000;
                 break;
             case InsigniaConditionType.enchant:
-                foreach ((EquipSlot slot, Item item) in session.Item.Equips.Gear) {
-                    if (item is {Enchant: {Enchants: >= 12}, Rarity: > 3}) {
-                        display = true;
-                        break;
-                    }
-                }
+                display = session.Item.Equips.Gear.Any(item => item.Value.Enchant?.Enchants >= 12 && item.Value.Rarity > 3);
                 break;
             case InsigniaConditionType.level:
-                if (session.Player.Value.Character.Level >= 50) {
-                    display = true;
-                }
+                display = session.Player.Value.Character.Level >= 50;
                 break;
             case InsigniaConditionType.vip:
-                if (session.Player.Value.Account.PremiumTime > DateTime.UtcNow.ToEpochSeconds()) {
-                    display = true;
-                }
+                display = session.Player.Value.Account.PremiumTime > DateTime.UtcNow.ToEpochSeconds();
                 break;
             default:
                 Logger.Information("Unhandled insignia condition type: {type}", newInsigniaMetadata.Type);
