@@ -150,9 +150,9 @@ public class InstrumentHandler : PacketHandler<GameSession> {
         }
 
         // TODO: Prestige exp
-        int totalTickTime = Environment.TickCount - session.Instrument.StartTick;
+        long totalTickTime = Environment.TickCount64 - session.Instrument.StartTick;
         if (session.ItemMetadata.TryGet(session.Instrument.Value.EquipId, out ItemMetadata? metadata) && metadata.Music != null) {
-            session.Mastery[MasteryType.Music] += Math.Min(totalTickTime * metadata.Music.MasteryValue / 1000, metadata.Music.MasteryValueMax);
+            session.Mastery[MasteryType.Music] += (int) Math.Min(totalTickTime * metadata.Music.MasteryValue / 1000, metadata.Music.MasteryValueMax);
         }
 
         short masteryLevel = session.Mastery.GetLevel(MasteryType.Music);
@@ -285,7 +285,7 @@ public class InstrumentHandler : PacketHandler<GameSession> {
         }
 
         fieldInstrument = session.Field!.SpawnInstrument(session.Player, metadata);
-        fieldInstrument.StartTick = Environment.TickCount;
+        fieldInstrument.StartTick = Environment.TickCount64;
         return true;
     }
 

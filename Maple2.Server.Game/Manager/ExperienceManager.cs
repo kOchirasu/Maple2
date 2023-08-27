@@ -68,17 +68,7 @@ public sealed class ExperienceManager {
 
     public void AddExp(long expGained, ExpMessageCode expMessageCode = ExpMessageCode.s_msg_take_exp) {
         expGained += GetRestExp(expGained);
-        if (LevelUp()) {
-            session.PlayerInfo.SendUpdate(new PlayerUpdateRequest {
-                AccountId = session.AccountId,
-                CharacterId = session.CharacterId,
-                Level = session.Player.Value.Character.Level,
-                Async = true,
-            });
-
-            session.Achievement.Update(AchievementConditionType.level_up, codeLong: (int) session.Player.Value.Character.Job.Code(), targetLong: session.Player.Value.Character.Level);
-            session.Achievement.Update(AchievementConditionType.level, codeLong: session.Player.Value.Character.Level);
-        }
+        LevelUp();
         session.Send(ExperienceUpPacket.Add(expGained, Exp, RestExp, expMessageCode));
     }
 
@@ -142,6 +132,15 @@ public sealed class ExperienceManager {
         }
         if (Level > startLevel) {
             session.Field?.Broadcast(LevelUpPacket.LevelUp(session.Player));
+            session.Achievement.Update(AchievementConditionType.level_up, codeLong: (int) session.Player.Value.Character.Job.Code(), targetLong: session.Player.Value.Character.Level);
+            session.Achievement.Update(AchievementConditionType.level, codeLong: session.Player.Value.Character.Level);
+
+            session.PlayerInfo.SendUpdate(new PlayerUpdateRequest {
+                AccountId = session.AccountId,
+                CharacterId = session.CharacterId,
+                Level = session.Player.Value.Character.Level,
+                Async = true,
+            });
         }
         return startLevel != Level;
     }
