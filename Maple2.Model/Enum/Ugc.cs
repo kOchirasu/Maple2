@@ -1,6 +1,6 @@
 ﻿namespace Maple2.Model.Enum;
 
-public enum UgcType {
+public enum UgcType : byte {
     None = 0,
     Item = 1,
     Furniture = 2,

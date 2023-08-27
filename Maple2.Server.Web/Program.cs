@@ -1,11 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
-using Maple2.Server.Web.Constants;
-using Maple2.Server.Web.Endpoints;
+using Autofac;
+using Autofac.Extensions.DependencyInjection;
+using Maple2.Server.Core.Modules;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,11 +41,27 @@ builder.WebHost.UseKestrel(options => {
     // });
 });
 builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(15));
+builder.Services.AddControllers();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddSerilog(dispose: true);
 
+builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
+builder.Host.ConfigureContainer<ContainerBuilder>(autofac => {
+    // Database
+    autofac.RegisterModule<WebDbModule>();
+});
+
 WebApplication app = builder.Build();
-app.MapGet("/data/profiles/avatar/{characterId}/{hash}.png", ProfileEndpoint.Get);
-app.MapPost("/urq.aspx", UploadEndpoint.Post);
+app.MapControllers();
+
+var provider = app.Services.GetRequiredService<IActionDescriptorCollectionProvider>();
+IEnumerable<ActionDescriptor> routes = provider.ActionDescriptors.Items
+    .Where(x => x.AttributeRouteInfo != null);
+
+Log.Logger.Debug("========== ROUTES ==========");
+foreach(ActionDescriptor route in routes) {
+    Log.Logger.Debug("{Route}", route.AttributeRouteInfo?.Template);
+}
+
 await app.RunAsync();

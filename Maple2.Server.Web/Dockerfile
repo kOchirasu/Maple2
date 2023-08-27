@@ -9,6 +9,7 @@ FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
 COPY ["Maple2.Server.Web/Maple2.Server.Web.csproj", "Maple2.Server.Web/"]
 COPY ["Maple2.Database/Maple2.Database.csproj", "Maple2.Database/"]
+COPY ["Maple2.Server.Core/Maple2.Server.Core.csproj", "Maple2.Server.Core/"]
 COPY ["Maple2.Model/Maple2.Model.csproj", "Maple2.Model/"]
 COPY ["Maple2.Tools/Maple2.Tools.csproj", "Maple2.Tools/"]
 RUN dotnet restore -r win-x64 "Maple2.Server.Web/Maple2.Server.Web.csproj"

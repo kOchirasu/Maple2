@@ -77,3 +77,5 @@ services:
     ports:
       - "80:80"
       - "443:443"
+    environment:
+      GAME_DB_CONNECTION: "Server=host.docker.internal;Database=game-server;User=root;Password=maplestory;oldguids=true"

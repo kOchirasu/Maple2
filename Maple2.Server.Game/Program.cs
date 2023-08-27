@@ -85,6 +85,7 @@ builder.Host.ConfigureContainer<ContainerBuilder>(autofac => {
     // Database
     autofac.RegisterModule<GameDbModule>();
     autofac.RegisterModule<DataDbModule>();
+    autofac.RegisterModule<WebDbModule>();
 
     // Make all packet handlers available to PacketRouter
     autofac.RegisterAssemblyTypes(Assembly.GetExecutingAssembly())
