@@ -63,6 +63,7 @@ public static class Constant {
     public const int FishingMasteryIncreaseFactor = 2;
     public const int FishingRewardsMaxCount = 1;
     public const double FishingItemChance = 0.05;
+    public const float FishingBigFishExpModifier = 1.5f;
     public const int MaxMottoLength = 20;
     public const ItemTag BeautyHairSpecialVoucherTag = ItemTag.beauty_hair_special;
     public const ItemTag BeautyHairStandardVoucherTag = ItemTag.beauty_hair;

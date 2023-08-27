@@ -19,6 +19,7 @@ public class PlayerCommand : Command {
 
     public PlayerCommand(GameSession session) : base(NAME, DESCRIPTION) {
         AddCommand(new LevelCommand(session));
+        AddCommand(new ExpCommand(session));
         AddCommand(new JobCommand(session));
         AddCommand(new InfoCommand(session));
     }
@@ -52,6 +53,30 @@ public class PlayerCommand : Command {
                     Level = level,
                     Async = true,
                 });
+
+                ctx.ExitCode = 0;
+            } catch (SystemException ex) {
+                ctx.Console.Error.WriteLine(ex.Message);
+                ctx.ExitCode = 1;
+            }
+        }
+    }
+    
+    private class ExpCommand : Command {
+        private readonly GameSession session;
+
+        public ExpCommand(GameSession session) : base("exp", "Add player experience.") {
+            this.session = session;
+
+            var exp = new Argument<long>("exp", "Exp amount.");
+
+            AddArgument(exp);
+            this.SetHandler<InvocationContext, long>(Handle, exp);
+        }
+
+        private void Handle(InvocationContext ctx, long exp) {
+            try {
+                session.Exp.AddExp(exp);
 
                 ctx.ExitCode = 0;
             } catch (SystemException ex) {

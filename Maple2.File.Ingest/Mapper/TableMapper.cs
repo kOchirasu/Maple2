@@ -6,6 +6,7 @@ using Maple2.Database.Extensions;
 using Maple2.File.Ingest.Utils;
 using Maple2.File.IO;
 using Maple2.File.Parser;
+using Maple2.File.Parser.Enum;
 using Maple2.File.Parser.Xml;
 using Maple2.File.Parser.Xml.Table;
 using Maple2.Model.Common;
@@ -15,6 +16,7 @@ using Maple2.Model.Metadata;
 using Maple2.Tools.Extensions;
 using Newtonsoft.Json;
 using ChatSticker = Maple2.File.Parser.Xml.Table.ChatSticker;
+using ExpType = Maple2.Model.Enum.ExpType;
 using GuildBuff = Maple2.File.Parser.Xml.Table.GuildBuff;
 using GuildNpc = Maple2.File.Parser.Xml.Table.GuildNpc;
 using GuildNpcType = Maple2.Model.Enum.GuildNpcType;
@@ -59,6 +61,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "shop_beautycoupon.xml", Table = ParseShopBeautyCouponTable()};
         yield return new TableMetadata {Name = "gacha_info.xml", Table = ParseGachaInfoTable()};
         yield return new TableMetadata {Name = "exp*.xml", Table = ParseExpTable()};
+        yield return new TableMetadata {Name = "commonexp.xml", Table = ParseCommonExpTable()};
         // Fishing
         yield return new TableMetadata {Name = "fishingspot.xml", Table = ParseFishingSpot()};
         yield return new TableMetadata {Name = "fish.xml", Table = ParseFish()};
@@ -1196,5 +1199,13 @@ public class TableMapper : TypeMapper<TableMetadata> {
             nextExpResults.Add(entry.level, entry.value);
         }
         return new ExpTable(baseResults, nextExpResults);
+    }
+
+    private CommonExpTable ParseCommonExpTable() {
+        var results = new Dictionary<ExpType, CommonExpTable.Entry>();
+        foreach ((CommonExpType type, CommonExp exp) in parser.ParseCommonExp()) {
+            results.Add((ExpType) type, new CommonExpTable.Entry(ExpTableId: exp.expTableID, Factor: exp.factor));
+        }
+        return new CommonExpTable(results);
     }
 }

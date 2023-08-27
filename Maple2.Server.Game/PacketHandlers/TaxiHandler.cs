@@ -99,6 +99,7 @@ public class TaxiHandler : PacketHandler<GameSession> {
         session.Player.Value.Unlock.Taxis.Add(mapId);
         session.Send(RevealTaxi(mapId));
         session.Achievement.Update(AchievementConditionType.taxifind);
+        session.Exp.AddExp(ExpType.taxi);
     }
 
     private static ByteWriter RevealTaxi(params int[] taxis) {
