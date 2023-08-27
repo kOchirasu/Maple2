@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Community.CsharpSqlite;
@@ -38,14 +39,16 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         UnlistItem = 15,
         RelistItem = 18,
         CollectProfit = 20,
-        Initialize = 22, // actually unknown.
+        LoadBookmarks = 22,
+        AddBookmark = 23,
+        RemoveBookmark = 25,
         OpenShop = 27,
-        SendMarketRequest = 29,
+        FindItem = 29,
         Purchase = 30,
-        OpenNewFeatured = 101,
+        Featured = 101,
         OpenDesignShop = 102,
         Search = 104,
-        LoadCart = 107,
+        LoadCart = 107, // Just a guess?
     }
 
     public override void Handle(GameSession session, IByteReader packet) {
@@ -56,6 +59,15 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
                 return;
             case Command.Purchase:
                 HandlePurchase(session, packet);
+                return;
+            case Command.Featured:
+                HandleFeatured(session, packet);
+                return;
+            case Command.FindItem:
+                HandleFindItem(session, packet);
+                return;
+            case Command.Search:
+                HandleSearch(session, packet);
                 return;
         }
     }
@@ -72,90 +84,15 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         packet.ReadByte();
         byte itemsPerPage = packet.ReadByte();
 
-        ICollection<MarketEntry> entries = Search(session, section, tabId, gender, job, searchString);
+        ICollection<MarketItem> entries = Filter(session, section, tabId, gender, job, searchString);
+        // use this to concat ugc items
+        /*IList<MarketItem> entriess = entries.ToList();
+        entries = entriess.Concat(entries).ToList();*/
+        int totalItems = entries.Count;
+        entries = TakeLimit(entries, startPage, itemsPerPage);
+        entries = Sort(entries, sort);
 
-        switch (sort) {
-            case MeretMarketSort.MostRecent:
-                entries = entries.OrderByDescending(entry => entry.CreationTime).ToList();
-                break;
-            case MeretMarketSort.PriceHighest:
-                entries = entries.OrderByDescending(entry => entry.Price).ToList();
-                break;
-            case MeretMarketSort.PriceLowest:
-                entries = entries.OrderBy(entry => entry.Price).ToList();
-                break;
-            // TODO: Implement most popular?
-            // Unsure how most popular is different than top seller.
-            case MeretMarketSort.MostPopularPremium:
-            case MeretMarketSort.MostPopularUgc:
-            case MeretMarketSort.TopSeller:
-                entries = entries.OrderByDescending(entry => entry.SalesCount).ToList();
-                break;
-            case MeretMarketSort.None:
-            default:
-                break;
-        }
-        session.Send(MeretMarketPacket.LoadShopCategory(entries));
-    }
-
-    private static MeretMarketSection GetMarketSection(byte section) {
-        return section switch {
-            0 => MeretMarketSection.All,
-            1 => MeretMarketSection.Premium,
-            2 => MeretMarketSection.RedMeret,
-            3 => MeretMarketSection.Ugc,
-            _ => MeretMarketSection.All,
-        };
-    }
-
-    private ICollection<MarketEntry> Search(GameSession session, MeretMarketSection section, int tabId, GenderFlag gender, JobFlag job, string searchString) {
-        var entries = new List<MarketEntry>();
-        if (!TableMetadata.MeretMarketCategoryTable.Entries.TryGetValue((int) section, out IReadOnlyDictionary<int, MeretMarketCategoryTable.Tab>? sectionDictionary) ||
-            !sectionDictionary.TryGetValue(tabId, out MeretMarketCategoryTable.Tab? tab)) {
-            return entries;
-        }
-
-        //First get entries from the tab
-        List<PremiumMarketEntry> tabResults = session.GetPremiumMarketEntries(tabId).ToList();
-        entries.AddRange(SortAndFilterEntries(tabResults, tab.SortGender, tab.SortJob, gender, job, searchString));
-
-        //Then get entries from subtabs
-        if (tab.SubTabIds.Count > 0) {
-            foreach (int subTabId in tab.SubTabIds) {
-                if (sectionDictionary.TryGetValue(subTabId, out MeretMarketCategoryTable.Tab? subTab)) {
-                    List<PremiumMarketEntry> subTabResults = session.GetPremiumMarketEntries(subTabId).ToList();
-                    entries.AddRange(SortAndFilterEntries(subTabResults, subTab.SortGender, subTab.SortJob, gender, job, searchString));
-                }
-            }
-        }
-        return entries;
-    }
-
-    private static IEnumerable<PremiumMarketEntry> SortAndFilterEntries(List<PremiumMarketEntry> results, bool sortGender, bool sortJob,
-                                                                        GenderFlag gender, JobFlag job, string searchString) {
-        //First sort results as indicated on metadata. This is done before filtering due to each tab having different sorting options.
-        if (sortGender) {
-            results = results.OrderBy(item => item.ItemMetadata.Limit.Gender).ToList();
-        }
-        if (sortJob) {
-            results = results.OrderBy(item => item.ItemMetadata.Limit.JobLimits).ToList();
-        }
-
-        //Then filter results
-        foreach (PremiumMarketEntry entry in results) {
-            if (entry.ItemMetadata.Name == null || !entry.ItemMetadata.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)) {
-                continue;
-            }
-            if (entry.ItemMetadata.Limit.JobLimits.Length > 0 && !entry.ItemMetadata.Limit.JobLimits.Any(jobs => job.Code().Any(codes => codes == jobs))) {
-                continue;
-            }
-
-            if (!gender.HasFlag(entry.ItemMetadata.Limit.Gender.Flag())) {
-                continue;
-            }
-
-            yield return entry;
-        }
+        session.Send(MeretMarketPacket.LoadItems(entries.ToList(), totalItems, startPage));
     }
 
     private static void HandlePurchase(GameSession session, IByteReader packet) {
@@ -166,9 +103,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
             // TODO: Handle UGC item purchasing
             return;
         }
-        
-        
-        
+
         packet.ReadInt();
         int childMarketItemId = packet.ReadInt();
         long unk1 = packet.ReadLong();
@@ -179,19 +114,21 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         string unk4 = packet.ReadUnicodeString();
         string unk5 = packet.ReadUnicodeString();
         long price = packet.ReadLong();
-        
-        PremiumMarketEntry? entry = session.GetPremiumMarketEntry(childMarketItemId == 0 ? premiumMarketId : childMarketItemId);
+
+        using GameStorage.Request db = session.GameStorage.Context();
+        PremiumMarketItem? entry = db.GetPremiumMarketEntry(childMarketItemId == 0 ? premiumMarketId : childMarketItemId);
         if (entry == null) {
             return;
         }
 
+        price = entry.SalePrice > 0 ? entry.SalePrice : entry.Price;
         StringCode payResult = Pay(session, price, entry.CurrencyType);
         if (payResult != StringCode.s_empty_string) {
             session.Send(NoticePacket.MessageBox(payResult));
             return;
         }
 
-        Item? newItem = session.Item.CreateItem(entry.Id, entry.Rarity, entry.Quantity + entry.BonusQuantity);
+        Item? newItem = session.Item.CreateItem(entry.ItemId, entry.Rarity, entry.Quantity + entry.BonusQuantity);
         if (newItem == null) {
             return;
         }
@@ -204,6 +141,101 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
             session.Item.MailItem(newItem);
         }
 
+        session.Send(MeretMarketPacket.Purchase(totalQuantity, itemIndex, price, premiumMarketId, ugcItemId));
+    }
+
+    private static void HandleFeatured(GameSession session, IByteReader packet) {
+        byte section = packet.ReadByte();
+        byte tabId = packet.ReadByte();
+
+        ICollection<MarketItem> entries = new List<MarketItem>();
+        using GameStorage.Request db = session.GameStorage.Context();
+        switch (GetMarketSection(section)) {
+            case MeretMarketSection.All:
+                entries = db.GetMarketItems(MeretMarketSection.All, tabId);
+                break;
+            case MeretMarketSection.Premium:
+            case MeretMarketSection.Ugc:
+            case MeretMarketSection.RedMeret:
+                break;
+        }
+
+        session.Send(MeretMarketPacket.Featured(section, tabId, entries.ToList()));
+    }
+
+    private void HandleFindItem(GameSession session, IByteReader packet) {
+        bool premium = packet.ReadBool();
+        MarketItem? marketItem;
+        using GameStorage.Request db = session.GameStorage.Context();
+        if (premium) {
+            int premiumId = packet.ReadInt();
+            marketItem = db.GetPremiumMarketEntry(premiumId);
+            if (marketItem == null) {
+                return;
+            }
+        } else {
+            long ugcId = packet.ReadLong();
+            // TODO: Implement UGC Items
+            return;
+        }
+        
+        session.Send(MeretMarketPacket.LoadItems(new List<MarketItem> { marketItem }, 1, 1));
+    }
+
+    private void HandleSearch(GameSession session, IByteReader packet) {
+        packet.ReadInt(); // 1
+        var gender = packet.Read<GenderFlag>();
+        var job = packet.Read<JobFlag>();
+        var sort = packet.Read<MeretMarketSort>();
+        string searchString = packet.ReadUnicodeString();
+        int startPage = packet.ReadInt(); // 1
+        packet.ReadInt(); // 1
+        packet.ReadByte();
+        packet.ReadByte();
+        byte itemsPerPage = packet.ReadByte();
+        MeretMarketSection section = GetMarketSection(packet.ReadByte());
+
+        /*string testName = "Crazy Dance Emote";
+        bool containsE = testName.Contains("e", StringComparison.OrdinalIgnoreCase);
+        return;*/
+        
+        ICollection<MarketItem> entries = Filter(session, section, 0, gender, job, searchString);
+        // use this to concat ugc items
+        /*IList<MarketItem> entriess = entries.ToList();
+        entries = entriess.Concat(entries).ToList();*/
+        int totalItems = entries.Count;
+        entries = TakeLimit(entries, startPage, itemsPerPage);
+        entries = Sort(entries, sort);
+        
+        session.Send(MeretMarketPacket.LoadItems(entries.ToList(), totalItems, startPage));
+    }
+    
+    private static MeretMarketSection GetMarketSection(byte section) {
+        return section switch {
+            0 => MeretMarketSection.All,
+            1 => MeretMarketSection.Premium,
+            2 => MeretMarketSection.RedMeret,
+            3 => MeretMarketSection.Ugc,
+            _ => MeretMarketSection.All,
+        };
+    }
+
+    private ICollection<MarketItem> Filter(GameSession session, MeretMarketSection section, int tabId, GenderFlag gender, JobFlag job, string searchString) {
+        using GameStorage.Request db = session.GameStorage.Context();
+        if (tabId == 0) {
+            return db.GetPremiumMarketEntries(false, false, gender, job, searchString);
+        }
+        if (!TableMetadata.MeretMarketCategoryTable.Entries.TryGetValue((int) section, out IReadOnlyDictionary<int, MeretMarketCategoryTable.Tab>? sectionDictionary) ||
+            !sectionDictionary.TryGetValue(tabId, out MeretMarketCategoryTable.Tab? tab)) {
+            return new List<MarketItem>();
+        }
+
+        // get any sub tabs
+        int[] tabIds = new[] {
+            tabId
+        }.Concat(tab.SubTabIds).ToArray();
+
+        return db.GetPremiumMarketEntries(tab.SortGender, tab.SortJob, gender, job, searchString, tabIds);
     }
 
     private static StringCode Pay(GameSession session, long price, MeretMarketCurrencyType currencyType) {
@@ -222,8 +254,37 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
                 return StringCode.s_empty_string;
             case MeretMarketCurrencyType.RedMeret: // TODO: Implement Red Meret
                 return StringCode.s_err_lack_merat_red;
-                default:
+            default:
                 return StringCode.s_err_lack_money;
         }
+    }
+
+    private static ICollection<MarketItem> Sort(IEnumerable<MarketItem> entries, MeretMarketSort sort) {
+        switch (sort) {
+            case MeretMarketSort.MostRecent:
+                return entries.OrderByDescending(entry => entry.CreationTime).ToList();
+            case MeretMarketSort.PriceHighest:
+                return entries.OrderByDescending(entry => entry.Price).ToList();
+            case MeretMarketSort.PriceLowest:
+                return entries.OrderBy(entry => entry.Price).ToList();
+            // TODO: Implement most popular?
+            // Unsure how most popular is different than top seller.
+            case MeretMarketSort.MostPopularPremium:
+            case MeretMarketSort.MostPopularUgc:
+            case MeretMarketSort.TopSeller:
+                return entries.OrderByDescending(entry => entry.SalesCount).ToList();
+            case MeretMarketSort.None:
+            default:
+                return entries.ToList();
+        }
+    }
+
+    /// <summary>
+    /// Limits the amount of market items returned to the client.
+    /// </summary>
+    /// <returns>Limited Market Items. 5 * itemsPerPage</returns>
+    private static ICollection<MarketItem> TakeLimit(IEnumerable<MarketItem> entries, int startPage, int itemsPerPage) {
+        int offset = startPage * itemsPerPage - itemsPerPage;
+        return entries.Skip(offset).Take(5 * itemsPerPage + Math.Min(0, offset)).ToList();
     }
 }

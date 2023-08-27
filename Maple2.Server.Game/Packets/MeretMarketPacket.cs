@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -23,63 +24,25 @@ public static class MeretMarketPacket {
         UpdateProfit = 26, // unconfirmed
         LoadShopCategory = 27,
         Purchase = 30,
-       // Initialize = 016,
-        Home = 101,
+        // Initialize = 016,
+        Featured = 101,
         OpenDesignShop = 102,
         LoadCart = 107,
         Unknown201 = 201,
     }
 
-    public static ByteWriter LoadShopCategory(ICollection<MarketEntry> marketEntries) {
+    public static ByteWriter LoadItems(IList<MarketItem> marketItems, int totalItems, int startPage) {
         var pWriter = Packet.Of(SendOp.MeretMarket);
         pWriter.Write<Command>(Command.LoadShopCategory);
-        pWriter.WriteInt(marketEntries.Count);
-        pWriter.WriteInt(marketEntries.Count); // total,not just this page
-        pWriter.WriteInt(1); // needed?
-        
-        // loop start..ish
-        foreach (MarketEntry entry in marketEntries) {
-            pWriter.WriteBool(true);
-            pWriter.WriteBool(entry is UgcMarketEntry);
-            switch (entry) {
-                case PremiumMarketEntry premium:
-                    pWriter.WriteInt(premium.Id);
-                    pWriter.WriteLong();
-                    pWriter.WriteClass<PremiumMarketEntry>(premium);
-                    pWriter.WriteBool(premium.PromoData != null);
-                    if (premium.PromoData != null) {
-                        pWriter.WriteClass<PremiumMarketPromoData>(premium.PromoData);
-                    }
-                    pWriter.WriteByte();
-                    pWriter.WriteBool(premium.ShowSaleTime);
-                    pWriter.WriteInt();
-                    pWriter.WriteByte((byte) premium.AdditionalQuantities.Count);
-                    foreach(PremiumMarketEntry addEntry in premium.AdditionalQuantities) {
-                        pWriter.WriteBool(true);
-                        pWriter.WriteClass<PremiumMarketEntry>(addEntry);
-                        bool unk = false;
-                        pWriter.WriteBool(unk);
-                        if (unk) {
-                            pWriter.WriteString();
-                            pWriter.WriteLong();
-                            pWriter.WriteUnicodeString();
-                            pWriter.WriteLong();
-                        }
-                        pWriter.WriteByte();
-                        pWriter.WriteByte();
-                    }
-                    break;
-                case UgcMarketEntry ugc:
-                    pWriter.WriteClass<UgcMarketEntry>(ugc);
-                    break;
-            }
-        }
-            
+        pWriter.WriteInt(marketItems.Count);
+        pWriter.WriteInt(totalItems);
+        pWriter.WriteInt(startPage);
+        pWriter.WriteMarketItemEntries(marketItems);
 
         return pWriter;
     }
 
-    public static ByteWriter Purchase() {
+    public static ByteWriter Purchase(int totalQuantity, int itemIndex, long price,  int premiumMarketId, long ugcMarketItemId) {
         var pWriter = Packet.Of(SendOp.MeretMarket);
         pWriter.Write<Command>(Command.Purchase);
         pWriter.WriteByte((byte) totalQuantity);
@@ -103,4 +66,69 @@ public static class MeretMarketPacket {
         pWriter.WriteInt();
         return pWriter;
     }
+    
+    public static ByteWriter Featured(byte section, byte tabId, IList<MarketItem> marketItems) {
+        var pWriter = Packet.Of(SendOp.MeretMarket);
+        pWriter.Write<Command>(Command.Featured);
+        pWriter.WriteByte(section);
+        pWriter.WriteByte(tabId);
+        pWriter.WriteByte();
+        pWriter.WriteByte(3); // this needs to be >= 3? GMS2 has it as 14.
+        pWriter.WriteByte();
+        pWriter.WriteByte();
+        pWriter.WriteMarketItemEntries(marketItems);
+        pWriter.WriteByte();
+        pWriter.WriteByte();
+        pWriter.WriteByte();
+        pWriter.WriteByte();
+        pWriter.WriteByte();
+        pWriter.WriteByte();
+        pWriter.WriteByte();
+        pWriter.WriteByte();
+        pWriter.WriteByte();
+        pWriter.WriteByte();
+        pWriter.WriteByte();
+        return pWriter;
+    }
+
+    #region Helpers
+    private static void WriteMarketItemEntries(this IByteWriter pWriter, IList<MarketItem> marketItems) {
+        foreach (MarketItem entry in marketItems) {
+            pWriter.WriteBool(entry is PremiumMarketItem);
+            pWriter.WriteBool(entry is UgcMarketItem);
+            switch (entry) {
+                case PremiumMarketItem premium:
+                    pWriter.WriteInt(premium.Id);
+                    pWriter.WriteLong();
+                    pWriter.WriteClass<PremiumMarketItem>(premium);
+                    pWriter.WriteBool(premium.PromoData != null);
+                    if (premium.PromoData != null) {
+                        pWriter.WriteClass<PremiumMarketPromoData>(premium.PromoData);
+                    }
+                    pWriter.WriteByte();
+                    pWriter.WriteBool(premium.ShowSaleTime);
+                    pWriter.WriteInt();
+                    pWriter.WriteByte((byte) premium.AdditionalQuantities.Count);
+                    foreach (PremiumMarketItem addEntry in premium.AdditionalQuantities) {
+                        pWriter.WriteBool(true);
+                        pWriter.WriteClass<PremiumMarketItem>(addEntry);
+                        bool unk = false;
+                        pWriter.WriteBool(unk);
+                        if (unk) {
+                            pWriter.WriteString();
+                            pWriter.WriteLong();
+                            pWriter.WriteUnicodeString();
+                            pWriter.WriteLong();
+                        }
+                        pWriter.WriteByte();
+                        pWriter.WriteByte();
+                    }
+                    break;
+                case UgcMarketItem ugc:
+                    pWriter.WriteClass<UgcMarketItem>(ugc);
+                    break;
+            }
+        }
+    }
+    #endregion
 }

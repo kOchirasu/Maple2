@@ -7,22 +7,24 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Maple2.Database.Model;
 
-internal class PromoBanner {
+internal class SystemBanner {
     public int Id { get; set; }
     public string Name { get; set; }
-    public PromoBannerType Type { get; set; }
-    public string SubType { get; set; }
+    public SystemBannerType Type { get; set; }
+    public SystemBannerFunction Function { get; set; }
+    public string FunctionParameter { get; set; }
     public string Url { get; set; }
-    public PromoBannerLanguage Language { get; set; }
+    public SystemBannerLanguage Language { get; set; }
     public DateTime BeginTime { get; set; }
     public DateTime EndTime { get; set; }
 
     [return: NotNullIfNotNull(nameof(other))]
-    public static implicit operator Maple2.Model.Game.PromoBanner?(PromoBanner? other) {
-        return other == null ? null : new Maple2.Model.Game.PromoBanner(other.Id) {
+    public static implicit operator Maple2.Model.Game.SystemBanner?(SystemBanner? other) {
+        return other == null ? null : new Maple2.Model.Game.SystemBanner(other.Id) {
             Name = other.Name,
             Type = other.Type,
-            SubType = other.SubType,
+            Function = other.Function,
+            FunctionParameter = other.FunctionParameter,
             Url = other.Url,
             Language = other.Language,
             BeginTime = other.BeginTime.ToEpochSeconds(),
@@ -30,8 +32,8 @@ internal class PromoBanner {
         };
     }
     
-    public static void Configure(EntityTypeBuilder<PromoBanner> builder) {
-        builder.ToTable("banner");
+    public static void Configure(EntityTypeBuilder<SystemBanner> builder) {
+        builder.ToTable("system-banner");
         builder.HasKey(banner => banner.Id);
     }
 }

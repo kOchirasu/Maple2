@@ -8,24 +8,27 @@ using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
-public class MarketEntry : IByteSerializable {
+public abstract class MarketItem : IByteSerializable {
     public readonly ItemMetadata ItemMetadata;
     public int ItemId { get; init; }
+    protected string Name => ItemMetadata.Name ?? string.Empty;
     public long Price { get; init; }
     public int SalesCount { get; init; }
     public long CreationTime { get; init; }
 
-    public MarketEntry(int itemId, long price, int salesCount, long creationTime) {
+    public MarketItem(int itemId, long price, int salesCount, long creationTime) {
         ItemId = itemId;
         Price = price;
         SalesCount = salesCount;
         CreationTime = creationTime;
     }
 
-    public MarketEntry(ItemMetadata itemMetadata) {
+    public MarketItem(ItemMetadata itemMetadata) {
         ItemMetadata = itemMetadata;
     }
     
     public virtual void WriteTo(IByteWriter writer) {
+        
+        
     }
 }

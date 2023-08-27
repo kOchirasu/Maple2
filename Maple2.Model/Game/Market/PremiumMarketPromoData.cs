@@ -10,16 +10,8 @@ public class PremiumMarketPromoData : IByteSerializable {
     public long StartTime { get; init; }
     public long EndTime { get; init; }
 
-    public PremiumMarketPromoData(string name, long startTime, long endTime) {
-        Name = name;
-        StartTime = startTime;
-        EndTime = endTime;
-    }
-    
-    public PremiumMarketPromoData(string name) {
-        Name = name;
-        StartTime = 0;
-        EndTime = 0;
+    public PremiumMarketPromoData() {
+        Name = string.Empty;
     }
 
     public void WriteTo(IByteWriter writer) {

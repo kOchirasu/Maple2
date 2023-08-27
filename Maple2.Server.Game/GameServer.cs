@@ -23,7 +23,6 @@ public class GameServer : Server<GameSession> {
     private readonly HashSet<GameSession> connectingSessions;
     private readonly Dictionary<long, GameSession> sessions;
     private readonly Dictionary<string, GameEvent> eventCache = new();
-    private readonly Dictionary<int, PremiumMarketEntry> marketCache;
     private readonly GameStorage gameStorage;
 
     public int Channel => Target.GameChannel;
@@ -34,10 +33,6 @@ public class GameServer : Server<GameSession> {
         connectingSessions = new HashSet<GameSession>();
         sessions = new Dictionary<long, GameSession>();
         this.gameStorage = gameStorage;
-
-        marketCache = this.gameStorage.Context().GetAllPremiumMarketEntries().ToDictionary(
-            item => item.Id,
-            item => item);
     }
 
     public override void OnConnected(GameSession session) {
@@ -81,9 +76,6 @@ public class GameServer : Server<GameSession> {
 
         return gameEvent;
     }
-
-    public ICollection<PremiumMarketEntry> GetPremiumMarketEntries(int tabId) => marketCache.Values.Where(entry => entry.TabId == tabId).ToList();
-    public PremiumMarketEntry? GetPremiumMarketEntry(int id) => marketCache.TryGetValue(id, out PremiumMarketEntry? entry) ? entry : null;
 
     public override Task StopAsync(CancellationToken cancellationToken) {
         lock (mutex) {

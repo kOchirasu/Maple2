@@ -8,7 +8,7 @@ using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
-public class UgcMarketEntry : MarketEntry {
+public class UgcMarketItem : MarketItem {
     public long Id { get; init; }
     public UgcMarketListingStatus Status { get; init; }
     public long ListingEndTime { get; init; }
@@ -20,7 +20,9 @@ public class UgcMarketEntry : MarketEntry {
     public string[] Tags { get; init; } = Array.Empty<string>();
     public UgcItemLook Look { get; init; }
 
-    public UgcMarketEntry(ItemMetadata metadata) : base(metadata) { }
+    public UgcMarketItem(long id, ItemMetadata metadata) : base(metadata) {
+        Id = id;
+    }
 
     public new void WriteTo(IByteWriter writer) {
         writer.WriteInt();

@@ -8,7 +8,7 @@ using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
-public class PremiumMarketEntry : MarketEntry {
+public class PremiumMarketItem : MarketItem {
     public int Id { get; init; }
     public int ParentId { get; init; }
     public int TabId { get; init; }
@@ -32,18 +32,18 @@ public class PremiumMarketEntry : MarketEntry {
     public bool PcCafe { get; init; }
     public PremiumMarketPromoData? PromoData { get; init; }
     public bool ShowSaleTime { get; init; }
-    public IList<PremiumMarketEntry> AdditionalQuantities { get; init; }
+    public IList<PremiumMarketItem> AdditionalQuantities { get; set; }
 
-    public PremiumMarketEntry(int id, ItemMetadata metadata) : base(metadata) {
+    public PremiumMarketItem(int id, ItemMetadata metadata) : base(metadata) {
         Id = id;
-        AdditionalQuantities = new List<PremiumMarketEntry>();
+        AdditionalQuantities = new List<PremiumMarketItem>();
     }
     
     public override void WriteTo(IByteWriter writer) {
         writer.WriteInt(Id);
         writer.WriteByte();
-        writer.WriteUnicodeString(ItemMetadata.Name ?? string.Empty); // Item Name
-        writer.WriteBool(true); // needs to be true for home page to work
+        writer.WriteUnicodeString(Name);
+        writer.WriteBool(true);
         writer.WriteInt(ParentId);
         writer.WriteInt();
         writer.WriteInt();

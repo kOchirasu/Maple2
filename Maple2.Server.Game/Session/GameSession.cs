@@ -331,21 +331,10 @@ public sealed partial class GameSession : Core.Network.Session {
 
     public GameEvent? FindEvent<T>() where T : GameEventInfo => server.FindEvent<T>();
 
-    public IEnumerable<PremiumMarketEntry> GetPremiumMarketEntries(int tabId) {
-        List<PremiumMarketEntry> entries = server.GetPremiumMarketEntries(tabId).Where(entry => entry.ParentId == 0).ToList();
-        var test = server.GetPremiumMarketEntries(tabId).Where(entry => entry.ParentId != 0).ToList();
-        foreach (PremiumMarketEntry entry in server.GetPremiumMarketEntries(tabId).Where(entry => entry.ParentId != 0)) {
-            entries.FirstOrDefault(item => item.Id == entry.ParentId)?.AdditionalQuantities.Add(entry);
-        }
-        return entries;
-    }
-    
     public void ChannelBroadcast(ByteWriter packet) {
         server.Broadcast(packet);
     }
-
-    public PremiumMarketEntry? GetPremiumMarketEntry(int id) => server.GetPremiumMarketEntry(id);
-
+    
     public bool Temp() {
         // -> RequestMoveField
 

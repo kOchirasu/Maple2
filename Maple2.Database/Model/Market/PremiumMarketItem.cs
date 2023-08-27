@@ -13,13 +13,13 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Maple2.Database.Model;
 
-internal class PremiumMarketEntry {
+internal class PremiumMarketItem {
     public int Id { get; set; }
     public int ParentId { get; set; }
     public int TabId { get; set; }
     public int ItemId { get; set; }
     public byte Rarity { get; set; }
-    public int Quantity { get; set; } 
+    public int Quantity { get; set; }
     public int BonusQuantity { get; set; }
     public int ItemDuration { get; set; }
     public MeretMarketCurrencyType CurrencyType { get; set; }
@@ -39,12 +39,11 @@ internal class PremiumMarketEntry {
     public short RequireMaxLevel { get; set; }
     public bool PcCafe { get; set; }
     public bool ShowSaleTime { get; set; }
-    public IList<PremiumMarketEntry> AdditionalQuantities { get; set; }
     public DateTime CreationTime { get; set; }
 
-    [return:NotNullIfNotNull(nameof(other))]
-    public static implicit operator PremiumMarketEntry?(Maple2.Model.Game.PremiumMarketEntry? other) {
-        return other == null ? null : new PremiumMarketEntry {
+    [return: NotNullIfNotNull(nameof(other))]
+    public static implicit operator PremiumMarketItem?(Maple2.Model.Game.PremiumMarketItem? other) {
+        return other == null ? null : new PremiumMarketItem {
             ParentId = other.ParentId,
             TabId = other.TabId,
             ItemId = other.ItemId,
@@ -72,12 +71,12 @@ internal class PremiumMarketEntry {
             CreationTime = other.CreationTime.FromEpochSeconds(),
         };
     }
-    
-    public Maple2.Model.Game.PremiumMarketEntry Convert(ItemMetadata metadata) {
-        var entry = new Maple2.Model.Game.PremiumMarketEntry(Id, metadata) {
+
+    public Maple2.Model.Game.PremiumMarketItem Convert(ItemMetadata metadata) {
+        var entry = new Maple2.Model.Game.PremiumMarketItem(Id, metadata) {
             ParentId = ParentId,
             TabId = TabId,
-            ItemId = ItemId, 
+            ItemId = ItemId,
             Rarity = Rarity,
             Quantity = Quantity,
             BonusQuantity = BonusQuantity,
@@ -104,31 +103,33 @@ internal class PremiumMarketEntry {
 
         return entry;
     }
-    
-    public static void Configure(EntityTypeBuilder<PremiumMarketEntry> builder) {
-        builder.ToTable("premium-market-entry");
+
+    public static void Configure(EntityTypeBuilder<PremiumMarketItem> builder) {
+        builder.ToTable("premium-market-item");
         builder.HasKey(entry => entry.Id);
         //builder.HasMany<PremiumMarketEntry>(entry => entry.AdditionalQuantities);
         builder.Property(entry => entry.PromoData).HasJsonConversion();
         IMutableProperty creationTime = builder.Property(listing => listing.CreationTime)
             .ValueGeneratedOnAdd().Metadata;
-        creationTime.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);    }
+        creationTime.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+    }
 }
 
 internal class PremiumMarketPromoData {
     public required string Name { get; init; }
     public DateTime StartTime { get; init; }
     public DateTime EndTime { get; init; }
-    
+
     [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator Maple2.Model.Game.PremiumMarketPromoData?(PremiumMarketPromoData? other) {
-        return other == null ? null : new Maple2.Model.Game.PremiumMarketPromoData(other.Name) {
+        return other == null ? null : new Maple2.Model.Game.PremiumMarketPromoData {
+            Name = other.Name,
             StartTime = other.StartTime.ToEpochSeconds(),
             EndTime = other.EndTime.ToEpochSeconds(),
         };
     }
-    
-    [return:NotNullIfNotNull(nameof(other))]
+
+    [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator PremiumMarketPromoData?(Maple2.Model.Game.PremiumMarketPromoData? other) {
         return other == null ? null : new PremiumMarketPromoData() {
             Name = other.Name,
