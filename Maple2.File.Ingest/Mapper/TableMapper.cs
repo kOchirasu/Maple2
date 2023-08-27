@@ -59,7 +59,6 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "shop_beautycoupon.xml", Table = ParseShopBeautyCouponTable()};
         yield return new TableMetadata {Name = "gacha_info.xml", Table = ParseGachaInfoTable()};
         yield return new TableMetadata {Name = "exp*.xml", Table = ParseExpTable()};
-        yield return new TableMetadata {Name = "ugcdesign.xml", Table = ParseUgcDesignTable()};
         // Fishing
         yield return new TableMetadata {Name = "fishingspot.xml", Table = ParseFishingSpot()};
         yield return new TableMetadata {Name = "fish.xml", Table = ParseFish()};
@@ -1197,18 +1196,5 @@ public class TableMapper : TypeMapper<TableMetadata> {
             nextExpResults.Add(entry.level, entry.value);
         }
         return new ExpTable(baseResults, nextExpResults);
-    }
-
-    private UgcDesignTable ParseUgcDesignTable() {
-        var results = new Dictionary<int, UgcDesignTable.Entry>();
-        foreach ((int itemId, UgcDesign design) in parser.ParseUgcDesign()) {
-            results.Add(itemId, new UgcDesignTable.Entry(
-                ItemRarity: design.itemGrade,
-                CurrencyType: (MeretMarketCurrencyType) design.priceType,
-                CreatePrice: design.salePrice < design.price ? design.salePrice : design.price,
-                MarketMinPrice: design.marketMinPrice,
-                MarketMaxPrice: design.marketMaxPrice));
-        }
-        return new UgcDesignTable(results);
     }
 }
