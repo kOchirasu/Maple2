@@ -114,7 +114,7 @@ public class MasteryHandler : PacketHandler<GameSession> {
                 session.Item.MailItem(item);
             }
         }
+        session.Exp.AddExp(ExpType.manufacturing);
         session.Send(MasteryPacket.GetCraftedItem(entry.Type, (ICollection<ItemComponent>) entry.RewardItems));
-
     }
 }
