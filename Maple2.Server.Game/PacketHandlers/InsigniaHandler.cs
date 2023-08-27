@@ -27,23 +27,21 @@ public class InsigniaHandler : PacketHandler<GameSession> {
         }
 
         // Check and remove any existing insignia buffs
-        if (TableMetadata.InsigniaTable.Entries.TryGetValue(session.Player.Value.Character.Insignia, out InsigniaTable.Entry? oldSigniaMetadata) && oldSigniaMetadata.BuffId > 0) {
-            session.Player.Buffs.Remove(oldSigniaMetadata.BuffLevel);
+        if (TableMetadata.InsigniaTable.Entries.TryGetValue(session.Player.Value.Character.Insignia, out InsigniaTable.Entry? oldInsigniaMetadata) && oldInsigniaMetadata.BuffId > 0) {
+            session.Player.Buffs.Remove(oldInsigniaMetadata.BuffId);
         }
 
         short insigniaId = packet.ReadShort();
-        if (!TableMetadata.InsigniaTable.Entries.TryGetValue(insigniaId, out InsigniaTable.Entry? newSigniaMetadata)) {
+        if (!TableMetadata.InsigniaTable.Entries.TryGetValue(insigniaId, out InsigniaTable.Entry? newInsigniaMetadata)) {
             return;
         }
 
         session.Player.Value.Character.Insignia = insigniaId;
 
         bool display = false;
-        switch (newSigniaMetadata.Type) {
+        switch (newInsigniaMetadata.Type) {
             case InsigniaConditionType.title:
-                if (session.Player.Value.Unlock.Titles.Contains(newSigniaMetadata.Code)) {
-                    display = true;
-                }
+                display = session.Player.Value.Unlock.Titles.Contains(newInsigniaMetadata.Code);
                 break;
             case InsigniaConditionType.adventure_level:
                 if (session.Player.Value.Account.PrestigeLevel >= 100) {
@@ -74,12 +72,12 @@ public class InsigniaHandler : PacketHandler<GameSession> {
                 }
                 break;
             default:
-                Logger.Information("Unhandled insignia condition type: {type}", newSigniaMetadata.Type);
+                Logger.Information("Unhandled insignia condition type: {type}", newInsigniaMetadata.Type);
                 break;
         }
 
-        if (display && newSigniaMetadata.BuffId > 0) {
-            session.Player.Buffs.AddBuff(session.Player, session.Player, newSigniaMetadata.BuffId, newSigniaMetadata.BuffLevel);
+        if (display && newInsigniaMetadata.BuffId > 0) {
+            session.Player.Buffs.AddBuff(session.Player, session.Player, newInsigniaMetadata.BuffId, newInsigniaMetadata.BuffLevel);
         }
 
         session.Field.Broadcast(InsigniaPacket.Update(session.Player.ObjectId, insigniaId, display));
