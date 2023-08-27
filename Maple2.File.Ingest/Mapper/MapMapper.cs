@@ -77,6 +77,10 @@ public class MapMapper : TypeMapper<MapMetadata> {
                     Dash: data.ui.useEPSkill,
                     Ride: data.ui.useRidee,
                     Pet: data.ui.usePet),
+                Drop: new MapMetadataDrop(
+                    Level: data.drop.maplevel,
+                    DropRank: data.drop.droprank,
+                    GlobalDropBoxId: data.drop.globalDropBoxID),
                 Spawns: spawns.GetValueOrDefault(id, new List<MapMetadataSpawn>()),
                 CashCall: new MapMetadataCashCall(
                     TaxiDeparture: !data.cashCall.cashTaxiNotDeparture,

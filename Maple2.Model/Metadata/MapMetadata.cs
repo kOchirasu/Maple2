@@ -32,6 +32,7 @@ public record MapMetadata(
     string XBlock,
     MapMetadataProperty Property,
     MapMetadataLimit Limit,
+    MapMetadataDrop Drop,
     IReadOnlyList<MapMetadataSpawn> Spawns,
     MapMetadataCashCall CashCall,
     MapEntranceBuff[] EntranceBuffs) : ISearchResult;
@@ -58,6 +59,11 @@ public record MapMetadataProperty(
     bool PkMode,
     bool CanFly,
     bool CanClimb);
+
+public record MapMetadataDrop(
+    int Level,
+    int DropRank,
+    int[] GlobalDropBoxId);
 
 public record MapMetadataLimit(
     int Capacity,
