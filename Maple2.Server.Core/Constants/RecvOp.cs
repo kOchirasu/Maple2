@@ -108,7 +108,7 @@ public enum RecvOp : ushort {
     MaidCraftItem = 0x0069,
     RequestUserEnv = 0x006A,
     Cash = 0x006B,
-    Nametag = 0x006C,
+    Insignia = 0x006C,
     RequestMoveField = 0x006D,
     WaitingTicket = 0x006E,
     MatchParty = 0x006F,
