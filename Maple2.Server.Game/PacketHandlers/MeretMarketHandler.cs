@@ -1,15 +1,11 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using Community.CsharpSqlite;
 using Maple2.Database.Extensions;
 using Maple2.Database.Storage;
 using Maple2.Model;
 using Maple2.Model.Enum;
-using Maple2.Model.Error;
 using Maple2.Model.Game;
-using Maple2.Model.Game.Event;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -79,15 +75,12 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         var sort = packet.Read<MeretMarketSort>();
         string searchString = packet.ReadUnicodeString();
         int startPage = packet.ReadInt();
-        int unknown = packet.ReadInt(); // repeats the startPage value? Possibly for pagination. Needs confirmation
+        int unknown = packet.ReadInt(); // repeats the startPage value
         MeretMarketSection section = GetMarketSection(packet.ReadByte());
         packet.ReadByte();
         byte itemsPerPage = packet.ReadByte();
 
-        ICollection<MarketItem> entries = Filter(session, section, tabId, gender, job, searchString);
-        // use this to concat ugc items
-        /*IList<MarketItem> entriess = entries.ToList();
-        entries = entriess.Concat(entries).ToList();*/
+        ICollection<MarketItem> entries = GetItems(session, section, tabId, gender, job, searchString);
         int totalItems = entries.Count;
         entries = TakeLimit(entries, startPage, itemsPerPage);
         entries = Sort(entries, sort);
@@ -121,6 +114,24 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
             return;
         }
 
+        // TODO: Find meret market error packets
+        if (entry.SellBeginTime > DateTime.Now.ToEpochSeconds() || entry.SellEndTime < DateTime.Now.ToEpochSeconds()) {
+            return;
+        }
+
+        if ((entry.RequireMinLevel > 0 && entry.RequireMinLevel > session.Player.Value.Character.Level) ||
+            (entry.RequireMaxLevel > 0 && entry.RequireMaxLevel < session.Player.Value.Character.Level)) {
+            return;
+        }
+
+        if (entry.JobRequirement.Code().All(job => job != session.Player.Value.Character.Job.Code())) {
+            return;
+        }
+
+        if (entry.RequireAchievementId > 0 && session.Achievement.HasAchievement(entry.RequireAchievementId, entry.RequireAchievementRank)) {
+            return;
+        }
+        
         price = entry.SalePrice > 0 ? entry.SalePrice : entry.Price;
         StringCode payResult = Pay(session, price, entry.CurrencyType);
         if (payResult != StringCode.s_empty_string) {
@@ -134,7 +145,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         }
 
         if (entry.ItemDuration > 0) {
-            newItem.ExpiryTime = (long) (DateTime.Now.ToUniversalTime() - DateTime.UnixEpoch).TotalSeconds + entry.ItemDuration;
+            newItem.ExpiryTime = DateTime.Now.AddDays(entry.ItemDuration).ToEpochSeconds();
         }
 
         if (!session.Item.Inventory.Add(newItem, true)) {
@@ -160,7 +171,9 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
                 break;
         }
 
-        session.Send(MeretMarketPacket.Featured(section, tabId, entries.ToList()));
+        // Featured page needs a multiple of 2 slots. Add to the entries total if odd number.
+        byte marketSlots = (byte) (entries.Count % 2 == 0 ? entries.Count : (byte) (entries.Count + 1));
+        session.Send(MeretMarketPacket.Featured(section, tabId, marketSlots, entries.ToList()));
     }
 
     private void HandleFindItem(GameSession session, IByteReader packet) {
@@ -178,8 +191,8 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
             // TODO: Implement UGC Items
             return;
         }
-        
-        session.Send(MeretMarketPacket.LoadItems(new List<MarketItem> { marketItem }, 1, 1));
+
+        session.Send(MeretMarketPacket.LoadItems(new List<MarketItem> {marketItem}, 1, 1));
     }
 
     private void HandleSearch(GameSession session, IByteReader packet) {
@@ -195,21 +208,14 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         byte itemsPerPage = packet.ReadByte();
         MeretMarketSection section = GetMarketSection(packet.ReadByte());
 
-        /*string testName = "Crazy Dance Emote";
-        bool containsE = testName.Contains("e", StringComparison.OrdinalIgnoreCase);
-        return;*/
-        
-        ICollection<MarketItem> entries = Filter(session, section, 0, gender, job, searchString);
-        // use this to concat ugc items
-        /*IList<MarketItem> entriess = entries.ToList();
-        entries = entriess.Concat(entries).ToList();*/
+        ICollection<MarketItem> entries = GetItems(session, section, 0, gender, job, searchString);
         int totalItems = entries.Count;
         entries = TakeLimit(entries, startPage, itemsPerPage);
         entries = Sort(entries, sort);
-        
+
         session.Send(MeretMarketPacket.LoadItems(entries.ToList(), totalItems, startPage));
     }
-    
+
     private static MeretMarketSection GetMarketSection(byte section) {
         return section switch {
             0 => MeretMarketSection.All,
@@ -220,7 +226,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         };
     }
 
-    private ICollection<MarketItem> Filter(GameSession session, MeretMarketSection section, int tabId, GenderFlag gender, JobFlag job, string searchString) {
+    private ICollection<MarketItem> GetItems(GameSession session, MeretMarketSection section, int tabId, GenderFlag gender, JobFlag job, string searchString) {
         using GameStorage.Request db = session.GameStorage.Context();
         if (tabId == 0) {
             return db.GetPremiumMarketEntries(false, false, gender, job, searchString);

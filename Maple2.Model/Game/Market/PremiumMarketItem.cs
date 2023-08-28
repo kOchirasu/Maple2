@@ -25,7 +25,7 @@ public class PremiumMarketItem : MarketItem {
     public int Quantity { get; init; }
     public int ItemDuration { get; init; } // in days
     public int BonusQuantity { get; init; }
-    public MeretMarketPromoBannerLabel PromoBannerLabel { get; init; }
+    public MeretMarketBannerLabel BannerLabel { get; init; }
     public string BannerName { get; init; }
     public int RequireAchievementId { get; init; }
     public int RequireAchievementRank { get; init; }
@@ -55,7 +55,7 @@ public class PremiumMarketItem : MarketItem {
         writer.WriteByte();
         writer.WriteLong(SellBeginTime);
         writer.WriteLong(SellEndTime);
-        writer.WriteInt();
+        writer.WriteInt(); // Another flag
         writer.WriteInt();
         writer.WriteBool(RestockUnavailable);
         writer.WriteInt();
@@ -68,10 +68,10 @@ public class PremiumMarketItem : MarketItem {
         writer.WriteInt(Quantity);
         writer.WriteInt(ItemDuration);
         writer.WriteInt(BonusQuantity);
-        writer.WriteInt();
+        writer.WriteInt(TabId);
         writer.WriteInt();
         writer.WriteByte();
-        writer.Write<MeretMarketPromoBannerLabel>(PromoBannerLabel);
+        writer.Write<MeretMarketBannerLabel>(BannerLabel);
         writer.WriteString(BannerName);
         writer.WriteString();
         writer.WriteByte();

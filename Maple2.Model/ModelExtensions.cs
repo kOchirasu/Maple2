@@ -67,7 +67,7 @@ public static class ModelExtensions {
     }
 
     public static IEnumerable<JobCode> Code(this JobFlag flag) {
-        if (flag.HasFlag(Job.Newbie)) {
+        if (flag.HasFlag(JobFlag.Newbie)) {
             yield return JobCode.Newbie;
         }
 

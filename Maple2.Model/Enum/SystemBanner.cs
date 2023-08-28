@@ -10,6 +10,7 @@ public enum SystemBannerType {
 
 public enum SystemBannerFunction {
     none,
+    cash,
     link,
     searchBySN,
 }

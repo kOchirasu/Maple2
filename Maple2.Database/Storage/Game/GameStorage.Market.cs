@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
-using Maple2.Database.Model;
 using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
@@ -60,49 +58,6 @@ public partial class GameStorage {
 
             Context.MesoMarket.Remove(listing);
             return Context.TrySaveChanges();
-        }
-
-        public bool SavePremiumMarketEntry() {
-            for (int i = 60000001; i < 60000064; i++) {
-                Model.PremiumMarketItem item = new Model.PremiumMarketItem() {
-                    ItemId = i,
-                    TabId = 40300,
-                    Rarity = 1,
-                    Quantity = 1,
-                    BonusQuantity = 0,
-                    ItemDuration = 0,
-                    CurrencyType = MeretMarketCurrencyType.Meret,
-                    Price = 10,
-                    SalePrice = 10,
-                    SellBeginTime = new DateTime(2010, 1, 1),
-                    SellEndTime = new DateTime(2030, 1, 1),
-                    SalesCount = 0,
-                    Label = MeretMarketItemLabel.None,
-                    JobRequirement = JobFlag.Knight | JobFlag.Berserker | JobFlag.Priest | JobFlag.Wizard | JobFlag.Archer | JobFlag.HeavyGunner | JobFlag.Thief | JobFlag.Assassin | JobFlag.Newbie | JobFlag.RuneBlader | JobFlag.Striker | JobFlag.SoulBinder,
-                    RequireAchievementId = 0,
-                    RequireAchievementRank = 0,
-                    RestockUnavailable = false,
-                    RequireMinLevel = 0,
-                    PromoData = null,
-                    BannerName = "",
-                    RequireMaxLevel = 0,
-                    PcCafe = false,
-                    ShowSaleTime = true,
-                    CreationTime = DateTime.Now,
-                };
-                Context.PremiumMarketItem.Add(item);
-            }
-
-            return Context.TrySaveChanges();
-        }
-
-        public List<PremiumMarketItem> GetAllPremiumMarketEntries() {
-            //TODO: Fix this before PR
-            return Context.PremiumMarketItem
-                .AsEnumerable()
-                .Select(ToMarketEntry)
-                .Where(entry => entry != null)
-                .ToList()!;
         }
 
         public ICollection<MarketItem> GetPremiumMarketEntries(bool sortGender, bool sortJob, GenderFlag gender, JobFlag job, string searchString, params int[] tabIds) {

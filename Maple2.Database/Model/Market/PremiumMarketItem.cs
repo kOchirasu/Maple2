@@ -32,6 +32,7 @@ internal class PremiumMarketItem {
     public JobFlag JobRequirement { get; set; }
     public int RequireAchievementId { get; set; }
     public int RequireAchievementRank { get; set; }
+    public MeretMarketBannerLabel BannerLabel { get; set; }
     public required string BannerName { get; set; }
     public PremiumMarketPromoData? PromoData { get; set; }
     public bool RestockUnavailable { get; set; }
@@ -62,6 +63,7 @@ internal class PremiumMarketItem {
             RequireAchievementId = other.RequireAchievementId,
             RequireAchievementRank = other.RequireAchievementRank,
             BannerName = other.BannerName,
+            BannerLabel = other.BannerLabel,
             PromoData = other.PromoData,
             RestockUnavailable = other.RestockUnavailable,
             RequireMinLevel = other.RequireMinLevel,
@@ -92,6 +94,7 @@ internal class PremiumMarketItem {
             RequireAchievementId = RequireAchievementId,
             RequireAchievementRank = RequireAchievementRank,
             BannerName = BannerName,
+            BannerLabel = BannerLabel,
             PromoData = PromoData,
             RestockUnavailable = RestockUnavailable,
             RequireMinLevel = RequireMinLevel,
@@ -107,7 +110,6 @@ internal class PremiumMarketItem {
     public static void Configure(EntityTypeBuilder<PremiumMarketItem> builder) {
         builder.ToTable("premium-market-item");
         builder.HasKey(entry => entry.Id);
-        //builder.HasMany<PremiumMarketEntry>(entry => entry.AdditionalQuantities);
         builder.Property(entry => entry.PromoData).HasJsonConversion();
         IMutableProperty creationTime = builder.Property(listing => listing.CreationTime)
             .ValueGeneratedOnAdd().Metadata;
