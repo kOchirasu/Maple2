@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Model.Game;
-using Maple2.Model.Game.Event;
 
 namespace Maple2.Database.Storage;
 

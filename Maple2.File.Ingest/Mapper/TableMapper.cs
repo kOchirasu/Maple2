@@ -1146,11 +1146,6 @@ public class TableMapper : TypeMapper<TableMetadata> {
                         } else {
                             (results[id] as Dictionary<int, MeretMarketCategoryTable.Tab>)!.Add(tab.id, tabEntry);
                         }
-                        /*tabs.Add(tab.id, new MeretMarketCategoryTable.Tab(
-                            Categories: tab.category.ToList(),
-                            SortGender: tab.sortGender,
-                            SortJob: tab.sortJob,
-                            SubTabs: subTabs));*/
                     }
                 }
             }

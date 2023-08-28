@@ -1,10 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Net.Sockets;
-using System.Text.RegularExpressions;
 using Maple2.Database.Extensions;
-using Maple2.Database.Model.Shop;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
@@ -28,9 +24,9 @@ internal class UgcMarketItem {
     public string[] Tags { get; set; } = Array.Empty<string>();
     public UgcItemLook Look { get; set; }
     public DateTime CreationTime { get; set; }
-    
 
-    [return:NotNullIfNotNull(nameof(other))]
+
+    [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator UgcMarketItem?(Maple2.Model.Game.UgcMarketItem? other) {
         return other == null ? null : new UgcMarketItem {
             Id = other.Id,
@@ -45,7 +41,7 @@ internal class UgcMarketItem {
             CreationTime = other.CreationTime.FromEpochSeconds(),
         };
     }
-    
+
     public Maple2.Model.Game.UgcMarketItem Convert(ItemMetadata metadata) {
         var entry = new Maple2.Model.Game.UgcMarketItem(Id, metadata) {
             Price = Price,
@@ -60,7 +56,7 @@ internal class UgcMarketItem {
 
         return entry;
     }
-    
+
     public static void Configure(EntityTypeBuilder<UgcMarketItem> builder) {
         builder.ToTable("ugc-market-item");
         builder.HasKey(entry => entry.Id);
@@ -68,5 +64,6 @@ internal class UgcMarketItem {
         builder.Property(entry => entry.Tags).HasJsonConversion();
         IMutableProperty creationTime = builder.Property(listing => listing.CreationTime)
             .ValueGeneratedOnAdd().Metadata;
-        creationTime.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);    }
+        creationTime.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
+    }
 }

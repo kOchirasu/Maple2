@@ -105,8 +105,7 @@ public partial class GameStorage {
                     }
                     premium.AdditionalQuantities = Context.PremiumMarketItem
                         .Select(ToMarketEntry)
-                        .Where(subEntry => subEntry != null &&
-                                           subEntry.ParentId == premium.Id)
+                        .Where(subEntry => subEntry != null && subEntry.ParentId == premium.Id)
                         .ToList()!;
                 }
             }

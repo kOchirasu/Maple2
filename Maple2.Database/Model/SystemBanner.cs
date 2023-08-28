@@ -31,7 +31,7 @@ internal class SystemBanner {
             EndTime = other.EndTime.ToEpochSeconds(),
         };
     }
-    
+
     public static void Configure(EntityTypeBuilder<SystemBanner> builder) {
         builder.ToTable("system-banner");
         builder.HasKey(banner => banner.Id);

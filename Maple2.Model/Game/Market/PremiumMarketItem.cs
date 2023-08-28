@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
-using Maple2.Tools;
-using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
@@ -38,7 +35,7 @@ public class PremiumMarketItem : MarketItem {
         Id = id;
         AdditionalQuantities = new List<PremiumMarketItem>();
     }
-    
+
     public override void WriteTo(IByteWriter writer) {
         writer.WriteInt(Id);
         writer.WriteByte();
@@ -84,6 +81,6 @@ public class PremiumMarketItem : MarketItem {
         writer.WriteBool(PcCafe);
         writer.WriteByte();
         writer.WriteInt();
-        
+
     }
 }
