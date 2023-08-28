@@ -30,6 +30,7 @@ public class TableMetadataStorage {
     private readonly Lazy<MeretMarketCategoryTable> meretMarketCategoryTable;
     private readonly Lazy<ShopBeautyCouponTable> shopBeautyCouponTable;
     private readonly Lazy<GachaInfoTable> gachaInfoTable;
+    private readonly Lazy<InsigniaTable> insigniaTable;
     private readonly Lazy<ExpTable> expTable;
     private readonly Lazy<CommonExpTable> commonExpTable;
 
@@ -74,6 +75,7 @@ public class TableMetadataStorage {
     public MeretMarketCategoryTable MeretMarketCategoryTable => meretMarketCategoryTable.Value;
     public ShopBeautyCouponTable ShopBeautyCouponTable => shopBeautyCouponTable.Value;
     public GachaInfoTable GachaInfoTable => gachaInfoTable.Value;
+    public InsigniaTable InsigniaTable => insigniaTable.Value;
     public ExpTable ExpTable => expTable.Value;
     public CommonExpTable CommonExpTable => commonExpTable.Value;
 
@@ -119,6 +121,7 @@ public class TableMetadataStorage {
         meretMarketCategoryTable = Retrieve<MeretMarketCategoryTable>(context, "meretmarketcategory.xml");
         shopBeautyCouponTable = Retrieve<ShopBeautyCouponTable>(context, "shop_beautycoupon.xml");
         gachaInfoTable = Retrieve<GachaInfoTable>(context, "gacha_info.xml");
+        insigniaTable = Retrieve<InsigniaTable>(context, "nametagsymbol.xml");
         expTable = Retrieve<ExpTable>(context, "exp*.xml");
         commonExpTable = Retrieve<CommonExpTable>(context, "commonexp.xml");
         enchantScrollTable = Retrieve<EnchantScrollTable>(context, "enchantscroll.xml");

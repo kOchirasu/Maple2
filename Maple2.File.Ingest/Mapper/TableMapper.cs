@@ -60,6 +60,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "meretmarketcategory.xml", Table = ParseMeretMarketCategoryTable()};
         yield return new TableMetadata {Name = "shop_beautycoupon.xml", Table = ParseShopBeautyCouponTable()};
         yield return new TableMetadata {Name = "gacha_info.xml", Table = ParseGachaInfoTable()};
+        yield return new TableMetadata {Name = "nametagsymbol.xml", Table = ParseInsigniaTable()};
         yield return new TableMetadata {Name = "exp*.xml", Table = ParseExpTable()};
         yield return new TableMetadata {Name = "commonexp.xml", Table = ParseCommonExpTable()};
         // Fishing
@@ -1173,6 +1174,19 @@ public class TableMapper : TypeMapper<TableMetadata> {
         }
 
         return new GachaInfoTable(results);
+    }
+
+    private InsigniaTable ParseInsigniaTable() {
+        var results = new Dictionary<int, InsigniaTable.Entry>();
+        foreach ((int id, NameTagSymbol symbol) in parser.ParseNameTagSymbol()) {
+            results.Add(id, new InsigniaTable.Entry(
+                Type: (InsigniaConditionType) symbol.conditionType,
+                Code: symbol.code,
+                BuffId: symbol.buffID,
+                BuffLevel: symbol.buffLv));
+        }
+
+        return new InsigniaTable(results);
     }
 
     private ExpTable ParseExpTable() {
