@@ -179,7 +179,7 @@ public enum SendOp : ushort {
     MyInfo = 0x00B0,
     //UNKNOWN = 0x00B1, // nullsub
     WorldShareInfo = 0x00B2,
-    Nametag = 0x00B3,
+    Insignia = 0x00B3,
     GameEvent = 0x00B4,
     BannerList = 0x00B5,
     WaitingTicketUpdate = 0x00B6,
