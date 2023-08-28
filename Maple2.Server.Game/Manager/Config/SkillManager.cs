@@ -33,13 +33,13 @@ public class SkillManager {
         session.Send(SkillBookPacket.Load(SkillBook));
     }
 
-    public void UpdatePassiveBuffs() {
+    public void UpdatePassiveBuffs(bool notifyField = true) {
         // TODO: Only remove buffs that have been unlearned.
-        foreach (Buff buff in session.Player.Buffs.Values) {
+        /*foreach (Buff buff in session.Player.Buffs.Buffs.Values) {
             if (buff.StartTick == buff.EndTick) {
                 buff.Remove();
             }
-        }
+        }*/
 
         // Add job passive skills to Player.
         foreach (SkillInfo.Skill skill in session.Config.Skill.SkillInfo.GetSkills(SkillType.Passive, SkillRank.Both)) {
@@ -59,7 +59,7 @@ public class SkillManager {
                     continue;
                 }
 
-                session.Player.ApplyEffect(session.Player, session.Player, effect);
+                session.Player.ApplyEffect(session.Player, session.Player, effect, notifyField);
             }
         }
     }

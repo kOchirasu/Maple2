@@ -31,18 +31,18 @@ internal record ItemStats(Dictionary<BasicAttribute, BasicOption>[] BasicOption,
     }
 }
 
-internal record ItemEnchant(int Enchants, int EnchantExp, byte EnchantCharges, bool CanRepack, int Charges,
+internal record ItemEnchant(int Enchants, int EnchantExp, byte EnchantCharges, bool Tradeable, int Charges,
         Dictionary<BasicAttribute, BasicOption> BasicOptions) {
     [return:NotNullIfNotNull(nameof(other))]
     public static implicit operator ItemEnchant?(Maple2.Model.Game.ItemEnchant? other) {
         return other == null ? null : new ItemEnchant(other.Enchants, other.EnchantExp, other.EnchantCharges,
-            other.CanRepack, other.Charges, other.BasicOptions);
+            other.Tradeable, other.Charges, other.BasicOptions);
     }
 
     [return:NotNullIfNotNull(nameof(other))]
     public static implicit operator Maple2.Model.Game.ItemEnchant?(ItemEnchant? other) {
         return other == null ? null : new Maple2.Model.Game.ItemEnchant(other.Enchants, other.EnchantExp,
-            other.EnchantCharges, other.CanRepack, other.Charges, other.BasicOptions);
+            other.EnchantCharges, other.Tradeable, other.Charges, other.BasicOptions);
     }
 }
 

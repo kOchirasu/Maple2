@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
+using Maple2.Server.Game.Manager.Config;
 using Maple2.Server.Game.Model.Skill;
 using Maple2.Tools.Collision;
 
@@ -8,7 +9,7 @@ namespace Maple2.Server.Game.Model;
 
 public interface IActor : IFieldEntity {
     protected static readonly ConcurrentDictionary<int, Buff> NoBuffs = new();
-    public ConcurrentDictionary<int, Buff> Buffs { get; }
+    public BuffManager Buffs { get; }
 
     public Stats Stats { get; }
 

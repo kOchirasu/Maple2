@@ -178,7 +178,7 @@ public partial class TriggerContext {
     public bool CheckAnyUserAdditionalEffect(int boxId, int additionalEffectId, short level) {
         DebugLog("[CheckAnyUserAdditionalEffect] boxId:{BoxId}, additionalEffectId:{EffectId}, level:{Level}", boxId, additionalEffectId, level);
         foreach (FieldPlayer player in PlayersInBox(boxId)) {
-            if (player.Buffs.TryGetValue(additionalEffectId, out Buff? buff) && buff.Level == level) {
+            if (player.Buffs.Buffs.TryGetValue(additionalEffectId, out Buff? buff) && buff.Level == level) {
                 return true;
             }
         }

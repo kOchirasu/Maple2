@@ -15,14 +15,20 @@ public interface IInteractObject : IByteSerializable {
 public abstract class InteractObject<T> : IInteractObject where T : InteractObject {
     public abstract InteractType Type { get; }
 
-    protected readonly T Metadata;
-    public int Id => Metadata.InteractId;
+    protected T Metadata { get; init; }
+    public int Id { get; init; }
+    public string Model { get; init; } = "";
+    public string Asset { get; init; } = "";
+    public string NormalState { get; init; } = "";
+    public string Reactable { get; init; } = "";
+    public float Scale { get; init; } = 1f;
 
-    public string EntityId { get; }
+    public string EntityId { get; init; }
 
     protected InteractObject(string entityId, T metadata) {
         EntityId = entityId;
         Metadata = metadata;
+        Id = metadata.InteractId;
     }
 
     public virtual void WriteTo(IByteWriter writer) {
@@ -32,11 +38,11 @@ public abstract class InteractObject<T> : IInteractObject where T : InteractObje
         writer.WriteInt(Id);
         writer.Write<Vector3>(Metadata.Position);
         writer.Write<Vector3>(Metadata.Rotation);
-        writer.WriteUnicodeString(); // e.g. InteractMeshObject
-        writer.WriteUnicodeString(); // e.g. interaction_chestA_02
-        writer.WriteUnicodeString(); // e.g. Opened_A
-        writer.WriteUnicodeString(); // e.g. Idle_A
-        writer.WriteFloat(1f); // Scale
+        writer.WriteUnicodeString(Model); // e.g. InteractMeshObject
+        writer.WriteUnicodeString(Asset); // e.g. interaction_chestA_02
+        writer.WriteUnicodeString(NormalState); // e.g. Opened_A
+        writer.WriteUnicodeString(Reactable); // e.g. Idle_A
+        writer.WriteFloat(Scale);
         writer.WriteBool(false);
     }
 }
@@ -91,14 +97,30 @@ public sealed class InteractGuildPosterObject : InteractObject<Ms2InteractDispla
 public sealed class InteractBillBoardObject : InteractObject<Ms2InteractMesh> {
     public override InteractType Type => InteractType.BillBoard;
 
-    public long OwnerId { get; init; }           // CharacterId
-    public string OwnerName { get; init; } = ""; // CharacterName
+    public long OwnerAccountId { get; init; }
+    public long OwnerCharacterId { get; init; }
+    public string OwnerName { get; init; }
+    public string OwnerPicture { get; init; }
+    public short OwnerLevel { get; init; }
+    public JobCode OwnerJobCode { get; init; }
+    public string Title { get; init; } = "";
+    public string Description { get; init; } = "";
+    public bool PublicHouse { get; init; }
+    public long CreationTime { get; init; }
+    public long ExpirationTime { get; init; }
 
-    public InteractBillBoardObject(string entityId, Ms2InteractMesh metadata) : base(entityId, metadata) { }
+    public InteractBillBoardObject(string entityId, Ms2InteractMesh metadata, Character owner) : base(entityId, metadata) {
+        OwnerAccountId = owner.AccountId;
+        OwnerCharacterId = owner.Id;
+        OwnerName = owner.Name;
+        OwnerPicture = owner.Picture;
+        OwnerLevel = owner.Level;
+        OwnerJobCode = owner.Job.Code();
+    }
 
     public override void WriteTo(IByteWriter writer) {
         base.WriteTo(writer);
-        writer.WriteLong(OwnerId);
+        writer.WriteLong(OwnerCharacterId);
         writer.WriteUnicodeString(OwnerName);
     }
 }

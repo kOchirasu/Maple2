@@ -24,6 +24,8 @@ jobs:
             image: maple2-login
           - dockerfile: ./Maple2.Server.Game/Dockerfile
             image: maple2-game
+          - dockerfile: ./Maple2.Server.Web/Dockerfile
+            image: maple2-web
     permissions:
       contents: read
       packages: write

@@ -33,6 +33,7 @@ public class MasteryManager {
             _ => throw new ArgumentOutOfRangeException(nameof(type), type, "Invalid mastery type."),
         };
         set {
+            short startLevel = GetLevel(type);
             switch (type) {
                 case MasteryType.Fishing:
                     Mastery.Fishing = Math.Clamp(value, Mastery.Fishing, Constant.FishingMasteryMax);
@@ -72,6 +73,13 @@ public class MasteryManager {
             }
 
             session.Send(MasteryPacket.UpdateMastery(type, session.Mastery[type]));
+            if (startLevel < GetLevel(type)) {
+                session.Achievement.Update(AchievementConditionType.mastery_grade, codeLong: (int) type);
+                session.Achievement.Update(AchievementConditionType.set_mastery_grade, codeLong: (int) type);
+                if (type == MasteryType.Music) {
+                    session.Achievement.Update(AchievementConditionType.music_play_grade);
+                }
+            }
         }
     }
 

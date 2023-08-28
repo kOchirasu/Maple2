@@ -2,6 +2,7 @@
 using Maple2.File.Parser;
 using Maple2.File.Parser.Xml.Map;
 using Maple2.File.Parser.Xml.Table;
+using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 
 namespace Maple2.File.Ingest.Mapper;
@@ -43,9 +44,9 @@ public class MapMapper : TypeMapper<MapMetadata> {
                 XBlock: data.xblock.name.ToLower(),
                 Property: new MapMetadataProperty(
                     Continent: data.property.continentCode,
-                    Region: data.property.regionCode,
+                    Region: (MapRegion) data.property.regionCode,
                     Category: data.property.mapCategoryCode,
-                    Type: data.property.mapType,
+                    Type: (MapType) data.property.mapType,
                     BigCity: data.property.bigCity,
                     ExploreType: data.property.exploreType,
                     TutorialType: data.property.tutorialType,
@@ -60,7 +61,9 @@ public class MapMapper : TypeMapper<MapMetadata> {
                     HomeReturnable: data.property.homeReturnable,
                     DeathPenalty: data.property.deathPenalty,
                     OnlyDarkTomb: data.property.onlyDarkTomb,
-                    PkMode: data.property.pkMode),
+                    PkMode: data.property.pkMode,
+                    CanFly: data.property.checkFly,
+                    CanClimb: data.property.checkClimb),
                 Limit: new MapMetadataLimit(
                     Capacity: data.property.capacity,
                     MinLevel: data.property.enterMinLevel,
@@ -74,6 +77,10 @@ public class MapMapper : TypeMapper<MapMetadata> {
                     Dash: data.ui.useEPSkill,
                     Ride: data.ui.useRidee,
                     Pet: data.ui.usePet),
+                Drop: new MapMetadataDrop(
+                    Level: data.drop.maplevel,
+                    DropRank: data.drop.droprank,
+                    GlobalDropBoxId: data.drop.globalDropBoxID),
                 Spawns: spawns.GetValueOrDefault(id, new List<MapMetadataSpawn>()),
                 CashCall: new MapMetadataCashCall(
                     TaxiDeparture: !data.cashCall.cashTaxiNotDeparture,

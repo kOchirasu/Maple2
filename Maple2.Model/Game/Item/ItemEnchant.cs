@@ -12,23 +12,23 @@ public sealed class ItemEnchant : IByteSerializable, IByteDeserializable {
     public int EnchantExp { get; set; }
     // Enchant based peachy charges, otherwise always require 10 charges
     public byte EnchantCharges { get; set; }
-    public bool CanRepack { get; private set; }
+    public bool Tradeable { get; private set; }
     public int Charges { get; set; }
 
     public readonly Dictionary<BasicAttribute, BasicOption> BasicOptions;
 
-    public ItemEnchant(int enchants = 0, int enchantExp = 0, byte enchantCharges = 1, bool canRepack = true,
+    public ItemEnchant(int enchants = 0, int enchantExp = 0, byte enchantCharges = 1, bool tradeable = true,
             int charges = 0, Dictionary<BasicAttribute, BasicOption>? basicOptions = null) {
         Enchants = enchants;
         EnchantExp = enchantExp;
         EnchantCharges = enchantCharges;
-        CanRepack = canRepack;
+        Tradeable = tradeable;
         Charges = charges;
         BasicOptions = basicOptions ?? new Dictionary<BasicAttribute, BasicOption>();
     }
 
     public ItemEnchant Clone() {
-        return new ItemEnchant(Enchants, EnchantExp, EnchantCharges, CanRepack, Charges, new Dictionary<BasicAttribute, BasicOption>(BasicOptions));
+        return new ItemEnchant(Enchants, EnchantExp, EnchantCharges, Tradeable, Charges, new Dictionary<BasicAttribute, BasicOption>(BasicOptions));
     }
 
     public void WriteTo(IByteWriter writer) {
@@ -38,7 +38,7 @@ public sealed class ItemEnchant : IByteSerializable, IByteDeserializable {
         writer.WriteLong();
         writer.WriteInt();
         writer.WriteInt();
-        writer.WriteBool(CanRepack);
+        writer.WriteBool(Tradeable);
         writer.WriteInt(Charges);
 
         writer.WriteByte((byte)BasicOptions.Count);
@@ -55,7 +55,7 @@ public sealed class ItemEnchant : IByteSerializable, IByteDeserializable {
         reader.ReadLong();
         reader.ReadInt();
         reader.ReadInt();
-        CanRepack = reader.ReadBool();
+        Tradeable = reader.ReadBool();
         Charges = reader.ReadInt();
 
         byte count = reader.ReadByte();

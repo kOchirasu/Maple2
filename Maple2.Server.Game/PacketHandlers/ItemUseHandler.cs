@@ -10,6 +10,8 @@ using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
+using Maple2.Server.Game.Manager.Field;
+using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Server.Game.Util;
@@ -78,6 +80,24 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             case ItemFunction.OpenItemBox:
             case ItemFunction.OpenItemBoxWithKey:
                 HandleOpenItemBox(session, item);
+                break;
+            case ItemFunction.OpenGachaBox:
+                HandleOpenGacha(session, packet, item);
+                break;
+            case ItemFunction.OpenItemBoxLullu:
+                HandleOpenItemBoxLullu(session, packet, item);
+                break;
+            case ItemFunction.OpenItemBoxLulluSimple:
+                HandleOpenItemBoxLulluSimple(session, packet, item);
+                break;
+            case ItemFunction.ItemRePackingScroll:
+                HandleItemRepackingScroll(session, item);
+                break;
+            case ItemFunction.ItemChangeBeauty:
+                HandleItemChangeBeauty(session, item);
+                break;
+            case ItemFunction.InstallBillBoard:
+                HandleInstallBillBoard(session, packet, item);
                 break;
             default:
                 Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
@@ -327,7 +347,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
 
         session.Config.UpdatePremiumTime(hours);
     }
-    
+
     private static void HandleSelectItemBox(GameSession session, IByteReader packet, Item item) {
         if (!int.TryParse(packet.ReadUnicodeString(), out int index)) {
             return;
@@ -339,5 +359,67 @@ public class ItemUseHandler : PacketHandler<GameSession> {
     private static void HandleOpenItemBox(GameSession session, Item item) {
         session.ItemBox.Open(item);
         session.ItemBox.Reset();
+    }
+
+    private static void HandleOpenGacha(GameSession session, IByteReader packet, Item item) {
+        string amountString = packet.ReadUnicodeString();
+        session.ItemBox.Open(item, amountString == "multi" ? 10 : 1);
+        session.ItemBox.Reset();
+    }
+
+    private static void HandleOpenItemBoxLullu(GameSession session, IByteReader packet, Item item) {
+        string amountString = packet.ReadUnicodeString();
+        session.ItemBox.OpenLulluBox(item, amountString.Contains("multi") ? 10 : 1, autoPay: amountString.Contains("autoPay"));
+        session.ItemBox.Reset();
+    }
+
+    private static void HandleOpenItemBoxLulluSimple(GameSession session, IByteReader packet, Item item) {
+        string amountString = packet.ReadUnicodeString();
+        session.ItemBox.OpenLulluBoxSimple(item, amountString == "multi" ? 10 : 1);
+        session.ItemBox.Reset();
+    }
+
+    private static void HandleItemRepackingScroll(GameSession session, Item item) {
+        session.Send(ItemRepackPacket.Open(item.Uid));
+    }
+
+    private static void HandleItemChangeBeauty(GameSession session, Item item) {
+        session.Send(ItemUsePacket.BeautyCoupon(session.Player.Value.ObjectId, item.Uid));
+    }
+
+    private static void HandleInstallBillBoard(GameSession session, IByteReader packet, Item item) {
+        string[] fieldParameters = packet.ReadUnicodeString().Split("'");
+        if (fieldParameters.Length < 3 || session.Field == null) {
+            return;
+        }
+
+        Dictionary<string, string> functionParameters = XmlParseUtil.GetParameters(item.Metadata.Function?.Parameters);
+        if (!functionParameters.ContainsKey("interactID") || !int.TryParse(functionParameters["interactID"], out int interactId) ||
+            !functionParameters.ContainsKey("durationSec") || !int.TryParse(functionParameters["durationSec"], out int durationSec) ||
+            !functionParameters.ContainsKey("model") || !functionParameters.ContainsKey("normal") || !functionParameters.ContainsKey("reactable")) {
+            return;
+        }
+
+        string globalId = Guid.NewGuid().ToString();
+        var interactMesh = new Ms2InteractMesh(interactId, session.Player.Position, session.Player.Rotation);
+        var billboard = new InteractBillBoardObject("BillBoard_" + globalId, interactMesh, session.Player.Value.Character) {
+            Title = fieldParameters[0],
+            Description = fieldParameters[1],
+            PublicHouse = fieldParameters[2].Equals("1"),
+            CreationTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            ExpirationTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + durationSec,
+            Model = functionParameters["model"],
+            Asset = functionParameters.TryGetValue("asset", out string? parameter) ? parameter : string.Empty,
+            NormalState = functionParameters["normal"],
+            Reactable = functionParameters["reactable"],
+            Scale = functionParameters.TryGetValue("scale", out string? scaleString) && !float.TryParse(scaleString, out float scale) ? scale : 1f,
+        };
+
+        FieldInteract? fieldInteract = session.Field.AddInteract(interactMesh, billboard);
+        if (fieldInteract == null) {
+            return;
+        }
+        session.Field.Broadcast(InteractObjectPacket.Add(fieldInteract.Object));
+        session.Item.Inventory.Consume(item.Uid, 1);
     }
 }

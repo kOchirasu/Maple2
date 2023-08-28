@@ -11,6 +11,7 @@ public class UserEnvHandler : PacketHandler<GameSession> {
 
     private enum Command : byte {
         ChangeTitle = 1,
+        TrophyProgress = 3,
     }
 
     public override void Handle(GameSession session, IByteReader packet) {
@@ -18,6 +19,9 @@ public class UserEnvHandler : PacketHandler<GameSession> {
         switch (command) {
             case Command.ChangeTitle:
                 HandleChangeTitle(session, packet);
+                break;
+            case Command.TrophyProgress:
+                HandleTrophyProgress(session);
                 break;
         }
     }
@@ -31,5 +35,9 @@ public class UserEnvHandler : PacketHandler<GameSession> {
 
         session.Player.Value.Character.Title = titleId;
         session.Field?.Broadcast(UserEnvPacket.UpdateTitle(session.Player.ObjectId, titleId));
+    }
+
+    private void HandleTrophyProgress(GameSession session) {
+        session.Send(UserEnvPacket.ItemCollects(session.Player.Value.Unlock.CollectedItems));
     }
 }

@@ -78,10 +78,10 @@ public static class BeautyPacket {
         return pWriter;
     }
 
-    public static ByteWriter RandomHairResult(bool error = false, int argument = 0) {
+    public static ByteWriter RandomHairResult(int voucherItemId, bool error = false) {
         var pWriter = Packet.Of(SendOp.Beauty);
         pWriter.Write<Command>(Command.RandomHairResult);
-        pWriter.WriteInt(argument); // Not sure what this does
+        pWriter.WriteInt(voucherItemId);
         pWriter.WriteBool(error);
 
         return pWriter;
@@ -122,9 +122,13 @@ public static class BeautyPacket {
         return pWriter;
     }
 
-    public static ByteWriter SaveHair() {
+    public static ByteWriter SaveHair(Item currentHair, Item hairCopy) {
         var pWriter = Packet.Of(SendOp.Beauty);
         pWriter.Write<Command>(Command.SaveHair);
+        pWriter.WriteLong(currentHair.Uid);
+        pWriter.WriteLong(hairCopy.Uid);
+        pWriter.WriteByte();
+        pWriter.WriteLong(hairCopy.CreationTime);
 
         return pWriter;
     }

@@ -72,7 +72,7 @@ public class ItemDismantleHandler : PacketHandler<GameSession> {
         long itemUid = packet.ReadLong();
         int amount = packet.ReadInt();
         Item? item = session.Item.Inventory.Get(itemUid);
-        if (item == null || !item.Metadata.Limit.EnableBreak || item.Amount < amount) {
+        if (item == null || (!item.Metadata.Limit.EnableBreak && item.GachaDismantleId == 0) || item.Amount < amount) {
             return;
         }
 
@@ -145,7 +145,8 @@ public class ItemDismantleHandler : PacketHandler<GameSession> {
                 int total = Random.Shared.Next(min, max);
                 result[id] = total;
                 while (total > 0) {
-                    Item? item = session.Item.CreateItem(id);
+                    
+                    Item? item = session.Item.CreateItem(id, amount: total);
                     if (item == null) {
                         continue;
                     }
@@ -214,12 +215,14 @@ public class ItemDismantleHandler : PacketHandler<GameSession> {
             foreach (ItemBreakTable.Ingredient ingredient in ingredients) {
                 yield return (ingredient.ItemId, ingredient.Amount * amount, ingredient.Amount * amount);
             }
+        } else if (item.GachaDismantleId != 0 && TableMetadata.GachaInfoTable.Entries.TryGetValue(item.GachaDismantleId, out GachaInfoTable.Entry? gachaEntry)) {
+            yield return (gachaEntry.CoinItemId, gachaEntry.CoinItemAmount, gachaEntry.CoinItemAmount);
         } else {
             // TODO: Calculate onyx to reward from item rarity/enchant
             int minAdd = MIN_ONYX * item.Rarity * amount;
             int maxAdd = MAX_ONYX * item.Rarity * amount;
             yield return (ONYX_ID, minAdd, maxAdd);
         }
-        // TODO: ItemSkinCrystal reward from outfits? StyleCoins?
+        // TODO: ItemSkinCrystal reward from outfits?
     }
 }

@@ -23,6 +23,7 @@ public sealed class Ms2Context : DbContext {
     internal DbSet<Buddy> Buddy { get; set; } = null!;
     internal DbSet<UgcMap> UgcMap { get; set; } = null!;
     internal DbSet<UgcMapCube> UgcMapCube { get; set; } = null!;
+    internal DbSet<UgcResource> UgcResource { get; set; } = null!;
     internal DbSet<Mail> Mail { get; set; } = null!;
     internal DbSet<MesoListing> MesoMarket { get; set; } = null!;
     internal DbSet<SoldMesoListing> MesoMarketSold { get; set; } = null!;
@@ -30,6 +31,9 @@ public sealed class Ms2Context : DbContext {
     internal DbSet<ShopItem> ShopItem { get; set; } = null!;
     internal DbSet<GameEvent> GameEvent { get; set; } = null!;
     internal DbSet<GameEventUserValue> GameEventUserValue { get; set; } = null!;
+    internal DbSet<BeautyShop> BeautyShop { get; set; } = null!;
+    internal DbSet<BeautyShopEntry> BeautyShopEntry { get; set; } = null!;
+    internal DbSet<Achievement> Achievement { get; set; } = null!;
 
     public Ms2Context(DbContextOptions options) : base(options) { }
 
@@ -52,12 +56,16 @@ public sealed class Ms2Context : DbContext {
         modelBuilder.Entity<Buddy>(Maple2.Database.Model.Buddy.Configure);
         modelBuilder.Entity<UgcMap>(Maple2.Database.Model.UgcMap.Configure);
         modelBuilder.Entity<UgcMapCube>(Maple2.Database.Model.UgcMapCube.Configure);
+        modelBuilder.Entity<UgcResource>(Maple2.Database.Model.UgcResource.Configure);
         modelBuilder.Entity<Mail>(Maple2.Database.Model.Mail.Configure);
+        modelBuilder.Entity<Achievement>(Maple2.Database.Model.Achievement.Configure);
 
         modelBuilder.Entity<MesoListing>(MesoListing.Configure);
         modelBuilder.Entity<SoldMesoListing>(SoldMesoListing.Configure);
         modelBuilder.Entity<Shop>(Maple2.Database.Model.Shop.Shop.Configure);
         modelBuilder.Entity<ShopItem>(Maple2.Database.Model.Shop.ShopItem.Configure);
+        modelBuilder.Entity<BeautyShop>(Maple2.Database.Model.Shop.BeautyShop.Configure);
+        modelBuilder.Entity<BeautyShopEntry>(Maple2.Database.Model.Shop.BeautyShopEntry.Configure);
 
         modelBuilder.Entity<GameEvent>(Maple2.Database.Model.Event.GameEvent.Configure);
         modelBuilder.Entity<GameEventUserValue>(Maple2.Database.Model.Event.GameEventUserValue.Configure);

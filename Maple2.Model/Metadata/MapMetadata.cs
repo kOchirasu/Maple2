@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
 
@@ -31,15 +32,16 @@ public record MapMetadata(
     string XBlock,
     MapMetadataProperty Property,
     MapMetadataLimit Limit,
+    MapMetadataDrop Drop,
     IReadOnlyList<MapMetadataSpawn> Spawns,
     MapMetadataCashCall CashCall,
     MapEntranceBuff[] EntranceBuffs) : ISearchResult;
 
 public record MapMetadataProperty(
     int Continent,
-    int Region,
+    MapRegion Region,
     int Category,
-    int Type,
+    MapType Type,
     bool BigCity,
     int ExploreType,
     int TutorialType,
@@ -54,7 +56,14 @@ public record MapMetadataProperty(
     bool HomeReturnable,
     bool DeathPenalty,
     bool OnlyDarkTomb,
-    bool PkMode);
+    bool PkMode,
+    bool CanFly,
+    bool CanClimb);
+
+public record MapMetadataDrop(
+    int Level,
+    int DropRank,
+    int[] GlobalDropBoxId);
 
 public record MapMetadataLimit(
     int Capacity,

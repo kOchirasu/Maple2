@@ -179,7 +179,7 @@ public enum SendOp : ushort {
     MyInfo = 0x00B0,
     //UNKNOWN = 0x00B1, // nullsub
     WorldShareInfo = 0x00B2,
-    Nametag = 0x00B3,
+    Insignia = 0x00B3,
     GameEvent = 0x00B4,
     BannerList = 0x00B5,
     WaitingTicketUpdate = 0x00B6,
@@ -229,7 +229,7 @@ public enum SendOp : ushort {
     ShadowBuff = 0x00E2,
     ShadowExpedition = 0x00E3,
     ItemSocketScroll = 0x00E5,
-    ItemSocketExpansionScroll = 0x00E6, // Also repackage...
+    ItemRepackage = 0x00E6,
     Mapleopoly = 0x00E7,
     BypassKey = 0x00E8,
     NpcNotice = 0x00EA,
@@ -257,7 +257,7 @@ public enum SendOp : ushort {
     ItemExchange = 0x0104,
     BindItem = 0x0105,
     TransferEnchant = 0x0106,
-    AdBalloon = 0x0107,
+    PlayerHost = 0x0107,
     GmCommand = 0x0108,
     GlamourAnvil = 0x0109,
     PetSkinBadge = 0x010A,

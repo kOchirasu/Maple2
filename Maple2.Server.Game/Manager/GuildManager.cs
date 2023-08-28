@@ -158,7 +158,7 @@ public class GuildManager : IDisposable {
         }
 
         BeginListen(member);
-        Guild.Trophy += member.Info.Trophy;
+        Guild.AchievementInfo += member.Info.AchievementInfo;
         session.Send(GuildPacket.Joined(requestorName, member));
         return true;
     }
@@ -170,7 +170,7 @@ public class GuildManager : IDisposable {
         if (!Guild.Members.TryRemove(characterId, out GuildMember? member)) {
             return false;
         }
-        Guild.Trophy -= member.Info.Trophy;
+        Guild.AchievementInfo -= member.Info.AchievementInfo;
         EndListen(member);
 
         session.Send(string.IsNullOrEmpty(requestorName)
