@@ -72,8 +72,9 @@ public partial class GameStorage {
 
         public ICollection<PremiumMarketItem> GetMarketItems(params int[] tabIds) {
             IEnumerable<PremiumMarketItem> selectedResults = Context.PremiumMarketItem
+                .Where(entry => entry.ParentId == 0)
+                .AsEnumerable()
                 .Select(ToMarketEntry)
-                .Where(entry => entry is {ParentId: 0})
                 .ToList()!;
 
             if (tabIds.Length != 0) {
