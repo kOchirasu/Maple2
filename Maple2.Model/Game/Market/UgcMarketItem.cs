@@ -7,26 +7,24 @@ using Maple2.Tools.Extensions;
 namespace Maple2.Model.Game;
 
 public class UgcMarketItem : MarketItem {
-    public long Id { get; init; }
-    public UgcMarketListingStatus Status { get; init; }
-    public long ListingEndTime { get; init; }
-    public long PromotionEndTime { get; init; }
-    public long SellerAccountId { get; init; }
-    public long SellerCharacterId { get; init; }
-    public string SellerCharacterName { get; init; }
-    public string Description { get; init; }
-    public string[] Tags { get; init; } = Array.Empty<string>();
-    public UgcItemLook Look { get; init; }
+    public required long Id { get; init; }
+    public required UgcMarketListingStatus Status { get; init; }
+    public required long ListingEndTime { get; init; }
+    public required long PromotionEndTime { get; init; }
+    public required long SellerAccountId { get; init; }
+    public required long SellerCharacterId { get; init; }
+    public required string SellerCharacterName { get; init; }
+    public required string Description { get; init; }
+    public required string[] Tags { get; init; } = Array.Empty<string>();
+    public required UgcItemLook Look { get; init; }
 
-    public UgcMarketItem(long id, ItemMetadata metadata) : base(metadata) {
-        Id = id;
-    }
+    public UgcMarketItem(ItemMetadata metadata) : base(metadata) { }
 
     public new void WriteTo(IByteWriter writer) {
         writer.WriteInt();
         writer.WriteLong(Id);
         writer.Write<UgcMarketListingStatus>(Status);
-        writer.WriteInt(ItemId);
+        writer.WriteInt(ItemMetadata.Id);
         writer.WriteInt();
         writer.WriteByte();
         writer.WriteInt();

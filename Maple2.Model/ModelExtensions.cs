@@ -16,94 +16,94 @@ public static class ModelExtensions {
         return ((int) job % 10) != 0;
     }
 
-    public static JobFlag Flag(this Job job) {
+    public static JobFilterFlag Flag(this Job job) {
         return job switch {
-            Job.Archer or Job.ArcherII => JobFlag.Archer,
-            Job.Assassin or Job.AssassinII => JobFlag.Assassin,
-            Job.Berserker or Job.BerserkerII => JobFlag.Berserker,
-            Job.HeavyGunner or Job.HeavyGunnerII => JobFlag.HeavyGunner,
-            Job.Knight or Job.KnightII => JobFlag.Knight,
-            Job.Priest or Job.PriestII => JobFlag.Priest,
-            Job.RuneBlader or Job.RuneBladerII => JobFlag.RuneBlader,
-            Job.SoulBinder or Job.SoulBinderII => JobFlag.SoulBinder,
-            Job.Striker or Job.StrikerII => JobFlag.Striker,
-            Job.Thief or Job.ThiefII => JobFlag.Thief,
-            Job.Wizard or Job.WizardII => JobFlag.Wizard,
-            Job.Newbie => JobFlag.Newbie,
+            Job.Archer or Job.ArcherII => JobFilterFlag.Archer,
+            Job.Assassin or Job.AssassinII => JobFilterFlag.Assassin,
+            Job.Berserker or Job.BerserkerII => JobFilterFlag.Berserker,
+            Job.HeavyGunner or Job.HeavyGunnerII => JobFilterFlag.HeavyGunner,
+            Job.Knight or Job.KnightII => JobFilterFlag.Knight,
+            Job.Priest or Job.PriestII => JobFilterFlag.Priest,
+            Job.RuneBlader or Job.RuneBladerII => JobFilterFlag.RuneBlader,
+            Job.SoulBinder or Job.SoulBinderII => JobFilterFlag.SoulBinder,
+            Job.Striker or Job.StrikerII => JobFilterFlag.Striker,
+            Job.Thief or Job.ThiefII => JobFilterFlag.Thief,
+            Job.Wizard or Job.WizardII => JobFilterFlag.Wizard,
+            Job.Newbie => JobFilterFlag.Newbie,
             _ => throw new ArgumentException($"Unknown job {job}"),
         };
     }
 
-    public static JobFlag Flag(this JobCode job) {
+    public static JobFilterFlag Flag(this JobCode job) {
         return job switch {
-            JobCode.None => JobFlag.None,
-            JobCode.Newbie => JobFlag.Newbie,
-            JobCode.Knight => JobFlag.Knight,
-            JobCode.Berserker => JobFlag.Berserker,
-            JobCode.Wizard => JobFlag.Wizard,
-            JobCode.Priest => JobFlag.Priest,
-            JobCode.Archer => JobFlag.Archer,
-            JobCode.HeavyGunner => JobFlag.HeavyGunner,
-            JobCode.Thief => JobFlag.Thief,
-            JobCode.Assassin => JobFlag.Assassin,
-            JobCode.RuneBlader => JobFlag.RuneBlader,
-            JobCode.Striker => JobFlag.Striker,
-            JobCode.SoulBinder => JobFlag.SoulBinder,
+            JobCode.None => JobFilterFlag.None,
+            JobCode.Newbie => JobFilterFlag.Newbie,
+            JobCode.Knight => JobFilterFlag.Knight,
+            JobCode.Berserker => JobFilterFlag.Berserker,
+            JobCode.Wizard => JobFilterFlag.Wizard,
+            JobCode.Priest => JobFilterFlag.Priest,
+            JobCode.Archer => JobFilterFlag.Archer,
+            JobCode.HeavyGunner => JobFilterFlag.HeavyGunner,
+            JobCode.Thief => JobFilterFlag.Thief,
+            JobCode.Assassin => JobFilterFlag.Assassin,
+            JobCode.RuneBlader => JobFilterFlag.RuneBlader,
+            JobCode.Striker => JobFilterFlag.Striker,
+            JobCode.SoulBinder => JobFilterFlag.SoulBinder,
             _ => throw new ArgumentOutOfRangeException(nameof(job), job, null)
         };
     }
 
-    public static JobFlag Flag(this IEnumerable<JobCode> jobs) {
-        return jobs.Aggregate(JobFlag.None, (current, job) => current | job.Flag());
+    public static JobFilterFlag Flag(this IEnumerable<JobCode> jobs) {
+        return jobs.Aggregate(JobFilterFlag.None, (current, job) => current | job.Flag());
     }
 
-    public static GenderFlag Flag(this Gender gender) {
+    public static GenderFilterFlag Flag(this Gender gender) {
         return gender switch {
-            Gender.All => GenderFlag.Male | GenderFlag.Female,
-            Gender.Female => GenderFlag.Female,
-            Gender.Male => GenderFlag.Male,
+            Gender.All => GenderFilterFlag.Male | GenderFilterFlag.Female,
+            Gender.Female => GenderFilterFlag.Female,
+            Gender.Male => GenderFilterFlag.Male,
             _ => throw new ArgumentOutOfRangeException(nameof(gender), gender, null)
         };
     }
 
-    public static IEnumerable<JobCode> Code(this JobFlag flag) {
-        if (flag.HasFlag(JobFlag.Newbie)) {
+    public static IEnumerable<JobCode> Code(this JobFilterFlag filterFlag) {
+        if (filterFlag.HasFlag(JobFilterFlag.Newbie)) {
             yield return JobCode.Newbie;
         }
 
-        if (flag.HasFlag(JobFlag.Knight)) {
+        if (filterFlag.HasFlag(JobFilterFlag.Knight)) {
             yield return JobCode.Knight;
         }
         
-        if (flag.HasFlag(JobFlag.Berserker)) {
+        if (filterFlag.HasFlag(JobFilterFlag.Berserker)) {
             yield return JobCode.Berserker;
         }
         
-        if (flag.HasFlag(JobFlag.Wizard)) {
+        if (filterFlag.HasFlag(JobFilterFlag.Wizard)) {
             yield return JobCode.Wizard;
         }
         
-        if (flag.HasFlag(JobFlag.Priest)) {
+        if (filterFlag.HasFlag(JobFilterFlag.Priest)) {
             yield return JobCode.Priest;
         }
         
-        if (flag.HasFlag(JobFlag.Archer)) {
+        if (filterFlag.HasFlag(JobFilterFlag.Archer)) {
             yield return JobCode.Archer;
         }
         
-        if (flag.HasFlag(JobFlag.HeavyGunner)) {
+        if (filterFlag.HasFlag(JobFilterFlag.HeavyGunner)) {
             yield return JobCode.HeavyGunner;
         }
         
-        if (flag.HasFlag(JobFlag.Thief)) {
+        if (filterFlag.HasFlag(JobFilterFlag.Thief)) {
             yield return JobCode.Thief;
         }
 
-        if (flag.HasFlag(JobFlag.RuneBlader)) {
+        if (filterFlag.HasFlag(JobFilterFlag.RuneBlader)) {
             yield return JobCode.RuneBlader;
         }
 
-        if (flag.HasFlag(JobFlag.SoulBinder)) {
+        if (filterFlag.HasFlag(JobFilterFlag.SoulBinder)) {
             yield return JobCode.SoulBinder;
         }
     }

@@ -25,7 +25,7 @@ internal class PremiumMarketItem {
     public DateTime SellEndTime { get; set; }
     public int SalesCount { get; set; }
     public MeretMarketItemLabel Label { get; set; }
-    public JobFlag JobRequirement { get; set; }
+    public JobFilterFlag JobRequirement { get; set; }
     public int RequireAchievementId { get; set; }
     public int RequireAchievementRank { get; set; }
     public MeretMarketBannerLabel BannerLabel { get; set; }
@@ -43,7 +43,7 @@ internal class PremiumMarketItem {
         return other == null ? null : new PremiumMarketItem {
             ParentId = other.ParentId,
             TabId = other.TabId,
-            ItemId = other.ItemId,
+            ItemId = other.ItemMetadata.Id,
             Rarity = other.Rarity,
             Quantity = other.Quantity,
             BonusQuantity = other.BonusQuantity,
@@ -71,10 +71,10 @@ internal class PremiumMarketItem {
     }
 
     public Maple2.Model.Game.PremiumMarketItem Convert(ItemMetadata metadata) {
-        var entry = new Maple2.Model.Game.PremiumMarketItem(Id, metadata) {
+        var entry = new Maple2.Model.Game.PremiumMarketItem(metadata) {
+            Id = Id,
             ParentId = ParentId,
             TabId = TabId,
-            ItemId = ItemId,
             Rarity = Rarity,
             Quantity = Quantity,
             BonusQuantity = BonusQuantity,

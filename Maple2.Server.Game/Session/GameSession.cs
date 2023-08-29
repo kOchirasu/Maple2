@@ -27,7 +27,6 @@ using Maple2.Server.Game.Util;
 using Maple2.Server.Game.Util.Sync;
 using Maple2.Server.World.Service;
 using Maple2.Tools.Scheduler;
-using BannerListPacket = Maple2.Server.Core.Packets.BannerListPacket;
 using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
 namespace Maple2.Server.Game.Session;
@@ -203,7 +202,7 @@ public sealed partial class GameSession : Core.Network.Session {
         // DailyWonder*
         GameEventUserValue.Load();
         Send(GameEventPacket.Load(db.GetEvents()));
-        Send(BannerListPacket.Load(db.GetBanners()));
+        Send(BannerListPacket.Load(server.GetSystemBanners()));
         // RoomDungeon
         // FieldEntrance
         // InGameRank

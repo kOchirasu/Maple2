@@ -1115,44 +1115,51 @@ public class TableMapper : TypeMapper<TableMetadata> {
     }
 
     private MeretMarketCategoryTable ParseMeretMarketCategoryTable() {
-        var results = new Dictionary<int, IReadOnlyDictionary<int, MeretMarketCategoryTable.Tab>>();
-        if (FeatureLocaleFilter.FeatureEnabled("MeratMarketNewBM")) {
-            foreach ((int id, string feature, MeretMarketCategory category) in parser.ParseMeretMarketCategory()) {
-                if (feature == "MeratMarketNewBM") {
-                    foreach(MeretMarketCategory.Tab tab in category.tab) {
-                        var subTabIds = new List<int>();
-                        foreach (MeretMarketCategory.Tab subTab in tab.tab) {
-                            var subTabEntry = new MeretMarketCategoryTable.Tab(
-                                Categories: subTab.category.ToList(),
-                                SortGender: subTab.sortGender,
-                                SortJob: subTab.sortJob,
-                                SubTabIds: new List<int>());
-                            subTabIds.Add(subTab.id);
-                            if (!results.ContainsKey(id)) {
-                                results.Add(id, new Dictionary<int, MeretMarketCategoryTable.Tab>
-                                    {{subTab.id, subTabEntry}});
-                            } else {
-                                (results[id] as Dictionary<int, MeretMarketCategoryTable.Tab>)!.Add(subTab.id, subTabEntry);
-                            }
-                        }
-                        var tabEntry =  new MeretMarketCategoryTable.Tab(
-                            Categories: tab.category.ToList(),
-                            SortGender: tab.sortGender,
-                            SortJob: tab.sortJob,
-                            SubTabIds: subTabIds);
+        string feature = FeatureLocaleFilter.FeatureEnabled("MeratMarketNewBM") ? "MeratMarketNewBM" : string.Empty;
+        Dictionary<int, IReadOnlyDictionary<int, MeretMarketCategoryTable.Tab>> results = GetMereMarketTabs(feature);
+        return new MeretMarketCategoryTable(results);
+	}
 
-                        if (!results.ContainsKey(id)) {
-                            results.Add(id, new Dictionary<int, MeretMarketCategoryTable.Tab>
-                                {{tab.id, tabEntry}});
-                        } else {
-                            (results[id] as Dictionary<int, MeretMarketCategoryTable.Tab>)!.Add(tab.id, tabEntry);
-                        }
+    private Dictionary<int, IReadOnlyDictionary<int, MeretMarketCategoryTable.Tab>> GetMereMarketTabs(string featureEnabled = "") {
+        var results = new Dictionary<int, IReadOnlyDictionary<int, MeretMarketCategoryTable.Tab>>();
+        foreach ((int id, string feature, MeretMarketCategory category) in parser.ParseMeretMarketCategory()) {
+            if (feature != featureEnabled) {
+                continue;
+            }
+            foreach (MeretMarketCategory.Tab tab in category.tab) {
+                var subTabIds = new List<int>();
+                foreach (MeretMarketCategory.Tab subTab in tab.tab) {
+                    var subTabEntry = new MeretMarketCategoryTable.Tab(
+                        Categories: subTab.category,
+                        SortGender: subTab.sortGender,
+                        SortJob: subTab.sortJob,
+                        SubTabIds: Array.Empty<int>());
+                    subTabIds.Add(subTab.id);
+                    if (!results.ContainsKey(id)) {
+                        results.Add(id, new Dictionary<int, MeretMarketCategoryTable.Tab> {
+                            {subTab.id, subTabEntry},
+                        });
+                    } else {
+                        (results[id] as Dictionary<int, MeretMarketCategoryTable.Tab>)!.Add(subTab.id, subTabEntry);
                     }
+                }
+                var tabEntry = new MeretMarketCategoryTable.Tab(
+                    Categories: tab.category,
+                    SortGender: tab.sortGender,
+                    SortJob: tab.sortJob,
+                    SubTabIds: subTabIds.ToArray());
+
+                if (!results.ContainsKey(id)) {
+                    results.Add(id, new Dictionary<int, MeretMarketCategoryTable.Tab> {
+                        {tab.id, tabEntry},
+                    });
+                } else {
+                    (results[id] as Dictionary<int, MeretMarketCategoryTable.Tab>)!.Add(tab.id, tabEntry);
                 }
             }
         }
-        return new MeretMarketCategoryTable(results);
-	}
+        return results;
+    }
 	
     private ShopBeautyCouponTable ParseShopBeautyCouponTable() {
         var results = new Dictionary<int, IReadOnlyList<int>>();

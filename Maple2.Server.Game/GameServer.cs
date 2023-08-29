@@ -21,6 +21,7 @@ public class GameServer : Server<GameSession> {
     private readonly HashSet<GameSession> connectingSessions;
     private readonly Dictionary<long, GameSession> sessions;
     private readonly Dictionary<string, GameEvent> eventCache = new();
+    private readonly IList<SystemBanner> bannerCache;
     private readonly GameStorage gameStorage;
 
     public int Channel => Target.GameChannel;
@@ -31,6 +32,9 @@ public class GameServer : Server<GameSession> {
         connectingSessions = new HashSet<GameSession>();
         sessions = new Dictionary<long, GameSession>();
         this.gameStorage = gameStorage;
+        
+        using GameStorage.Request db = gameStorage.Context();
+        bannerCache = db.GetBanners();
     }
 
     public override void OnConnected(GameSession session) {
@@ -74,6 +78,8 @@ public class GameServer : Server<GameSession> {
 
         return gameEvent;
     }
+    
+    public IList<SystemBanner> GetSystemBanners() => bannerCache;
 
     public override Task StopAsync(CancellationToken cancellationToken) {
         lock (mutex) {

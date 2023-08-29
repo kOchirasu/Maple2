@@ -6,33 +6,32 @@ using Maple2.PacketLib.Tools;
 namespace Maple2.Model.Game;
 
 public class PremiumMarketItem : MarketItem {
-    public int Id { get; init; }
-    public int ParentId { get; init; }
-    public int TabId { get; init; }
-    public MeretMarketItemLabel Label { get; init; }
-    public MeretMarketCurrencyType CurrencyType { get; init; }
-    public long SalePrice { get; init; }
-    public long SellBeginTime { get; init; }
-    public long SellEndTime { get; init; }
-    public JobFlag JobRequirement { get; init; }
-    public bool RestockUnavailable { get; init; }
-    public short RequireMinLevel { get; init; }
-    public short RequireMaxLevel { get; init; }
-    public byte Rarity { get; init; }
-    public int Quantity { get; init; }
-    public int ItemDuration { get; init; } // in days
-    public int BonusQuantity { get; init; }
-    public MeretMarketBannerLabel BannerLabel { get; init; }
-    public string BannerName { get; init; }
-    public int RequireAchievementId { get; init; }
-    public int RequireAchievementRank { get; init; }
-    public bool PcCafe { get; init; }
-    public PremiumMarketPromoData? PromoData { get; init; }
-    public bool ShowSaleTime { get; init; }
+    public required int Id { get; init; }
+    public required int ParentId { get; init; }
+    public required int TabId { get; init; }
+    public required MeretMarketItemLabel Label { get; init; }
+    public required MeretMarketCurrencyType CurrencyType { get; init; }
+    public required long SalePrice { get; init; }
+    public required long SellBeginTime { get; init; }
+    public required long SellEndTime { get; init; }
+    public required JobFilterFlag JobRequirement { get; init; }
+    public required bool RestockUnavailable { get; init; }
+    public required short RequireMinLevel { get; init; }
+    public required short RequireMaxLevel { get; init; }
+    public required byte Rarity { get; init; }
+    public required int Quantity { get; init; }
+    public required int ItemDuration { get; init; } // in days
+    public required int BonusQuantity { get; init; }
+    public required MeretMarketBannerLabel BannerLabel { get; init; }
+    public required string BannerName { get; init; }
+    public required int RequireAchievementId { get; init; }
+    public required int RequireAchievementRank { get; init; }
+    public required bool PcCafe { get; init; }
+    public required PremiumMarketPromoData? PromoData { get; init; }
+    public required bool ShowSaleTime { get; init; }
     public IList<PremiumMarketItem> AdditionalQuantities { get; set; }
 
-    public PremiumMarketItem(int id, ItemMetadata metadata) : base(metadata) {
-        Id = id;
+    public PremiumMarketItem(ItemMetadata metadata) : base(metadata) {
         AdditionalQuantities = new List<PremiumMarketItem>();
     }
 
@@ -59,8 +58,8 @@ public class PremiumMarketItem : MarketItem {
         writer.WriteByte();
         writer.WriteShort(RequireMinLevel);
         writer.WriteShort(RequireMaxLevel);
-        writer.Write<JobFlag>(JobRequirement);
-        writer.WriteInt(ItemId);
+        writer.Write<JobFilterFlag>(JobRequirement);
+        writer.WriteInt(ItemMetadata.Id);
         writer.WriteByte(Rarity);
         writer.WriteInt(Quantity);
         writer.WriteInt(ItemDuration);

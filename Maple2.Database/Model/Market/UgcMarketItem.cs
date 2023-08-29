@@ -30,7 +30,7 @@ internal class UgcMarketItem {
     public static implicit operator UgcMarketItem?(Maple2.Model.Game.UgcMarketItem? other) {
         return other == null ? null : new UgcMarketItem {
             Id = other.Id,
-            ItemId = other.ItemId,
+            ItemId = other.ItemMetadata.Id,
             Price = other.Price,
             Status = other.Status,
             ListingEndTime = other.ListingEndTime.FromEpochSeconds(),
@@ -43,7 +43,8 @@ internal class UgcMarketItem {
     }
 
     public Maple2.Model.Game.UgcMarketItem Convert(ItemMetadata metadata) {
-        var entry = new Maple2.Model.Game.UgcMarketItem(Id, metadata) {
+        var entry = new Maple2.Model.Game.UgcMarketItem(metadata) {
+            Id = Id,
             Price = Price,
             Status = Status,
             ListingEndTime = ListingEndTime.ToEpochSeconds(),
@@ -52,6 +53,9 @@ internal class UgcMarketItem {
             SellerCharacterId = CharacterId,
             SellerCharacterName = CharacterName,
             CreationTime = CreationTime.ToEpochSeconds(),
+            Description = Description,
+            Tags = Tags,
+            Look = Look,
         };
 
         return entry;

@@ -1,4 +1,6 @@
-﻿namespace Maple2.Model.Enum;
+﻿using System;
+
+namespace Maple2.Model.Enum;
 
 public enum MeretMarketSection {
     All = 0,
@@ -43,4 +45,27 @@ public enum MeretMarketBannerLabel {
     None = 0,
     PinkGift = 1,
     BlueGift = 2,
+}
+
+[Flags]
+public enum GenderFilterFlag : byte {
+    Male = 1,
+    Female = 2,
+}
+
+[Flags]
+public enum JobFilterFlag {
+    None = 0,
+    Newbie = 1,
+    Knight = 2,
+    Berserker = 4,
+    Wizard = 8,
+    Priest = 16,
+    Archer = 32,
+    HeavyGunner = 64,
+    Thief = 128,
+    Assassin = 256,
+    RuneBlader = 512,
+    Striker = 1024,
+    SoulBinder = 2048,
 }

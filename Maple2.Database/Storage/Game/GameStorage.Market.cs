@@ -4,7 +4,6 @@ using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Model;
 using Maple2.Model.Enum;
-using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using MesoListing = Maple2.Model.Game.MesoListing;
 using PremiumMarketItem = Maple2.Model.Game.PremiumMarketItem;
@@ -60,91 +59,40 @@ public partial class GameStorage {
             return Context.TrySaveChanges();
         }
 
-        public ICollection<MarketItem> GetPremiumMarketEntries(bool sortGender, bool sortJob, GenderFlag gender, JobFlag job, string searchString, params int[] tabIds) {
-            IEnumerable<MarketItem> results;
-            if (tabIds.Length == 0) {
-                results = Context.PremiumMarketItem
-                    .AsEnumerable()
-                    .Select(ToMarketEntry)
-                    .Where(entry => entry != null &&
-                                    entry.ParentId == 0 &&
-                                    (entry.ItemMetadata.Name != null && entry.ItemMetadata.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)) &&
-                                    gender.HasFlag(entry.ItemMetadata.Limit.Gender.Flag()) &&
-                                    (entry.ItemMetadata.Limit.JobLimits.Length == 0 || entry.ItemMetadata.Limit.JobLimits.Any(jobs => job.Code().Any(codes => codes == jobs)))
-                    )
-                    .ToList()!;
+        public ICollection<PremiumMarketItem> GetPremiumMarketEntries(GenderFilterFlag gender, JobFilterFlag job, string searchString, params int[] tabIds) {
+            ICollection<PremiumMarketItem> items = GetMarketItems(tabIds);
+            items = items.Where(entry =>
+                    (entry.ItemMetadata.Name != null && entry.ItemMetadata.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)) &&
+                    gender.HasFlag(entry.ItemMetadata.Limit.Gender.Flag()) &&
+                    (entry.ItemMetadata.Limit.JobLimits.Length == 0 || entry.ItemMetadata.Limit.JobLimits.Any(jobs => job.Code().Any(codes => codes == jobs))))
+                .ToList();
 
-                // Get any additional quantities
-                foreach (MarketItem marketEntry in results) {
-                    if (marketEntry is not PremiumMarketItem premium) {
-                        continue;
-                    }
-                    premium.AdditionalQuantities = Context.PremiumMarketItem
-                        .Select(ToMarketEntry)
-                        .Where(subEntry => subEntry != null &&
-                                           subEntry.ParentId == premium.Id)
-                        .ToList()!;
-                }
-            } else {
-                results = Context.PremiumMarketItem
-                    .AsEnumerable()
-                    .Select(ToMarketEntry)
-                    .Where(entry => entry != null &&
-                                    entry.ParentId == 0 &&
-                                    tabIds.Contains(entry.TabId) &&
-                                    (entry.ItemMetadata.Name != null && entry.ItemMetadata.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)) &&
-                                    gender.HasFlag(entry.ItemMetadata.Limit.Gender.Flag()) &&
-                                    (entry.ItemMetadata.Limit.JobLimits.Length == 0 || entry.ItemMetadata.Limit.JobLimits.Any(jobs => job.Code().Any(codes => codes == jobs)))
-                    )
-                    .ToList()!;
-
-                // Get any additional quantities
-                foreach (MarketItem marketEntry in results) {
-                    if (marketEntry is not PremiumMarketItem premium) {
-                        continue;
-                    }
-                    premium.AdditionalQuantities = Context.PremiumMarketItem
-                        .Select(ToMarketEntry)
-                        .Where(subEntry => subEntry != null && subEntry.ParentId == premium.Id)
-                        .ToList()!;
-                }
-            }
-
-
-            if (sortGender) {
-                results = results.OrderBy(item => item.ItemMetadata.Limit.Gender);
-            }
-            if (sortJob) {
-                results = results.OrderBy(item => item.ItemMetadata.Limit.JobLimits);
-            }
-            return results.ToList();
+            return items;
         }
 
-        public ICollection<MarketItem> GetMarketItems(MeretMarketSection section, int tabId) {
-            IEnumerable<MarketItem> results = new List<MarketItem>();
-            switch (section) {
-                case MeretMarketSection.All:
-                    results = Context.PremiumMarketItem
-                        .AsEnumerable()
-                        .Select(ToMarketEntry)
-                        .Where(entry => entry != null &&
-                                        entry.ParentId == 0 &&
-                                        entry.TabId == tabId)
-                        .ToList()!;
-                    break;
+        public ICollection<PremiumMarketItem> GetMarketItems(params int[] tabIds) {
+            IEnumerable<PremiumMarketItem> selectedResults = Context.PremiumMarketItem
+                .Select(ToMarketEntry)
+                .Where(entry => entry is {ParentId: 0})
+                .ToList()!;
+
+            if (tabIds.Length != 0) {
+                selectedResults = selectedResults.Where(entry => tabIds.Contains(entry.TabId));
             }
 
-            foreach (MarketItem marketEntry in results) {
-                if (marketEntry is not PremiumMarketItem premium) {
-                    continue;
-                }
-                premium.AdditionalQuantities = Context.PremiumMarketItem
+            selectedResults = GetAdditionalQuantities(selectedResults);
+            return selectedResults.ToList();
+        }
+
+        private IList<PremiumMarketItem> GetAdditionalQuantities(IEnumerable<PremiumMarketItem> selectedItems) {
+            foreach (PremiumMarketItem marketEntry in selectedItems) {
+                marketEntry.AdditionalQuantities = Context.PremiumMarketItem
+                    .Where(subEntry => subEntry.ParentId == marketEntry.Id)
+                    .AsEnumerable()
                     .Select(ToMarketEntry)
-                    .Where(subEntry => subEntry != null &&
-                                       subEntry.ParentId == premium.Id)
                     .ToList()!;
             }
-            return results.ToList();
+            return selectedItems.ToList();
         }
 
         public PremiumMarketItem? GetPremiumMarketEntry(int id) {
