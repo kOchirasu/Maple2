@@ -13,7 +13,6 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using Microsoft.Scripting.Utils;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -234,9 +233,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         }
 
         // get any sub tabs
-        int[] tabIds = new[] {
-            tabId
-        }.Concat(tab.SubTabIds).ToArray();
+        int[] tabIds = new[] {tabId}.Concat(tab.SubTabIds).ToArray();
 
         ICollection<MarketItem> results = db.GetPremiumMarketEntries(genderFilter, jobFilter, searchString, tabIds).Cast<MarketItem>().ToList();
         return Sort(results, sortBy, tab.SortGender, tab.SortJob);
