@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
-using Maple2.Model;
-using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using MesoListing = Maple2.Model.Game.MesoListing;
 using PremiumMarketItem = Maple2.Model.Game.PremiumMarketItem;
