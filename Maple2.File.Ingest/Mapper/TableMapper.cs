@@ -1116,11 +1116,11 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
     private MeretMarketCategoryTable ParseMeretMarketCategoryTable() {
         string feature = FeatureLocaleFilter.FeatureEnabled("MeratMarketNewBM") ? "MeratMarketNewBM" : string.Empty;
-        Dictionary<int, IReadOnlyDictionary<int, MeretMarketCategoryTable.Tab>> results = GetMereMarketTabs(feature);
+        Dictionary<int, IReadOnlyDictionary<int, MeretMarketCategoryTable.Tab>> results = GetMeretMarketTabs(feature);
         return new MeretMarketCategoryTable(results);
-	}
+    }
 
-    private Dictionary<int, IReadOnlyDictionary<int, MeretMarketCategoryTable.Tab>> GetMereMarketTabs(string featureEnabled = "") {
+    private Dictionary<int, IReadOnlyDictionary<int, MeretMarketCategoryTable.Tab>> GetMeretMarketTabs(string featureEnabled = "") {
         var results = new Dictionary<int, IReadOnlyDictionary<int, MeretMarketCategoryTable.Tab>>();
         foreach ((int id, string feature, MeretMarketCategory category) in parser.ParseMeretMarketCategory()) {
             if (feature != featureEnabled) {

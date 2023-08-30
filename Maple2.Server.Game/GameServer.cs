@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -22,6 +24,7 @@ public class GameServer : Server<GameSession> {
     private readonly Dictionary<long, GameSession> sessions;
     private readonly Dictionary<string, GameEvent> eventCache = new();
     private readonly IList<SystemBanner> bannerCache;
+    private readonly Dictionary<int, PremiumMarketItem> premiumMarketCache;
     private readonly GameStorage gameStorage;
 
     public int Channel => Target.GameChannel;
@@ -35,6 +38,7 @@ public class GameServer : Server<GameSession> {
         
         using GameStorage.Request db = gameStorage.Context();
         bannerCache = db.GetBanners();
+        premiumMarketCache = db.GetMarketItems().ToDictionary(item => item.Id, item => item);
     }
 
     public override void OnConnected(GameSession session) {
@@ -78,8 +82,24 @@ public class GameServer : Server<GameSession> {
 
         return gameEvent;
     }
-    
+
     public IList<SystemBanner> GetSystemBanners() => bannerCache;
+
+    public ICollection<PremiumMarketItem> GetPremiumMarketItems(params int[] tabIds) {
+        if (tabIds.Length == 0) {
+            return premiumMarketCache.Values;
+        }
+
+        return premiumMarketCache.Values.Where(item => tabIds.Contains(item.TabId)).ToList();
+    }
+
+    public PremiumMarketItem? GetPremiumMarketItem(int id, int subId) {
+        if (subId == 0) {
+            return premiumMarketCache.GetValueOrDefault(id);
+        }
+        
+        return !premiumMarketCache.TryGetValue(id, out PremiumMarketItem? item) ? null : item.AdditionalQuantities.FirstOrDefault(subItem => subItem.Id == subId);
+    }
 
     public override Task StopAsync(CancellationToken cancellationToken) {
         lock (mutex) {

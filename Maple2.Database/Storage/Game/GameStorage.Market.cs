@@ -59,27 +59,12 @@ public partial class GameStorage {
             return Context.TrySaveChanges();
         }
 
-        public ICollection<PremiumMarketItem> GetPremiumMarketEntries(GenderFilterFlag gender, JobFilterFlag job, string searchString, params int[] tabIds) {
-            ICollection<PremiumMarketItem> items = GetMarketItems(tabIds);
-            items = items.Where(entry =>
-                    (entry.ItemMetadata.Name != null && entry.ItemMetadata.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)) &&
-                    gender.HasFlag(entry.ItemMetadata.Limit.Gender.Flag()) &&
-                    (entry.ItemMetadata.Limit.JobLimits.Length == 0 || entry.ItemMetadata.Limit.JobLimits.Any(jobs => job.Code().Any(codes => codes == jobs))))
-                .ToList();
-
-            return items;
-        }
-
-        public ICollection<PremiumMarketItem> GetMarketItems(params int[] tabIds) {
+        public ICollection<PremiumMarketItem> GetMarketItems() {
             IEnumerable<PremiumMarketItem> selectedResults = Context.PremiumMarketItem
                 .Where(entry => entry.ParentId == 0)
                 .AsEnumerable()
                 .Select(ToMarketEntry)
                 .ToList()!;
-
-            if (tabIds.Length != 0) {
-                selectedResults = selectedResults.Where(entry => tabIds.Contains(entry.TabId));
-            }
 
             selectedResults = GetAdditionalQuantities(selectedResults);
             return selectedResults.ToList();
@@ -94,15 +79,6 @@ public partial class GameStorage {
                     .ToList()!;
             }
             return selectedItems.ToList();
-        }
-
-        public PremiumMarketItem? GetPremiumMarketEntry(int id) {
-            Model.PremiumMarketItem? model = Context.PremiumMarketItem.Find(id);
-            if (model == null) {
-                return null;
-            }
-
-            return game.itemMetadata.TryGet(model.ItemId, out ItemMetadata? metadata) ? model.Convert(metadata) : null;
         }
 
         private PremiumMarketItem? ToMarketEntry(Model.PremiumMarketItem? model) {

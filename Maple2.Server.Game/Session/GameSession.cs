@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Sockets;
@@ -331,6 +332,10 @@ public sealed partial class GameSession : Core.Network.Session {
     }
 
     public GameEvent? FindEvent<T>() where T : GameEventInfo => server.FindEvent<T>();
+
+    public ICollection<PremiumMarketItem> GetPremiumMarketItems(params int[] tabIds) => server.GetPremiumMarketItems(tabIds);
+
+    public PremiumMarketItem? GetPremiumMarketItem(int id, int subId = 0) => server.GetPremiumMarketItem(id, subId);
 
     public void ChannelBroadcast(ByteWriter packet) {
         server.Broadcast(packet);

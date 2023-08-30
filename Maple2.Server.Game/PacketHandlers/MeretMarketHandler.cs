@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
@@ -13,6 +14,7 @@ using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Microsoft.Scripting.Utils;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -105,8 +107,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         string unk5 = packet.ReadUnicodeString();
         long price = packet.ReadLong();
 
-        using GameStorage.Request db = session.GameStorage.Context();
-        PremiumMarketItem? entry = db.GetPremiumMarketEntry(childMarketItemId == 0 ? premiumMarketId : childMarketItemId);
+        PremiumMarketItem? entry = session.GetPremiumMarketItem(premiumMarketId, childMarketItemId);
         if (entry == null) {
             return;
         }
@@ -128,7 +129,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         if (entry.RequireAchievementId > 0 && session.Achievement.HasAchievement(entry.RequireAchievementId, entry.RequireAchievementRank)) {
             return;
         }
-        
+
         price = entry.SalePrice > 0 ? entry.SalePrice : entry.Price;
         StringCode payResult = Pay(session, price, entry.CurrencyType);
         if (payResult != StringCode.s_empty_string) {
@@ -155,12 +156,12 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
     private static void HandleFeatured(GameSession session, IByteReader packet) {
         byte section = packet.ReadByte();
         byte tabId = packet.ReadByte();
-        
+
         ICollection<MarketItem> entries = new List<MarketItem>();
         using GameStorage.Request db = session.GameStorage.Context();
         switch (GetMarketSection(section)) {
             case MeretMarketSection.All:
-                entries = db.GetMarketItems(tabId).Cast<MarketItem>().ToList();
+                entries = session.GetPremiumMarketItems(tabId).Cast<MarketItem>().ToList();
                 break;
             case MeretMarketSection.Premium:
             case MeretMarketSection.Ugc:
@@ -179,7 +180,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         using GameStorage.Request db = session.GameStorage.Context();
         if (premium) {
             int premiumId = packet.ReadInt();
-            marketItem = db.GetPremiumMarketEntry(premiumId);
+            marketItem = session.GetPremiumMarketItem(premiumId);
             if (marketItem == null) {
                 return;
             }
@@ -189,7 +190,9 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
             return;
         }
 
-        session.Send(MeretMarketPacket.LoadItems(new List<MarketItem> {marketItem}, 1, 1));
+        session.Send(MeretMarketPacket.LoadItems(new List<MarketItem> {
+            marketItem
+        }, 1, 1));
     }
 
     private void HandleSearch(GameSession session, IByteReader packet) {
@@ -205,7 +208,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         byte itemsPerPage = packet.ReadByte();
         MeretMarketSection section = GetMarketSection(packet.ReadByte());
 
-        ICollection<MarketItem> entries = GetItems(session, section, sortBy,0, gender, job, searchString);
+        ICollection<MarketItem> entries = GetItems(session, section, sortBy, 0, gender, job, searchString);
         int totalItems = entries.Count;
         entries = TakeLimit(entries, startPage, itemsPerPage);
 
@@ -225,7 +228,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
     private ICollection<MarketItem> GetItems(GameSession session, MeretMarketSection section, MeretMarketSort sortBy, int tabId, GenderFilterFlag genderFilter, JobFilterFlag jobFilter, string searchString) {
         using GameStorage.Request db = session.GameStorage.Context();
         if (tabId == 0) {
-            return db.GetPremiumMarketEntries(genderFilter, jobFilter, searchString).Cast<MarketItem>().ToList();
+            return Filter(session.GetPremiumMarketItems(), genderFilter, jobFilter, searchString).Cast<MarketItem>().ToList();
         }
         if (!TableMetadata.MeretMarketCategoryTable.Entries.TryGetValue((int) section, out IReadOnlyDictionary<int, MeretMarketCategoryTable.Tab>? sectionDictionary) ||
             !sectionDictionary.TryGetValue(tabId, out MeretMarketCategoryTable.Tab? tab)) {
@@ -235,7 +238,8 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         // get any sub tabs
         int[] tabIds = new[] {tabId}.Concat(tab.SubTabIds).ToArray();
 
-        ICollection<MarketItem> results = db.GetPremiumMarketEntries(genderFilter, jobFilter, searchString, tabIds).Cast<MarketItem>().ToList();
+        ICollection<PremiumMarketItem> results = session.GetPremiumMarketItems(tabIds);
+        results = Filter(results, genderFilter, jobFilter, searchString);
         return Sort(results, sortBy, tab.SortGender, tab.SortJob);
     }
 
@@ -260,6 +264,14 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         }
     }
 
+    private static ICollection<PremiumMarketItem> Filter(IEnumerable<PremiumMarketItem> items, GenderFilterFlag gender, JobFilterFlag job, string searchString) {
+        return items.Where(entry =>
+                (entry.ItemMetadata.Name != null && entry.ItemMetadata.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)) &&
+                gender.HasFlag(entry.ItemMetadata.Limit.Gender.Flag()) &&
+                (entry.ItemMetadata.Limit.JobLimits.Length == 0 || entry.ItemMetadata.Limit.JobLimits.Any(jobs => job.Code().Any(codes => codes == jobs))))
+            .ToList();
+    }
+
     private static ICollection<MarketItem> Sort(IEnumerable<MarketItem> entries, MeretMarketSort sort, bool sortJob, bool sortGender) {
         if (sortGender) {
             entries = entries.OrderBy(item => item.ItemMetadata.Limit.Gender);
@@ -267,7 +279,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         if (sortJob) {
             entries = entries.OrderBy(item => item.ItemMetadata.Limit.JobLimits);
         }
-        
+
         switch (sort) {
             case MeretMarketSort.MostRecent:
                 return entries.OrderByDescending(entry => entry.CreationTime).ToList();

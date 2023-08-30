@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Maple2.Server.Web.Controllers;
 
 [Route("/system/")]
-public class SystemBannerController : ControllerBase {
+public class SystemController : ControllerBase {
     private static readonly string SolutionDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "../../../.."));
     private static readonly string RootDir = Path.Combine(SolutionDir, "Maple2.Server.Web/Data");
 
@@ -14,7 +14,7 @@ public class SystemBannerController : ControllerBase {
     public IResult GetBanner(string name) {
         string fullPath = $"{RootDir}/system/banner/{name}.png";
         if (!System.IO.File.Exists(fullPath)) {
-            return Results.BadRequest();
+            return Results.NotFound();
         }
 
         FileStream bannerImage = System.IO.File.OpenRead(fullPath);
