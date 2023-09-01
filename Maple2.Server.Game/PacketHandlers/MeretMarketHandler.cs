@@ -121,8 +121,8 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (entry.JobRequirement != JobFilterFlag.None &&
-            (entry.JobRequirement & session.Player.Value.Character.Job.Code().FilterFlag()) == JobFilterFlag.None) {
+        // If JobRequirement is None, no job is eligible.
+        if ((entry.JobRequirement & session.Player.Value.Character.Job.Code().FilterFlag()) == JobFilterFlag.None) {
             return;
         }
 
@@ -268,11 +268,9 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         if (gender != GenderFilterFlag.All) {
             items = items.Where(entry => gender.HasFlag(entry.ItemMetadata.Limit.Gender.FilterFlag()));
         }
-        if (job != JobFilterFlag.None) {
-            items = items.Where(entry => (job & entry.ItemMetadata.Limit.JobLimits.FilterFlags()) != JobFilterFlag.None);
-        }
 
-        return items;
+        // JobFilterFlag.None means no jobs are eligible.
+        return items.Where(entry => (job & entry.ItemMetadata.Limit.JobLimits.FilterFlags()) != JobFilterFlag.None);
     }
 
     private static IEnumerable<MarketItem> Sort(IEnumerable<MarketItem> entries, MeretMarketSort sort, bool sortJob, bool sortGender) {
