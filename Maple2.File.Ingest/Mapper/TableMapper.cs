@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Globalization;
 using System.Numerics;
+using M2dXmlGenerator;
 using Maple2.Database.Extensions;
 using Maple2.File.Ingest.Utils;
 using Maple2.File.IO;
@@ -24,6 +25,7 @@ using ItemSocket = Maple2.File.Parser.Xml.Table.ItemSocket;
 using JobTable = Maple2.Model.Metadata.JobTable;
 using MagicPath = Maple2.Model.Metadata.MagicPath;
 using MasteryType = Maple2.Model.Enum.MasteryType;
+using MeretMarketCategory = Maple2.File.Parser.Xml.Table.MeretMarketCategory;
 
 namespace Maple2.File.Ingest.Mapper;
 
@@ -55,6 +57,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "vip*.xml", Table = ParsePremiumClubTable()};
         yield return new TableMetadata {Name = "individualitemdrop*.xml", Table = ParseIndividualItemDropTable()};
         yield return new TableMetadata {Name = "colorpalette.xml", Table = ParseColorPaletteTable()};
+        yield return new TableMetadata {Name = "meretmarketcategory.xml", Table = ParseMeretMarketCategoryTable()};
         yield return new TableMetadata {Name = "shop_beautycoupon.xml", Table = ParseShopBeautyCouponTable()};
         yield return new TableMetadata {Name = "gacha_info.xml", Table = ParseGachaInfoTable()};
         yield return new TableMetadata {Name = "nametagsymbol.xml", Table = ParseInsigniaTable()};
@@ -1109,6 +1112,44 @@ public class TableMapper : TypeMapper<TableMetadata> {
 
     private Color ParseColor(System.Drawing.Color color) {
         return new Color(color.B, color.G, color.R, color.A);
+    }
+
+    private MeretMarketCategoryTable ParseMeretMarketCategoryTable() {
+        var results = new Dictionary<int, IReadOnlyDictionary<int, MeretMarketCategoryTable.Tab>>();
+        foreach ((int id, MeretMarketCategory category) in parser.ParseMeretMarketCategory()) {
+            foreach (MeretMarketCategory.Tab tab in category.tab) {
+                var subTabIds = new List<int>();
+                foreach (MeretMarketCategory.Tab subTab in tab.tab) {
+                    var subTabEntry = new MeretMarketCategoryTable.Tab(
+                        Categories: subTab.category,
+                        SortGender: subTab.sortGender,
+                        SortJob: subTab.sortJob,
+                        SubTabIds: Array.Empty<int>());
+                    subTabIds.Add(subTab.id);
+                    if (!results.ContainsKey(id)) {
+                        results.Add(id, new Dictionary<int, MeretMarketCategoryTable.Tab> {
+                            {subTab.id, subTabEntry},
+                        });
+                    } else {
+                        (results[id] as Dictionary<int, MeretMarketCategoryTable.Tab>)!.Add(subTab.id, subTabEntry);
+                    }
+                }
+                var tabEntry = new MeretMarketCategoryTable.Tab(
+                    Categories: tab.category,
+                    SortGender: tab.sortGender,
+                    SortJob: tab.sortJob,
+                    SubTabIds: subTabIds.ToArray());
+
+                if (!results.ContainsKey(id)) {
+                    results.Add(id, new Dictionary<int, MeretMarketCategoryTable.Tab> {
+                        {tab.id, tabEntry},
+                    });
+                } else {
+                    (results[id] as Dictionary<int, MeretMarketCategoryTable.Tab>)!.Add(tab.id, tabEntry);
+                }
+            }
+        }
+        return new MeretMarketCategoryTable(results);
     }
 
     private ShopBeautyCouponTable ParseShopBeautyCouponTable() {
