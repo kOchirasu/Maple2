@@ -333,7 +333,7 @@ public sealed partial class GameSession : Core.Network.Session {
 
     public GameEvent? FindEvent<T>() where T : GameEventInfo => server.FindEvent<T>();
 
-    public ICollection<PremiumMarketItem> GetPremiumMarketItems(params int[] tabIds) => server.GetPremiumMarketItems(tabIds);
+    public IEnumerable<PremiumMarketItem> GetPremiumMarketItems(params int[] tabIds) => server.GetPremiumMarketItems(tabIds);
 
     public PremiumMarketItem? GetPremiumMarketItem(int id, int subId = 0) => server.GetPremiumMarketItem(id, subId);
 

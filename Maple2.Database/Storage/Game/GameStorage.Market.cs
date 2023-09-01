@@ -63,20 +63,15 @@ public partial class GameStorage {
                 .AsEnumerable()
                 .Select(ToMarketEntry)
                 .ToList()!;
-
-            selectedResults = GetAdditionalQuantities(selectedResults);
-            return selectedResults.ToList();
-        }
-
-        private IList<PremiumMarketItem> GetAdditionalQuantities(IEnumerable<PremiumMarketItem> selectedItems) {
-            foreach (PremiumMarketItem marketEntry in selectedItems) {
+            
+            foreach (PremiumMarketItem marketEntry in selectedResults) {
                 marketEntry.AdditionalQuantities = Context.PremiumMarketItem
                     .Where(subEntry => subEntry.ParentId == marketEntry.Id)
                     .AsEnumerable()
                     .Select(ToMarketEntry)
                     .ToList()!;
             }
-            return selectedItems.ToList();
+            return selectedResults.ToList();
         }
 
         private PremiumMarketItem? ToMarketEntry(Model.PremiumMarketItem? model) {

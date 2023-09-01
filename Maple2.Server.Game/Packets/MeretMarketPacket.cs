@@ -27,7 +27,7 @@ public static class MeretMarketPacket {
         Unknown201 = 201,
     }
 
-    public static ByteWriter LoadItems(IList<MarketItem> marketItems, int totalItems, int startPage) {
+    public static ByteWriter LoadItems(ICollection<MarketItem> marketItems, int totalItems, int startPage) {
         var pWriter = Packet.Of(SendOp.MeretMarket);
         pWriter.Write<Command>(Command.LoadShopCategory);
         pWriter.WriteInt(marketItems.Count);
