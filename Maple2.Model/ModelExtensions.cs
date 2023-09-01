@@ -16,25 +16,7 @@ public static class ModelExtensions {
         return ((int) job % 10) != 0;
     }
 
-    public static JobFilterFlag Flag(this Job job) {
-        return job switch {
-            Job.Archer or Job.ArcherII => JobFilterFlag.Archer,
-            Job.Assassin or Job.AssassinII => JobFilterFlag.Assassin,
-            Job.Berserker or Job.BerserkerII => JobFilterFlag.Berserker,
-            Job.HeavyGunner or Job.HeavyGunnerII => JobFilterFlag.HeavyGunner,
-            Job.Knight or Job.KnightII => JobFilterFlag.Knight,
-            Job.Priest or Job.PriestII => JobFilterFlag.Priest,
-            Job.RuneBlader or Job.RuneBladerII => JobFilterFlag.RuneBlader,
-            Job.SoulBinder or Job.SoulBinderII => JobFilterFlag.SoulBinder,
-            Job.Striker or Job.StrikerII => JobFilterFlag.Striker,
-            Job.Thief or Job.ThiefII => JobFilterFlag.Thief,
-            Job.Wizard or Job.WizardII => JobFilterFlag.Wizard,
-            Job.Newbie => JobFilterFlag.Newbie,
-            _ => throw new ArgumentException($"Unknown job {job}"),
-        };
-    }
-
-    public static JobFilterFlag Flag(this JobCode job) {
+    public static JobFilterFlag FilterFlag(this JobCode job) {
         return job switch {
             JobCode.None => JobFilterFlag.None,
             JobCode.Newbie => JobFilterFlag.Newbie,
@@ -49,63 +31,21 @@ public static class ModelExtensions {
             JobCode.RuneBlader => JobFilterFlag.RuneBlader,
             JobCode.Striker => JobFilterFlag.Striker,
             JobCode.SoulBinder => JobFilterFlag.SoulBinder,
-            _ => throw new ArgumentOutOfRangeException(nameof(job), job, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(job), job, "Invalid JobCode"),
         };
     }
 
-    public static JobFilterFlag Flag(this IEnumerable<JobCode> jobs) {
-        return jobs.Aggregate(JobFilterFlag.None, (current, job) => current | job.Flag());
+    public static JobFilterFlag FilterFlags(this IEnumerable<JobCode> jobs) {
+        return jobs.Aggregate(JobFilterFlag.None, (current, job) => current | job.FilterFlag());
     }
 
-    public static GenderFilterFlag Flag(this Gender gender) {
+    public static GenderFilterFlag FilterFlag(this Gender gender) {
         return gender switch {
-            Gender.All => GenderFilterFlag.Male | GenderFilterFlag.Female,
-            Gender.Female => GenderFilterFlag.Female,
             Gender.Male => GenderFilterFlag.Male,
-            _ => throw new ArgumentOutOfRangeException(nameof(gender), gender, null)
+            Gender.Female => GenderFilterFlag.Female,
+            Gender.All => GenderFilterFlag.All,
+            _ => throw new ArgumentOutOfRangeException(nameof(gender), gender, "Invalid Gender"),
         };
-    }
-
-    public static IEnumerable<JobCode> Code(this JobFilterFlag filterFlag) {
-        if (filterFlag.HasFlag(JobFilterFlag.Newbie)) {
-            yield return JobCode.Newbie;
-        }
-
-        if (filterFlag.HasFlag(JobFilterFlag.Knight)) {
-            yield return JobCode.Knight;
-        }
-        
-        if (filterFlag.HasFlag(JobFilterFlag.Berserker)) {
-            yield return JobCode.Berserker;
-        }
-        
-        if (filterFlag.HasFlag(JobFilterFlag.Wizard)) {
-            yield return JobCode.Wizard;
-        }
-        
-        if (filterFlag.HasFlag(JobFilterFlag.Priest)) {
-            yield return JobCode.Priest;
-        }
-        
-        if (filterFlag.HasFlag(JobFilterFlag.Archer)) {
-            yield return JobCode.Archer;
-        }
-        
-        if (filterFlag.HasFlag(JobFilterFlag.HeavyGunner)) {
-            yield return JobCode.HeavyGunner;
-        }
-        
-        if (filterFlag.HasFlag(JobFilterFlag.Thief)) {
-            yield return JobCode.Thief;
-        }
-
-        if (filterFlag.HasFlag(JobFilterFlag.RuneBlader)) {
-            yield return JobCode.RuneBlader;
-        }
-
-        if (filterFlag.HasFlag(JobFilterFlag.SoulBinder)) {
-            yield return JobCode.SoulBinder;
-        }
     }
 
     public static InventoryType Inventory(this ItemMetadata metadata) {
@@ -136,7 +76,7 @@ public static class ModelExtensions {
             21 => InventoryType.Lapenshard,
             22 => InventoryType.Misc, // Blueprint
             _ => throw new ArgumentException(
-                $"Unknown Tab for: {metadata.Property.Type},{metadata.Property.SubType}")
+                $"Unknown Tab for: {metadata.Property.Type},{metadata.Property.SubType}"),
         };
     }
 

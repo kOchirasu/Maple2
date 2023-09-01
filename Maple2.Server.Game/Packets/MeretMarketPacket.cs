@@ -65,7 +65,7 @@ public static class MeretMarketPacket {
         pWriter.WriteInt();
         return pWriter;
     }
-    
+
     public static ByteWriter Featured(byte section, byte tabId, byte marketSlots, IList<MarketItem> marketItems) {
         var pWriter = Packet.Of(SendOp.MeretMarket);
         pWriter.Write<Command>(Command.Featured);
@@ -83,7 +83,7 @@ public static class MeretMarketPacket {
         }
         return pWriter;
     }
-    
+
     #region Helper
     private static void WriteMarketItem(this IByteWriter pWriter, MarketItem item) {
         pWriter.WriteBool(item is UgcMarketItem);

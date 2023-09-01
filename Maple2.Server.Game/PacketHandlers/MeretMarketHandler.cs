@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
@@ -15,7 +14,6 @@ using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 using Maple2.Tools.Extensions;
-using Microsoft.Scripting.Utils;
 
 namespace Maple2.Server.Game.PacketHandlers;
 
@@ -77,7 +75,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         string searchString = packet.ReadUnicodeString();
         int startPage = packet.ReadInt();
         int unknown = packet.ReadInt(); // repeats the startPage value
-        MeretMarketSection section = GetMarketSection(packet.ReadByte());
+        MeretMarketSection section = ToMarketSection(packet.ReadByte());
         packet.ReadByte();
         byte itemsPerPage = packet.ReadByte();
 
@@ -85,7 +83,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         int totalItems = entries.Count;
         entries = TakeLimit(entries, startPage, itemsPerPage);
 
-        session.Send(MeretMarketPacket.LoadItems(entries.ToList(), totalItems, startPage));
+        session.Send(MeretMarketPacket.LoadItems(entries, totalItems, startPage));
     }
 
     private void HandlePurchase(GameSession session, IByteReader packet) {
@@ -106,7 +104,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         byte unk3 = packet.ReadByte();
         string unk4 = packet.ReadUnicodeString();
         string unk5 = packet.ReadUnicodeString();
-        long price = packet.ReadLong();
+        packet.ReadLong(); // price? (but price is auto-determined below)
 
         PremiumMarketItem? entry = session.GetPremiumMarketItem(premiumMarketId, childMarketItemId);
         if (entry == null) {
@@ -123,7 +121,8 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
             return;
         }
 
-        if (entry.JobRequirement.Code().All(job => job != session.Player.Value.Character.Job.Code())) {
+        if (entry.JobRequirement != JobFilterFlag.None &&
+            (entry.JobRequirement & session.Player.Value.Character.Job.Code().FilterFlag()) == JobFilterFlag.None) {
             return;
         }
 
@@ -131,7 +130,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
             return;
         }
 
-        price = entry.SalePrice > 0 ? entry.SalePrice : entry.Price;
+        long price = entry.SalePrice > 0 ? entry.SalePrice : entry.Price;
         StringCode payResult = Pay(session, price, entry.CurrencyType);
         if (payResult != StringCode.s_empty_string) {
             session.Send(NoticePacket.MessageBox(payResult));
@@ -159,20 +158,17 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         byte section = packet.ReadByte();
         byte tabId = packet.ReadByte();
 
-        ICollection<MarketItem> entries = new List<MarketItem>();
-        switch (GetMarketSection(section)) {
-            case MeretMarketSection.All:
-                entries = session.GetPremiumMarketItems(tabId).Cast<MarketItem>().ToList();
-                break;
-            case MeretMarketSection.Premium:
-            case MeretMarketSection.Ugc:
-            case MeretMarketSection.RedMeret:
-                break;
-        }
+        IList<MarketItem> entries = ToMarketSection(section) switch {
+            MeretMarketSection.All => session.GetPremiumMarketItems(tabId).Cast<MarketItem>().ToList(),
+            MeretMarketSection.Premium => session.GetPremiumMarketItems(tabId).Cast<MarketItem>().ToList(),
+            MeretMarketSection.Ugc => new List<MarketItem>(),
+            MeretMarketSection.RedMeret => new List<MarketItem>(),
+            _ =>  new List<MarketItem>(),
+        };
 
         // Featured page needs a multiple of 2 slots. Add to the entries total if odd number.
         byte marketSlots = (byte) (entries.Count % 2 == 0 ? entries.Count : (byte) (entries.Count + 1));
-        session.Send(MeretMarketPacket.Featured(section, tabId, marketSlots, entries.ToList()));
+        session.Send(MeretMarketPacket.Featured(section, tabId, marketSlots, entries));
     }
 
     private void HandleFindItem(GameSession session, IByteReader packet) {
@@ -204,7 +200,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         packet.ReadByte();
         packet.ReadByte();
         byte itemsPerPage = packet.ReadByte();
-        MeretMarketSection section = GetMarketSection(packet.ReadByte());
+        MeretMarketSection section = ToMarketSection(packet.ReadByte());
 
         ICollection<MarketItem> entries = GetItems(session, section, sortBy, 0, gender, job, searchString).ToList();
         int totalItems = entries.Count;
@@ -213,7 +209,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         session.Send(MeretMarketPacket.LoadItems(entries, totalItems, startPage));
     }
 
-    private static MeretMarketSection GetMarketSection(byte section) {
+    private static MeretMarketSection ToMarketSection(byte section) {
         return section switch {
             0 => MeretMarketSection.All,
             1 => MeretMarketSection.Premium,
@@ -223,6 +219,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         };
     }
 
+    #region Helpers
     private IEnumerable<MarketItem> GetItems(GameSession session, MeretMarketSection section, MeretMarketSort sortBy, int tabId, GenderFilterFlag genderFilter, JobFilterFlag jobFilter, string searchString) {
         if (tabId == 0) {
             return Filter(session.GetPremiumMarketItems(), genderFilter, jobFilter, searchString);
@@ -265,10 +262,17 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
     }
 
     private static IEnumerable<PremiumMarketItem> Filter(IEnumerable<PremiumMarketItem> items, GenderFilterFlag gender, JobFilterFlag job, string searchString) {
-        return items.Where(entry =>
-                (entry.ItemMetadata.Name != null && entry.ItemMetadata.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)) &&
-                gender.HasFlag(entry.ItemMetadata.Limit.Gender.Flag()) &&
-                (entry.ItemMetadata.Limit.JobLimits.Length == 0 || entry.ItemMetadata.Limit.JobLimits.Any(jobs => job.Code().Any(codes => codes == jobs))));
+        if (!string.IsNullOrWhiteSpace(searchString)) {
+            items = items.Where(entry => entry.ItemMetadata.Name != null && entry.ItemMetadata.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase));
+        }
+        if (gender != GenderFilterFlag.All) {
+            items = items.Where(entry => gender.HasFlag(entry.ItemMetadata.Limit.Gender.FilterFlag()));
+        }
+        if (job != JobFilterFlag.None) {
+            items = items.Where(entry => (job & entry.ItemMetadata.Limit.JobLimits.FilterFlags()) != JobFilterFlag.None);
+        }
+
+        return items;
     }
 
     private static IEnumerable<MarketItem> Sort(IEnumerable<MarketItem> entries, MeretMarketSort sort, bool sortJob, bool sortGender) {
@@ -303,7 +307,9 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
     /// </summary>
     /// <returns>Limited Market Items. 5 * itemsPerPage</returns>
     private static ICollection<MarketItem> TakeLimit(IEnumerable<MarketItem> entries, int startPage, int itemsPerPage) {
+        const int numPages = 5;
         int offset = startPage * itemsPerPage - itemsPerPage;
-        return entries.Skip(offset).Take(5 * itemsPerPage + Math.Min(0, offset)).ToList();
+        return entries.Skip(offset).Take(numPages * itemsPerPage + Math.Min(0, offset)).ToList();
     }
+    #endregion
 }
