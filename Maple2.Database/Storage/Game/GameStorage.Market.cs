@@ -58,7 +58,7 @@ public partial class GameStorage {
         }
 
         public ICollection<PremiumMarketItem> GetMarketItems() {
-            IEnumerable<PremiumMarketItem> selectedResults = Context.PremiumMarketItem
+            IList<PremiumMarketItem> selectedResults = Context.PremiumMarketItem
                 .Where(entry => entry.ParentId == 0)
                 .AsEnumerable()
                 .Select(ToMarketEntry)
@@ -71,7 +71,7 @@ public partial class GameStorage {
                     .Select(ToMarketEntry)
                     .ToList()!;
             }
-            return selectedResults.ToList();
+            return selectedResults;
         }
 
         private PremiumMarketItem? ToMarketEntry(Model.PremiumMarketItem? model) {

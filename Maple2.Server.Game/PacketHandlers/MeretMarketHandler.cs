@@ -225,7 +225,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
 
     private IEnumerable<MarketItem> GetItems(GameSession session, MeretMarketSection section, MeretMarketSort sortBy, int tabId, GenderFilterFlag genderFilter, JobFilterFlag jobFilter, string searchString) {
         if (tabId == 0) {
-            return Filter(session.GetPremiumMarketItems(), genderFilter, jobFilter, searchString).Cast<MarketItem>().ToList();
+            return Filter(session.GetPremiumMarketItems(), genderFilter, jobFilter, searchString);
         }
         if (!TableMetadata.MeretMarketCategoryTable.Entries.TryGetValue((int) section, tabId, out MeretMarketCategoryTable.Tab? tab)) {
             return new List<MarketItem>();
@@ -281,20 +281,20 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
 
         switch (sort) {
             case MeretMarketSort.MostRecent:
-                return entries.OrderByDescending(entry => entry.CreationTime).ToList();
+                return entries.OrderByDescending(entry => entry.CreationTime);
             case MeretMarketSort.PriceHighest:
-                return entries.OrderByDescending(entry => entry.Price).ToList();
+                return entries.OrderByDescending(entry => entry.Price);
             case MeretMarketSort.PriceLowest:
-                return entries.OrderBy(entry => entry.Price).ToList();
+                return entries.OrderBy(entry => entry.Price);
             // TODO: Implement most popular?
             // Unsure how most popular is different than top seller.
             case MeretMarketSort.MostPopularPremium:
             case MeretMarketSort.MostPopularUgc:
             case MeretMarketSort.TopSeller:
-                return entries.OrderByDescending(entry => entry.SalesCount).ToList();
+                return entries.OrderByDescending(entry => entry.SalesCount);
             case MeretMarketSort.None:
             default:
-                return entries.ToList();
+                return entries;
         }
     }
 
