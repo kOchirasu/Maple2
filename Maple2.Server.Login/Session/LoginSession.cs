@@ -58,7 +58,7 @@ public class LoginSession : Core.Network.Session {
 
     public void ListServers() {
         ChannelsResponse response = World.Channels(new ChannelsRequest());
-        Send(BannerListPacket.SetBanner());
+        Send(BannerListPacket.Load(Server.GetSystemBanners()));
         Send(ServerListPacket.Load(Target.SERVER_NAME,
             new []{new IPEndPoint(Target.LoginIp, Server.Port)}, response.Channels));
     }

@@ -16,7 +16,8 @@
 *.userprefs
 
 # Web server data
-Maple2.Server.Web/Data
+Maple2.Server.Web/Data/*
+!Maple2.Server.Web/Data/system
 
 # Mono auto generated files
 mono_crash.*

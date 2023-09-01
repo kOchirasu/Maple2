@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
@@ -21,6 +24,8 @@ public class GameServer : Server<GameSession> {
     private readonly HashSet<GameSession> connectingSessions;
     private readonly Dictionary<long, GameSession> sessions;
     private readonly Dictionary<string, GameEvent> eventCache = new();
+    private readonly ImmutableList<SystemBanner> bannerCache;
+    private readonly ConcurrentDictionary<int, PremiumMarketItem> premiumMarketCache;
     private readonly GameStorage gameStorage;
 
     public int Channel => Target.GameChannel;
@@ -31,6 +36,11 @@ public class GameServer : Server<GameSession> {
         connectingSessions = new HashSet<GameSession>();
         sessions = new Dictionary<long, GameSession>();
         this.gameStorage = gameStorage;
+
+        using GameStorage.Request db = gameStorage.Context();
+        bannerCache = db.GetBanners().ToImmutableList();
+        premiumMarketCache = new ConcurrentDictionary<int, PremiumMarketItem>(
+            db.GetMarketItems().Select(item => new KeyValuePair<int, PremiumMarketItem>(item.Id, item)));
     }
 
     public override void OnConnected(GameSession session) {
@@ -61,18 +71,38 @@ public class GameServer : Server<GameSession> {
         Logger.Information("Game client connecting: {Session}", session);
         session.Start();
     }
-    
+
     public GameEvent? FindEvent<T>() where T : GameEventInfo {
-        if (!eventCache.TryGetValue(typeof(T).Name, out GameEvent? gameEvent)) {
-            using GameStorage.Request db = gameStorage.Context();
-            gameEvent = db.FindEvent(typeof(T).Name);
-            if (gameEvent != null) {
-                gameEvent.EventInfo.Id = gameEvent.Id;
-                eventCache[typeof(T).Name] = gameEvent;
-            }
+        if (eventCache.TryGetValue(typeof(T).Name, out GameEvent? gameEvent)) {
+            return gameEvent;
+        }
+
+        using GameStorage.Request db = gameStorage.Context();
+        gameEvent = db.FindEvent(typeof(T).Name);
+        if (gameEvent != null) {
+            gameEvent.EventInfo.Id = gameEvent.Id;
+            eventCache[typeof(T).Name] = gameEvent;
         }
 
         return gameEvent;
+    }
+
+    public IList<SystemBanner> GetSystemBanners() => bannerCache;
+
+    public ICollection<PremiumMarketItem> GetPremiumMarketItems(params int[] tabIds) {
+        if (tabIds.Length == 0) {
+            return premiumMarketCache.Values;
+        }
+
+        return premiumMarketCache.Values.Where(item => tabIds.Contains(item.TabId)).ToList();
+    }
+
+    public PremiumMarketItem? GetPremiumMarketItem(int id, int subId) {
+        if (subId == 0) {
+            return premiumMarketCache.GetValueOrDefault(id);
+        }
+
+        return premiumMarketCache.TryGetValue(id, out PremiumMarketItem? item) ? item.AdditionalQuantities.FirstOrDefault(subItem => subItem.Id == subId) : null;
     }
 
     public override Task StopAsync(CancellationToken cancellationToken) {
