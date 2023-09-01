@@ -142,7 +142,6 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         if (newItem == null) {
             Logger.Fatal("Failed to create item {ItemId}, {Rarity}, {Quantity}", entry.ItemMetadata.Id, entry.Rarity, entry.Quantity + entry.BonusQuantity);
             throw new InvalidOperationException($"Fatal: Failed to create item {entry.ItemMetadata.Id}, {entry.Rarity}, {entry.Quantity + entry.BonusQuantity}");
-            return;
         }
 
         if (entry.ItemDuration > 0) {
@@ -211,7 +210,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         int totalItems = entries.Count;
         entries = TakeLimit(entries, startPage, itemsPerPage);
 
-        session.Send(MeretMarketPacket.LoadItems(entries.ToList(), totalItems, startPage));
+        session.Send(MeretMarketPacket.LoadItems(entries, totalItems, startPage));
     }
 
     private static MeretMarketSection GetMarketSection(byte section) {
