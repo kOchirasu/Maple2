@@ -265,12 +265,14 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
         if (!string.IsNullOrWhiteSpace(searchString)) {
             items = items.Where(entry => entry.ItemMetadata.Name != null && entry.ItemMetadata.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase));
         }
+
+        // GenderFilterFlag.None means no genders are eligible.
         if (gender != GenderFilterFlag.All) {
-            items = items.Where(entry => gender.HasFlag(entry.ItemMetadata.Limit.Gender.FilterFlag()));
+            items = items.Where(entry => (gender & entry.ItemMetadata.Limit.Gender.FilterFlag()) != GenderFilterFlag.None);
         }
 
         // JobFilterFlag.None means no jobs are eligible.
-        return items.Where(entry => (job & entry.ItemMetadata.Limit.JobLimits.FilterFlags()) != JobFilterFlag.None);
+        return items.Where(entry => entry.ItemMetadata.Limit.JobLimits.Length == 0 || (job & entry.ItemMetadata.Limit.JobLimits.FilterFlags()) != JobFilterFlag.None);
     }
 
     private static IEnumerable<MarketItem> Sort(IEnumerable<MarketItem> entries, MeretMarketSort sort, bool sortJob, bool sortGender) {

@@ -49,6 +49,7 @@ public enum MeretMarketBannerLabel {
 
 [Flags]
 public enum GenderFilterFlag : byte {
+    None = 0,
     Male = 1,
     Female = 2,
     All = Male | Female,
