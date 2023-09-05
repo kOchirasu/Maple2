@@ -95,6 +95,7 @@ public sealed class AchievementManager {
         AchievementMetadataCondition.Parameters parameters = condition.Codes!;
         switch (condition.Type) {
             case AchievementConditionType.emotion:
+            case AchievementConditionType.trigger:
                 if (parameters.Strings != null && parameters.Strings.Contains(stringValue)) {
                     return true;
                 }
@@ -231,6 +232,7 @@ public sealed class AchievementManager {
             case AchievementConditionType.beauty_style_add:
             case AchievementConditionType.beauty_style_apply:
             case AchievementConditionType.level:
+            case AchievementConditionType.trigger:
                 return true;
         }
         return false;

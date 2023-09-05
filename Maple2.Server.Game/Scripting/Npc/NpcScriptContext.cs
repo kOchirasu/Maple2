@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using IronPython.Runtime;
 using Maple2.Database.Storage;
@@ -14,181 +15,16 @@ namespace Maple2.Server.Game.Scripting.Npc;
 public class NpcScriptContext {
     // These MUST be initialized externally. They are not passed via constructor to simplify scripts.
     public readonly GameSession Session;
-    public readonly FieldNpc Npc;
-    public readonly ScriptMetadata Metadata;
 
-    public NpcTalkType TalkType;
-    public int State { get; private set; } = -1;
-    public int Index { get; private set; } = 0;
 
-    public NpcScriptContext(GameSession session, FieldNpc npc, ScriptMetadata metadata) {
+    public NpcScriptContext(GameSession session) {
         Session = session;
-        Npc = npc;
-        Metadata = metadata;
-    }
-
-    public int NextState(int pick) {
-        if (!Metadata.States.TryGetValue(State, out ScriptState? state)) {
-            return -1;
-        }
-
-        CinematicContent? content = state.Contents.ElementAtOrDefault(Index);
-        if (content == null) {
-            return -1;
-        }
-
-        if (content.Distractors.Length > 0) {
-            CinematicDistractor? distractor = content.Distractors.ElementAtOrDefault(pick);
-            if (distractor == null || distractor.Goto.Length + distractor.GotoFail.Length != 1) {
-                return -1;
-            }
-
-            // If there is a 1x Goto and 0x GotoFail we can infer the next state.
-            return distractor.Goto.SingleOrDefault(-1);
-        }
-
-        if (Index >= state.Contents.Length - 1) {
-            return -1;
-        }
-
-        return State;
-    }
-
-    public bool Respond(int state) {
-        if (!Metadata.States.ContainsKey(state)) {
-            Session.Send(NpcTalkPacket.Respond(Npc, TalkType, default));
-            return false;
-        }
-
-        State = state;
-        var dialogue = new NpcDialogue(state, 0, GetButton());
-        
-        Session.Send(NpcTalkPacket.Respond(Npc, TalkType, dialogue));
-        return true;
-    }
-
-    public bool Continue(int nextState, int questId = 0) {
-        if (nextState != State && !Metadata.States.ContainsKey(nextState)) {
-            Session.Send(NpcTalkPacket.Close());
-            return false;
-        }
-
-        if (nextState == State) {
-            Index++;
-        } else {
-            State = nextState;
-            Index = 0;
-        }
-
-        var dialogue = new NpcDialogue(State, Index, GetButton());
-        Session.Send(NpcTalkPacket.Continue(TalkType, dialogue, questId));
-        return true;
-    }
-
-    public void SetTalkTypeFlags(int firstState) {
-
-        int options = 0;
-        switch (Npc.Value.Metadata.Basic.Kind) {
-            case 1 or > 10 and < 20: // Shop
-                TalkType |= NpcTalkType.Dialog;
-                options++;
-                break;
-            case >= 30 and < 40: // Beauty
-            case 2: // Storage
-            case 86: // TODO: BlackMarket
-            case 88: // TODO: Birthday
-            case >= 100 and <= 104: // TODO: Sky Fortress
-            case >= 105 and <= 107: // TODO: Kritias
-            case 108: // TODO: Humanitas
-            case 501: // TODO: Roulette
-                TalkType |= NpcTalkType.Dialog;
-                break;
-        }
-        
-        // TODO: Add quests
-
-        if (Metadata.States.TryGetValue(firstState, out ScriptState? scriptState)) {
-            if (scriptState.Type == ScriptStateType.Job) {
-                TalkType |= NpcTalkType.Dialog;
-            } else {
-                TalkType |= NpcTalkType.Talk;
-                options++;
-            }
-        }
-
-        if (options > 1) {
-            TalkType |= NpcTalkType.Select;
-        }
-    }
-
-    public int GetFunctionId => Metadata.States[State].Contents.ElementAt(Index).FunctionId;
-
-    private NpcTalkButton GetButton() {
-        if (!Metadata.States.TryGetValue(State, out ScriptState? state)) {
-            return NpcTalkButton.None;
-        }
-
-        CinematicContent? content = state.Contents.ElementAtOrDefault(Index);
-        if (content == null) {
-            return NpcTalkButton.None;
-        }
-        if (content.ButtonType != NpcTalkButton.None) {
-            return content.ButtonType;
-        }
-
-        if (content.Distractors.Length > 0) {
-            return NpcTalkButton.SelectableDistractor;
-        }
-
-        if (Index < state.Contents.Length - 1) {
-            return NpcTalkButton.Next;
-        }
-
-        if (TalkType.HasFlag(NpcTalkType.Select)) {
-            if (state.Contents.Length > 0) {
-                return NpcTalkButton.SelectableTalk;
-            }
-            return NpcTalkButton.None;
-        }
-
-        switch (state.Type) {
-            case ScriptStateType.Job:
-                switch (Npc.Value.Metadata.Basic.Kind) {
-                    case >= 30 and < 40: // Beauty
-                        return NpcTalkButton.SelectableBeauty;
-                    case 80:
-                        return NpcTalkButton.ChangeJob;
-                    case 81:
-                        return NpcTalkButton.PenaltyResolve;
-                    case 82:
-                        return NpcTalkButton.TakeBoat;
-                    case 501:
-                        return NpcTalkButton.Roulette;
-                }
-                break;
-            case ScriptStateType.Select:
-                switch (Npc.Value.Metadata.Basic.Kind) {
-                    case 1 or > 10 and < 20: // Shop
-                        return NpcTalkButton.None;
-                    case 2: // Storage
-                        return NpcTalkButton.None;
-                }
-                return NpcTalkButton.SelectableTalk;
-            case ScriptStateType.Quest:
-                // return NpcTalkButton.QuestAccept;
-                // return NpcTalkButton.QuestComplete;
-                // return NpcTalkButton.QuestProgress;
-                break;
-        }
-
-        return NpcTalkButton.Close;
     }
 
     public bool MovePlayer(int portalId) {
-        if (Session.Field?.TryGetPortal(portalId, out FieldPortal? _) != true) {
+        if (Session.Field?.TryGetPortal(portalId, out FieldPortal? portal) != true) {
             return false;
         }
-
         Session.Send(NpcTalkPacket.MovePlayer(portalId));
         return true;
     }
@@ -267,18 +103,21 @@ public class NpcScriptContext {
         return Session.Player.Value.Character.Level;
     }
 
-    /* TODO: Quests aren't implemented yet :( Finish once they are, I guess.
     public bool QuestState(int questId, int questState) {
-        return Session.Quest.Find(questId).State == questState;
+        Session.Quest.TryGetQuest(questId, out Quest? quest);
+        bool questStateMatch = quest?.State == (QuestState) questState;
+        Console.WriteLine($"Quest State: {questStateMatch}");
+        return quest?.State == (QuestState) questState;
     }
 
     public bool MultiQuestState(List<int> questIds, int questState) {
         foreach (int questId in questIds) {
-            if (Session.Quest.Find(questId).State == questState) {
+            if (Session.Quest.TryGetQuest(questId, out Quest? quest) && quest.State == (QuestState) questState) {
                 return true;
             }
         }
-    } */
+        return false;
+    }
 
     public int CurrentMap() {
         return Session.Field?.MapId ?? 0;

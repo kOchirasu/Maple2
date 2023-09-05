@@ -197,6 +197,7 @@ public class InventoryManager {
                 }
                 session.Achievement.Update(AchievementConditionType.item_collect, codeLong: item.Id);
                 session.Achievement.Update(AchievementConditionType.item_add, count: item.Amount, codeLong: item.Id);
+                session.Quest.Update(QuestConditionType.item_exist, counter: item.Amount, codeLong: item.Id);
             }
 
             return true;

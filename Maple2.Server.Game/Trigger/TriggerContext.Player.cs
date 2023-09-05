@@ -124,7 +124,26 @@ public partial class TriggerContext {
     }
 
     public void SetAchievement(string type, string code, int triggerId) {
-        ErrorLog("[SetAchievement] type:{Type}, code:{Code}, triggerId:{TriggerId}", type, code, triggerId);
+        DebugLog("[SetAchievement] type:{Type}, code:{Code}, triggerId:{TriggerId}", type, code, triggerId);
+        
+        type = string.IsNullOrWhiteSpace(type) ? "trigger" : type;
+        if (!Enum.TryParse<AchievementConditionType>(type, out AchievementConditionType achievementConditionType)) {
+            achievementConditionType = AchievementConditionType.unknown;
+        }
+
+        if (!Enum.TryParse<QuestConditionType>(type, out QuestConditionType questConditionType)) {
+            questConditionType = QuestConditionType.unknown;
+        }
+        
+        foreach(FieldPlayer player in PlayersInBox(triggerId)) {
+            if (achievementConditionType != AchievementConditionType.unknown) {
+                player.Session.Achievement.Update(achievementConditionType, codeString: code);
+            }
+
+            if (questConditionType != QuestConditionType.unknown) {
+                player.Session.Quest.Update(questConditionType, codeString: code);
+            }
+        }
     }
 
     public void SetPcEmotionLoop(string sequenceName, float duration, bool arg3) {
@@ -192,10 +211,36 @@ public partial class TriggerContext {
     }
 
     public bool QuestUserDetected(int[] boxIds, int[] questIds, byte[] questStates, byte jobCode) {
-        ErrorLog("[QuestUserDetected] boxIds:{BoxIds}, questIds:{QuestIds}, questStates:{QuestStates}, jobCode:{JobCode}",
+        DebugLog("[QuestUserDetected] boxIds:{BoxIds}, questIds:{QuestIds}, questStates:{QuestStates}, jobCode:{JobCode}",
             string.Join(", ", boxIds), string.Join(", ", questIds), string.Join(", ", questStates), (JobCode) jobCode);
 
-        return UserDetected(boxIds, jobCode);
+        foreach (FieldPlayer player in PlayersInBox(boxIds)) {
+            foreach (int questId in questIds) {
+                if (!player.Session.Quest.TryGetQuest(questId, out Quest? quest)) {
+                    return false;
+                }
+
+                switch (questStates[0]) {
+                    case 1: // Started
+                        if (quest.State == QuestState.Started) {
+                            return true;
+                        }
+                        break;
+                    case 2: // Started and Can Complete
+                        if (quest.State == QuestState.Started && player.Session.Quest.CanComplete(quest)) {
+                            return true;
+                        }
+                        break;
+                    case 3: // Completed
+                        if (quest.State == QuestState.Completed) {
+                            return true;
+                        }
+                        break;
+                }
+            }
+        }
+
+        return false;
     }
 
     public bool UserDetected(int[] boxIds, byte jobCode) {

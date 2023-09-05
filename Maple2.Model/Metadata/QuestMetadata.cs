@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Numerics;
 using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
@@ -9,30 +10,39 @@ public record QuestMetadata(
     QuestMetadataBasic Basic,
     QuestMetadataRequire Require,
     QuestMetadataReward AcceptReward,
-    QuestMetadataReward CompleteReward) : ISearchResult;
+    QuestMetadataReward CompleteReward,
+    QuestMetadataGoToNpc GoToNpc,
+    QuestMetadataGoToDungeon GoToDungeon,
+    QuestMetadataCondition[] Conditions) : ISearchResult;
 
 public record QuestMetadataBasic(
     int ChapterId,
     QuestType Type,
-    int Account,
+    int Account, // 1 and 2 are both account quests. Unsure of the difference.
     int StandardLevel,
+    bool Forfeitable,
+    string EventTag,
     bool AutoStart,
+    bool Disabled,
     int StartNpc,
     int CompleteNpc,
-    int[] CompleteMap);
+    int[]? CompleteMaps,
+    int[]? ProgressMaps);
 
 public record QuestMetadataRequire(
     short Level,
     short MaxLevel,
-    int[] Job,
+    JobCode[] Job,
     int[] Quest,
     int[] SelectableQuest,
     int Achievement,
+    (int, int) UnrequiredAchievement,
     int GearScore);
 
 public record QuestMetadataReward(
     int Meso,
     int Exp,
+    ExpType RelativeExp,
     int GuildFund,
     int GuildExp,
     int GuildCoin,
@@ -44,4 +54,30 @@ public record QuestMetadataReward(
     List<QuestMetadataReward.Item> EssentialJobItem) {
 
     public record Item(int Id, int Rarity, int Amount);
+}
+
+public record QuestMetadataGoToNpc(
+    bool Enabled,
+    int MapId,
+    int PortalId);
+
+public record QuestMetadataGoToDungeon(
+    QuestState State,
+    int MapId,
+    int InstanceId);
+
+public record QuestMetadataCondition(
+    QuestConditionType Type,
+    QuestMetadataCondition.Parameters? Codes,
+    QuestMetadataCondition.Parameters? Target,
+    long Value,
+    int PartyCount,
+    int GuildPartyCount) {
+    
+    public record Parameters(
+        string[]? Strings = null,
+        Range<int>? Range = null,
+        int[]? Integers = null);
+
+    public readonly record struct Range<T>(T Min, T Max) where T : INumber<T>;
 }

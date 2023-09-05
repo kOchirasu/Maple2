@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Database.Context;
+using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
 
@@ -33,6 +34,31 @@ public class QuestMetadataStorage : MetadataStorage<int, QuestMetadata>, ISearch
         }
 
         return true;
+    }
+
+    public IEnumerable<QuestMetadata> GetQuests() {
+        lock (Context) {
+            return Context.QuestMetadata
+                .ToList();
+        }
+    }
+
+    public IList<QuestMetadata> GetQuestsByType(QuestType type) {
+        lock (Context) {
+            return Context.QuestMetadata
+                .Where(quest => quest.Basic.Type == type)
+                .ToList();
+        }
+    }
+
+    public ICollection<QuestMetadata> GetQuestsByNpc(int npcId) {
+        lock (Context) {
+            // this works but seems questionable?? Cannot search before AsEnumerable
+            return Context.QuestMetadata
+                .AsEnumerable()
+                .Where(quest => quest.Basic.StartNpc == npcId)
+                .ToList();
+        }
     }
 
     public List<QuestMetadata> Search(string name) {

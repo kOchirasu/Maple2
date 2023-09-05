@@ -56,6 +56,8 @@ public sealed partial class GameSession : Core.Network.Session {
     public required TableMetadataStorage TableMetadata { get; init; }
     public required MapMetadataStorage MapMetadata { get; init; }
     public required AchievementMetadataStorage AchievementMetadata { get; init; }
+    public required QuestMetadataStorage QuestMetadata { get; init; }
+    public required ScriptMetadataStorage ScriptMetadata { get; init; }
     public required FieldManager.Factory FieldFactory { private get; init; }
     public required Lua.Lua Lua { private get; init; }
     public required ItemStatsCalculator ItemStatsCalc { private get; init; }
@@ -78,6 +80,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public GameEventUserValueManager GameEventUserValue { get; set; }
     public ExperienceManager Exp { get; set; }
     public AchievementManager Achievement { get; set; }
+    public QuestManager Quest { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
 
@@ -126,6 +129,7 @@ public sealed partial class GameSession : Core.Network.Session {
         GameEventUserValue = new GameEventUserValueManager(this);
         Exp = new ExperienceManager(this, Lua);
         Achievement = new AchievementManager(this);
+        Quest = new QuestManager(this);
         Guild = new GuildManager(this);
         Config = new ConfigManager(db, this);
         Buddy = new BuddyManager(db, this);
@@ -180,7 +184,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Item.Inventory.Load();
         Item.Furnishing.Load();
         // Load Quests
-        Send(QuestPacket.StartLoad(0));
+        Quest.Load();
         // Send(QuestPacket.LoadSkyFortressMissions(Array.Empty<int>()));
         // Send(QuestPacket.LoadKritiasMissions(Array.Empty<int>()));
         Send(QuestPacket.LoadQuestStates(player.Unlock.Quests.Values));
@@ -308,6 +312,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Send(PremiumCubPacket.Activate(Player.ObjectId, Player.Value.Account.PremiumTime));
         Send(PremiumCubPacket.LoadItems(Player.Value.Account.PremiumRewardsClaimed));
         Achievement.Update(AchievementConditionType.map, codeLong: Player.Value.Character.MapId);
+        Quest.Update(QuestConditionType.map, codeLong: Player.Value.Character.MapId);
         return true;
     }
 
@@ -408,6 +413,7 @@ public sealed partial class GameSession : Core.Network.Session {
                 Housing.Save(db);
                 GameEventUserValue.Save(db);
                 Achievement.Save(db);
+                Quest.Save(db);
             }
 
             base.Dispose(disposing);

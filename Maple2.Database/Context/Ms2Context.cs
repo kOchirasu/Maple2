@@ -34,6 +34,7 @@ public sealed class Ms2Context : DbContext {
     internal DbSet<BeautyShop> BeautyShop { get; set; } = null!;
     internal DbSet<BeautyShopEntry> BeautyShopEntry { get; set; } = null!;
     internal DbSet<Achievement> Achievement { get; set; } = null!;
+    internal DbSet<Quest> Quest { get; set; } = null!;
 
     public Ms2Context(DbContextOptions options) : base(options) { }
 
@@ -59,6 +60,7 @@ public sealed class Ms2Context : DbContext {
         modelBuilder.Entity<UgcResource>(Maple2.Database.Model.UgcResource.Configure);
         modelBuilder.Entity<Mail>(Maple2.Database.Model.Mail.Configure);
         modelBuilder.Entity<Achievement>(Maple2.Database.Model.Achievement.Configure);
+        modelBuilder.Entity<Quest>(Maple2.Database.Model.Quest.Configure);
 
         modelBuilder.Entity<MesoListing>(MesoListing.Configure);
         modelBuilder.Entity<SoldMesoListing>(SoldMesoListing.Configure);

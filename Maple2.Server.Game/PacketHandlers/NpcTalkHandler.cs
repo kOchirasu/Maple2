@@ -1,5 +1,7 @@
-﻿using Maple2.Database.Storage;
+﻿using System.Linq;
+using Maple2.Database.Storage;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -22,7 +24,7 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
         Enchant = 6,
         Quest = 7,
         AcceptAllianceQuest = 8,
-        TalkAllianceQuest = 9,
+        TalkAlliance = 9,
         Custom = 11,
     }
 
@@ -56,10 +58,13 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
             case Command.Enchant:
                 return;
             case Command.Quest:
+                HandleQuest(session, packet);
                 return;
             case Command.AcceptAllianceQuest:
+                HandleAcceptAllianceQuest(session, packet);
                 return;
-            case Command.TalkAllianceQuest:
+            case Command.TalkAlliance:
+                HandleTalkAlliance(session);
                 return;
             case Command.Custom:
                 return;
@@ -96,8 +101,8 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
             return;
         }
 
-        var scriptContext = new NpcScriptContext(session, npc, metadata);
-        session.NpcScript = scriptLoader.Get(npc.Value.Id, scriptContext);
+        var scriptContext = new NpcScriptContext(session);
+        session.NpcScript = scriptLoader.GetNpc(session, scriptContext, npc, metadata);
         if (session.NpcScript == null) {
             session.Send(NpcTalkPacket.Respond(npc, NpcTalkType.None, default));
             return;
@@ -111,14 +116,105 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
 
     private void HandleContinue(GameSession session, IByteReader packet) {
         // Not talking to an Npc.
-        if (session.NpcScript == null) {
+         if (session.NpcScript == null) {
             return;
         }
 
+        session.NpcScript.ExitState();
         int pick = packet.ReadInt();
+
+        /* The ordering is
+        / Quests
+        / Dialog
+        / Talk */
+        int addedOptions = 0;
+        if (session.NpcScript.TalkType.HasFlag(NpcTalkType.Select)) {
+            if (session.NpcScript.TalkType.HasFlag(NpcTalkType.Quest)) {
+                addedOptions += session.NpcScript.Quests.Count;
+                // Picked quest
+                if (pick < addedOptions) {
+                    FieldNpc npc = session.NpcScript.Npc;
+                    if (!session.ScriptMetadata.TryGet(session.NpcScript.Quests.ElementAt(pick).Value.Id, out ScriptMetadata? metadata)) {
+                        session.Send(NpcTalkPacket.Respond(npc, NpcTalkType.None, default));
+                        session.NpcScript = null;
+                        return;
+                    }
+                    var scriptContext = new NpcScriptContext(session);
+                    session.NpcScript = scriptLoader.GetQuest(session, scriptContext, npc, metadata);
+                    if (session.NpcScript == null) {
+                        session.Send(NpcTalkPacket.Respond(npc, NpcTalkType.None, default));
+                        return;
+                    }
+                    
+                    if (!session.NpcScript.BeginQuest()) {
+                        session.NpcScript = null;
+                    }
+                    return;
+                }
+            }
+            if (session.NpcScript.TalkType.HasFlag(NpcTalkType.Dialog)) {
+                addedOptions++;
+                if (pick < addedOptions) {
+                    session.NpcScript.EnterDialog();
+                    session.Send(NpcTalkPacket.Continue(session.NpcScript.TalkType, new NpcDialogue(session.NpcScript.State, session.NpcScript.Index, session.NpcScript.Button)));
+                    return;
+                }
+            }
+            
+            session.NpcScript.EnterTalk();
+            session.Send(NpcTalkPacket.Continue(session.NpcScript.TalkType, new NpcDialogue(session.NpcScript.State, session.NpcScript.Index, session.NpcScript.Button)));
+            return;
+        }
+        
+        
         // Attempt to Continue, if |false|, the dialogue has terminated.
         if (!session.NpcScript.Continue(pick)) {
             session.NpcScript = null;
         }
+    }
+    
+    private void HandleQuest(GameSession session, IByteReader packet) {
+        if (session.NpcScript == null) {
+            return;
+        }
+        
+        int questId = packet.ReadInt();
+        short subMode = packet.ReadShort(); // 2 or 0. 2 = Start quest, 0 = Complete quest.
+        
+        FieldNpc npc = session.NpcScript.Npc;
+        if (!session.ScriptMetadata.TryGet(questId, out ScriptMetadata? metadata)) {
+            session.Send(NpcTalkPacket.Respond(npc, NpcTalkType.None, default));
+            session.NpcScript = null;
+            return;
+        }
+        var scriptContext = new NpcScriptContext(session);
+        session.NpcScript = scriptLoader.GetQuest(session, scriptContext, npc, metadata);
+        if (session.NpcScript == null) {
+            session.Send(NpcTalkPacket.Respond(npc, NpcTalkType.None, default));
+            return;
+        }
+                    
+        if (!session.NpcScript.BeginQuest()) {
+            session.NpcScript = null;
+        }
+    }
+
+    private void HandleAcceptAllianceQuest(GameSession session, IByteReader packet) {
+        if (session.NpcScript == null) {
+            return;
+        }
+        
+        int questId = packet.ReadInt();
+        short subMode = packet.ReadShort(); // 2 or 0. 2 = Start quest, 0 = Complete quest.
+        
+        // similar to HandleQuest but we'll need to check questId against the available quests for the player.
+    }
+
+    private void HandleTalkAlliance(GameSession session) {
+        if (session.NpcScript == null) {
+            return;
+        }
+        session.NpcScript.EnterTalk();
+        session.Send(NpcTalkPacket.AllianceTalk(session.NpcScript.TalkType, new NpcDialogue(session.NpcScript.State, session.NpcScript.Index, session.NpcScript.Button)));
     }
 }
