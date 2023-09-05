@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Autofac;
+using Maple2.Database.Storage;
 using Maple2.Model.Game;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
@@ -15,11 +16,17 @@ public class LoginServer : Server<LoginSession> {
     private readonly object mutex = new();
     private readonly HashSet<LoginSession> connectingSessions;
     private readonly Dictionary<long, LoginSession> sessions;
+    private readonly IList<SystemBanner> bannerCache;
+    private readonly GameStorage gameStorage;
 
-    public LoginServer(PacketRouter<LoginSession> router, IComponentContext context)
+    public LoginServer(PacketRouter<LoginSession> router, IComponentContext context, GameStorage gameStorage)
             : base(Target.LoginPort, router, context) {
         connectingSessions = new HashSet<LoginSession>();
         sessions = new Dictionary<long, LoginSession>();
+        
+        this.gameStorage = gameStorage;
+        using GameStorage.Request db = this.gameStorage.Context();
+        bannerCache = db.GetBanners();
     }
 
     public override void OnConnected(LoginSession session) {
@@ -50,6 +57,8 @@ public class LoginServer : Server<LoginSession> {
         Logger.Information("Login client connected: {Session}", session);
         session.Start();
     }
+
+    public IList<SystemBanner> GetSystemBanners() => bannerCache;
 
     public override Task StopAsync(CancellationToken cancellationToken) {
         lock (mutex) {

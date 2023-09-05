@@ -375,6 +375,18 @@ public sealed class AchievementManager {
         }
     }
 
+    public bool HasAchievement(int achievementId, int grade = -1) {
+        if (!TryGetAchievement(achievementId, out Achievement? achievement)) {
+            return false;
+        }
+
+        if (grade <= 0) {
+            return achievement.Grades.Count > 0;
+        }
+
+        return achievement.Grades.ContainsKey(grade);
+    }
+
     public void Save(GameStorage.Request db) {
         db.SaveAchievements(session.AccountId, accountValues.Values.ToList());
         db.SaveAchievements(session.CharacterId, characterValues.Values.ToList());

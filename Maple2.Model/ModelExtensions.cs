@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
@@ -12,6 +14,38 @@ public static class ModelExtensions {
 
     public static bool IsAwakening(this Job job) {
         return ((int) job % 10) != 0;
+    }
+
+    public static JobFilterFlag FilterFlag(this JobCode job) {
+        return job switch {
+            JobCode.None => JobFilterFlag.None,
+            JobCode.Newbie => JobFilterFlag.Newbie,
+            JobCode.Knight => JobFilterFlag.Knight,
+            JobCode.Berserker => JobFilterFlag.Berserker,
+            JobCode.Wizard => JobFilterFlag.Wizard,
+            JobCode.Priest => JobFilterFlag.Priest,
+            JobCode.Archer => JobFilterFlag.Archer,
+            JobCode.HeavyGunner => JobFilterFlag.HeavyGunner,
+            JobCode.Thief => JobFilterFlag.Thief,
+            JobCode.Assassin => JobFilterFlag.Assassin,
+            JobCode.RuneBlader => JobFilterFlag.RuneBlader,
+            JobCode.Striker => JobFilterFlag.Striker,
+            JobCode.SoulBinder => JobFilterFlag.SoulBinder,
+            _ => throw new ArgumentOutOfRangeException(nameof(job), job, "Invalid JobCode"),
+        };
+    }
+
+    public static JobFilterFlag FilterFlags(this IEnumerable<JobCode> jobs) {
+        return jobs.Aggregate(JobFilterFlag.None, (current, job) => current | job.FilterFlag());
+    }
+
+    public static GenderFilterFlag FilterFlag(this Gender gender) {
+        return gender switch {
+            Gender.Male => GenderFilterFlag.Male,
+            Gender.Female => GenderFilterFlag.Female,
+            Gender.All => GenderFilterFlag.All,
+            _ => throw new ArgumentOutOfRangeException(nameof(gender), gender, "Invalid Gender"),
+        };
     }
 
     public static InventoryType Inventory(this ItemMetadata metadata) {
@@ -42,7 +76,7 @@ public static class ModelExtensions {
             21 => InventoryType.Lapenshard,
             22 => InventoryType.Misc, // Blueprint
             _ => throw new ArgumentException(
-                $"Unknown Tab for: {metadata.Property.Type},{metadata.Property.SubType}")
+                $"Unknown Tab for: {metadata.Property.Type},{metadata.Property.SubType}"),
         };
     }
 

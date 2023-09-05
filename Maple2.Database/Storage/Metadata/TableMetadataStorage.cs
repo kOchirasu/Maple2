@@ -27,6 +27,7 @@ public class TableMetadataStorage {
     private readonly Lazy<PremiumClubTable> premiumClubTable;
     private readonly Lazy<IndividualItemDropTable> individualItemDropTable;
     private readonly Lazy<ColorPaletteTable> colorPaletteTable;
+    private readonly Lazy<MeretMarketCategoryTable> meretMarketCategoryTable;
     private readonly Lazy<ShopBeautyCouponTable> shopBeautyCouponTable;
     private readonly Lazy<GachaInfoTable> gachaInfoTable;
     private readonly Lazy<InsigniaTable> insigniaTable;
@@ -71,6 +72,7 @@ public class TableMetadataStorage {
     public PremiumClubTable PremiumClubTable => premiumClubTable.Value;
     public IndividualItemDropTable IndividualItemDropTable => individualItemDropTable.Value;
     public ColorPaletteTable ColorPaletteTable => colorPaletteTable.Value;
+    public MeretMarketCategoryTable MeretMarketCategoryTable => meretMarketCategoryTable.Value;
     public ShopBeautyCouponTable ShopBeautyCouponTable => shopBeautyCouponTable.Value;
     public GachaInfoTable GachaInfoTable => gachaInfoTable.Value;
     public InsigniaTable InsigniaTable => insigniaTable.Value;
@@ -116,6 +118,7 @@ public class TableMetadataStorage {
         premiumClubTable = Retrieve<PremiumClubTable>(context, "vip*.xml");
         individualItemDropTable = Retrieve<IndividualItemDropTable>(context, "individualitemdrop*.xml");
         colorPaletteTable = Retrieve<ColorPaletteTable>(context, "colorpalette.xml");
+        meretMarketCategoryTable = Retrieve<MeretMarketCategoryTable>(context, "meretmarketcategory.xml");
         shopBeautyCouponTable = Retrieve<ShopBeautyCouponTable>(context, "shop_beautycoupon.xml");
         gachaInfoTable = Retrieve<GachaInfoTable>(context, "gacha_info.xml");
         insigniaTable = Retrieve<InsigniaTable>(context, "nametagsymbol.xml");
