@@ -387,7 +387,7 @@ public sealed class QuestManager {
     /// </summary>
     public SortedDictionary<int, QuestMetadata> GetAvailableQuests(int npcId) {
         var results = new SortedDictionary<int, QuestMetadata>();
-        ICollection<QuestMetadata> allQuests = session.QuestMetadata.GetQuestsByNpc(npcId);
+        IEnumerable<QuestMetadata> allQuests = session.QuestMetadata.GetQuestsByNpc(npcId);
 
         // Get any new quests that can be started
         foreach (QuestMetadata metadata in allQuests) {

@@ -65,7 +65,7 @@ public class ScriptMapper : TypeMapper<ScriptMetadata> {
             if (states.Count == 0) {
                 continue;
             }
-            
+
             yield return new ScriptMetadata(Id: id, Type: ScriptType.Quest, States: states);
         }
     }

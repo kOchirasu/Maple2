@@ -101,7 +101,7 @@ public class NpcScriptGenerator {
                 // The Npc is not included in FeatureLocale, so skip generating the script.
                 continue;
             }
-            
+
             bool hasChoice = false;
             bool hasMultipleSelects = data.select.Count > 1;
             bool hasJobScript = data.job != null;
@@ -116,12 +116,11 @@ public class NpcScriptGenerator {
                 hasChoice = talkScript.content.Any(content =>
                     content.distractor.Any(distractor => distractor.@goto.Length + distractor.gotoFail.Length > 1));
             }
-            
+
             if (!hasChoice && !hasMultipleSelects && !hasJobScript && !multiplePicks && functions.Length == 0) {
                 Console.WriteLine($"Skipping: {id} due to no data");
                 continue;
             }
-            
 
 
             var index = new IndexedNpcScript(data, npc);
@@ -148,7 +147,7 @@ public class NpcScriptGenerator {
             //     BlankLine(writer);
             // }
 
-            if (data.job != null && 
+            if (data.job != null &&
                 data.job.content.Any(content => content.distractor.Any(distractor => distractor.@goto.Length + distractor.gotoFail.Length > 1))) {
                 writer.WriteLine("# Job");
                 GenerateCase(data.job.id, writer, data.job);
@@ -186,14 +185,14 @@ public class NpcScriptGenerator {
             stream.Flush();
         }
 
-        
+
         foreach ((int id, QuestScript data) in scriptParser.ParseQuest()) {
             // No scripts for this quest
             if (data.script.Count == 0) {
                 // Console.WriteLine($"Skipping: {id}");
                 continue;
             }
-        
+
             bool hasData = false;
             int[] functions = data.script.SelectMany(script => script.content.Where(content => content.functionID != 0).Select(content => content.functionID)).Distinct().ToArray();
             foreach (QuestTalkScript talkScript in data.script) {
@@ -205,31 +204,31 @@ public class NpcScriptGenerator {
                     hasData = true;
                 }
             }
-        
+
             if (!hasData) {
                 Console.WriteLine($"Skipping: {id} due to no data");
                 continue;
             }
-        
+
             //Console.WriteLine($"Processing: {id}");
             (string npcName, QuestData? quest) = quests.GetValueOrDefault(id);
             if (quest == null) {
                 // The Quest is not included in FeatureLocale, so skip generating the script.
                 continue;
             }
-        
+
             var stream = new StreamWriter($"Scripts/Quest/{id}.py");
             var writer = new IndentedTextWriter(stream, "    ");
             writer.WriteLine(string.IsNullOrWhiteSpace(npcName) ? $@""""""" {id} """"""" : $@""""""" {id}: {npcName} """"""");
-        
+
             writer.WriteLine("from npc_api import Script");
             writer.WriteLine("import random");
             BlankLine(writer);
             BlankLine(writer);
-        
+
             writer.WriteLine("class Main(Script):");
             writer.Indent++;
-        
+
             foreach (QuestTalkScript talkScript in data.script) {
                 // Distractors have "goto" which may need scripting.
                 bool hasChoice = talkScript.content.Any(content =>
@@ -240,13 +239,13 @@ public class NpcScriptGenerator {
                     BlankLine(writer);
                 }
             }
-            
+
             if (functions.Length > 0) {
                 GenerateEnterExitStates(writer, functions);
             }
-        
+
             writer.Indent--;
-        
+
             writer.Flush();
             stream.Flush();
         }
@@ -371,7 +370,7 @@ public class NpcScriptGenerator {
 
     private void GenerateCase(int id, IndentedTextWriter writer, TalkScript script) {
         Debug.Assert(script.content.Count > 0);
-        
+
         var conditionScript = script as ConditionTalkScript;
         writer.WriteLine($"def __{id}(self, index: int, pick: int) -> int:");
         writer.Indent++;
@@ -525,7 +524,7 @@ public class NpcScriptGenerator {
         }
         writer.WriteLine("return");
         writer.Indent--;
-        
+
         writer.WriteLine("def enter_state(self, functionId: int):");
         writer.Indent++;
         foreach (int functionId in functionIds) {

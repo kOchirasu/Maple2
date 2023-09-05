@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
@@ -20,8 +19,7 @@ public class NpcScript {
 
     public NpcTalkType TalkType;
     public NpcTalkButton Button;
-    
-    // Need to find a way to remove this. It's mainly used if the
+
     private ScriptState? ScriptState { get; set; }
     public int State { get; private set; } = -1;
     public int Index { get; private set; } = 0;
@@ -101,7 +99,7 @@ public class NpcScript {
         session.Send(NpcTalkPacket.Continue(TalkType, dialogue, questId));
         return true;
     }
-    
+
     public void EnterState() {
         int functionId = GetFunctionId;
         if (functionId > 0 && script != null) {
@@ -219,7 +217,7 @@ public class NpcScript {
             case >= 105 and <= 107: // Kritias
             case 108: // Humanitas
                 TalkType = NpcTalkType.Dialog;
-                State = selectState?.Id ?? 0; 
+                State = selectState?.Id ?? 0;
                 ScriptState = selectState;
                 return true;
         }
@@ -230,7 +228,7 @@ public class NpcScript {
             ScriptState = selectState;
             return true;
         }
-        
+
         if (TalkType.HasFlag(NpcTalkType.Quest)) {
             if (questState == null) {
                 return false;

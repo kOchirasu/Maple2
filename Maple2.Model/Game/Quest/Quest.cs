@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
@@ -42,7 +41,7 @@ public class Quest : IByteSerializable {
 public class QuestCondition {
     public readonly QuestMetadataCondition Metadata;
     public int Counter;
-    
+
     public QuestCondition(QuestMetadataCondition metadata) {
         Metadata = metadata;
     }

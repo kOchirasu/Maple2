@@ -2,7 +2,6 @@
 using M2dXmlGenerator;
 using Maple2.File.IO;
 using Maple2.File.Parser;
-using Maple2.File.Parser.Enum;
 using Maple2.File.Parser.Xml.Quest;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;

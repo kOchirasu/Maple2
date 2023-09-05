@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
@@ -22,7 +21,7 @@ public class Quest {
         Conditions = new SortedDictionary<int, QuestCondition>();
     }
 
-    [return:NotNullIfNotNull(nameof(other))]
+    [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator Quest?(Maple2.Model.Game.Quest? other) {
         if (other == null) {
             return null;
@@ -35,7 +34,7 @@ public class Quest {
             EndTime = other.EndTime,
             Track = other.Track,
         };
-        
+
         foreach ((int index, QuestCondition condition) in other.Conditions) {
             quest.Conditions.Add(index, condition);
         }
@@ -52,30 +51,33 @@ public class Quest {
             EndTime = EndTime,
             Track = Track,
         };
-        
+
         for (int i = 0; i < Conditions.Count; i++) {
             quest.Conditions.Add(i, Conditions[i].Convert(metadata.Conditions[i]));
         }
 
         return quest;
     }
-    
+
     public static void Configure(EntityTypeBuilder<Quest> builder) {
-        builder.HasKey(quest => new {quest.OwnerId, quest.Id});
+        builder.HasKey(quest => new {
+            quest.OwnerId,
+            quest.Id
+        });
         builder.Property(quest => quest.Conditions).HasJsonConversion().IsRequired();
     }
 }
 
 public class QuestCondition {
     public int Counter { get; set; }
-    
-    [return:NotNullIfNotNull(nameof(other))]
+
+    [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator QuestCondition?(Maple2.Model.Game.QuestCondition? other) {
         return other == null ? null : new QuestCondition {
             Counter = other.Counter,
         };
     }
-    
+
     // Use explicit Convert() here because we need metadata to construct Quest.
     public Maple2.Model.Game.QuestCondition Convert(QuestMetadataCondition metadata) {
         return new Maple2.Model.Game.QuestCondition(metadata) {

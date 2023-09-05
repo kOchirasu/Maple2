@@ -179,7 +179,7 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
         }
         
         int questId = packet.ReadInt();
-        short subMode = packet.ReadShort(); // 2 or 0. 2 = Start quest, 0 = Complete quest.
+        packet.ReadShort(); // 2 or 0. 2 = Start quest, 0 = Complete quest.
         
         FieldNpc npc = session.NpcScript.Npc;
         if (!session.ScriptMetadata.TryGet(questId, out ScriptMetadata? metadata)) {
@@ -205,9 +205,9 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
         }
         
         int questId = packet.ReadInt();
-        short subMode = packet.ReadShort(); // 2 or 0. 2 = Start quest, 0 = Complete quest.
+        packet.ReadShort(); // 2 or 0. 2 = Start quest, 0 = Complete quest.
         
-        // similar to HandleQuest but we'll need to check questId against the available quests for the player.
+        // TODO: similar to HandleQuest but we'll need to check questId against the available quests for the player.
     }
 
     private void HandleTalkAlliance(GameSession session) {
