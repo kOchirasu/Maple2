@@ -305,10 +305,6 @@ namespace Maple2.Server.World.Migrations
                         .IsRequired()
                         .HasColumnType("json");
 
-                    b.Property<string>("Quests")
-                        .IsRequired()
-                        .HasColumnType("json");
-
                     b.Property<string>("StickerSets")
                         .IsRequired()
                         .HasColumnType("json");
@@ -911,6 +907,38 @@ namespace Maple2.Server.World.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("premium-market-item", (string)null);
+                });
+
+            modelBuilder.Entity("Maple2.Database.Model.Quest", b =>
+                {
+                    b.Property<long>("OwnerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CompletionCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Conditions")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<long>("EndTime")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("StartTime")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("State")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Track")
+                        .HasColumnType("tinyint(1)");
+
+                    b.HasKey("OwnerId", "Id");
+
+                    b.ToTable("Quest");
                 });
 
             modelBuilder.Entity("Maple2.Database.Model.Shop.BeautyShop", b =>
