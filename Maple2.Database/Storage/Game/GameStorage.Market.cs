@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
+using Maple2.Model.Metadata;
 using MesoListing = Maple2.Model.Game.MesoListing;
+using PremiumMarketItem = Maple2.Model.Game.PremiumMarketItem;
 
 namespace Maple2.Database.Storage;
 
@@ -53,6 +55,31 @@ public partial class GameStorage {
 
             Context.MesoMarket.Remove(listing);
             return Context.TrySaveChanges();
+        }
+
+        public ICollection<PremiumMarketItem> GetMarketItems() {
+            IList<PremiumMarketItem> selectedResults = Context.PremiumMarketItem
+                .Where(entry => entry.ParentId == 0)
+                .AsEnumerable()
+                .Select(ToMarketEntry)
+                .ToList()!;
+            
+            foreach (PremiumMarketItem marketEntry in selectedResults) {
+                marketEntry.AdditionalQuantities = Context.PremiumMarketItem
+                    .Where(subEntry => subEntry.ParentId == marketEntry.Id)
+                    .AsEnumerable()
+                    .Select(ToMarketEntry)
+                    .ToList()!;
+            }
+            return selectedResults;
+        }
+
+        private PremiumMarketItem? ToMarketEntry(Model.PremiumMarketItem? model) {
+            if (model == null) {
+                return null;
+            }
+
+            return game.itemMetadata.TryGet(model.ItemId, out ItemMetadata? metadata) ? model.Convert(metadata) : null;
         }
     }
 }
