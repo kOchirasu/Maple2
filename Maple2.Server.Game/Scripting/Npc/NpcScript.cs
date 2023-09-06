@@ -35,6 +35,7 @@ public class NpcScript {
         if (!SetInitialScript()) {
             return false;
         }
+        EnterState();
         NpcRespond();
         return true;
     }
@@ -149,7 +150,6 @@ public class NpcScript {
         }
 
         session.Send(NpcTalkPacket.Respond(Npc, TalkType, dialogue));
-        return;
     }
 
     private bool QuestRespond() {
