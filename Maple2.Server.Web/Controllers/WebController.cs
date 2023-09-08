@@ -68,7 +68,7 @@ public class WebController : ControllerBase {
         string filePath = $"{RootDir}/profiles/{characterId}/";
         try {
             // Deleting old files in the character folder
-            if (System.IO.File.Exists(filePath)) {
+            if (Path.Exists(filePath)) {
                 Directory.Delete(filePath, true);
             }
             Directory.CreateDirectory(filePath);
