@@ -36,6 +36,7 @@ public class QuestMapper : TypeMapper<QuestMetadata> {
                     EventTag: data.basic.eventTag,
                     AutoStart: data.basic.autoStart,
                     Disabled: data.basic.locking,
+                    UsePostbox: data.basic.usePostbox,
                     StartNpc: data.start?.npc ?? 0,
                     CompleteNpc: data.complete?.npc ?? 0,
                     CompleteMaps: data.complete?.map,
@@ -65,7 +66,7 @@ public class QuestMapper : TypeMapper<QuestMetadata> {
                     Type: (ConditionType) condition.type,
                     Value: condition.value,
                     Codes: condition.code.ConvertCodes(),
-                    Target: condition.code.ConvertCodes(),
+                    Target: condition.target.ConvertCodes(),
                     PartyCount: condition.partyCount,
                     GuildPartyCount: condition.guildPartyCount
                 )).ToArray()

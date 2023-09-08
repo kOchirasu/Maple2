@@ -120,6 +120,7 @@ public static class ConditionUtil {
             case ConditionType.gemstone_upgrade:
             case ConditionType.socket_unlock:
             case ConditionType.level_up:
+            case ConditionType.level:
                 if (target.Integers != null && target.Integers.Any(value => longValue >= value)) {
                     return true;
                 }
@@ -148,7 +149,6 @@ public static class ConditionUtil {
             case ConditionType.beauty_random:
             case ConditionType.beauty_style_add:
             case ConditionType.beauty_style_apply:
-            case ConditionType.level:
             case ConditionType.trigger:
                 return true;
         }

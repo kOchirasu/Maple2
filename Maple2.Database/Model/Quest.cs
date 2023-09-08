@@ -29,6 +29,7 @@ internal class Quest {
             StartTime = other.StartTime,
             EndTime = other.EndTime,
             Track = other.Track,
+            Conditions = new SortedDictionary<int, QuestCondition>(),
         };
 
         foreach ((int index, QuestCondition condition) in other.Conditions) {

@@ -35,8 +35,8 @@ public class NpcScript {
         if (!SetInitialScript()) {
             return false;
         }
-        EnterState();
         NpcRespond();
+        EnterState();
         return true;
     }
 
@@ -51,7 +51,6 @@ public class NpcScript {
             TalkType = NpcTalkType.Talk;
             State = 0;
             Button = GetButton();
-            session.Send(NpcTalkPacket.Continue(TalkType, new NpcDialogue(State, Index, Button)));
             return;
         }
 
@@ -196,7 +195,7 @@ public class NpcScript {
                 options++;
             }
             TalkType |= NpcTalkType.Dialog;
-        } else {
+        } else if (scriptState != null) {
             TalkType |= NpcTalkType.Talk;
             options++;
         }

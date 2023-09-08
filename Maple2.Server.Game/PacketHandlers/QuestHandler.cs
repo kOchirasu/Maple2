@@ -1,6 +1,7 @@
 ﻿using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.PacketHandlers;
@@ -56,8 +57,15 @@ public class QuestHandler : PacketHandler<GameSession> {
         int questId = packet.ReadInt();
         int npcObjectId = packet.ReadInt();
 
-        if (session.Field == null || !session.Field.Npcs.TryGetValue(npcObjectId, out FieldNpc? npc)) {
-            return; // Invalid Npc
+        if (!session.QuestMetadata.TryGet(questId, out QuestMetadata? metadata)) {
+            return;
+        }
+
+        bool isPostbox = npcObjectId == 0 && metadata.Basic.UsePostbox;
+        bool fieldNpcExists = session.Field != null && session.Field.Npcs.TryGetValue(npcObjectId, out FieldNpc? _);
+
+        if (!isPostbox && !fieldNpcExists) {
+            return;
         }
 
         session.Quest.Start(questId);

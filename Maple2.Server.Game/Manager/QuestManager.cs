@@ -58,7 +58,7 @@ public sealed class QuestManager {
                 continue;
             }
 
-            if (metadata.Basic.CompleteMaps?.Length != 0) {
+            if (metadata.Basic.CompleteMaps != null && metadata.Basic.CompleteMaps.Length != 0) {
                 continue;
             }
 
@@ -70,7 +70,6 @@ public sealed class QuestManager {
             if (metadata.Basic.EventTag != string.Empty) {
                 continue;
             }
-
 
             var quest = new Quest(metadata) {
                 Track = true,
@@ -142,7 +141,7 @@ public sealed class QuestManager {
         using GameStorage.Request db = session.GameStorage.Context();
         quest = db.CreateQuest(session.CharacterId, quest);
         if (quest == null) {
-            Console.WriteLine($"Quest ID was not created: {metadata.Id}");
+            logger.Error("Failed to create quest entry {questId}", metadata.Id);
             return;
         }
         Add(quest);
@@ -175,9 +174,10 @@ public sealed class QuestManager {
         IEnumerable<Quest> quests = characterValues.Values.Where(quest => quest.State != QuestState.Completed)
             .Concat(accountValues.Values.Where(quest => quest.State != QuestState.Completed));
         foreach (Quest quest in quests) {
-            if (quest.Metadata.Basic.ProgressMaps != null && !quest.Metadata.Basic.ProgressMaps.Contains(session.Player.Value.Character.MapId)) {
+            // TODO: Not sure if ProgressMap really means that only progress counts in this map. It doesn't make sense for some quests.
+            /*if (quest.Metadata.Basic.ProgressMaps != null && !quest.Metadata.Basic.ProgressMaps.Contains(session.Player.Value.Character.MapId)) {
                 continue;
-            }
+            }*/
             foreach (Quest.Condition condition in quest.Conditions.Values.Where(condition => condition.Metadata.Type == type)) {
                 // Already meets the requirement and does not need to be updated
                 if (condition.Counter >= condition.Metadata.Value) {

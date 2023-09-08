@@ -70,7 +70,7 @@ public class NpcScriptContext {
         db.Commit();
 
         foreach (Item item in created) {
-            Session.Item.Inventory.Add(item);
+            Session.Item.Inventory.Add(item, true);
         }
         Session.Send(NpcTalkPacket.RewardItem(created));
         return true;

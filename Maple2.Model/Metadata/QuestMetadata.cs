@@ -24,6 +24,7 @@ public record QuestMetadataBasic(
     string EventTag,
     bool AutoStart,
     bool Disabled,
+    bool UsePostbox, // quest is sent to player remotely
     int StartNpc,
     int CompleteNpc,
     int[]? CompleteMaps,
