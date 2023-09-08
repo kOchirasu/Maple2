@@ -18,8 +18,8 @@ namespace Maple2.Server.World.Migrations
                 name: "Quest",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false),
                     OwnerId = table.Column<long>(type: "bigint", nullable: false),
+                    Id = table.Column<int>(type: "int", nullable: false),
                     State = table.Column<int>(type: "int", nullable: false),
                     CompletionCount = table.Column<int>(type: "int", nullable: false),
                     StartTime = table.Column<long>(type: "bigint", nullable: false),
@@ -45,7 +45,8 @@ namespace Maple2.Server.World.Migrations
                 name: "Quests",
                 table: "character-unlock",
                 type: "json",
-                nullable: false)
+                nullable: false,
+                defaultValue: "[]")
                 .Annotation("MySql:CharSet", "utf8mb4");
         }
     }

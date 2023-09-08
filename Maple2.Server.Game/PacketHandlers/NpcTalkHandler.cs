@@ -145,42 +145,46 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
                         session.Send(NpcTalkPacket.Respond(npc, NpcTalkType.None, default));
                         return;
                     }
-                    
+
                     if (!session.NpcScript.BeginQuest()) {
                         session.NpcScript = null;
                     }
                     return;
                 }
             }
+
+            NpcDialogue dialogue;
             if (session.NpcScript.TalkType.HasFlag(NpcTalkType.Dialog)) {
                 addedOptions++;
                 if (pick < addedOptions) {
                     session.NpcScript.EnterDialog();
-                    session.Send(NpcTalkPacket.Continue(session.NpcScript.TalkType, new NpcDialogue(session.NpcScript.State, session.NpcScript.Index, session.NpcScript.Button)));
+                    dialogue = new NpcDialogue(session.NpcScript.State, session.NpcScript.Index, session.NpcScript.Button);
+                    session.Send(NpcTalkPacket.Continue(session.NpcScript.TalkType, dialogue));
                     return;
                 }
             }
-            
+
             session.NpcScript.EnterTalk();
-            session.Send(NpcTalkPacket.Continue(session.NpcScript.TalkType, new NpcDialogue(session.NpcScript.State, session.NpcScript.Index, session.NpcScript.Button)));
+            dialogue = new NpcDialogue(session.NpcScript.State, session.NpcScript.Index, session.NpcScript.Button);
+            session.Send(NpcTalkPacket.Continue(session.NpcScript.TalkType, dialogue));
             return;
         }
-        
-        
+
+
         // Attempt to Continue, if |false|, the dialogue has terminated.
         if (!session.NpcScript.Continue(pick)) {
             session.NpcScript = null;
         }
     }
-    
+
     private void HandleQuest(GameSession session, IByteReader packet) {
         if (session.NpcScript == null) {
             return;
         }
-        
+
         int questId = packet.ReadInt();
         packet.ReadShort(); // 2 or 0. 2 = Start quest, 0 = Complete quest.
-        
+
         FieldNpc npc = session.NpcScript.Npc;
         if (!session.ScriptMetadata.TryGet(questId, out ScriptMetadata? metadata)) {
             session.Send(NpcTalkPacket.Respond(npc, NpcTalkType.None, default));
@@ -193,7 +197,7 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
             session.Send(NpcTalkPacket.Respond(npc, NpcTalkType.None, default));
             return;
         }
-                    
+
         if (!session.NpcScript.BeginQuest()) {
             session.NpcScript = null;
         }
@@ -203,10 +207,10 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
         if (session.NpcScript == null) {
             return;
         }
-        
+
         int questId = packet.ReadInt();
         packet.ReadShort(); // 2 or 0. 2 = Start quest, 0 = Complete quest.
-        
+
         // TODO: similar to HandleQuest but we'll need to check questId against the available quests for the player.
     }
 
@@ -215,6 +219,7 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
             return;
         }
         session.NpcScript.EnterTalk();
-        session.Send(NpcTalkPacket.AllianceTalk(session.NpcScript.TalkType, new NpcDialogue(session.NpcScript.State, session.NpcScript.Index, session.NpcScript.Button)));
+        var dialogue = new NpcDialogue(session.NpcScript.State, session.NpcScript.Index, session.NpcScript.Button);
+        session.Send(NpcTalkPacket.AllianceTalk(session.NpcScript.TalkType, dialogue));
     }
 }

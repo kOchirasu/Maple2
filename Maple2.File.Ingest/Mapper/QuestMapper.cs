@@ -61,11 +61,11 @@ public class QuestMapper : TypeMapper<QuestMetadata> {
                     State: (QuestState) data.gotoDungeon.state,
                     MapId: data.gotoDungeon.gotoDungeon,
                     InstanceId: data.gotoDungeon.gotoInstanceID),
-                Conditions: data.condition.Select(condition => new QuestMetadataCondition(
+                Conditions: data.condition.Select(condition => new ConditionMetadata(
                     Type: (ConditionType) condition.type,
-                    Codes: GetParameters(condition.code),
-                    Target: GetParameters(condition.target),
                     Value: condition.value,
+                    Codes: condition.code.ConvertCodes(),
+                    Target: condition.code.ConvertCodes(),
                     PartyCount: condition.partyCount,
                     GuildPartyCount: condition.guildPartyCount
                 )).ToArray()
@@ -73,7 +73,7 @@ public class QuestMapper : TypeMapper<QuestMetadata> {
         }
     }
 
-    private QuestMetadataReward Convert(Reward reward) {
+    private static QuestMetadataReward Convert(Reward reward) {
         List<Reward.Item> essentialItem = reward.essentialItem;
         List<Reward.Item> essentialJobItem = reward.essentialJobItem;
         if (FeatureLocaleFilter.FeatureEnabled("GlobalQuestRewardItem")) {
@@ -84,7 +84,7 @@ public class QuestMapper : TypeMapper<QuestMetadata> {
         return new QuestMetadataReward(
             Meso: reward.money,
             Exp: reward.exp,
-            RelativeExp: (Model.Enum.ExpType) reward.relativeExp,
+            RelativeExp: (ExpType) reward.relativeExp,
             GuildFund: reward.guildFund,
             GuildExp: reward.guildExp,
             GuildCoin: reward.guildCoin,
@@ -97,40 +97,5 @@ public class QuestMapper : TypeMapper<QuestMetadata> {
             EssentialJobItem: essentialJobItem.Select(item =>
                 new QuestMetadataReward.Item(item.code, item.rank, item.count)).ToList()
         );
-    }
-    
-    private QuestMetadataCondition.Parameters? GetParameters(string[] array) {
-        if (array.Length == 0) {
-            return null;
-        }
-        if (array.Length > 1) {
-            List<int> integers = new();
-            List<string> strings = new();
-            foreach (string code in array) {
-                if (!int.TryParse(code, out int intCode)) {
-                    strings.Add(code);
-                } else {
-                    integers.Add(intCode);
-                }
-            }
-
-            return new QuestMetadataCondition.Parameters(
-                Strings: strings.Count == 0 ? null : strings.ToArray(),
-                Integers: integers.Count == 0 ? null : integers.ToArray(),
-                Range: null);
-        }
-
-        string[] split = array[0].Split('-');
-        if (split.Length > 1) {
-            return new QuestMetadataCondition.Parameters(
-                Range: new QuestMetadataCondition.Range<int>(int.Parse(split[0]), int.Parse(split[1])));
-        }
-
-        if (!int.TryParse(array[0], out int integerResult)) {
-            return new QuestMetadataCondition.Parameters(
-                Strings: new[] {array[0]});
-        }
-        return new QuestMetadataCondition.Parameters(
-            Integers: new[] {integerResult});
     }
 }

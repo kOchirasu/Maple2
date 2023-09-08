@@ -27,10 +27,11 @@ public sealed class QuestManager {
 
     public QuestManager(GameSession session) {
         this.session = session;
+
         using GameStorage.Request db = session.GameStorage.Context();
         accountValues = db.GetQuests(session.AccountId);
         characterValues = db.GetQuests(session.CharacterId);
-        Initialize();
+        Initialize(db);
     }
 
     public void Load() {
@@ -44,9 +45,8 @@ public sealed class QuestManager {
         }
     }
 
-    private void Initialize() {
+    private void Initialize(GameStorage.Request db) {
         IEnumerable<QuestMetadata> quests = session.QuestMetadata.GetQuests();
-        using GameStorage.Request db = session.GameStorage.Context();
         foreach (QuestMetadata metadata in quests) {
             if (!metadata.Basic.AutoStart ||
                 metadata.Basic.Type == QuestType.FieldMission) {
@@ -78,7 +78,7 @@ public sealed class QuestManager {
             };
 
             for (int i = 0; i < metadata.Conditions.Length; i++) {
-                quest.Conditions.Add(i, new QuestCondition(metadata.Conditions[i]));
+                quest.Conditions.Add(i, new Quest.Condition(metadata.Conditions[i]));
             }
 
             if (characterValues.ContainsKey(metadata.Id) || accountValues.ContainsKey(metadata.Id)) {
@@ -135,7 +135,7 @@ public sealed class QuestManager {
         };
 
         for (int i = 0; i < metadata.Conditions.Length; i++) {
-            quest.Conditions.Add(i, new QuestCondition(metadata.Conditions[i]));
+            quest.Conditions.Add(i, new Quest.Condition(metadata.Conditions[i]));
         }
 
         using GameStorage.Request db = session.GameStorage.Context();
@@ -177,7 +177,7 @@ public sealed class QuestManager {
             if (quest.Metadata.Basic.ProgressMaps != null && !quest.Metadata.Basic.ProgressMaps.Contains(session.Player.Value.Character.MapId)) {
                 continue;
             }
-            foreach (QuestCondition condition in quest.Conditions.Values.Where(condition => condition.Metadata.Type == type)) {
+            foreach (Quest.Condition condition in quest.Conditions.Values.Where(condition => condition.Metadata.Type == type)) {
                 // Already meets the requirement and does not need to be updated
                 if (condition.Counter >= condition.Metadata.Value) {
                     continue;
@@ -198,8 +198,8 @@ public sealed class QuestManager {
         }
     }
 
-    private bool CheckCode(QuestCondition questCondition, string valueString = "", long valueLong = 0) {
-        QuestMetadataCondition.Parameters parameters = questCondition.Metadata.Codes!;
+    private bool CheckCode(Quest.Condition questCondition, string valueString = "", long valueLong = 0) {
+        ConditionMetadata.Parameters parameters = questCondition.Metadata.Codes!;
         switch (questCondition.Metadata.Type) {
             case ConditionType.item_exist:
                 if (parameters.Integers != null && parameters.Integers.Any(parameter => parameter >= valueLong)) {
@@ -216,7 +216,8 @@ public sealed class QuestManager {
                 if (parameters.Integers != null && parameters.Integers.Any(parameter => parameter == valueLong)) {
                     return true;
                 }
-                if (parameters.Range != null && InRange((QuestMetadataCondition.Range<int>) parameters.Range, valueLong)) {
+
+                if (parameters.Range != null && InRange((ConditionMetadata.Range<int>) parameters.Range, valueLong)) {
                     return true;
                 }
                 break;
@@ -229,15 +230,15 @@ public sealed class QuestManager {
         }
         return false;
 
-        bool InRange(QuestMetadataCondition.Range<int> range, long value) {
+        bool InRange(ConditionMetadata.Range<int> range, long value) {
             return value >= range.Min && value <= range.Max;
         }
     }
 
     //TODO: Branch this out so SOME conditions can be valid upon quest start
     // Currently just treating it that we're not checking for existing data for conditions.
-    private bool CheckTarget(QuestCondition questCondition, string stringValue = "", long longValue = 0) {
-        QuestMetadataCondition.Parameters parameters = questCondition.Metadata.Target!;
+    private bool CheckTarget(Quest.Condition questCondition, string stringValue = "", long longValue = 0) {
+        ConditionMetadata.Parameters parameters = questCondition.Metadata.Target!;
         switch (questCondition.Metadata.Type) {
             case ConditionType.level:
                 if (parameters.Integers != null && parameters.Integers.Any(parameter => parameter <= longValue)) {
@@ -282,8 +283,9 @@ public sealed class QuestManager {
             return false;
         }
 
-        if (require.UnrequiredAchievement != (0, 0) && session.Achievement.TryGetAchievement(require.UnrequiredAchievement.Item1, out Achievement? achievement)
-                                                    && achievement.Grades.ContainsKey(require.UnrequiredAchievement.Item2)) {
+        if (require.UnrequiredAchievement != (0, 0)
+            && session.Achievement.TryGetAchievement(require.UnrequiredAchievement.Item1, out Achievement? achievement)
+            && achievement.Grades.ContainsKey(require.UnrequiredAchievement.Item2)) {
             return false;
         }
 
@@ -408,7 +410,7 @@ public sealed class QuestManager {
             }
 
             if (!results.TryAdd(metadata.Id, metadata)) {
-                // error 
+                // error
             }
         }
 
@@ -416,7 +418,7 @@ public sealed class QuestManager {
         foreach ((int id, Quest quest) in session.Quest.characterValues) {
             if (quest.Metadata.Basic.CompleteNpc == npcId && quest.State != QuestState.Completed) {
                 if (!results.TryAdd(id, quest.Metadata)) {
-                    // error 
+                    // error
                 }
             }
         }
@@ -424,7 +426,7 @@ public sealed class QuestManager {
         foreach ((int id, Quest quest) in session.Quest.accountValues) {
             if (quest.Metadata.Basic.CompleteNpc == npcId && quest.State != QuestState.Completed) {
                 if (!results.TryAdd(id, quest.Metadata)) {
-                    // error 
+                    // error
                 }
             }
         }
@@ -435,11 +437,9 @@ public sealed class QuestManager {
     public bool Remove(Quest quest) {
         using GameStorage.Request db = session.GameStorage.Context();
         if (quest.Metadata.Basic.Account > 0) {
-            accountValues.Remove(quest.Id);
-            return db.DeleteQuest(session.AccountId, quest.Id);
+            return accountValues.Remove(quest.Id) && db.DeleteQuest(session.AccountId, quest.Id);
         }
-        characterValues.Remove(quest.Id);
-        return db.DeleteQuest(session.CharacterId, quest.Id);
+        return characterValues.Remove(quest.Id) && db.DeleteQuest(session.CharacterId, quest.Id);
     }
 
     public bool TryGetQuest(int questId, [NotNullWhen(true)] out Quest? quest) {
@@ -447,7 +447,7 @@ public sealed class QuestManager {
     }
 
     public void Save(GameStorage.Request db) {
-        db.SaveQuests(session.CharacterId, characterValues.Values);
         db.SaveQuests(session.AccountId, accountValues.Values);
+        db.SaveQuests(session.CharacterId, characterValues.Values);
     }
 }

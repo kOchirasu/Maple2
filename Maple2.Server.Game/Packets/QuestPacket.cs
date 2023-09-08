@@ -63,7 +63,7 @@ public static class QuestPacket {
         pWriter.WriteLong(quest.StartTime);
         pWriter.WriteBool(quest.Track);
         pWriter.WriteInt(quest.Conditions.Count);
-        foreach (QuestCondition condition in quest.Conditions.Values) {
+        foreach (Quest.Condition condition in quest.Conditions.Values) {
             pWriter.WriteInt(condition.Counter);
         }
 
@@ -75,7 +75,7 @@ public static class QuestPacket {
         pWriter.Write<Command>(Command.Update);
         pWriter.WriteInt(quest.Id);
         pWriter.WriteInt(quest.Conditions.Count);
-        foreach (QuestCondition condition in quest.Conditions.Values) {
+        foreach (Quest.Condition condition in quest.Conditions.Values) {
             pWriter.WriteInt(condition.Counter);
         }
 

@@ -21,11 +21,11 @@ public class AchievementMapper : TypeMapper<AchievementMetadata> {
             foreach (Grade grade in data.grade) {
                 grades.Add(grade.value, new AchievementMetadataGrade(
                     Grade: grade.value,
-                    Condition: new AchievementMetadataCondition(
+                    Condition: new ConditionMetadata(
                         Type: (ConditionType) grade.condition.type,
-                        Codes: GetCodes(grade.condition.code),
                         Value: grade.condition.value,
-                        Target: GetCodes(grade.condition.target)),
+                        Codes: grade.condition.code.ConvertCodes(),
+                        Target: grade.condition.target.ConvertCodes()),
                     Reward: grade.reward.type == AchieveRewardType.unknown ? null : new AchievementMetadataReward(
                         Type: (AchievementRewardType) grade.reward.type,
                         Code: grade.reward.code,
@@ -33,7 +33,7 @@ public class AchievementMapper : TypeMapper<AchievementMetadata> {
                         Rank: grade.reward.rank)));
             }
 
-            AchievementCategory category = AchievementCategory.Life;
+            var category = AchievementCategory.Life;
             string[] tags = data.categoryTag;
             if (data.categoryTag.Length > 0) {
                 // skip the first in the array and use it as the trophy category
@@ -58,40 +58,5 @@ public class AchievementMapper : TypeMapper<AchievementMetadata> {
             "living" => AchievementCategory.Life,
             _ => AchievementCategory.Life,
         };
-    }
-
-    private AchievementMetadataCondition.Parameters? GetCodes(string[] codes) {
-        if (codes.Length == 0) {
-            return null;
-        }
-        if (codes.Length > 1) {
-            List<int> integers = new();
-            List<string> strings = new();
-            foreach (string code in codes) {
-                if (!int.TryParse(code, out int intCode)) {
-                    strings.Add(code);
-                } else {
-                    integers.Add(intCode);
-                }
-            }
-
-            return new AchievementMetadataCondition.Parameters(
-                Strings: strings.Count == 0 ? null : strings.ToArray(),
-                Integers: integers.Count == 0 ? null : integers.ToArray(),
-                Range: null);
-        }
-
-        string[] split = codes[0].Split('-');
-        if (split.Length > 1) {
-            return new AchievementMetadataCondition.Parameters(
-                Range: new AchievementMetadataCondition.Range<int>(int.Parse(split[0]), int.Parse(split[1])));
-        }
-
-        if (!int.TryParse(codes[0], out int integerResult)) {
-            return new AchievementMetadataCondition.Parameters(
-                Strings: new[] {codes[0]});
-        }
-        return new AchievementMetadataCondition.Parameters(
-            Integers: new[] {integerResult});
     }
 }

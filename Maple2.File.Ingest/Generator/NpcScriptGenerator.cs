@@ -107,13 +107,12 @@ public class NpcScriptGenerator {
             bool hasJobScript = data.job != null;
             int picks = data.script.Count(script => script.randomPick);
             bool multiplePicks = data.script.Count(script => script.randomPick) > 1;
-            int[] functions = data.script.SelectMany(script => script.content
-                .Where(content => content.functionID != 0).Select(content => content.functionID))
+            int[] functions = data.script.SelectMany(script =>
+                    script.content.Where(content => content.functionID != 0).Select(content => content.functionID))
                 .Distinct()
                 .ToArray();
             if (data.job != null) {
-                functions = functions.Concat(data.job.content
-                        .Where(content => content.functionID > 0).Select(content => content.functionID))
+                functions = functions.Concat(data.job.content.Where(content => content.functionID > 0).Select(content => content.functionID))
                     .Distinct()
                     .ToArray();
             }
@@ -200,7 +199,10 @@ public class NpcScriptGenerator {
             }
 
             bool hasData = false;
-            int[] functions = data.script.SelectMany(script => script.content.Where(content => content.functionID != 0).Select(content => content.functionID)).Distinct().ToArray();
+            int[] functions = data.script.SelectMany(script =>
+                    script.content.Where(content => content.functionID != 0).Select(content => content.functionID))
+                .Distinct()
+                .ToArray();
             foreach (QuestTalkScript talkScript in data.script) {
                 // Distractors have "goto" which may need scripting.
                 bool hasChoice = talkScript.content.Any(content =>

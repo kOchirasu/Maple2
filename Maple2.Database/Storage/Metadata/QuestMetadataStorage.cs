@@ -2,7 +2,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Database.Context;
-using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,8 +37,7 @@ public class QuestMetadataStorage : MetadataStorage<int, QuestMetadata>, ISearch
 
     public IEnumerable<QuestMetadata> GetQuests() {
         lock (Context) {
-            return Context.QuestMetadata
-                .ToList();
+            return Context.QuestMetadata.ToList();
         }
     }
 

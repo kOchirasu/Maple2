@@ -91,8 +91,8 @@ public sealed class AchievementManager {
         }
     }
 
-    private bool CheckCode(AchievementMetadataCondition condition, string stringValue = "", long longValue = 0) {
-        AchievementMetadataCondition.Parameters parameters = condition.Codes!;
+    private bool CheckCode(ConditionMetadata condition, string stringValue = "", long longValue = 0) {
+        ConditionMetadata.Parameters parameters = condition.Codes!;
         switch (condition.Type) {
             case ConditionType.emotion:
             case ConditionType.trigger:
@@ -101,12 +101,12 @@ public sealed class AchievementManager {
                 }
                 break;
             case ConditionType.trophy_point:
-                if (parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) {
+                if (parameters.Range != null && InRange((ConditionMetadata.Range<int>) parameters.Range, longValue)) {
                     return true;
                 }
                 break;
             case ConditionType.interact_object:
-                if ((parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) ||
+                if ((parameters.Range != null && InRange((ConditionMetadata.Range<int>) parameters.Range, longValue)) ||
                     (parameters.Integers != null && parameters.Integers.Contains((int) longValue))) {
                     if (session.Player.Value.Unlock.InteractedObjects.Contains((int) longValue)) {
                         return false;
@@ -117,7 +117,7 @@ public sealed class AchievementManager {
                 break;
             case ConditionType.item_collect:
             case ConditionType.item_collect_revise:
-                if ((parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) ||
+                if ((parameters.Range != null && InRange((ConditionMetadata.Range<int>) parameters.Range, longValue)) ||
                     (parameters.Integers != null && parameters.Integers.Contains((int) longValue))) {
                     if (session.Player.Value.Unlock.CollectedItems.ContainsKey((int) longValue)) {
                         session.Player.Value.Unlock.CollectedItems[(int) longValue]++;
@@ -141,7 +141,7 @@ public sealed class AchievementManager {
             case ConditionType.beauty_style_apply:
             case ConditionType.level:
             case ConditionType.level_up:
-                if (parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) {
+                if (parameters.Range != null && InRange((ConditionMetadata.Range<int>) parameters.Range, longValue)) {
                     return true;
                 }
 
@@ -151,7 +151,7 @@ public sealed class AchievementManager {
                 break;
             case ConditionType.fish_collect:
             case ConditionType.fish_goldmedal:
-                if ((parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) ||
+                if ((parameters.Range != null && InRange((ConditionMetadata.Range<int>) parameters.Range, longValue)) ||
                     (parameters.Integers != null && parameters.Integers.Contains((int) longValue))) {
                     return !session.Player.Value.Unlock.FishAlbum.ContainsKey((int) longValue);
                 }
@@ -174,13 +174,13 @@ public sealed class AchievementManager {
         }
         return false;
 
-        bool InRange(AchievementMetadataCondition.Range<int> range, long value) {
+        bool InRange(ConditionMetadata.Range<int> range, long value) {
             return value >= range.Min && value <= range.Max;
         }
     }
 
-    private bool CheckTarget(AchievementMetadataCondition condition, long longValue = 0) {
-        AchievementMetadataCondition.Parameters target = condition.Target!;
+    private bool CheckTarget(ConditionMetadata condition, long longValue = 0) {
+        ConditionMetadata.Parameters target = condition.Target!;
         switch (condition.Type) {
             case ConditionType.emotion:
                 if (target.Range != null && target.Range.Value.Min >= session.Player.Value.Character.MapId &&

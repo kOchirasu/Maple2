@@ -15,11 +15,11 @@ public class Quest : IByteSerializable {
     public long StartTime;
     public long EndTime;
     public bool Track;
-    public SortedDictionary<int, QuestCondition> Conditions;
+    public SortedDictionary<int, Condition> Conditions;
 
     public Quest(QuestMetadata metadata) {
         Metadata = metadata;
-        Conditions = new SortedDictionary<int, QuestCondition>();
+        Conditions = new SortedDictionary<int, Condition>();
     }
 
     public void WriteTo(IByteWriter writer) {
@@ -31,17 +31,17 @@ public class Quest : IByteSerializable {
         writer.WriteBool(Track);
 
         writer.WriteInt(Conditions.Count);
-        foreach (QuestCondition condition in Conditions.Values) {
+        foreach (Condition condition in Conditions.Values) {
             writer.WriteInt(condition.Counter);
         }
     }
-}
 
-public class QuestCondition {
-    public readonly QuestMetadataCondition Metadata;
-    public int Counter;
+    public class Condition {
+        public readonly ConditionMetadata Metadata;
+        public int Counter;
 
-    public QuestCondition(QuestMetadataCondition metadata) {
-        Metadata = metadata;
+        public Condition(ConditionMetadata metadata) {
+            Metadata = metadata;
+        }
     }
 }

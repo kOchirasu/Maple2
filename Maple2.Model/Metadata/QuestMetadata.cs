@@ -13,7 +13,7 @@ public record QuestMetadata(
     QuestMetadataReward CompleteReward,
     QuestMetadataGoToNpc GoToNpc,
     QuestMetadataGoToDungeon GoToDungeon,
-    QuestMetadataCondition[] Conditions) : ISearchResult;
+    ConditionMetadata[] Conditions) : ISearchResult;
 
 public record QuestMetadataBasic(
     int ChapterId,
@@ -66,18 +66,4 @@ public record QuestMetadataGoToDungeon(
     int MapId,
     int InstanceId);
 
-public record QuestMetadataCondition(
-    ConditionType Type,
-    QuestMetadataCondition.Parameters? Codes,
-    QuestMetadataCondition.Parameters? Target,
-    long Value,
-    int PartyCount,
-    int GuildPartyCount) {
-    
-    public record Parameters(
-        string[]? Strings = null,
-        Range<int>? Range = null,
-        int[]? Integers = null);
 
-    public readonly record struct Range<T>(T Min, T Max) where T : INumber<T>;
-}

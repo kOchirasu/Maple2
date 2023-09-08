@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Maple2.Database.Model;
 
-public class Quest {
-    public int Id { get; set; }
+internal class Quest {
     public long OwnerId { get; set; }
+    public int Id { get; set; }
     public QuestState State { get; set; }
     public int CompletionCount { get; set; }
     public long StartTime { get; set; }
@@ -21,7 +21,7 @@ public class Quest {
         Conditions = new SortedDictionary<int, QuestCondition>();
     }
 
-    [return: NotNullIfNotNull(nameof(other))]
+    [return:NotNullIfNotNull(nameof(other))]
     public static implicit operator Quest?(Maple2.Model.Game.Quest? other) {
         if (other == null) {
             return null;
@@ -60,27 +60,24 @@ public class Quest {
     }
 
     public static void Configure(EntityTypeBuilder<Quest> builder) {
-        builder.HasKey(quest => new {
-            quest.OwnerId,
-            quest.Id
-        });
+        builder.HasKey(quest => new {quest.OwnerId, quest.Id});
         builder.Property(quest => quest.Conditions).HasJsonConversion().IsRequired();
     }
 }
 
-public class QuestCondition {
+internal class QuestCondition {
     public int Counter { get; set; }
 
-    [return: NotNullIfNotNull(nameof(other))]
-    public static implicit operator QuestCondition?(Maple2.Model.Game.QuestCondition? other) {
+    [return:NotNullIfNotNull(nameof(other))]
+    public static implicit operator QuestCondition?(Maple2.Model.Game.Quest.Condition? other) {
         return other == null ? null : new QuestCondition {
             Counter = other.Counter,
         };
     }
 
     // Use explicit Convert() here because we need metadata to construct Quest.
-    public Maple2.Model.Game.QuestCondition Convert(QuestMetadataCondition metadata) {
-        return new Maple2.Model.Game.QuestCondition(metadata) {
+    public Maple2.Model.Game.Quest.Condition Convert(ConditionMetadata metadata) {
+        return new Maple2.Model.Game.Quest.Condition(metadata) {
             Counter = Counter,
         };
     }
