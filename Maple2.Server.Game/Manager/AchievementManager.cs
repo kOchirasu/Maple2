@@ -56,7 +56,7 @@ public sealed class AchievementManager {
     /// <param name="targetLong">Trophy grade condition target parameter in long.</param>
     /// <param name="codeString">Trophy grade condition code parameter in string.</param>
     /// <param name="codeLong">Trophy grade condition code parameter in long.</param>
-    public void Update(AchievementConditionType conditionType, long count = 1, string targetString = "", long targetLong = 0, string codeString = "", long codeLong = 0) {
+    public void Update(ConditionType conditionType, long count = 1, string targetString = "", long targetLong = 0, string codeString = "", long codeLong = 0) {
         foreach (AchievementMetadata metadata in session.AchievementMetadata.GetType(conditionType)) {
             IDictionary<int, Achievement> achievements = metadata.AccountWide ? accountValues : characterValues;
             if (!achievements.TryGetValue(metadata.Id, out Achievement? achievement) || !metadata.Grades.TryGetValue(achievement.CurrentGrade, out AchievementMetadataGrade? grade)) {
@@ -94,18 +94,18 @@ public sealed class AchievementManager {
     private bool CheckCode(AchievementMetadataCondition condition, string stringValue = "", long longValue = 0) {
         AchievementMetadataCondition.Parameters parameters = condition.Codes!;
         switch (condition.Type) {
-            case AchievementConditionType.emotion:
-            case AchievementConditionType.trigger:
+            case ConditionType.emotion:
+            case ConditionType.trigger:
                 if (parameters.Strings != null && parameters.Strings.Contains(stringValue)) {
                     return true;
                 }
                 break;
-            case AchievementConditionType.trophy_point:
+            case ConditionType.trophy_point:
                 if (parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) {
                     return true;
                 }
                 break;
-            case AchievementConditionType.interact_object:
+            case ConditionType.interact_object:
                 if ((parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) ||
                     (parameters.Integers != null && parameters.Integers.Contains((int) longValue))) {
                     if (session.Player.Value.Unlock.InteractedObjects.Contains((int) longValue)) {
@@ -115,8 +115,8 @@ public sealed class AchievementManager {
                     return true;
                 }
                 break;
-            case AchievementConditionType.item_collect:
-            case AchievementConditionType.item_collect_revise:
+            case ConditionType.item_collect:
+            case ConditionType.item_collect_revise:
                 if ((parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) ||
                     (parameters.Integers != null && parameters.Integers.Contains((int) longValue))) {
                     if (session.Player.Value.Unlock.CollectedItems.ContainsKey((int) longValue)) {
@@ -128,19 +128,19 @@ public sealed class AchievementManager {
                     return true;
                 }
                 break;
-            case AchievementConditionType.map:
-            case AchievementConditionType.fish:
-            case AchievementConditionType.fish_big:
-            case AchievementConditionType.mastery_grade:
-            case AchievementConditionType.set_mastery_grade:
-            case AchievementConditionType.item_add:
-            case AchievementConditionType.beauty_add:
-            case AchievementConditionType.beauty_change_color:
-            case AchievementConditionType.beauty_random:
-            case AchievementConditionType.beauty_style_add:
-            case AchievementConditionType.beauty_style_apply:
-            case AchievementConditionType.level:
-            case AchievementConditionType.level_up:
+            case ConditionType.map:
+            case ConditionType.fish:
+            case ConditionType.fish_big:
+            case ConditionType.mastery_grade:
+            case ConditionType.set_mastery_grade:
+            case ConditionType.item_add:
+            case ConditionType.beauty_add:
+            case ConditionType.beauty_change_color:
+            case ConditionType.beauty_random:
+            case ConditionType.beauty_style_add:
+            case ConditionType.beauty_style_apply:
+            case ConditionType.level:
+            case ConditionType.level_up:
                 if (parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) {
                     return true;
                 }
@@ -149,27 +149,27 @@ public sealed class AchievementManager {
                     return true;
                 }
                 break;
-            case AchievementConditionType.fish_collect:
-            case AchievementConditionType.fish_goldmedal:
+            case ConditionType.fish_collect:
+            case ConditionType.fish_goldmedal:
                 if ((parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) ||
                     (parameters.Integers != null && parameters.Integers.Contains((int) longValue))) {
                     return !session.Player.Value.Unlock.FishAlbum.ContainsKey((int) longValue);
                 }
                 break;
-            case AchievementConditionType.jump:
-            case AchievementConditionType.meso:
-            case AchievementConditionType.taxifind:
-            case AchievementConditionType.fall_damage:
-            case AchievementConditionType.gemstone_upgrade:
-            case AchievementConditionType.gemstone_upgrade_success:
-            case AchievementConditionType.gemstone_upgrade_try:
-            case AchievementConditionType.socket_unlock_success:
-            case AchievementConditionType.socket_unlock_try:
-            case AchievementConditionType.socket_unlock:
-            case AchievementConditionType.gemstone_puton:
-            case AchievementConditionType.gemstone_putoff:
-            case AchievementConditionType.fish_fail:
-            case AchievementConditionType.music_play_grade:
+            case ConditionType.jump:
+            case ConditionType.meso:
+            case ConditionType.taxifind:
+            case ConditionType.fall_damage:
+            case ConditionType.gemstone_upgrade:
+            case ConditionType.gemstone_upgrade_success:
+            case ConditionType.gemstone_upgrade_try:
+            case ConditionType.socket_unlock_success:
+            case ConditionType.socket_unlock_try:
+            case ConditionType.socket_unlock:
+            case ConditionType.gemstone_puton:
+            case ConditionType.gemstone_putoff:
+            case ConditionType.fish_fail:
+            case ConditionType.music_play_grade:
                 return true;
         }
         return false;
@@ -182,15 +182,15 @@ public sealed class AchievementManager {
     private bool CheckTarget(AchievementMetadataCondition condition, long longValue = 0) {
         AchievementMetadataCondition.Parameters target = condition.Target!;
         switch (condition.Type) {
-            case AchievementConditionType.emotion:
+            case ConditionType.emotion:
                 if (target.Range != null && target.Range.Value.Min >= session.Player.Value.Character.MapId &&
                     target.Range.Value.Max <= session.Player.Value.Character.MapId) {
                     return true;
                 }
                 break;
-            case AchievementConditionType.fish:
-            case AchievementConditionType.fish_big:
-            case AchievementConditionType.fall_damage:
+            case ConditionType.fish:
+            case ConditionType.fish_big:
+            case ConditionType.fall_damage:
                 if (target.Range != null && target.Range.Value.Min >= longValue &&
                     target.Range.Value.Max <= longValue) {
                     return true;
@@ -200,39 +200,39 @@ public sealed class AchievementManager {
                     return true;
                 }
                 break;
-            case AchievementConditionType.gemstone_upgrade:
-            case AchievementConditionType.socket_unlock:
-            case AchievementConditionType.level_up:
+            case ConditionType.gemstone_upgrade:
+            case ConditionType.socket_unlock:
+            case ConditionType.level_up:
                 if (target.Integers != null && target.Integers.Any(value => longValue >= value)) {
                     return true;
                 }
                 break;
-            case AchievementConditionType.map:
-            case AchievementConditionType.jump:
-            case AchievementConditionType.meso:
-            case AchievementConditionType.taxifind:
-            case AchievementConditionType.trophy_point:
-            case AchievementConditionType.interact_object:
-            case AchievementConditionType.gemstone_upgrade_success:
-            case AchievementConditionType.gemstone_upgrade_try:
-            case AchievementConditionType.socket_unlock_success:
-            case AchievementConditionType.socket_unlock_try:
-            case AchievementConditionType.gemstone_puton:
-            case AchievementConditionType.gemstone_putoff:
-            case AchievementConditionType.fish_fail:
-            case AchievementConditionType.fish_collect:
-            case AchievementConditionType.fish_goldmedal:
-            case AchievementConditionType.mastery_grade:
-            case AchievementConditionType.set_mastery_grade:
-            case AchievementConditionType.music_play_grade:
-            case AchievementConditionType.item_add:
-            case AchievementConditionType.beauty_add:
-            case AchievementConditionType.beauty_change_color:
-            case AchievementConditionType.beauty_random:
-            case AchievementConditionType.beauty_style_add:
-            case AchievementConditionType.beauty_style_apply:
-            case AchievementConditionType.level:
-            case AchievementConditionType.trigger:
+            case ConditionType.map:
+            case ConditionType.jump:
+            case ConditionType.meso:
+            case ConditionType.taxifind:
+            case ConditionType.trophy_point:
+            case ConditionType.interact_object:
+            case ConditionType.gemstone_upgrade_success:
+            case ConditionType.gemstone_upgrade_try:
+            case ConditionType.socket_unlock_success:
+            case ConditionType.socket_unlock_try:
+            case ConditionType.gemstone_puton:
+            case ConditionType.gemstone_putoff:
+            case ConditionType.fish_fail:
+            case ConditionType.fish_collect:
+            case ConditionType.fish_goldmedal:
+            case ConditionType.mastery_grade:
+            case ConditionType.set_mastery_grade:
+            case ConditionType.music_play_grade:
+            case ConditionType.item_add:
+            case ConditionType.beauty_add:
+            case ConditionType.beauty_change_color:
+            case ConditionType.beauty_random:
+            case ConditionType.beauty_style_add:
+            case ConditionType.beauty_style_apply:
+            case ConditionType.level:
+            case ConditionType.trigger:
                 return true;
         }
         return false;

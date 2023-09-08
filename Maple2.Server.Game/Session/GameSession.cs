@@ -312,8 +312,8 @@ public sealed partial class GameSession : Core.Network.Session {
         Player.Buffs.Initialize();
         Send(PremiumCubPacket.Activate(Player.ObjectId, Player.Value.Account.PremiumTime));
         Send(PremiumCubPacket.LoadItems(Player.Value.Account.PremiumRewardsClaimed));
-        Achievement.Update(AchievementConditionType.map, codeLong: Player.Value.Character.MapId);
-        Quest.Update(QuestConditionType.map, codeLong: Player.Value.Character.MapId);
+        Achievement.Update(ConditionType.map, codeLong: Player.Value.Character.MapId);
+        Quest.Update(ConditionType.map, codeLong: Player.Value.Character.MapId);
         return true;
     }
 

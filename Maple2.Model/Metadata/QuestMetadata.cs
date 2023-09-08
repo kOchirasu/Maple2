@@ -36,7 +36,7 @@ public record QuestMetadataRequire(
     int[] Quest,
     int[] SelectableQuest,
     int Achievement,
-    (int, int) UnrequiredAchievement,
+    (int, int) UnrequiredAchievement, // (AchievementId, Grade) Player CANNOT have this achievement to start the quest.
     int GearScore);
 
 public record QuestMetadataReward(
@@ -67,7 +67,7 @@ public record QuestMetadataGoToDungeon(
     int InstanceId);
 
 public record QuestMetadataCondition(
-    QuestConditionType Type,
+    ConditionType Type,
     QuestMetadataCondition.Parameters? Codes,
     QuestMetadataCondition.Parameters? Target,
     long Value,

@@ -4,6 +4,7 @@ using Maple2.File.Parser.Enum;
 using Maple2.File.Parser.Xml.Achieve;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
+using ConditionType = Maple2.Model.Enum.ConditionType;
 
 namespace Maple2.File.Ingest.Mapper;
 
@@ -21,7 +22,7 @@ public class AchievementMapper : TypeMapper<AchievementMetadata> {
                 grades.Add(grade.value, new AchievementMetadataGrade(
                     Grade: grade.value,
                     Condition: new AchievementMetadataCondition(
-                        Type: (AchievementConditionType) grade.condition.type,
+                        Type: (ConditionType) grade.condition.type,
                         Codes: GetCodes(grade.condition.code),
                         Value: grade.condition.value,
                         Target: GetCodes(grade.condition.target)),

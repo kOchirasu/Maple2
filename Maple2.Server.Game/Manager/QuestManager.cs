@@ -170,7 +170,7 @@ public sealed class QuestManager {
     /// <param name="targetLong">condition target parameter in long.</param>
     /// <param name="codeString">condition code parameter in string.</param>
     /// <param name="codeLong">condition code parameter in long.</param>
-    public void Update(QuestConditionType type, int counter = 1, string targetString = "", long targetLong = 0, string codeString = "", long codeLong = 0) {
+    public void Update(ConditionType type, int counter = 1, string targetString = "", long targetLong = 0, string codeString = "", long codeLong = 0) {
         IEnumerable<Quest> quests = characterValues.Values.Where(quest => quest.State != QuestState.Completed)
             .Concat(accountValues.Values.Where(quest => quest.State != QuestState.Completed));
         foreach (Quest quest in quests) {
@@ -201,18 +201,18 @@ public sealed class QuestManager {
     private bool CheckCode(QuestCondition questCondition, string valueString = "", long valueLong = 0) {
         QuestMetadataCondition.Parameters parameters = questCondition.Metadata.Codes!;
         switch (questCondition.Metadata.Type) {
-            case QuestConditionType.item_exist:
+            case ConditionType.item_exist:
                 if (parameters.Integers != null && parameters.Integers.Any(parameter => parameter >= valueLong)) {
                     return true;
                 }
                 break;
-            case QuestConditionType.trigger:
+            case ConditionType.trigger:
                 if (parameters.Strings != null && parameters.Strings.Any(parameter => parameter == valueString)) {
                     return true;
                 }
                 break;
-            case QuestConditionType.map:
-            case QuestConditionType.quest:
+            case ConditionType.map:
+            case ConditionType.quest:
                 if (parameters.Integers != null && parameters.Integers.Any(parameter => parameter == valueLong)) {
                     return true;
                 }
@@ -221,7 +221,7 @@ public sealed class QuestManager {
                 }
                 break;
             // The following have no codes
-            case QuestConditionType.level:
+            case ConditionType.level:
                 return true;
             default:
                 logger.Information("Unimplemented CheckCode for quest condition type: {MetadataType}", questCondition.Metadata.Type);
@@ -239,16 +239,16 @@ public sealed class QuestManager {
     private bool CheckTarget(QuestCondition questCondition, string stringValue = "", long longValue = 0) {
         QuestMetadataCondition.Parameters parameters = questCondition.Metadata.Target!;
         switch (questCondition.Metadata.Type) {
-            case QuestConditionType.level:
+            case ConditionType.level:
                 if (parameters.Integers != null && parameters.Integers.Any(parameter => parameter <= longValue)) {
                     return true;
                 }
                 break;
             // The following have no targets
-            case QuestConditionType.item_exist:
-            case QuestConditionType.trigger:
-            case QuestConditionType.map:
-            case QuestConditionType.quest:
+            case ConditionType.item_exist:
+            case ConditionType.trigger:
+            case ConditionType.map:
+            case ConditionType.quest:
                 return true;
             default:
                 logger.Information("Unimplemented CheckTarget for quest condition type: {MetadataType}", questCondition.Metadata.Type);
@@ -373,7 +373,7 @@ public sealed class QuestManager {
 
         // TODO: Guild rewards, mission points?
 
-        Update(QuestConditionType.quest, codeLong: quest.Metadata.Id);
+        Update(ConditionType.quest, codeLong: quest.Metadata.Id);
 
         quest.EndTime = DateTime.Now.ToEpochSeconds();
         quest.State = QuestState.Completed;

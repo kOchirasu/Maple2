@@ -62,7 +62,7 @@ public class QuestMapper : TypeMapper<QuestMetadata> {
                     MapId: data.gotoDungeon.gotoDungeon,
                     InstanceId: data.gotoDungeon.gotoInstanceID),
                 Conditions: data.condition.Select(condition => new QuestMetadataCondition(
-                    Type: (QuestConditionType) condition.type,
+                    Type: (ConditionType) condition.type,
                     Codes: GetParameters(condition.code),
                     Target: GetParameters(condition.target),
                     Value: condition.value,

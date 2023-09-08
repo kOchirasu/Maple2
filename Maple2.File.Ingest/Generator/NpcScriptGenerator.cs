@@ -107,9 +107,15 @@ public class NpcScriptGenerator {
             bool hasJobScript = data.job != null;
             int picks = data.script.Count(script => script.randomPick);
             bool multiplePicks = data.script.Count(script => script.randomPick) > 1;
-            int[] functions = data.script.SelectMany(script => script.content.Where(content => content.functionID != 0).Select(content => content.functionID)).Distinct().ToArray();
+            int[] functions = data.script.SelectMany(script => script.content
+                .Where(content => content.functionID != 0).Select(content => content.functionID))
+                .Distinct()
+                .ToArray();
             if (data.job != null) {
-                functions = functions.Concat(data.job.content.Where(content => content.functionID > 0).Select(content => content.functionID)).Distinct().ToArray();
+                functions = functions.Concat(data.job.content
+                        .Where(content => content.functionID > 0).Select(content => content.functionID))
+                    .Distinct()
+                    .ToArray();
             }
             foreach (ConditionTalkScript talkScript in data.script) {
                 // Distractors have "goto" which may need scripting.
@@ -524,6 +530,7 @@ public class NpcScriptGenerator {
         }
         writer.WriteLine("return");
         writer.Indent--;
+        BlankLine(writer);
 
         writer.WriteLine("def enter_state(self, functionId: int):");
         writer.Indent++;

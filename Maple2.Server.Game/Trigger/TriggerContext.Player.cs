@@ -127,20 +127,20 @@ public partial class TriggerContext {
         DebugLog("[SetAchievement] type:{Type}, code:{Code}, triggerId:{TriggerId}", type, code, triggerId);
         
         type = string.IsNullOrWhiteSpace(type) ? "trigger" : type;
-        if (!Enum.TryParse<AchievementConditionType>(type, out AchievementConditionType achievementConditionType)) {
-            achievementConditionType = AchievementConditionType.unknown;
+        if (!Enum.TryParse<ConditionType>(type, out ConditionType achievementConditionType)) {
+            achievementConditionType = ConditionType.unknown;
         }
 
-        if (!Enum.TryParse<QuestConditionType>(type, out QuestConditionType questConditionType)) {
-            questConditionType = QuestConditionType.unknown;
+        if (!Enum.TryParse<ConditionType>(type, out ConditionType questConditionType)) {
+            questConditionType = ConditionType.unknown;
         }
         
         foreach(FieldPlayer player in PlayersInBox(triggerId)) {
-            if (achievementConditionType != AchievementConditionType.unknown) {
+            if (achievementConditionType != ConditionType.unknown) {
                 player.Session.Achievement.Update(achievementConditionType, codeString: code);
             }
 
-            if (questConditionType != QuestConditionType.unknown) {
+            if (questConditionType != ConditionType.unknown) {
                 player.Session.Quest.Update(questConditionType, codeString: code);
             }
         }

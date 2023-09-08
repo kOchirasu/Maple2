@@ -28,6 +28,6 @@ public class StateHandler : PacketHandler<GameSession> {
     }
     
     private static void HandleJump(GameSession session) {
-        session.Achievement.Update(AchievementConditionType.jump);
+        session.Achievement.Update(ConditionType.jump);
     }
 }

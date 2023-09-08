@@ -9,8 +9,8 @@ namespace Maple2.Database.Storage;
 
 public partial class GameStorage {
     public partial class Request {
-        public Quest? CreateQuest(long ownerId, Quest achievement) {
-            Model.Quest model = achievement;
+        public Quest? CreateQuest(long ownerId, Quest quest) {
+            Model.Quest model = quest;
             model.OwnerId = ownerId;
             Context.Quest.Add(model);
 

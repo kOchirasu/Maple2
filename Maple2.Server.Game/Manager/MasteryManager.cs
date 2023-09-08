@@ -74,10 +74,10 @@ public class MasteryManager {
 
             session.Send(MasteryPacket.UpdateMastery(type, session.Mastery[type]));
             if (startLevel < GetLevel(type)) {
-                session.Achievement.Update(AchievementConditionType.mastery_grade, codeLong: (int) type);
-                session.Achievement.Update(AchievementConditionType.set_mastery_grade, codeLong: (int) type);
+                session.Achievement.Update(ConditionType.mastery_grade, codeLong: (int) type);
+                session.Achievement.Update(ConditionType.set_mastery_grade, codeLong: (int) type);
                 if (type == MasteryType.Music) {
-                    session.Achievement.Update(AchievementConditionType.music_play_grade);
+                    session.Achievement.Update(ConditionType.music_play_grade);
                 }
             }
         }

@@ -7,7 +7,7 @@ using Maple2.Tools;
 namespace Maple2.Model.Game;
 
 public class Quest : IByteSerializable {
-    public readonly int Id;
+    public int Id => Metadata.Id;
     public readonly QuestMetadata Metadata;
 
     public QuestState State;
@@ -18,7 +18,6 @@ public class Quest : IByteSerializable {
     public SortedDictionary<int, QuestCondition> Conditions;
 
     public Quest(QuestMetadata metadata) {
-        Id = metadata.Id;
         Metadata = metadata;
         Conditions = new SortedDictionary<int, QuestCondition>();
     }

@@ -18,7 +18,7 @@ public record AchievementMetadataGrade(
     AchievementMetadataReward? Reward);
 
 public record AchievementMetadataCondition(
-    AchievementConditionType Type,
+    ConditionType Type,
     AchievementMetadataCondition.Parameters? Codes,
     long Value,
     AchievementMetadataCondition.Parameters? Target) {

@@ -45,9 +45,7 @@ public class QuestMetadataStorage : MetadataStorage<int, QuestMetadata>, ISearch
 
     public IEnumerable<QuestMetadata> GetQuestsByNpc(int npcId) {
         lock (Context) {
-            // this works but seems questionable?? Cannot search before AsEnumerable
             return Context.QuestMetadata
-                .AsEnumerable()
                 .Where(quest => quest.Basic.StartNpc == npcId)
                 .ToList();
         }

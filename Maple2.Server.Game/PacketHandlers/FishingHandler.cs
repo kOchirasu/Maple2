@@ -229,11 +229,11 @@ public class FishingHandler : PacketHandler<GameSession> {
                 fish.TotalPrizeFish++;
                 AddMastery(session, fishingGuideObject.Spot, fishEntry, CaughtFishType.Prize);
                 session.Field.Broadcast(FishingPacket.PrizeFish(session.PlayerName, fishEntry.Id));
-                session.Achievement.Update(AchievementConditionType.fish_big, codeLong: fishEntry.Id, targetLong: session.Player.Value.Character.MapId);
+                session.Achievement.Update(ConditionType.fish_big, codeLong: fishEntry.Id, targetLong: session.Player.Value.Character.MapId);
                 session.Exp.AddExp(ExpType.fishing, Constant.FishingBigFishExpModifier);
             } else {
                 if (fishSize >= fishEntry.BigSize.Min) {
-                    session.Achievement.Update(AchievementConditionType.fish_goldmedal, codeLong: fishEntry.Id);
+                    session.Achievement.Update(ConditionType.fish_goldmedal, codeLong: fishEntry.Id);
                 }
                 AddMastery(session, fishingGuideObject.Spot, fishEntry, CaughtFishType.Default);
                 session.Exp.AddExp(ExpType.fishing);
@@ -248,9 +248,9 @@ public class FishingHandler : PacketHandler<GameSession> {
 
         if (success) {
             CatchItem(session);
-            session.Achievement.Update(AchievementConditionType.fish, codeLong: fishEntry.Id, targetLong: session.Player.Value.Character.MapId);
+            session.Achievement.Update(ConditionType.fish, codeLong: fishEntry.Id, targetLong: session.Player.Value.Character.MapId);
         } else {
-            session.Achievement.Update(AchievementConditionType.fish_fail);
+            session.Achievement.Update(ConditionType.fish_fail);
         }
     }
 
