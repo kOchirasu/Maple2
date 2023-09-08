@@ -103,7 +103,7 @@ public class CurrencyManager {
                     overflow = Math.Max(0, value - Constant.HonorTokenMax);
                     Currency.ValorToken = Math.Min(value, Constant.HonorTokenMax);
                     if (delta > 0) {
-                        session.Achievement.Update(ConditionType.get_honor_token, delta);
+                        session.ConditionUpdate(ConditionType.get_honor_token, delta);
                     }
                     break;
                 case CurrencyType.Treva:
@@ -111,7 +111,7 @@ public class CurrencyManager {
                     overflow = Math.Max(0, value - Constant.KarmaTokenMax);
                     Currency.Treva = Math.Min(value, Constant.KarmaTokenMax);
                     if (delta > 0) {
-                        session.Achievement.Update(ConditionType.get_karma_token, delta);
+                        session.ConditionUpdate(ConditionType.get_karma_token, delta);
                     }
                     break;
                 case CurrencyType.Rue:
@@ -119,7 +119,7 @@ public class CurrencyManager {
                     overflow = Math.Max(0, value - Constant.LuTokenMax);
                     Currency.Rue = Math.Min(value, Constant.LuTokenMax);
                     if (delta > 0) {
-                        session.Achievement.Update(ConditionType.get_lu_token, delta);
+                        session.ConditionUpdate(ConditionType.get_lu_token, delta);
                     }
                     break;
                 case CurrencyType.HaviFruit:
@@ -127,7 +127,7 @@ public class CurrencyManager {
                     overflow = Math.Max(0, value - Constant.HaviTokenMax);
                     Currency.HaviFruit = Math.Min(value, Constant.HaviTokenMax);
                     if (delta > 0) {
-                        session.Achievement.Update(ConditionType.get_habi_token, delta);
+                        session.ConditionUpdate(ConditionType.get_habi_token, delta);
                     }
                     break;
                 case CurrencyType.ReverseCoin:
@@ -135,7 +135,7 @@ public class CurrencyManager {
                     overflow = Math.Max(0, value - Constant.ReverseCoinMax);
                     Currency.ReverseCoin = Math.Min(value, Constant.ReverseCoinMax);
                     if (delta > 0) {
-                        session.Achievement.Update(ConditionType.get_reverse_coin, delta);
+                        session.ConditionUpdate(ConditionType.get_reverse_coin, delta);
                     }
                     break;
                 case CurrencyType.MentorToken:
@@ -143,7 +143,7 @@ public class CurrencyManager {
                     overflow = Math.Max(0, value - Constant.MentorTokenMax);
                     Currency.MentorToken = Math.Min(value, Constant.MentorTokenMax);
                     if (delta > 0) {
-                        session.Achievement.Update(ConditionType.get_mentor_token, delta);
+                        session.ConditionUpdate(ConditionType.get_mentor_token, delta);
                     }
                     break;
                 case CurrencyType.MenteeToken:
@@ -151,7 +151,7 @@ public class CurrencyManager {
                     overflow = Math.Max(0, value - Constant.MenteeTokenMax);
                     Currency.MenteeToken = Math.Min(value, Constant.MenteeTokenMax);
                     if (delta > 0) {
-                        session.Achievement.Update(ConditionType.get_mentee_token, delta);
+                        session.ConditionUpdate(ConditionType.get_mentee_token, delta);
                     }
                     break;
                 case CurrencyType.StarPoint:
@@ -159,7 +159,7 @@ public class CurrencyManager {
                     overflow = Math.Max(0, value - Constant.StarPointMax);
                     Currency.StarPoint = Math.Min(value, Constant.StarPointMax);
                     if (delta > 0) {
-                        session.Achievement.Update(ConditionType.get_star_point, delta);
+                        session.ConditionUpdate(ConditionType.get_star_point, delta);
                     }
                     break;
                 case CurrencyType.MesoToken:

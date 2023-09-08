@@ -11,6 +11,7 @@ using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Server.Game.Util;
 using Maple2.Tools.Extensions;
 using Serilog;
 
@@ -48,7 +49,7 @@ public sealed class AchievementManager {
     }
 
     /// <summary>
-    /// Checks for any possible trophies under stated TrophyConditionType. If there is a trophy that can have any progress updated to it, update or add to player if it hasn't existed yet.
+    /// Checks for any possible trophies under stated ConditionType. If there is a trophy that can have any progress updated to it, update or add to player if it hasn't existed yet.
     /// </summary>
     /// <param name="conditionType">TrophyConditionType to search metadata</param>
     /// <param name="count">Condition value to update progress of a trophy. Default is 1.</param>
@@ -64,11 +65,7 @@ public sealed class AchievementManager {
                 grade = metadata.Grades[lowestgradeValue];
             }
 
-            if (grade.Condition.Codes != null && !CheckCode(grade.Condition, codeString, codeLong)) {
-                continue;
-            }
-
-            if (grade.Condition.Target != null && !CheckTarget(grade.Condition, targetLong)) {
+            if (!grade.Condition.Check(session, targetString, targetLong, codeString, codeLong)) {
                 continue;
             }
 
@@ -89,153 +86,6 @@ public sealed class AchievementManager {
                 session.Send(AchievementPacket.Update(achievement));
             }
         }
-    }
-
-    private bool CheckCode(ConditionMetadata condition, string stringValue = "", long longValue = 0) {
-        ConditionMetadata.Parameters parameters = condition.Codes!;
-        switch (condition.Type) {
-            case ConditionType.emotion:
-            case ConditionType.trigger:
-                if (parameters.Strings != null && parameters.Strings.Contains(stringValue)) {
-                    return true;
-                }
-                break;
-            case ConditionType.trophy_point:
-                if (parameters.Range != null && InRange((ConditionMetadata.Range<int>) parameters.Range, longValue)) {
-                    return true;
-                }
-                break;
-            case ConditionType.interact_object:
-                if ((parameters.Range != null && InRange((ConditionMetadata.Range<int>) parameters.Range, longValue)) ||
-                    (parameters.Integers != null && parameters.Integers.Contains((int) longValue))) {
-                    if (session.Player.Value.Unlock.InteractedObjects.Contains((int) longValue)) {
-                        return false;
-                    }
-                    session.Player.Value.Unlock.InteractedObjects.Add((int) longValue);
-                    return true;
-                }
-                break;
-            case ConditionType.item_collect:
-            case ConditionType.item_collect_revise:
-                if ((parameters.Range != null && InRange((ConditionMetadata.Range<int>) parameters.Range, longValue)) ||
-                    (parameters.Integers != null && parameters.Integers.Contains((int) longValue))) {
-                    if (session.Player.Value.Unlock.CollectedItems.ContainsKey((int) longValue)) {
-                        session.Player.Value.Unlock.CollectedItems[(int) longValue]++;
-                        return false;
-                    }
-
-                    session.Player.Value.Unlock.CollectedItems.Add((int) longValue, 1);
-                    return true;
-                }
-                break;
-            case ConditionType.map:
-            case ConditionType.fish:
-            case ConditionType.fish_big:
-            case ConditionType.mastery_grade:
-            case ConditionType.set_mastery_grade:
-            case ConditionType.item_add:
-            case ConditionType.beauty_add:
-            case ConditionType.beauty_change_color:
-            case ConditionType.beauty_random:
-            case ConditionType.beauty_style_add:
-            case ConditionType.beauty_style_apply:
-            case ConditionType.level:
-            case ConditionType.level_up:
-                if (parameters.Range != null && InRange((ConditionMetadata.Range<int>) parameters.Range, longValue)) {
-                    return true;
-                }
-
-                if (parameters.Integers != null && parameters.Integers.Contains((int) longValue)) {
-                    return true;
-                }
-                break;
-            case ConditionType.fish_collect:
-            case ConditionType.fish_goldmedal:
-                if ((parameters.Range != null && InRange((ConditionMetadata.Range<int>) parameters.Range, longValue)) ||
-                    (parameters.Integers != null && parameters.Integers.Contains((int) longValue))) {
-                    return !session.Player.Value.Unlock.FishAlbum.ContainsKey((int) longValue);
-                }
-                break;
-            case ConditionType.jump:
-            case ConditionType.meso:
-            case ConditionType.taxifind:
-            case ConditionType.fall_damage:
-            case ConditionType.gemstone_upgrade:
-            case ConditionType.gemstone_upgrade_success:
-            case ConditionType.gemstone_upgrade_try:
-            case ConditionType.socket_unlock_success:
-            case ConditionType.socket_unlock_try:
-            case ConditionType.socket_unlock:
-            case ConditionType.gemstone_puton:
-            case ConditionType.gemstone_putoff:
-            case ConditionType.fish_fail:
-            case ConditionType.music_play_grade:
-                return true;
-        }
-        return false;
-
-        bool InRange(ConditionMetadata.Range<int> range, long value) {
-            return value >= range.Min && value <= range.Max;
-        }
-    }
-
-    private bool CheckTarget(ConditionMetadata condition, long longValue = 0) {
-        ConditionMetadata.Parameters target = condition.Target!;
-        switch (condition.Type) {
-            case ConditionType.emotion:
-                if (target.Range != null && target.Range.Value.Min >= session.Player.Value.Character.MapId &&
-                    target.Range.Value.Max <= session.Player.Value.Character.MapId) {
-                    return true;
-                }
-                break;
-            case ConditionType.fish:
-            case ConditionType.fish_big:
-            case ConditionType.fall_damage:
-                if (target.Range != null && target.Range.Value.Min >= longValue &&
-                    target.Range.Value.Max <= longValue) {
-                    return true;
-                }
-
-                if (target.Integers != null && target.Integers.Any(value => longValue >= value)) {
-                    return true;
-                }
-                break;
-            case ConditionType.gemstone_upgrade:
-            case ConditionType.socket_unlock:
-            case ConditionType.level_up:
-                if (target.Integers != null && target.Integers.Any(value => longValue >= value)) {
-                    return true;
-                }
-                break;
-            case ConditionType.map:
-            case ConditionType.jump:
-            case ConditionType.meso:
-            case ConditionType.taxifind:
-            case ConditionType.trophy_point:
-            case ConditionType.interact_object:
-            case ConditionType.gemstone_upgrade_success:
-            case ConditionType.gemstone_upgrade_try:
-            case ConditionType.socket_unlock_success:
-            case ConditionType.socket_unlock_try:
-            case ConditionType.gemstone_puton:
-            case ConditionType.gemstone_putoff:
-            case ConditionType.fish_fail:
-            case ConditionType.fish_collect:
-            case ConditionType.fish_goldmedal:
-            case ConditionType.mastery_grade:
-            case ConditionType.set_mastery_grade:
-            case ConditionType.music_play_grade:
-            case ConditionType.item_add:
-            case ConditionType.beauty_add:
-            case ConditionType.beauty_change_color:
-            case ConditionType.beauty_random:
-            case ConditionType.beauty_style_add:
-            case ConditionType.beauty_style_apply:
-            case ConditionType.level:
-            case ConditionType.trigger:
-                return true;
-        }
-        return false;
     }
 
     /// <summary>

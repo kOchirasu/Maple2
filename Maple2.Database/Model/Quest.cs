@@ -17,10 +17,6 @@ internal class Quest {
     public bool Track { get; set; }
     public SortedDictionary<int, QuestCondition> Conditions { get; set; }
 
-    public Quest() {
-        Conditions = new SortedDictionary<int, QuestCondition>();
-    }
-
     [return:NotNullIfNotNull(nameof(other))]
     public static implicit operator Quest?(Maple2.Model.Game.Quest? other) {
         if (other == null) {

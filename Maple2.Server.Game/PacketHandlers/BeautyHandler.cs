@@ -187,7 +187,7 @@ public class BeautyHandler : PacketHandler<GameSession> {
         }
 
         if (ModifyBeauty(session, packet, session.BeautyShop.ShopType, entry.ItemId)) {
-            session.Achievement.Update(ConditionType.beauty_add, codeLong: itemId);
+            session.ConditionUpdate(ConditionType.beauty_add, codeLong: itemId);
         }
     }
 
@@ -222,12 +222,12 @@ public class BeautyHandler : PacketHandler<GameSession> {
                 return;
             }
         }
-        
+
         EquipColor? startColor = cosmetic.Appearance?.Color;
         if (ModifyBeauty(session, packet, session.BeautyShop.ShopType, cosmetic.Id) && startColor != null) {
             Item newCosmetic = session.Item.Equips.Get(cosmetic.Metadata.SlotNames.First())!;
             if (!Equals(newCosmetic.Appearance?.Color, startColor)) {
-                session.Achievement.Update(ConditionType.beauty_change_color, codeLong: cosmetic.Id);
+                session.ConditionUpdate(ConditionType.beauty_change_color, codeLong: cosmetic.Id);
             }
         }
     }
@@ -321,7 +321,7 @@ public class BeautyHandler : PacketHandler<GameSession> {
 
         session.Item.Equips.EquipCosmetic(newHair, EquipSlot.HR);
         session.Send(BeautyPacket.RandomHair(prevHair.Id, newHair.Id));
-        session.Achievement.Update(ConditionType.beauty_random, codeLong: newHair.Id);
+        session.ConditionUpdate(ConditionType.beauty_random, codeLong: newHair.Id);
     }
     private void HandleWarp(GameSession session, IByteReader packet) {
         short type = packet.ReadShort();

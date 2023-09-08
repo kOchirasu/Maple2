@@ -11,6 +11,7 @@ using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Server.Game.Util;
 using Maple2.Tools.Extensions;
 using Serilog;
 
@@ -170,7 +171,7 @@ public sealed class QuestManager {
     /// <param name="targetLong">condition target parameter in long.</param>
     /// <param name="codeString">condition code parameter in string.</param>
     /// <param name="codeLong">condition code parameter in long.</param>
-    public void Update(ConditionType type, int counter = 1, string targetString = "", long targetLong = 0, string codeString = "", long codeLong = 0) {
+    public void Update(ConditionType type, long counter = 1, string targetString = "", long targetLong = 0, string codeString = "", long codeLong = 0) {
         IEnumerable<Quest> quests = characterValues.Values.Where(quest => quest.State != QuestState.Completed)
             .Concat(accountValues.Values.Where(quest => quest.State != QuestState.Completed));
         foreach (Quest quest in quests) {
@@ -183,11 +184,7 @@ public sealed class QuestManager {
                     continue;
                 }
 
-                if (condition.Metadata.Codes != null && !CheckCode(condition, codeString, codeLong)) {
-                    continue;
-                }
-
-                if (condition.Metadata.Target != null && !CheckTarget(condition, targetString, targetLong)) {
+                if (!condition.Metadata.Check(session, targetString, targetLong, codeString, codeLong)) {
                     continue;
                 }
 
@@ -196,66 +193,6 @@ public sealed class QuestManager {
                 session.Send(QuestPacket.Update(quest));
             }
         }
-    }
-
-    private bool CheckCode(Quest.Condition questCondition, string valueString = "", long valueLong = 0) {
-        ConditionMetadata.Parameters parameters = questCondition.Metadata.Codes!;
-        switch (questCondition.Metadata.Type) {
-            case ConditionType.item_exist:
-                if (parameters.Integers != null && parameters.Integers.Any(parameter => parameter >= valueLong)) {
-                    return true;
-                }
-                break;
-            case ConditionType.trigger:
-                if (parameters.Strings != null && parameters.Strings.Any(parameter => parameter == valueString)) {
-                    return true;
-                }
-                break;
-            case ConditionType.map:
-            case ConditionType.quest:
-                if (parameters.Integers != null && parameters.Integers.Any(parameter => parameter == valueLong)) {
-                    return true;
-                }
-
-                if (parameters.Range != null && InRange((ConditionMetadata.Range<int>) parameters.Range, valueLong)) {
-                    return true;
-                }
-                break;
-            // The following have no codes
-            case ConditionType.level:
-                return true;
-            default:
-                logger.Information("Unimplemented CheckCode for quest condition type: {MetadataType}", questCondition.Metadata.Type);
-                break;
-        }
-        return false;
-
-        bool InRange(ConditionMetadata.Range<int> range, long value) {
-            return value >= range.Min && value <= range.Max;
-        }
-    }
-
-    //TODO: Branch this out so SOME conditions can be valid upon quest start
-    // Currently just treating it that we're not checking for existing data for conditions.
-    private bool CheckTarget(Quest.Condition questCondition, string stringValue = "", long longValue = 0) {
-        ConditionMetadata.Parameters parameters = questCondition.Metadata.Target!;
-        switch (questCondition.Metadata.Type) {
-            case ConditionType.level:
-                if (parameters.Integers != null && parameters.Integers.Any(parameter => parameter <= longValue)) {
-                    return true;
-                }
-                break;
-            // The following have no targets
-            case ConditionType.item_exist:
-            case ConditionType.trigger:
-            case ConditionType.map:
-            case ConditionType.quest:
-                return true;
-            default:
-                logger.Information("Unimplemented CheckTarget for quest condition type: {MetadataType}", questCondition.Metadata.Type);
-                break;
-        }
-        return false;
     }
 
     /// <summary>
@@ -375,7 +312,7 @@ public sealed class QuestManager {
 
         // TODO: Guild rewards, mission points?
 
-        Update(ConditionType.quest, codeLong: quest.Metadata.Id);
+        session.ConditionUpdate(ConditionType.quest, codeLong: quest.Metadata.Id);
 
         quest.EndTime = DateTime.Now.ToEpochSeconds();
         quest.State = QuestState.Completed;

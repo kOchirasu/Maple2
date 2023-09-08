@@ -29,7 +29,7 @@ public class MesoPickupHandler : PacketHandler<GameSession> {
             if (session.Field.PickupItem(session.Player, objectId, out Item? item)) {
                 session.Item.Inventory.Discard(item);
                 session.Currency.Meso += item.Amount;
-                session.Achievement.Update(ConditionType.meso, item.Amount);
+                session.ConditionUpdate(ConditionType.meso, item.Amount);
             }
         }
     }

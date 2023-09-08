@@ -35,8 +35,9 @@ public class BonusGameHandler : PacketHandler<GameSession> {
     }
 
     private void HandleLoad(GameSession session, IByteReader packet) {
-        int stickerId = packet.ReadInt();
-        
+        int wheelId = packet.ReadInt();
+
+        //TODO: Fetch the rewards for the specific wheel and send to player
         session.Send(BonusGamePacket.Load());
     }
 }

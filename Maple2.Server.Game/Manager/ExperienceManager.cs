@@ -132,9 +132,8 @@ public sealed class ExperienceManager {
         }
         if (Level > startLevel) {
             session.Field?.Broadcast(LevelUpPacket.LevelUp(session.Player));
-            session.Achievement.Update(ConditionType.level_up, codeLong: (int) session.Player.Value.Character.Job.Code(), targetLong: session.Player.Value.Character.Level);
-            session.Achievement.Update(ConditionType.level, codeLong: session.Player.Value.Character.Level);
-            session.Quest.Update(ConditionType.level, targetLong: session.Player.Value.Character.Level);
+            session.ConditionUpdate(ConditionType.level_up, codeLong: (int) session.Player.Value.Character.Job.Code(), targetLong: session.Player.Value.Character.Level);
+            session.ConditionUpdate(ConditionType.level, codeLong: session.Player.Value.Character.Level);
 
             session.PlayerInfo.SendUpdate(new PlayerUpdateRequest {
                 AccountId = session.AccountId,

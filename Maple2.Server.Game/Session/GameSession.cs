@@ -312,8 +312,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Player.Buffs.Initialize();
         Send(PremiumCubPacket.Activate(Player.ObjectId, Player.Value.Account.PremiumTime));
         Send(PremiumCubPacket.LoadItems(Player.Value.Account.PremiumRewardsClaimed));
-        Achievement.Update(ConditionType.map, codeLong: Player.Value.Character.MapId);
-        Quest.Update(ConditionType.map, codeLong: Player.Value.Character.MapId);
+        ConditionUpdate(ConditionType.map, codeLong: Player.Value.Character.MapId);
         return true;
     }
 
@@ -336,6 +335,20 @@ public sealed partial class GameSession : Core.Network.Session {
             : FieldEnterPacket.Error(MigrationError.s_move_err_default));
     }
 
+    /// <summary>
+    /// Updates game condition values for achievement and quest.
+    /// </summary>
+    /// <param name="conditionType">Condition Type to update</param>
+    /// <param name="counter">Condition value to progress by. Default is 1.</param>
+    /// <param name="targetString">condition target parameter in string.</param>
+    /// <param name="targetLong">condition target parameter in long.</param>
+    /// <param name="codeString">condition code parameter in string.</param>
+    /// <param name="codeLong">condition code parameter in long.</param>
+    public void ConditionUpdate(ConditionType conditionType, long counter = 1, string targetString = "", long targetLong = 0, string codeString = "", long codeLong = 0) {
+        Achievement.Update(conditionType, counter, targetString, targetLong, codeString, codeLong);
+        Quest.Update(conditionType, counter, targetString, targetLong, codeString, codeLong);
+    }
+
     public GameEvent? FindEvent<T>() where T : GameEventInfo => server.FindEvent<T>();
 
     public IEnumerable<PremiumMarketItem> GetPremiumMarketItems(params int[] tabIds) => server.GetPremiumMarketItems(tabIds);
@@ -345,7 +358,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public void ChannelBroadcast(ByteWriter packet) {
         server.Broadcast(packet);
     }
-    
+
     public bool Temp() {
         // -> RequestMoveField
 
