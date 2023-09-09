@@ -63,7 +63,7 @@ public class EmoteHandler : PacketHandler<GameSession> {
             // Not sure if there is a way to prevent an emote from being used.
             return;
         }
-        
-        session.Achievement.Update(AchievementConditionType.emotion, codeString: aniKey);
+
+        session.ConditionUpdate(ConditionType.emotion, codeString: aniKey);
     }
 }

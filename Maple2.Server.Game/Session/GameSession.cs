@@ -57,6 +57,8 @@ public sealed partial class GameSession : Core.Network.Session {
     public required TableMetadataStorage TableMetadata { get; init; }
     public required MapMetadataStorage MapMetadata { get; init; }
     public required AchievementMetadataStorage AchievementMetadata { get; init; }
+    public required QuestMetadataStorage QuestMetadata { get; init; }
+    public required ScriptMetadataStorage ScriptMetadata { get; init; }
     public required FieldManager.Factory FieldFactory { private get; init; }
     public required Lua.Lua Lua { private get; init; }
     public required ItemStatsCalculator ItemStatsCalc { private get; init; }
@@ -79,6 +81,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public GameEventUserValueManager GameEventUserValue { get; set; }
     public ExperienceManager Exp { get; set; }
     public AchievementManager Achievement { get; set; }
+    public QuestManager Quest { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
 
@@ -127,6 +130,7 @@ public sealed partial class GameSession : Core.Network.Session {
         GameEventUserValue = new GameEventUserValueManager(this);
         Exp = new ExperienceManager(this, Lua);
         Achievement = new AchievementManager(this);
+        Quest = new QuestManager(this);
         Guild = new GuildManager(this);
         Config = new ConfigManager(db, this);
         Buddy = new BuddyManager(db, this);
@@ -181,7 +185,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Item.Inventory.Load();
         Item.Furnishing.Load();
         // Load Quests
-        Send(QuestPacket.StartLoad(0));
+        Quest.Load();
         // Send(QuestPacket.LoadSkyFortressMissions(Array.Empty<int>()));
         // Send(QuestPacket.LoadKritiasMissions(Array.Empty<int>()));
         Send(QuestPacket.LoadQuestStates(player.Unlock.Quests.Values));
@@ -308,7 +312,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Player.Buffs.Initialize();
         Send(PremiumCubPacket.Activate(Player.ObjectId, Player.Value.Account.PremiumTime));
         Send(PremiumCubPacket.LoadItems(Player.Value.Account.PremiumRewardsClaimed));
-        Achievement.Update(AchievementConditionType.map, codeLong: Player.Value.Character.MapId);
+        ConditionUpdate(ConditionType.map, codeLong: Player.Value.Character.MapId);
         return true;
     }
 
@@ -331,6 +335,20 @@ public sealed partial class GameSession : Core.Network.Session {
             : FieldEnterPacket.Error(MigrationError.s_move_err_default));
     }
 
+    /// <summary>
+    /// Updates game condition values for achievement and quest.
+    /// </summary>
+    /// <param name="conditionType">Condition Type to update</param>
+    /// <param name="counter">Condition value to progress by. Default is 1.</param>
+    /// <param name="targetString">condition target parameter in string.</param>
+    /// <param name="targetLong">condition target parameter in long.</param>
+    /// <param name="codeString">condition code parameter in string.</param>
+    /// <param name="codeLong">condition code parameter in long.</param>
+    public void ConditionUpdate(ConditionType conditionType, long counter = 1, string targetString = "", long targetLong = 0, string codeString = "", long codeLong = 0) {
+        Achievement.Update(conditionType, counter, targetString, targetLong, codeString, codeLong);
+        Quest.Update(conditionType, counter, targetString, targetLong, codeString, codeLong);
+    }
+
     public GameEvent? FindEvent<T>() where T : GameEventInfo => server.FindEvent<T>();
 
     public IEnumerable<PremiumMarketItem> GetPremiumMarketItems(params int[] tabIds) => server.GetPremiumMarketItems(tabIds);
@@ -340,7 +358,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public void ChannelBroadcast(ByteWriter packet) {
         server.Broadcast(packet);
     }
-    
+
     public bool Temp() {
         // -> RequestMoveField
 
@@ -411,6 +429,7 @@ public sealed partial class GameSession : Core.Network.Session {
                 Housing.Save(db);
                 GameEventUserValue.Save(db);
                 Achievement.Save(db);
+                Quest.Save(db);
             }
 
             base.Dispose(disposing);

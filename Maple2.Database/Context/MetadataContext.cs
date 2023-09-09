@@ -134,6 +134,9 @@ public sealed class MetadataContext : DbContext {
         builder.Property(quest => quest.Require).HasJsonConversion();
         builder.Property(quest => quest.AcceptReward).HasJsonConversion();
         builder.Property(quest => quest.CompleteReward).HasJsonConversion();
+        builder.Property(quest => quest.Conditions).HasJsonConversion();
+        builder.Property(quest => quest.GoToNpc).HasJsonConversion();
+        builder.Property(quest => quest.GoToDungeon).HasJsonConversion();
     }
 
     private static void ConfigureRideMetadata(EntityTypeBuilder<RideMetadata> builder) {

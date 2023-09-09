@@ -14,22 +14,8 @@ public record AchievementMetadata(
 
 public record AchievementMetadataGrade(
     int Grade,
-    AchievementMetadataCondition Condition,
+    ConditionMetadata Condition,
     AchievementMetadataReward? Reward);
-
-public record AchievementMetadataCondition(
-    AchievementConditionType Type,
-    AchievementMetadataCondition.Parameters? Codes,
-    long Value,
-    AchievementMetadataCondition.Parameters? Target) {
-
-    public record Parameters(
-        string[]? Strings = null,
-        Range<int>? Range = null,
-        int[]? Integers = null);
-
-    public readonly record struct Range<T>(T Min, T Max) where T : INumber<T>;
-}
 
 public record AchievementMetadataReward(
     AchievementRewardType Type,
