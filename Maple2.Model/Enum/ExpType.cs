@@ -1,6 +1,7 @@
 ﻿namespace Maple2.Model.Enum;
 
 public enum ExpType {
+    none,
     mapCommon,
     mapHidden,
     taxi,

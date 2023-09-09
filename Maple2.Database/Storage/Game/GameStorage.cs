@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
-using Maple2.Database.Context;
+﻿using Maple2.Database.Context;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model;
-using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -14,13 +12,16 @@ public partial class GameStorage {
     private readonly ItemMetadataStorage itemMetadata;
     private readonly MapMetadataStorage mapMetadata;
     private readonly AchievementMetadataStorage achievementMetadata;
+    private readonly QuestMetadataStorage questMetadata;
     private readonly ILogger logger;
 
-    public GameStorage(DbContextOptions options, ItemMetadataStorage itemMetadata, MapMetadataStorage mapMetadata, AchievementMetadataStorage achievementMetadata, ILogger<GameStorage> logger) {
+    public GameStorage(DbContextOptions options, ItemMetadataStorage itemMetadata, MapMetadataStorage mapMetadata, AchievementMetadataStorage achievementMetadata, 
+                       QuestMetadataStorage questMetadata, ILogger<GameStorage> logger) {
         this.options = options;
         this.itemMetadata = itemMetadata;
         this.mapMetadata = mapMetadata;
         this.achievementMetadata = achievementMetadata;
+        this.questMetadata = questMetadata;
         this.logger = logger;
     }
 

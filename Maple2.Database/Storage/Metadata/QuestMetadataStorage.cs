@@ -35,6 +35,20 @@ public class QuestMetadataStorage : MetadataStorage<int, QuestMetadata>, ISearch
         return true;
     }
 
+    public IEnumerable<QuestMetadata> GetQuests() {
+        lock (Context) {
+            return Context.QuestMetadata.ToList();
+        }
+    }
+
+    public IEnumerable<QuestMetadata> GetQuestsByNpc(int npcId) {
+        lock (Context) {
+            return Context.QuestMetadata
+                .FromSqlRaw($"SELECT * FROM `quest` WHERE JSON_EXTRACT(Basic, '$.StartNpc')={npcId}")
+                .ToList();
+        }
+    }
+
     public List<QuestMetadata> Search(string name) {
         lock (Context) {
             return Context.QuestMetadata

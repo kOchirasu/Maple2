@@ -72,7 +72,7 @@ public sealed class ExperienceManager {
         session.Send(ExperienceUpPacket.Add(expGained, Exp, RestExp, expMessageCode));
     }
 
-    public void AddExp(ExpType expType, float modifier = 1f) {
+    public void AddExp(ExpType expType, float modifier = 1f, long additionalExp = 0) {
         if (session.Field == null
             || !session.TableMetadata.CommonExpTable.Entries.TryGetValue(expType, out CommonExpTable.Entry? entry)
             || !session.TableMetadata.ExpTable.ExpBase.TryGetValue(entry.ExpTableId, out IReadOnlyDictionary<int, long>? expBase)) {
@@ -117,7 +117,7 @@ public sealed class ExperienceManager {
             _ => ExpMessageCode.s_msg_take_exp,
         };
 
-        AddExp((long) ((expValue * modifier) * entry.Factor), message);
+        AddExp((long) ((expValue * modifier) * entry.Factor) + additionalExp, message);
     }
 
     public bool LevelUp() {
@@ -132,8 +132,8 @@ public sealed class ExperienceManager {
         }
         if (Level > startLevel) {
             session.Field?.Broadcast(LevelUpPacket.LevelUp(session.Player));
-            session.Achievement.Update(AchievementConditionType.level_up, codeLong: (int) session.Player.Value.Character.Job.Code(), targetLong: session.Player.Value.Character.Level);
-            session.Achievement.Update(AchievementConditionType.level, codeLong: session.Player.Value.Character.Level);
+            session.ConditionUpdate(ConditionType.level_up, codeLong: (int) session.Player.Value.Character.Job.Code(), targetLong: session.Player.Value.Character.Level);
+            session.ConditionUpdate(ConditionType.level, codeLong: session.Player.Value.Character.Level);
 
             session.PlayerInfo.SendUpdate(new PlayerUpdateRequest {
                 AccountId = session.AccountId,
