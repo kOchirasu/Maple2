@@ -26,8 +26,8 @@ public class StateHandler : PacketHandler<GameSession> {
                 break;
         }
     }
-    
+
     private static void HandleJump(GameSession session) {
-        session.Achievement.Update(AchievementConditionType.jump);
+        session.ConditionUpdate(ConditionType.jump);
     }
 }

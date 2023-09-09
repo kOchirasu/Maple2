@@ -98,7 +98,7 @@ public class TaxiHandler : PacketHandler<GameSession> {
         int mapId = session.Player.Value.Character.MapId;
         session.Player.Value.Unlock.Taxis.Add(mapId);
         session.Send(RevealTaxi(mapId));
-        session.Achievement.Update(AchievementConditionType.taxifind);
+        session.ConditionUpdate(ConditionType.taxifind);
         session.Exp.AddExp(ExpType.taxi);
     }
 

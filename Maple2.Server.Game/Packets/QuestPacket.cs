@@ -16,7 +16,7 @@ public static class QuestPacket {
         Error = 0,
         Talk = 1,
         Start = 2,
-        ExplorationGoal = 3,
+        Update = 3,
         Complete = 4,
         Unknown5 = 5,
         Abandon = 6,
@@ -29,8 +29,8 @@ public static class QuestPacket {
         Unknown25 = 25,
         ExplorationReward = 26,
         Unknown30 = 30,
-        LoadSkyFortressMissions = 31,
-        LoadKritiasMissions = 32,
+        DailyReputationMissions = 31,
+        WeeklyReputationMissions = 32,
         AllianceAccept = 34,
         AllianceComplete = 35,
         Unknown38 = 38,
@@ -61,22 +61,22 @@ public static class QuestPacket {
         pWriter.Write<Command>(Command.Start);
         pWriter.WriteInt(quest.Id);
         pWriter.WriteLong(quest.StartTime);
-        pWriter.WriteBool(true);
+        pWriter.WriteBool(quest.Track);
         pWriter.WriteInt(quest.Conditions.Count);
-        foreach (int condition in quest.Conditions) {
-            pWriter.WriteInt(condition);
+        foreach (Quest.Condition condition in quest.Conditions.Values) {
+            pWriter.WriteInt(condition.Counter);
         }
 
         return pWriter;
     }
 
-    public static ByteWriter ExplorationGoal(Quest quest) {
+    public static ByteWriter Update(Quest quest) {
         var pWriter = Packet.Of(SendOp.Quest);
-        pWriter.Write<Command>(Command.ExplorationGoal);
+        pWriter.Write<Command>(Command.Update);
         pWriter.WriteInt(quest.Id);
         pWriter.WriteInt(quest.Conditions.Count);
-        foreach (int condition in quest.Conditions) {
-            pWriter.WriteInt(condition);
+        foreach (Quest.Condition condition in quest.Conditions.Values) {
+            pWriter.WriteInt(condition.Counter);
         }
 
         return pWriter;
@@ -87,7 +87,7 @@ public static class QuestPacket {
         pWriter.Write<Command>(Command.Complete);
         pWriter.WriteInt(quest.Id);
         pWriter.WriteInt(1); // quest.State??
-        pWriter.WriteLong(quest.CompletionCount);
+        pWriter.WriteLong(quest.EndTime);
 
         return pWriter;
     }
@@ -197,7 +197,7 @@ public static class QuestPacket {
 
     public static ByteWriter LoadSkyFortressMissions(ICollection<int> questIds) {
         var pWriter = Packet.Of(SendOp.Quest);
-        pWriter.Write<Command>(Command.LoadSkyFortressMissions);
+        pWriter.Write<Command>(Command.DailyReputationMissions);
         pWriter.WriteBool(true);
         pWriter.WriteInt(questIds.Count);
         foreach (int questId in questIds) {
@@ -209,7 +209,7 @@ public static class QuestPacket {
 
     public static ByteWriter LoadKritiasMissions(ICollection<int> questIds) {
         var pWriter = Packet.Of(SendOp.Quest);
-        pWriter.Write<Command>(Command.LoadKritiasMissions);
+        pWriter.Write<Command>(Command.WeeklyReputationMissions);
         pWriter.WriteBool(true);
         pWriter.WriteInt(questIds.Count);
         foreach (int questId in questIds) {
