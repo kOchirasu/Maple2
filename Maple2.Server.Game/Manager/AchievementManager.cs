@@ -11,6 +11,7 @@ using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
+using Maple2.Server.Game.Util;
 using Maple2.Tools.Extensions;
 using Serilog;
 
@@ -48,7 +49,7 @@ public sealed class AchievementManager {
     }
 
     /// <summary>
-    /// Checks for any possible trophies under stated TrophyConditionType. If there is a trophy that can have any progress updated to it, update or add to player if it hasn't existed yet.
+    /// Checks for any possible trophies under stated ConditionType. If there is a trophy that can have any progress updated to it, update or add to player if it hasn't existed yet.
     /// </summary>
     /// <param name="conditionType">TrophyConditionType to search metadata</param>
     /// <param name="count">Condition value to update progress of a trophy. Default is 1.</param>
@@ -56,7 +57,7 @@ public sealed class AchievementManager {
     /// <param name="targetLong">Trophy grade condition target parameter in long.</param>
     /// <param name="codeString">Trophy grade condition code parameter in string.</param>
     /// <param name="codeLong">Trophy grade condition code parameter in long.</param>
-    public void Update(AchievementConditionType conditionType, long count = 1, string targetString = "", long targetLong = 0, string codeString = "", long codeLong = 0) {
+    public void Update(ConditionType conditionType, long count = 1, string targetString = "", long targetLong = 0, string codeString = "", long codeLong = 0) {
         foreach (AchievementMetadata metadata in session.AchievementMetadata.GetType(conditionType)) {
             IDictionary<int, Achievement> achievements = metadata.AccountWide ? accountValues : characterValues;
             if (!achievements.TryGetValue(metadata.Id, out Achievement? achievement) || !metadata.Grades.TryGetValue(achievement.CurrentGrade, out AchievementMetadataGrade? grade)) {
@@ -64,11 +65,7 @@ public sealed class AchievementManager {
                 grade = metadata.Grades[lowestgradeValue];
             }
 
-            if (grade.Condition.Codes != null && !CheckCode(grade.Condition, codeString, codeLong)) {
-                continue;
-            }
-
-            if (grade.Condition.Target != null && !CheckTarget(grade.Condition, targetLong)) {
+            if (!grade.Condition.Check(session, targetString, targetLong, codeString, codeLong)) {
                 continue;
             }
 
@@ -89,151 +86,6 @@ public sealed class AchievementManager {
                 session.Send(AchievementPacket.Update(achievement));
             }
         }
-    }
-
-    private bool CheckCode(AchievementMetadataCondition condition, string stringValue = "", long longValue = 0) {
-        AchievementMetadataCondition.Parameters parameters = condition.Codes!;
-        switch (condition.Type) {
-            case AchievementConditionType.emotion:
-                if (parameters.Strings != null && parameters.Strings.Contains(stringValue)) {
-                    return true;
-                }
-                break;
-            case AchievementConditionType.trophy_point:
-                if (parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) {
-                    return true;
-                }
-                break;
-            case AchievementConditionType.interact_object:
-                if ((parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) ||
-                    (parameters.Integers != null && parameters.Integers.Contains((int) longValue))) {
-                    if (session.Player.Value.Unlock.InteractedObjects.Contains((int) longValue)) {
-                        return false;
-                    }
-                    session.Player.Value.Unlock.InteractedObjects.Add((int) longValue);
-                    return true;
-                }
-                break;
-            case AchievementConditionType.item_collect:
-            case AchievementConditionType.item_collect_revise:
-                if ((parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) ||
-                    (parameters.Integers != null && parameters.Integers.Contains((int) longValue))) {
-                    if (session.Player.Value.Unlock.CollectedItems.ContainsKey((int) longValue)) {
-                        session.Player.Value.Unlock.CollectedItems[(int) longValue]++;
-                        return false;
-                    }
-
-                    session.Player.Value.Unlock.CollectedItems.Add((int) longValue, 1);
-                    return true;
-                }
-                break;
-            case AchievementConditionType.map:
-            case AchievementConditionType.fish:
-            case AchievementConditionType.fish_big:
-            case AchievementConditionType.mastery_grade:
-            case AchievementConditionType.set_mastery_grade:
-            case AchievementConditionType.item_add:
-            case AchievementConditionType.beauty_add:
-            case AchievementConditionType.beauty_change_color:
-            case AchievementConditionType.beauty_random:
-            case AchievementConditionType.beauty_style_add:
-            case AchievementConditionType.beauty_style_apply:
-            case AchievementConditionType.level:
-            case AchievementConditionType.level_up:
-                if (parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) {
-                    return true;
-                }
-
-                if (parameters.Integers != null && parameters.Integers.Contains((int) longValue)) {
-                    return true;
-                }
-                break;
-            case AchievementConditionType.fish_collect:
-            case AchievementConditionType.fish_goldmedal:
-                if ((parameters.Range != null && InRange((AchievementMetadataCondition.Range<int>) parameters.Range, longValue)) ||
-                    (parameters.Integers != null && parameters.Integers.Contains((int) longValue))) {
-                    return !session.Player.Value.Unlock.FishAlbum.ContainsKey((int) longValue);
-                }
-                break;
-            case AchievementConditionType.jump:
-            case AchievementConditionType.meso:
-            case AchievementConditionType.taxifind:
-            case AchievementConditionType.fall_damage:
-            case AchievementConditionType.gemstone_upgrade:
-            case AchievementConditionType.gemstone_upgrade_success:
-            case AchievementConditionType.gemstone_upgrade_try:
-            case AchievementConditionType.socket_unlock_success:
-            case AchievementConditionType.socket_unlock_try:
-            case AchievementConditionType.socket_unlock:
-            case AchievementConditionType.gemstone_puton:
-            case AchievementConditionType.gemstone_putoff:
-            case AchievementConditionType.fish_fail:
-            case AchievementConditionType.music_play_grade:
-                return true;
-        }
-        return false;
-
-        bool InRange(AchievementMetadataCondition.Range<int> range, long value) {
-            return value >= range.Min && value <= range.Max;
-        }
-    }
-
-    private bool CheckTarget(AchievementMetadataCondition condition, long longValue = 0) {
-        AchievementMetadataCondition.Parameters target = condition.Target!;
-        switch (condition.Type) {
-            case AchievementConditionType.emotion:
-                if (target.Range != null && target.Range.Value.Min >= session.Player.Value.Character.MapId &&
-                    target.Range.Value.Max <= session.Player.Value.Character.MapId) {
-                    return true;
-                }
-                break;
-            case AchievementConditionType.fish:
-            case AchievementConditionType.fish_big:
-            case AchievementConditionType.fall_damage:
-                if (target.Range != null && target.Range.Value.Min >= longValue &&
-                    target.Range.Value.Max <= longValue) {
-                    return true;
-                }
-
-                if (target.Integers != null && target.Integers.Any(value => longValue >= value)) {
-                    return true;
-                }
-                break;
-            case AchievementConditionType.gemstone_upgrade:
-            case AchievementConditionType.socket_unlock:
-            case AchievementConditionType.level_up:
-                if (target.Integers != null && target.Integers.Any(value => longValue >= value)) {
-                    return true;
-                }
-                break;
-            case AchievementConditionType.map:
-            case AchievementConditionType.jump:
-            case AchievementConditionType.meso:
-            case AchievementConditionType.taxifind:
-            case AchievementConditionType.trophy_point:
-            case AchievementConditionType.interact_object:
-            case AchievementConditionType.gemstone_upgrade_success:
-            case AchievementConditionType.gemstone_upgrade_try:
-            case AchievementConditionType.socket_unlock_success:
-            case AchievementConditionType.socket_unlock_try:
-            case AchievementConditionType.gemstone_puton:
-            case AchievementConditionType.gemstone_putoff:
-            case AchievementConditionType.fish_fail:
-            case AchievementConditionType.fish_collect:
-            case AchievementConditionType.fish_goldmedal:
-            case AchievementConditionType.mastery_grade:
-            case AchievementConditionType.set_mastery_grade:
-            case AchievementConditionType.music_play_grade:
-            case AchievementConditionType.item_add:
-            case AchievementConditionType.beauty_add:
-            case AchievementConditionType.beauty_change_color:
-            case AchievementConditionType.beauty_random:
-            case AchievementConditionType.beauty_style_add:
-            case AchievementConditionType.beauty_style_apply:
-            case AchievementConditionType.level:
-                return true;
-        }
-        return false;
     }
 
     /// <summary>

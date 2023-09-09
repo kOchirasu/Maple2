@@ -17,11 +17,13 @@ public class QuestMapper : TypeMapper<QuestMetadata> {
 
     protected override IEnumerable<QuestMetadata> Map() {
         foreach ((int id, string name, QuestData data) in parser.Parse()) {
-            if (data.start == null || data.complete == null) {
-                continue;
-            }
-
             Debug.Assert(Enum.IsDefined((QuestType) data.basic.questType), $"Invalid QuestType: {data.basic.questType}");
+            var unrequiredAchievement = (0, 0);
+            if (data.require.unreqAchievement.Length == 2 &&
+                int.TryParse(data.require.unreqAchievement[0], out int achievementId) &&
+                int.TryParse(data.require.unreqAchievement[1], out int grade)) {
+                unrequiredAchievement = (achievementId, grade);
+            }
             yield return new QuestMetadata(
                 Id: id,
                 Name: name,
@@ -30,27 +32,49 @@ public class QuestMapper : TypeMapper<QuestMetadata> {
                     Type: (QuestType) data.basic.questType,
                     Account: data.basic.account,
                     StandardLevel: data.basic.standardLevel,
+                    Forfeitable: !data.basic.disableGiveup,
+                    EventTag: data.basic.eventTag,
                     AutoStart: data.basic.autoStart,
-                    StartNpc: data.start.npc,
-                    CompleteNpc: data.complete.npc,
-                    CompleteMap: data.complete.map
+                    Disabled: data.basic.locking,
+                    UsePostbox: data.basic.usePostbox,
+                    StartNpc: data.start?.npc ?? 0,
+                    CompleteNpc: data.complete?.npc ?? 0,
+                    CompleteMaps: data.complete?.map,
+                    ProgressMaps: data.progressMap.progressMap
                 ),
                 Require: new QuestMetadataRequire(
                     Level: data.require.level,
                     MaxLevel: data.require.maxLevel,
-                    Job: data.require.job,
+                    Job: data.require.job.Select(job => (JobCode) job).ToArray(),
                     Quest: data.require.quest,
                     SelectableQuest: data.require.selectableQuest,
                     Achievement: data.require.achievement,
+                    UnrequiredAchievement: unrequiredAchievement,
                     GearScore: data.require.gearScore
                 ),
                 AcceptReward: Convert(data.acceptReward),
-                CompleteReward: Convert(data.completeReward)
+                CompleteReward: Convert(data.completeReward),
+                GoToNpc: new QuestMetadataGoToNpc(
+                    Enabled: data.gotoNpc.enable,
+                    MapId: data.gotoNpc.gotoField,
+                    PortalId: data.gotoNpc.gotoPortal),
+                GoToDungeon: new QuestMetadataGoToDungeon(
+                    State: (QuestState) data.gotoDungeon.state,
+                    MapId: data.gotoDungeon.gotoDungeon,
+                    InstanceId: data.gotoDungeon.gotoInstanceID),
+                Conditions: data.condition.Select(condition => new ConditionMetadata(
+                    Type: (ConditionType) condition.type,
+                    Value: condition.value,
+                    Codes: condition.code.ConvertCodes(),
+                    Target: condition.target.ConvertCodes(),
+                    PartyCount: condition.partyCount,
+                    GuildPartyCount: condition.guildPartyCount
+                )).ToArray()
             );
         }
     }
 
-    private QuestMetadataReward Convert(Reward reward) {
+    private static QuestMetadataReward Convert(Reward reward) {
         List<Reward.Item> essentialItem = reward.essentialItem;
         List<Reward.Item> essentialJobItem = reward.essentialJobItem;
         if (FeatureLocaleFilter.FeatureEnabled("GlobalQuestRewardItem")) {
@@ -61,6 +85,7 @@ public class QuestMapper : TypeMapper<QuestMetadata> {
         return new QuestMetadataReward(
             Meso: reward.money,
             Exp: reward.exp,
+            RelativeExp: (ExpType) reward.relativeExp,
             GuildFund: reward.guildFund,
             GuildExp: reward.guildExp,
             GuildCoin: reward.guildCoin,

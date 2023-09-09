@@ -123,9 +123,9 @@ public static class PlayerInfoPacket {
         buffer.WriteInt();
         buffer.WriteInt();
         buffer.Write<SkinColor>(player.Character.SkinColor);
-        buffer.WriteShort();
-        buffer.WriteUnicodeString();
-        buffer.WriteUnicodeString();
-        buffer.WriteLong();
+        buffer.WriteShort(); // Marital Status
+        buffer.WriteUnicodeString(); // Spouse Name 1
+        buffer.WriteUnicodeString(); // Spouse Name 2
+        buffer.WriteLong(); // Proposal Time
     }
 }

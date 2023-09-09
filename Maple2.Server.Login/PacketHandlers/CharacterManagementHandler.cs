@@ -166,6 +166,7 @@ public class CharacterManagementHandler : PacketHandler<LoginSession> {
             Name = name,
             SkinColor = skinColor,
             MapId = entry.Tutorial.StartField,
+            ReturnMapId = entry.Tutorial.StartField,
             Mastery = new Mastery(),
         };
 

@@ -36,7 +36,7 @@ public class AchievementMetadataStorage : MetadataStorage<int, AchievementMetada
         return true;
     }
 
-    public ICollection<AchievementMetadata> GetType(AchievementConditionType type) {
+    public ICollection<AchievementMetadata> GetType(ConditionType type) {
         lock (Context) {
             return Context.AchievementMetadata
                 .AsEnumerable()

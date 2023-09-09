@@ -68,7 +68,9 @@ public class WebController : ControllerBase {
         string filePath = $"{RootDir}/profiles/{characterId}/";
         try {
             // Deleting old files in the character folder
-            Directory.Delete(filePath, true);
+            if (Path.Exists(filePath)) {
+                Directory.Delete(filePath, true);
+            }
             Directory.CreateDirectory(filePath);
         } catch (Exception ex) {
             Log.Error(ex, "Failed preparing directory: {Path}", filePath);
