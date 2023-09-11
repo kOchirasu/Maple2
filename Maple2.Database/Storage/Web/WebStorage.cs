@@ -41,7 +41,6 @@ public partial class WebStorage {
         public bool SaveUgc(UgcResource ugc, long ownerId) {
             Model.UgcResource model = ugc;
             model.OwnerId = ownerId;
-            //model.Path = "test";
             Context.UgcResource.Update(model);
 
             return SaveChanges();

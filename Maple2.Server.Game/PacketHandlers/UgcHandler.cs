@@ -63,6 +63,26 @@ public class UgcHandler : PacketHandler<GameSession> {
         packet.ReadShort();
         packet.ReadShort(); // -256
 
+        switch (info.Type) {
+            case UgcType.Item:
+            case UgcType.Furniture:
+            case UgcType.Mount:
+                UploadItem(session, packet, info.Type);
+                return;
+            case UgcType.Banner:
+                long bannerId = packet.ReadLong();
+                byte hours = packet.ReadByte();
+                for (int i = 0; i < hours; i++) {
+                    var reservation = packet.Read<UgcBannerReservation>();
+                }
+                return;
+            default:
+                Logger.Information("Unimplemented Ugc Type: {type}", info.Type);
+                return;
+        }
+    }
+
+    private void UploadItem(GameSession session, IByteReader packet, UgcType ugcType) {
         long itemUid = packet.ReadLong();
         int itemId = packet.ReadInt();
         int amount = packet.ReadInt();
@@ -117,7 +137,7 @@ public class UgcHandler : PacketHandler<GameSession> {
         }
 
         using WebStorage.Request request = WebStorage.Context();
-        UgcResource? resource = request.CreateUgc(info.Type, session.CharacterId);
+        UgcResource? resource = request.CreateUgc(ugcType, session.CharacterId);
         if (resource == null) {
             return;
         }
