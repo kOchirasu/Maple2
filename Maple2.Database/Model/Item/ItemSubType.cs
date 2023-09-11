@@ -12,17 +12,18 @@ internal abstract record ItemSubType;
 
 internal record ItemUgc(UgcItemLook Template, ItemBlueprint Blueprint) : ItemSubType;
 
-internal record UgcItemLook(string FileName, string Name, long AccountId, long CharacterId, string Author,
+internal record UgcItemLook(long Id, string FileName, string Name, long AccountId, long CharacterId, string Author,
         long CreationTime, string Url) {
     [return:NotNullIfNotNull(nameof(other))]
     public static implicit operator UgcItemLook?(Maple2.Model.Game.UgcItemLook? other) {
-        return other == null ? null : new UgcItemLook(other.FileName, other.Name, other.AccountId, other.CharacterId,
+        return other == null ? null : new UgcItemLook(other.Id, other.FileName, other.Name, other.AccountId, other.CharacterId,
             other.Author, other.CreationTime, other.Url);
     }
 
     [return:NotNullIfNotNull(nameof(other))]
     public static implicit operator Maple2.Model.Game.UgcItemLook?(UgcItemLook? other) {
         return other == null ? null : new Maple2.Model.Game.UgcItemLook {
+            Id = other.Id,
             FileName = other.FileName,
             Name = other.Name,
             AccountId = other.AccountId,

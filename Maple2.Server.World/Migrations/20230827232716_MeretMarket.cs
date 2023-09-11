@@ -108,10 +108,10 @@ namespace Maple2.Server.World.Migrations
                     table.PrimaryKey("PK_ugc-market-item", x => x.Id);
                 })
                 .Annotation("MySql:CharSet", "utf8mb4");
-            
-            migrationBuilder.Sql("ALTER TABLE `ugc-market-item` AUTO_INCREMENT = 90000000000");
+
+            migrationBuilder.Sql("ALTER TABLE `ugc-market-item` AUTO_INCREMENT = 90000000001");
             migrationBuilder.Sql("ALTER TABLE `premium-market-item` AUTO_INCREMENT = 100000000000");
-            // System Banners are intentionally lower increment 
+            // System Banners are intentionally lower increment
             migrationBuilder.Sql("ALTER TABLE `system-banner` AUTO_INCREMENT = 10000");
         }
 

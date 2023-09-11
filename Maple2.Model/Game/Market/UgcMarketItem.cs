@@ -6,27 +6,31 @@ using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
-public class UgcMarketItem : MarketItem {
-    public required long Id { get; init; }
-    public required UgcMarketListingStatus Status { get; init; }
-    public required long ListingEndTime { get; init; }
-    public required long PromotionEndTime { get; init; }
+public class
+    UgcMarketItem : MarketItem {
+    public long Id { get; init; }
+    public required UgcMarketListingStatus Status { get; set; }
+    public required long ListingEndTime { get; set; }
+    public required long PromotionEndTime { get; set; }
     public required long SellerAccountId { get; init; }
     public required long SellerCharacterId { get; init; }
     public required string SellerCharacterName { get; init; }
-    public required string Description { get; init; }
-    public required string[] Tags { get; init; } = Array.Empty<string>();
+    public required string Description { get; set; }
+    public required string[] Tags { get; set; } = Array.Empty<string>();
     public required UgcItemLook Look { get; init; }
+    public UgcMarketHomeCategory Category = UgcMarketHomeCategory.None;
 
     public UgcMarketItem(ItemMetadata metadata) : base(metadata) { }
 
-    public new void WriteTo(IByteWriter writer) {
+    public override void WriteTo(IByteWriter writer) {
+        writer.WriteInt();
+        writer.WriteLong(Id);
         writer.WriteInt();
         writer.WriteLong(Id);
         writer.Write<UgcMarketListingStatus>(Status);
         writer.WriteInt(ItemMetadata.Id);
-        writer.WriteInt();
-        writer.WriteByte();
+        writer.WriteInt(TabId);
+        writer.Write<GenderFilterFlag>(ItemMetadata.Limit.Gender.FilterFlag());
         writer.WriteInt();
         writer.WriteLong(Price);
         writer.WriteInt();
@@ -45,7 +49,7 @@ public class UgcMarketItem : MarketItem {
         writer.WriteLong(SellerCharacterId);
         writer.WriteUnicodeString();
         writer.WriteUnicodeString(SellerCharacterName);
-        writer.WriteUnicodeString(string.Join(",", Tags + ", " + Look.Name));
+        writer.WriteUnicodeString(string.Join(",", string.Join(",", Tags) + ", " + Look.Name));
         writer.WriteUnicodeString(Description);
         writer.WriteUnicodeString(SellerCharacterName);
         writer.WriteClass<UgcItemLook>(Look);
@@ -56,7 +60,6 @@ public class UgcMarketItem : MarketItem {
         writer.WriteUnicodeString();
         writer.WriteString();
         writer.WriteInt();
-        writer.WriteInt();
         writer.WriteLong();
         writer.WriteLong();
         writer.WriteUnicodeString();
@@ -69,6 +72,6 @@ public class UgcMarketItem : MarketItem {
         writer.WriteLong();
         writer.WriteLong();
         writer.WriteUnicodeString();
-        writer.Write<UgcMarketHomeCategory>(UgcMarketHomeCategory.None); // change for dictionary lookup when implemented
+        writer.Write<UgcMarketHomeCategory>(Category);
     }
 }

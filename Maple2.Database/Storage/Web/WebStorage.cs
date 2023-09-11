@@ -1,5 +1,6 @@
 ﻿using Maple2.Database.Context;
 using Maple2.Database.Extensions;
+using Maple2.Model.Enum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using UgcResource = Maple2.Model.Game.UgcResource;
@@ -27,14 +28,34 @@ public partial class WebStorage {
     public partial class Request : DatabaseRequest<WebContext> {
         public Request(WebContext context, ILogger logger) : base(context, logger) { }
 
-        public UgcResource? CreateUgc(long ownerId, string path) {
-            var resource = new Model.UgcResource {
+        public UgcResource? CreateUgc(UgcType type, long ownerId) {
+            var model = new Model.UgcResource {
+                Type = type,
                 OwnerId = ownerId,
-                Path = path,
             };
-            Context.UgcResource.Add(resource);
+            Context.UgcResource.Add(model);
 
-            return Context.TrySaveChanges() ? resource : null;
+            return Context.TrySaveChanges() ? model : null;
+        }
+
+        public bool SaveUgc(UgcResource ugc, long ownerId) {
+            Model.UgcResource model = ugc;
+            model.OwnerId = ownerId;
+            //model.Path = "test";
+            Context.UgcResource.Update(model);
+
+            return SaveChanges();
+        }
+
+        public bool UpdatePath(long id, string path) {
+            Model.UgcResource? model = Context.UgcResource.Find(id);
+            if (model == null) {
+                return false;
+            }
+
+            model.Path = path;
+            Context.UgcResource.Update(model);
+            return SaveChanges();
         }
 
         public UgcResource? GetUgc(long id) {

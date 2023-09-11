@@ -25,6 +25,7 @@ public class ConfigManager {
     private IList<SkillMacro> skillMacros;
     private IList<Wardrobe> wardrobes;
     private IList<int> favoriteStickers;
+    private IList<long> favoriteDesigners;
     private readonly IDictionary<LapenshardSlot, int> lapenshards;
     private readonly StatAttributes statAttributes;
 
@@ -43,6 +44,7 @@ public class ConfigManager {
             IList<SkillMacro>? Macros,
             IList<Wardrobe>? Wardrobes,
             IList<int>? FavoriteStickers,
+            IList<long>? FavoriteDesigners,
             IDictionary<LapenshardSlot, int>? Lapenshards,
             IDictionary<BasicAttribute, int>? Allocation,
             SkillBook? SkillBook
@@ -58,6 +60,7 @@ public class ConfigManager {
         skillMacros = load.Macros ?? new List<SkillMacro>();
         wardrobes = load.Wardrobes ?? new List<Wardrobe>();
         favoriteStickers = load.FavoriteStickers ?? new List<int>();
+        favoriteDesigners = load.FavoriteDesigners ?? new List<long>();
         lapenshards = load.Lapenshards ?? new Dictionary<LapenshardSlot, int>();
 
         statAttributes = new StatAttributes();
@@ -136,6 +139,14 @@ public class ConfigManager {
     public void LoadStatAttributes() {
         session.Send(AttributePointPacket.Sources(statAttributes));
         session.Send(AttributePointPacket.Allocation(statAttributes));
+    }
+
+    public IList<long> GetFavoriteDesigners() {
+        return favoriteDesigners;
+    }
+
+    public void UpdateFavoriteDesigners(IList<long> designers) {
+        favoriteDesigners = designers;
     }
 
     #region KeyBind
@@ -351,6 +362,7 @@ public class ConfigManager {
             skillMacros,
             wardrobes,
             favoriteStickers,
+            favoriteDesigners,
             lapenshards,
             statAttributes.Allocation,
             Skill.SkillBook
