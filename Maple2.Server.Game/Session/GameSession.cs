@@ -120,7 +120,7 @@ public sealed partial class GameSession : Core.Network.Session {
 
         Player = new FieldPlayer(this, player);
         Currency = new CurrencyManager(this);
-        Mastery = new MasteryManager(this);
+        Mastery = new MasteryManager(this, Lua);
         Stats = new StatsManager(this);
         Housing = new HousingManager(this);
         Mail = new MailManager(this);
@@ -196,6 +196,7 @@ public sealed partial class GameSession : Core.Network.Session {
         // UserEnv
         Send(UserEnvPacket.LoadTitles(Player.Value.Unlock.Titles));
         Send(UserEnvPacket.InteractedObjects(Player.Value.Unlock.InteractedObjects));
+        Send(UserEnvPacket.GatheringCounts(Config.GatheringCounts));
         Send(UserEnvPacket.LoadClaimedRewards(Player.Value.Unlock.MasteryRewardsClaimed));
         Send(FishingPacket.LoadAlbum(Player.Value.Unlock.FishAlbum.Values));
         Pet?.Load();
