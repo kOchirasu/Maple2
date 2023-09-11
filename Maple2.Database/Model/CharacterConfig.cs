@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
@@ -19,6 +20,7 @@ internal class CharacterConfig {
     public SkillBook? SkillBook { get; set; }
     public IList<int>? FavoriteStickers { get; set; }
     public IDictionary<LapenshardSlot, int>? Lapenshards { get; set; }
+    public List<SkillCooldown>? SkillCooldowns { get; set; }
 
     public DateTime LastModified { get; set; }
 
@@ -43,6 +45,7 @@ internal class CharacterConfig {
             .HasForeignKey<SkillBook>(skillBook => skillBook.ActiveSkillTabId);
         builder.Property(config => config.FavoriteStickers).HasJsonConversion();
         builder.Property(config => config.Lapenshards).HasJsonConversion();
+        builder.Property(config => config.SkillCooldowns).HasJsonConversion();
 
         builder.Property(unlock => unlock.LastModified).IsRowVersion();
     }
@@ -67,6 +70,29 @@ internal class SkillMacro {
     public static implicit operator Maple2.Model.Game.SkillMacro(SkillMacro? other) {
         return other == null ? new Maple2.Model.Game.SkillMacro(string.Empty, 0) :
             new Maple2.Model.Game.SkillMacro(other.Name, other.KeyId, other.Skills.ToHashSet());
+    }
+}
+
+internal class SkillCooldown {
+    public int SkillId { get; set; }
+    public int OriginSkillId { get; set; }
+    public long EndTick { get; set; }
+
+    [return: NotNullIfNotNull(nameof(other))]
+    public static implicit operator SkillCooldown?(Maple2.Model.Game.SkillCooldown? other) {
+        return other == null ? null : new SkillCooldown {
+            SkillId = other.SkillId,
+            OriginSkillId = other.OriginSkillId,
+            EndTick = other.EndTick,
+        };
+    }
+
+    [return: NotNullIfNotNull(nameof(other))]
+    public static implicit operator Maple2.Model.Game.SkillCooldown?(SkillCooldown? other) {
+        return other == null ? null : new Maple2.Model.Game.SkillCooldown(other.SkillId) {
+            OriginSkillId = other.OriginSkillId,
+            EndTick = other.EndTick,
+        };
     }
 }
 

@@ -24,6 +24,7 @@ public class SkillMapper : TypeMapper<StoredSkillMetadata> {
                 level => level.value,
                 level => new SkillMetadataLevel(
                     Condition: level.beginCondition.Convert(),
+                    Change: level.changeSkill?.Convert(),
                     Consume: new SkillMetadataConsume(
                         Meso: level.consume.money,
                         UseItem: level.consume.useItem,
@@ -40,6 +41,7 @@ public class SkillMapper : TypeMapper<StoredSkillMetadata> {
                             TargetCount: attack.targetCount,
                             MagicPathId: attack.magicPathID,
                             CubeMagicPathId: attack.cubeMagicPathID == int.MaxValue ? 9000073111 : attack.cubeMagicPathID,
+                            CompulsionTypes: attack.compulsionType.Select(type => (CompulsionType) type).ToArray(),
                             Pet: attack.petTamingProperty != null ? new SkillMetadataPet(
                                 TamingGroup: attack.petTamingProperty.tamingGroup,
                                 TrapLevel: attack.petTamingProperty.trapLevel,
