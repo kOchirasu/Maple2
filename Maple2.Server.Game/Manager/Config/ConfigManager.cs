@@ -55,12 +55,11 @@ public class ConfigManager {
         Skill = new SkillManager(session, load.SkillBook ?? new SkillBook());
 
         for (int i = 0; i < TOTAL_HOT_BARS; i++) {
-            if (load.HotBars == null && i == 0) {
-                hotBars.Add(new HotBar());
-                UpdateHotbarSkills();
-                continue;
-            }
             hotBars.Add(new HotBar(load.HotBars?.ElementAtOrDefault(i)));
+        }
+
+        if (load.HotBars == null) {
+            UpdateHotbarSkills();
         }
 
         skillMacros = load.Macros ?? new List<SkillMacro>();
