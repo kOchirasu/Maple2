@@ -56,7 +56,8 @@ public class ConfigManager {
 
         for (int i = 0; i < TOTAL_HOT_BARS; i++) {
             if (load.HotBars == null && i == 0) {
-                hotBars.Add(CreateFirstHotBar());
+                hotBars.Add(new HotBar());
+                UpdateHotbarSkills();
                 continue;
             }
             hotBars.Add(new HotBar(load.HotBars?.ElementAtOrDefault(i)));
@@ -75,15 +76,6 @@ public class ConfigManager {
             }
         }
 
-    }
-
-    private HotBar CreateFirstHotBar() {
-        SortedDictionary<int, SkillInfo.Skill> skills = Skill.SkillInfo.GetMainLearnedJobSkills(SkillType.Active, SkillRank.Basic);
-        var hotBar = new HotBar();
-        foreach ((int skillId, SkillInfo.Skill skill) in skills) {
-            hotBar.MoveQuickSlot(-1, new QuickSlot(skillId), false);
-        }
-        return hotBar;
     }
 
     public void UpdateHotbarSkills() {
