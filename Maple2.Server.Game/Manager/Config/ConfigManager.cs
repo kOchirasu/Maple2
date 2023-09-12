@@ -52,9 +52,16 @@ public class ConfigManager {
                 SetKeyBind(keyBind);
             }
         }
+        Skill = new SkillManager(session, load.SkillBook ?? new SkillBook());
+
         for (int i = 0; i < TOTAL_HOT_BARS; i++) {
+            if (load.HotBars == null && i == 0) {
+                hotBars.Add(CreateFirstHotBar());
+                continue;
+            }
             hotBars.Add(new HotBar(load.HotBars?.ElementAtOrDefault(i)));
         }
+
         skillMacros = load.Macros ?? new List<SkillMacro>();
         wardrobes = load.Wardrobes ?? new List<Wardrobe>();
         favoriteStickers = load.FavoriteStickers ?? new List<int>();
@@ -68,7 +75,34 @@ public class ConfigManager {
             }
         }
 
-        Skill = new SkillManager(session, load.SkillBook ?? new SkillBook());
+    }
+
+    private HotBar CreateFirstHotBar() {
+        SortedDictionary<int, SkillInfo.Skill> skills = Skill.SkillInfo.GetMainLearnedJobSkills(SkillType.Active, SkillRank.Basic);
+        var hotBar = new HotBar();
+        foreach ((int skillId, SkillInfo.Skill skill) in skills) {
+            hotBar.MoveQuickSlot(-1, new QuickSlot(skillId), false);
+        }
+        return hotBar;
+    }
+
+    public void UpdateHotbarSkills() {
+        SortedDictionary<int, SkillInfo.Skill> skills = Skill.SkillInfo.GetMainLearnedJobSkills(SkillType.Active, SkillRank.Both);
+
+        foreach (HotBar hotBar in hotBars) {
+            foreach (QuickSlot quickSlot in hotBar.Slots) {
+                if (quickSlot.SkillId > 0 && !skills.ContainsKey(quickSlot.SkillId)) {
+                    hotBar.RemoveQuickSlot(quickSlot.SkillId, 0);
+                }
+            }
+        }
+
+        foreach ((int skillId, SkillInfo.Skill skill) in skills) {
+            if (hotBars[activeHotBar].FindQuickSlotIndex(skillId) == -1) {
+                hotBars[activeHotBar].MoveQuickSlot(-1, new QuickSlot(skillId), false);
+            }
+        }
+        session.Send(KeyTablePacket.LoadHotBar(activeHotBar, hotBars));
     }
 
     public void LoadKeyTable() {
