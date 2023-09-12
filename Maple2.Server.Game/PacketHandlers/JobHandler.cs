@@ -57,6 +57,7 @@ public class JobHandler : PacketHandler<GameSession> {
         }
 
         session.Send(JobPacket.Update(session.Player, session.Config.Skill.SkillInfo));
+        session.Config.UpdateHotbarSkills();
         session.Config.Skill.UpdatePassiveBuffs();
     }
 
@@ -65,6 +66,7 @@ public class JobHandler : PacketHandler<GameSession> {
         session.Config.Skill.ResetSkills(rank);
 
         session.Send(JobPacket.Reset(session.Player, session.Config.Skill.SkillInfo));
+        session.Config.UpdateHotbarSkills();
         session.Config.Skill.UpdatePassiveBuffs();
     }
 
@@ -79,6 +81,7 @@ public class JobHandler : PacketHandler<GameSession> {
         }
 
         session.Send(JobPacket.AutoDistribute(session.Player, session.Config.Skill.SkillInfo));
+        session.Config.UpdateHotbarSkills();
         session.Config.Skill.UpdatePassiveBuffs();
     }
 }
