@@ -11,6 +11,7 @@ using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Game.Event;
+using Maple2.Model.Game.Shop;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -358,6 +359,8 @@ public sealed partial class GameSession : Core.Network.Session {
     public void ChannelBroadcast(ByteWriter packet) {
         server.Broadcast(packet);
     }
+
+    public Shop? FindShop(int shopId) => server.FindShop(shopId);
 
     public bool Temp() {
         // -> RequestMoveField

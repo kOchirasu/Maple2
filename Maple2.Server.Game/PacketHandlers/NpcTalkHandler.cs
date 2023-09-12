@@ -87,8 +87,14 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
         }
 
         if (npc.Value.Metadata.Basic.ShopId > 0) {
-            // TODO: Load NPC Shop
-            Logger.Warning("Shop {Id} not loaded", npc.Value.Metadata.Basic.ShopId);
+            var shop = session.FindShop(npc.Value.Metadata.Basic.ShopId);
+            if (shop == null) {
+                Logger.Warning("Shop {Id} has not been implemented", npc.Value.Metadata.Basic.ShopId);
+            } else {
+                shop.NpcId = 11000079;
+                session.Send(ShopPacket.Open(shop));
+                session.Send(ShopPacket.LoadItems(shop.Items));
+            }
         }
 
         if (!ScriptMetadata.TryGet(npc.Value.Id, out ScriptMetadata? metadata)) {

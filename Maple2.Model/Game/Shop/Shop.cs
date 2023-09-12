@@ -1,4 +1,5 @@
-﻿using Maple2.Model.Enum;
+﻿using System.Collections.Generic;
+using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 using Maple2.Tools.Extensions;
@@ -19,9 +20,11 @@ public class Shop : IByteSerializable {
     public bool RandomizeOrder  { get; init; }
     public long RestockTime  { get; init; }
     public ShopRestockData? RestockData { get; init; }
+    public IList<ShopItem> Items;
     
     public Shop(int id) {
         Id = id;
+        Items = new List<ShopItem>();
     }
 
     public virtual void WriteTo(IByteWriter writer) {
@@ -29,11 +32,11 @@ public class Shop : IByteSerializable {
         writer.WriteInt(Id);
         writer.WriteLong(RestockTime);
         writer.WriteInt();
-        writer.WriteShort(); // item count
+        writer.WriteShort((short) Items.Count);
         writer.WriteInt(CategoryId);
         writer.WriteBool(OpenWallet);
         writer.WriteBool(DisableBuyback);
-        writer.WriteBool(RestockData != null);
+        writer.WriteBool(RestockTime > 0);
         writer.WriteBool(RandomizeOrder);
         writer.Write<ShopSkin>(Skin);
         writer.Write(HideUnuseable);
@@ -41,7 +44,7 @@ public class Shop : IByteSerializable {
         writer.WriteBool(false);
         writer.WriteBool(DisplayNew);
         writer.WriteUnicodeString(Name);
-        if (RestockData != null) {
+        if (RestockTime > 0 && RestockData != null) {
             writer.WriteClass<ShopRestockData>(RestockData);
         }
     }

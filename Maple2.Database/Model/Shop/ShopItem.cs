@@ -15,7 +15,8 @@ internal class ShopItem {
     public int SalePrice { get; set; }
     public byte Rarity { get; set; }
     public int StockCount { get; set; }
-    public int StockPurchased { get; set; }
+    public string Category { get; set; }
+    public int RequireGuildTrophy { get; set; }
     public int RequireAchievementId { get; set; }
     public int RequireAchievementRank { get; set; }
     public byte RequireChampionshipGrade { get; set; }
@@ -41,19 +42,20 @@ internal class ShopItem {
             },
             Rarity = other.Rarity,
             StockCount = other.StockCount,
-            StockPurchased = other.StockPurchased,
             RequireAchievementId = other.RequireAchievementId,
             RequireAchievementRank = other.RequireAchievementRank,
             RequireChampionshipGrade = other.RequireChampionshipGrade,
             RequireChampionshipJoinCount = other.RequireChampionshipJoinCount,
             RequireGuildMerchantType = other.RequireGuildMerchantType,
             RequireGuildMerchantLevel = other.RequireGuildMerchantLevel,
+            RequireGuildTrophy = other.RequireGuildTrophy,
             Quantity = other.Quantity,
             Label = other.Label,
             CurrencyIdString = other.CurrencyIdString,
             RequireQuestAllianceId = other.RequireQuestAllianceId,
             RequireFameGrade = other.RequireFameGrade,
             AutoPreviewEquip = other.AutoPreviewEquip,
+            Category = other.Category,
         };
     }
     
