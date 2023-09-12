@@ -58,4 +58,10 @@ public class TableMetadata {
 [JsonDerivedType(typeof(ColorPaletteTable), typeDiscriminator: "colorpalette")]
 [JsonDerivedType(typeof(SetItemTable), typeDiscriminator: "setitem")]
 [JsonDerivedType(typeof(DefaultItemsTable), typeDiscriminator: "defaultitems")]
+[JsonDerivedType(typeof(MeretMarketCategoryTable), typeDiscriminator: "meretmarketcategory")]
+[JsonDerivedType(typeof(ShopBeautyCouponTable), typeDiscriminator: "shopbeautycoupon")]
+[JsonDerivedType(typeof(GachaInfoTable), typeDiscriminator: "gacha_info")]
+[JsonDerivedType(typeof(InsigniaTable), typeDiscriminator: "nametagsymbol")]
+[JsonDerivedType(typeof(ExpTable), typeDiscriminator: "exp")]
+[JsonDerivedType(typeof(CommonExpTable), typeDiscriminator: "commonexp")]
 public abstract record Table;

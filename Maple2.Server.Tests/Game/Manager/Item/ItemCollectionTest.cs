@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Manager.Items;
@@ -263,11 +264,11 @@ public class ItemCollectionTest {
     }
 
     private static Model.Game.Item CreateItem(int id, int rarity = 1, int amount = 1) {
-        var fakeProperty = new ItemMetadataProperty(false, 0, 100, 18, 0, ItemTag.None, 0, 0, 0, 0, 0, 0, 0, 0, false, 0, false, Array.Empty<int>());
+        var fakeProperty = new ItemMetadataProperty(false, 0, 100, 18, 0, ItemTag.None, 0, 0, 0, 0, 0, 0, 0, 0, 0, Array.Empty<int>(), false, 0, false, Array.Empty<int>());
         var fakeCustomize = new ItemMetadataCustomize(0, 0);
         var fakeLimit = new ItemMetadataLimit(Gender.All, 0, 0, 4, true, true, true, true, true, false, false, 0, Array.Empty<JobCode>(), Array.Empty<JobCode>());
         var fakeLife = new ItemMetadataLife(0, 0);
-        var fakeMetadata = new ItemMetadata(id, $"{id}", Array.Empty<EquipSlot>(), "", fakeLife, fakeProperty, fakeCustomize, fakeLimit, null, null, null, null, null);
+        var fakeMetadata = new ItemMetadata(id, $"{id}", Array.Empty<EquipSlot>(), "", Array.Empty<DefaultHairMetadata>(), fakeLife, fakeProperty, fakeCustomize, fakeLimit, null, null, Array.Empty<ItemMetadataAdditionalEffect>(), null, null, null);
         return new Model.Game.Item(fakeMetadata, rarity, amount) {Uid = Rng.NextInt64()};
     }
 }

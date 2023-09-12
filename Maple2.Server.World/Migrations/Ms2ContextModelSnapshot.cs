@@ -66,10 +66,6 @@ namespace Maple2.Server.World.Migrations
                     b.Property<int>("PrestigeLevel")
                         .HasColumnType("int");
 
-                    b.Property<string>("Trophy")
-                        .IsRequired()
-                        .HasColumnType("json");
-
                     b.Property<string>("Username")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
@@ -80,6 +76,41 @@ namespace Maple2.Server.World.Migrations
                         .IsUnique();
 
                     b.ToTable("Account");
+                });
+
+            modelBuilder.Entity("Maple2.Database.Model.Achievement", b =>
+                {
+                    b.Property<long>("OwnerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Category")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CompletedCount")
+                        .HasColumnType("int");
+
+                    b.Property<long>("Counter")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("CurrentGrade")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Favorite")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Grades")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<int>("RewardGrade")
+                        .HasColumnType("int");
+
+                    b.HasKey("OwnerId", "Id");
+
+                    b.ToTable("Achievement");
                 });
 
             modelBuilder.Entity("Maple2.Database.Model.Buddy", b =>
@@ -234,6 +265,10 @@ namespace Maple2.Server.World.Migrations
                     b.Property<long>("CharacterId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("CollectedItems")
+                        .IsRequired()
+                        .HasColumnType("json");
+
                     b.Property<string>("Emotes")
                         .IsRequired()
                         .HasColumnType("json");
@@ -243,6 +278,13 @@ namespace Maple2.Server.World.Migrations
                         .HasColumnType("json");
 
                     b.Property<string>("FishAlbum")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<short>("HairSlotExpand")
+                        .HasColumnType("smallint");
+
+                    b.Property<string>("InteractedObjects")
                         .IsRequired()
                         .HasColumnType("json");
 
@@ -260,10 +302,6 @@ namespace Maple2.Server.World.Migrations
                         .HasColumnType("json");
 
                     b.Property<string>("Pets")
-                        .IsRequired()
-                        .HasColumnType("json");
-
-                    b.Property<string>("Quests")
                         .IsRequired()
                         .HasColumnType("json");
 
@@ -596,6 +634,9 @@ namespace Maple2.Server.World.Migrations
                     b.Property<DateTime>("ExpiryTime")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int>("GachaDismantleId")
+                        .HasColumnType("int");
+
                     b.Property<short>("GlamorForges")
                         .HasColumnType("smallint");
 
@@ -775,6 +816,213 @@ namespace Maple2.Server.World.Migrations
                     b.HasKey("ItemUid");
 
                     b.ToTable("pet-config", (string)null);
+                });
+
+            modelBuilder.Entity("Maple2.Database.Model.PremiumMarketItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<int>("BannerLabel")
+                        .HasColumnType("int");
+
+                    b.Property<string>("BannerName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("BonusQuantity")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreationTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<byte>("CurrencyType")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<int>("ItemDuration")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("JobRequirement")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("Label")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<int>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("PcCafe")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<long>("Price")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("PromoData")
+                        .HasColumnType("json");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("Rarity")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<int>("RequireAchievementId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RequireAchievementRank")
+                        .HasColumnType("int");
+
+                    b.Property<short>("RequireMaxLevel")
+                        .HasColumnType("smallint");
+
+                    b.Property<short>("RequireMinLevel")
+                        .HasColumnType("smallint");
+
+                    b.Property<bool>("RestockUnavailable")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<long>("SalePrice")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("SalesCount")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("SellBeginTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("SellEndTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("ShowSaleTime")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("TabId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("premium-market-item", (string)null);
+                });
+
+            modelBuilder.Entity("Maple2.Database.Model.Quest", b =>
+                {
+                    b.Property<long>("OwnerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CompletionCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Conditions")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<long>("EndTime")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("StartTime")
+                        .HasColumnType("bigint");
+
+                    b.Property<int>("State")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("Track")
+                        .HasColumnType("tinyint(1)");
+
+                    b.HasKey("OwnerId", "Id");
+
+                    b.ToTable("Quest");
+                });
+
+            modelBuilder.Entity("Maple2.Database.Model.Shop.BeautyShop", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<byte>("Category")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<int>("RecolorCostAmount")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("RecolorCostCurrencyType")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<int>("RecolorCostItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ServiceCostAmount")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("ServiceCostCurrencyType")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<int>("ServiceCostItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ServiceRewardItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ShopSubType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ShopType")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("Unknown1")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<byte>("Unknown2")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<int>("VoucherId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("beauty-shop", (string)null);
+                });
+
+            modelBuilder.Entity("Maple2.Database.Model.Shop.BeautyShopEntry", b =>
+                {
+                    b.Property<int>("ShopId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CostAmount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CostItemId")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("CostType")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<byte>("Label")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<int>("RequireAchievementId")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("RequireAchievementRank")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<short>("RequireLevel")
+                        .HasColumnType("smallint");
+
+                    b.HasKey("ShopId", "ItemId");
+
+                    b.ToTable("beauty-shop-entry", (string)null);
                 });
 
             modelBuilder.Entity("Maple2.Database.Model.Shop.Shop", b =>
@@ -981,6 +1229,44 @@ namespace Maple2.Server.World.Migrations
                     b.ToTable("meso-market-sold", (string)null);
                 });
 
+            modelBuilder.Entity("Maple2.Database.Model.SystemBanner", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("BeginTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Function")
+                        .HasColumnType("int");
+
+                    b.Property<string>("FunctionParameter")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Language")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Url")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("system-banner", (string)null);
+                });
+
             modelBuilder.Entity("Maple2.Database.Model.UgcMap", b =>
                 {
                     b.Property<long>("Id")
@@ -1055,6 +1341,86 @@ namespace Maple2.Server.World.Migrations
                     b.HasIndex("UgcMapId");
 
                     b.ToTable("ugcmap-cube", (string)null);
+                });
+
+            modelBuilder.Entity("Maple2.Database.Model.UgcMarketItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("AccountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("CharacterId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("CharacterName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CreationTime")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<int>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ListingEndTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Look")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.Property<long>("Price")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("PromotionEndTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("SalesCount")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<string>("Tags")
+                        .IsRequired()
+                        .HasColumnType("json");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ugc-market-item", (string)null);
+                });
+
+            modelBuilder.Entity("Maple2.Database.Model.UgcResource", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("LastModified")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<long>("OwnerId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Path")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
+
+                    b.ToTable("ugcresource", (string)null);
                 });
 
             modelBuilder.Entity("Maple2.Database.Model.Buddy", b =>
@@ -1257,6 +1623,15 @@ namespace Maple2.Server.World.Migrations
                     b.HasOne("Maple2.Database.Model.Item", null)
                         .WithOne()
                         .HasForeignKey("Maple2.Database.Model.PetConfig", "ItemUid")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Maple2.Database.Model.Shop.BeautyShopEntry", b =>
+                {
+                    b.HasOne("Maple2.Database.Model.Shop.BeautyShop", null)
+                        .WithMany()
+                        .HasForeignKey("ShopId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

@@ -110,6 +110,14 @@ public partial class GameStorage {
                 .ToList()!;
         }
 
+        public List<Item> GetSavedHairs(long characterId) {
+            return Context.Item.Where(item => item.OwnerId == characterId && item.Group == ItemGroup.SavedHair)
+                .AsEnumerable()
+                .Select(ToItem)
+                .Where(item => item != null)
+                .ToList()!;
+        }
+
         public List<Item> GetAllItems(long ownerId) {
             return Context.Item.Where(item => item.OwnerId == ownerId)
                 .AsEnumerable()

@@ -23,6 +23,7 @@ public class LoginSession : Core.Network.Session {
     public readonly LoginServer Server;
 
     public long AccountId { get; private set; }
+    public long CharacterId { get; private set; } // Used only as a temporary variable
     public Guid MachineId { get; private set; }
 
     #region Autofac Autowired
@@ -57,7 +58,7 @@ public class LoginSession : Core.Network.Session {
 
     public void ListServers() {
         ChannelsResponse response = World.Channels(new ChannelsRequest());
-        Send(BannerListPacket.SetBanner());
+        Send(BannerListPacket.Load(Server.GetSystemBanners()));
         Send(ServerListPacket.Load(Target.SERVER_NAME,
             new []{new IPEndPoint(Target.LoginIp, Server.Port)}, response.Channels));
     }
@@ -91,16 +92,36 @@ public class LoginSession : Core.Network.Session {
         if (character == null) {
             throw new InvalidOperationException($"Failed to create character: {createCharacter.Id}");
         }
+        CharacterId = character.Id;
 
         var unlock = new Unlock();
-        unlock.Emotes.UnionWith(new[] {
+        int[] defaultEmotes = {
             90200011, // Greet
             90200004, // Scheme
             90200024, // Reject
             90200041, // Sit
             90200042, // Ledge Sit
+            90200057, // Possessed Fan Dance
             90200043, // Epiphany
-        });
+            90200022, // Bow
+            90200031, // Cry
+            90200005, // Dejected
+            90200006, // Like
+            90200003, // Pout
+            90200092, // High Five
+            90200077, // Catch of the Day
+            90200073, // Make It Rain
+            90200023, // Surprise
+            90200001, // Anger
+            90200019, // Scissors
+            90200020, // Rock
+            90200021, // Paper
+        };
+        foreach (int emoteId in defaultEmotes) {
+            unlock.Emotes.Add(emoteId);
+        }
+        character.AchievementInfo = db.GetAchievementInfo(AccountId, character.Id);
+        
         db.InitNewCharacter(character.Id, unlock);
 
         List<Item>? outfits = db.CreateItems(character.Id, createOutfits.ToArray());

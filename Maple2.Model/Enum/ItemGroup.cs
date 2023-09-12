@@ -9,6 +9,8 @@ public enum ItemGroup : byte {
     Outfit = 2,
     Outfit2 = 3,
     Badge = 4,
+    
+    SavedHair = 8,
 
     // AccountId specific
     Furnishing = 10,

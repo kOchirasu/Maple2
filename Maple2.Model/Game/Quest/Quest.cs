@@ -1,24 +1,25 @@
 ﻿using System.Collections.Generic;
 using Maple2.Model.Enum;
+using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
 namespace Maple2.Model.Game;
 
 public class Quest : IByteSerializable {
-    public readonly int Id;
+    public int Id => Metadata.Id;
+    public readonly QuestMetadata Metadata;
 
     public QuestState State;
     public int CompletionCount;
     public long StartTime;
     public long EndTime;
-    public long ExpiryTime;
-    public bool Accepted;
-    public IList<int> Conditions;
+    public bool Track;
+    public SortedDictionary<int, Condition> Conditions;
 
-    public Quest(int id) {
-        Id = id;
-        Conditions = new List<int>();
+    public Quest(QuestMetadata metadata) {
+        Metadata = metadata;
+        Conditions = new SortedDictionary<int, Condition>();
     }
 
     public void WriteTo(IByteWriter writer) {
@@ -27,11 +28,20 @@ public class Quest : IByteSerializable {
         writer.WriteInt(CompletionCount);
         writer.WriteLong(StartTime);
         writer.WriteLong(EndTime);
-        writer.WriteBool(Accepted);
+        writer.WriteBool(Track);
 
         writer.WriteInt(Conditions.Count);
-        foreach (int condition in Conditions) {
-            writer.WriteInt(condition);
+        foreach (Condition condition in Conditions.Values) {
+            writer.WriteInt(condition.Counter);
+        }
+    }
+
+    public class Condition {
+        public readonly ConditionMetadata Metadata;
+        public int Counter;
+
+        public Condition(ConditionMetadata metadata) {
+            Metadata = metadata;
         }
     }
 }

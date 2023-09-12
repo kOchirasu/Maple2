@@ -79,11 +79,11 @@ public class PlayerInfoUpdateEvent {
             }
         }
         if (request.Trophy != null) {
-            if (player.Trophy.Combat != request.Trophy.Combat) {
+            if (player.AchievementInfo.Combat != request.Trophy.Combat) {
                 Type |= UpdateField.Trophy;
-            } else if (player.Trophy.Adventure != request.Trophy.Adventure) {
+            } else if (player.AchievementInfo.Adventure != request.Trophy.Adventure) {
                 Type |= UpdateField.Trophy;
-            } else if (player.Trophy.Lifestyle != request.Trophy.Lifestyle) {
+            } else if (player.AchievementInfo.Lifestyle != request.Trophy.Lifestyle) {
                 Type |= UpdateField.Trophy;
             }
         }

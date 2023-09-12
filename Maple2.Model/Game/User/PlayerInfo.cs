@@ -1,4 +1,5 @@
-﻿using Maple2.Model.Enum;
+﻿using System.Linq;
+using Maple2.Model.Enum;
 
 namespace Maple2.Model.Game;
 
@@ -10,20 +11,21 @@ public class PlayerInfo : CharacterInfo, IPlayerInfo {
     public int ApartmentNumber { get; set; }
     public long PlotExpiryTime { get; set; }
     // Trophy
-    public Trophy Trophy { get; set; }
+    public AchievementInfo AchievementInfo { get; set; }
 
     public static implicit operator PlayerInfo(Player player) {
-        return new PlayerInfo(player, player.Home.Name, player.Account.Trophy) {
+        return new PlayerInfo(player, player.Home.Name, player.Character.AchievementInfo) {
             PlotMapId = player.Home.PlotMapId,
             PlotNumber = player.Home.PlotNumber,
             ApartmentNumber = player.Home.ApartmentNumber,
             PlotExpiryTime = player.Home.PlotExpiryTime,
+            AchievementInfo = player.Character.AchievementInfo,
         };
     }
 
-    public PlayerInfo(CharacterInfo character, string homeName, Trophy trophy) : base(character) {
+    public PlayerInfo(CharacterInfo character, string homeName, AchievementInfo achievementInfo) : base(character) {
         HomeName = string.IsNullOrWhiteSpace(homeName) ? "Unknown" : homeName;
-        Trophy = trophy;
+        AchievementInfo = achievementInfo;
     }
 
     public PlayerInfo Clone() {

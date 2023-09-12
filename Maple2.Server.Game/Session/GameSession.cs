@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net.Sockets;
@@ -11,6 +12,7 @@ using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Game.Event;
 using Maple2.Model.Metadata;
+using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
@@ -54,6 +56,9 @@ public sealed partial class GameSession : Core.Network.Session {
     public required SkillMetadataStorage SkillMetadata { get; init; }
     public required TableMetadataStorage TableMetadata { get; init; }
     public required MapMetadataStorage MapMetadata { get; init; }
+    public required AchievementMetadataStorage AchievementMetadata { get; init; }
+    public required QuestMetadataStorage QuestMetadata { get; init; }
+    public required ScriptMetadataStorage ScriptMetadata { get; init; }
     public required FieldManager.Factory FieldFactory { private get; init; }
     public required Lua.Lua Lua { private get; init; }
     public required ItemStatsCalculator ItemStatsCalc { private get; init; }
@@ -72,7 +77,11 @@ public sealed partial class GameSession : Core.Network.Session {
     public StatsManager Stats { get; set; }
     public ItemEnchantManager ItemEnchant { get; set; }
     public ItemBoxManager ItemBox { get; set; }
+    public BeautyManager Beauty { get; set; }
     public GameEventUserValueManager GameEventUserValue { get; set; }
+    public ExperienceManager Exp { get; set; }
+    public AchievementManager Achievement { get; set; }
+    public QuestManager Quest { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
 
@@ -117,8 +126,11 @@ public sealed partial class GameSession : Core.Network.Session {
         Mail = new MailManager(this);
         ItemEnchant = new ItemEnchantManager(this, Lua);
         ItemBox = new ItemBoxManager(this);
+        Beauty = new BeautyManager(this);
         GameEventUserValue = new GameEventUserValueManager(this);
-
+        Exp = new ExperienceManager(this, Lua);
+        Achievement = new AchievementManager(this);
+        Quest = new QuestManager(this);
         Guild = new GuildManager(this);
         Config = new ConfigManager(db, this);
         Buddy = new BuddyManager(db, this);
@@ -128,6 +140,7 @@ public sealed partial class GameSession : Core.Network.Session {
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
             return false;
         }
+        Player.Buffs.Initialize();
 
         var playerUpdate = new PlayerUpdateRequest {
             AccountId = accountId,
@@ -172,16 +185,17 @@ public sealed partial class GameSession : Core.Network.Session {
         Item.Inventory.Load();
         Item.Furnishing.Load();
         // Load Quests
-        Send(QuestPacket.StartLoad(0));
+        Quest.Load();
         // Send(QuestPacket.LoadSkyFortressMissions(Array.Empty<int>()));
         // Send(QuestPacket.LoadKritiasMissions(Array.Empty<int>()));
         Send(QuestPacket.LoadQuestStates(player.Unlock.Quests.Values));
         // Send(QuestPacket.LoadQuests(Array.Empty<int>()));
-        // Achieve
+        Achievement.Load();
         // MaidCraftItem
         // UserMaid
         // UserEnv
         Send(UserEnvPacket.LoadTitles(Player.Value.Unlock.Titles));
+        Send(UserEnvPacket.InteractedObjects(Player.Value.Unlock.InteractedObjects));
         Send(UserEnvPacket.LoadClaimedRewards(Player.Value.Unlock.MasteryRewardsClaimed));
         Send(FishingPacket.LoadAlbum(Player.Value.Unlock.FishAlbum.Values));
         Pet?.Load();
@@ -193,7 +207,7 @@ public sealed partial class GameSession : Core.Network.Session {
         // DailyWonder*
         GameEventUserValue.Load();
         Send(GameEventPacket.Load(db.GetEvents()));
-        // BannerList
+        Send(BannerListPacket.Load(server.GetSystemBanners()));
         // RoomDungeon
         // FieldEntrance
         // InGameRank
@@ -229,6 +243,7 @@ public sealed partial class GameSession : Core.Network.Session {
         NpcScript = null;
 
         if (Field != null) {
+            Player.Buffs.LeaveField();
             Scheduler.Stop();
             Field.RemovePlayer(Player.ObjectId, out _);
         }
@@ -250,7 +265,7 @@ public sealed partial class GameSession : Core.Network.Session {
 
         Field = newField;
         Player = Field.SpawnPlayer(this, Player, portalId, position, rotation);
-        Config.Skill.UpdatePassiveBuffs();
+        Player.Buffs.LoadFieldBuffs();
 
         return true;
     }
@@ -260,6 +275,10 @@ public sealed partial class GameSession : Core.Network.Session {
             return false;
         }
 
+        //if (!Player.Value.Unlock.Maps.Contains(Player.Value.Character.MapId)) {
+            // Figure out what maps give exp. MapType >= 1 < 5 || 11 ?
+            //Exp.AddExp(ExpType.mapCommon);
+        //}
         Player.Value.Unlock.Maps.Add(Player.Value.Character.MapId);
 
         Field.OnAddPlayer(Player);
@@ -290,8 +309,10 @@ public sealed partial class GameSession : Core.Network.Session {
         Send(RevivalPacket.Count(0)); // TODO: Consumed daily revivals?
         Send(RevivalPacket.Confirm(Player));
         Config.LoadStatAttributes();
+        Player.Buffs.Initialize();
         Send(PremiumCubPacket.Activate(Player.ObjectId, Player.Value.Account.PremiumTime));
         Send(PremiumCubPacket.LoadItems(Player.Value.Account.PremiumRewardsClaimed));
+        ConditionUpdate(ConditionType.map, codeLong: Player.Value.Character.MapId);
         return true;
     }
 
@@ -314,8 +335,28 @@ public sealed partial class GameSession : Core.Network.Session {
             : FieldEnterPacket.Error(MigrationError.s_move_err_default));
     }
 
-    public GameEvent? FindEvent<T>() where T : GameEventInfo {
-        return server.FindEvent<T>();
+    /// <summary>
+    /// Updates game condition values for achievement and quest.
+    /// </summary>
+    /// <param name="conditionType">Condition Type to update</param>
+    /// <param name="counter">Condition value to progress by. Default is 1.</param>
+    /// <param name="targetString">condition target parameter in string.</param>
+    /// <param name="targetLong">condition target parameter in long.</param>
+    /// <param name="codeString">condition code parameter in string.</param>
+    /// <param name="codeLong">condition code parameter in long.</param>
+    public void ConditionUpdate(ConditionType conditionType, long counter = 1, string targetString = "", long targetLong = 0, string codeString = "", long codeLong = 0) {
+        Achievement.Update(conditionType, counter, targetString, targetLong, codeString, codeLong);
+        Quest.Update(conditionType, counter, targetString, targetLong, codeString, codeLong);
+    }
+
+    public GameEvent? FindEvent<T>() where T : GameEventInfo => server.FindEvent<T>();
+
+    public IEnumerable<PremiumMarketItem> GetPremiumMarketItems(params int[] tabIds) => server.GetPremiumMarketItems(tabIds);
+
+    public PremiumMarketItem? GetPremiumMarketItem(int id, int subId = 0) => server.GetPremiumMarketItem(id, subId);
+
+    public void ChannelBroadcast(ByteWriter packet) {
+        server.Broadcast(packet);
     }
 
     public bool Temp() {
@@ -387,6 +428,8 @@ public sealed partial class GameSession : Core.Network.Session {
                 Item.Save(db);
                 Housing.Save(db);
                 GameEventUserValue.Save(db);
+                Achievement.Save(db);
+                Quest.Save(db);
             }
 
             base.Dispose(disposing);

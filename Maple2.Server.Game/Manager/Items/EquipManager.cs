@@ -7,6 +7,7 @@ using Maple2.Model;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Server.Core.Packets;
+using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -50,6 +51,16 @@ public class EquipManager {
         return Gear.Values.FirstOrDefault(item => item.Uid == itemUid)
                ?? Outfit.Values.FirstOrDefault(item => item.Uid == itemUid)
                ?? Badge.Values.FirstOrDefault(item => item.Uid == itemUid);
+    }
+
+    public Item? Get(EquipSlot equipSlot) {
+        return Gear.TryGetValue(equipSlot, out Item? item) ? item
+               : Outfit.TryGetValue(equipSlot, out item) ? item
+               : null;
+    }
+
+    public Item? Get(BadgeType badgeType) {
+        return Badge.TryGetValue(badgeType, out Item? item) ? item : null;
     }
 
     /// <summary>
@@ -124,7 +135,7 @@ public class EquipManager {
             item.Slot = (short) slot;
             equips[slot] = item;
             session.Field?.Broadcast(EquipPacket.EquipItem(session.Player, item, 0));
-
+            session.Player.Buffs.AddItemBuffs(item);
             return true;
         }
     }
@@ -193,6 +204,42 @@ public class EquipManager {
         }
     }
 
+    /// <summary>
+    /// Equips a cosmetic item, unequips an cosmetic item (Hair, Eyes, Face Decor), and discards the previous cosmetic item.
+    /// </summary>
+    /// <param name="cosmetic">The hair, face, or face decor item to equip.</param>
+    /// <param name="equipSlot">Slot to equip the cosmetic item.</param>
+    public bool EquipCosmetic(Item cosmetic, EquipSlot equipSlot) {
+        if (equipSlot is not (EquipSlot.HR or EquipSlot.FA or EquipSlot.FD)) {
+            return false;
+        }
+
+        if (!ValidEquipSlotForItem(equipSlot, cosmetic)) {
+            return false;
+        }
+
+        lock (session.Item) {
+            StringCode result = ValidateEquipItem(session, cosmetic);
+            if (result != StringCode.s_empty_string) {
+                session.Send(NoticePacket.MessageBox(result));
+                return false;
+            }
+
+            Item? currentCosmetic = Get(equipSlot);
+            // Unequip and discard cosmetic item.
+            if (currentCosmetic != null && !Unequip(currentCosmetic.Uid)) {
+                return false;
+            }
+            
+            // Item needs to be in the Outfit item group to display.
+            cosmetic.Group = ItemGroup.Outfit;
+            cosmetic.Slot = (short) equipSlot;
+            Outfit[equipSlot] = cosmetic;
+            session.Field?.Broadcast(EquipPacket.EquipItem(session.Player, cosmetic, 0));
+            return true;
+        }
+    }
+
     public bool UnequipBadge(BadgeType slot, short inventorySlot = -1) {
         if (!Enum.IsDefined<BadgeType>(slot)) {
             return false;
@@ -254,6 +301,7 @@ public class EquipManager {
         }
 
         session.Field?.Broadcast(EquipPacket.UnequipItem(session.Player, unequipItem));
+        session.Player.Buffs.RemoveItemBuffs(unequipItem);
         return true;
     }
 

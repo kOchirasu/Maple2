@@ -4,7 +4,7 @@ public readonly record struct ItemType(byte Group, byte Type) {
     public ItemType(int id) : this((byte) (id / 10000000), (byte) ((id % 10000000) / 100000)) { }
 
     public bool IsSkin => Group is 0 && Type is 0;
-    public bool IsHair => Group is 0 && Type is 2;
+    public bool IsHair => Group is 1 && Type is 2;
     public bool IsFace => Group is 0 && Type is 3;
     public bool IsDecal => Group is 0 && Type is 4;
     public bool IsEar => Group is 0 && Type is 5;

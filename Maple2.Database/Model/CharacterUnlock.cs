@@ -14,13 +14,15 @@ internal class CharacterUnlock {
     public required ISet<int> Maps { get; set; }
     public required ISet<int> Taxis { get; set; }
     public required ISet<int> Titles { get; set; }
-    public required ISet<int> Emotes { get; set; }
+    public required IList<int> Emotes { get; set; }
     public required IDictionary<int, long> StickerSets { get; set; }
     public required IDictionary<int, bool> MasteryRewardsClaimed { get; set; }
     public required IDictionary<int, short> Pets { get; set; }
     public required IList<FishEntry> FishAlbum { get; set; }
-    public required IList<Quest> Quests { get; set; }
+    public required ISet<int> InteractedObjects { get; set; }
+    public required IDictionary<int, byte> CollectedItems { get; set; }
     public required InventoryExpand Expand { get; set; }
+    public short HairSlotExpand { get; set; }
     public DateTime LastModified { get; init; }
 
     public static implicit operator CharacterUnlock(Maple2.Model.Game.Unlock? other) {
@@ -28,13 +30,14 @@ internal class CharacterUnlock {
             Maps = new SortedSet<int>(),
             Taxis = new SortedSet<int>(),
             Titles = new SortedSet<int>(),
-            Emotes = new SortedSet<int>(),
+            Emotes = new List<int>(),
             StickerSets = new Dictionary<int, long>(),
             MasteryRewardsClaimed = new Dictionary<int, bool>(),
             Pets = new SortedDictionary<int, short>(),
             FishAlbum = new List<FishEntry>(),
-            Quests = new List<Quest>(),
             Expand = new InventoryExpand(),
+            InteractedObjects = new SortedSet<int>(),
+            CollectedItems = new Dictionary<int, byte>(),
         } : new CharacterUnlock {
             LastModified = other.LastModified,
             Expand = new InventoryExpand {
@@ -54,6 +57,7 @@ internal class CharacterUnlock {
                 Lapenshard = other.Expand.GetValueOrDefault(InventoryType.Lapenshard),
                 Fragment = other.Expand.GetValueOrDefault(InventoryType.Fragment),
             },
+            HairSlotExpand = other.HairSlotExpand,
             Maps = other.Maps,
             Taxis = other.Taxis,
             Titles = other.Titles,
@@ -62,7 +66,8 @@ internal class CharacterUnlock {
             MasteryRewardsClaimed = other.MasteryRewardsClaimed,
             Pets = other.Pets,
             FishAlbum = other.FishAlbum.Values.Select<Maple2.Model.Game.FishEntry, FishEntry>(fish => fish).ToArray(),
-            Quests = other.Quests.Values.Select<Maple2.Model.Game.Quest, Quest>(quest => quest).ToArray(),
+            InteractedObjects = other.InteractedObjects,
+            CollectedItems = other.CollectedItems,
         };
     }
 
@@ -90,13 +95,17 @@ internal class CharacterUnlock {
                 {InventoryType.Lapenshard, other.Expand.Lapenshard},
                 {InventoryType.Fragment, other.Expand.Fragment},
             },
+            HairSlotExpand = other.HairSlotExpand,
         };
 
         unlock.Maps.UnionWith(other.Maps);
         unlock.Taxis.UnionWith(other.Taxis);
         unlock.Titles.UnionWith(other.Titles);
-        unlock.Emotes.UnionWith(other.Emotes);
+        unlock.InteractedObjects.UnionWith(other.InteractedObjects);
 
+        foreach (int emoteId in other.Emotes) {
+            unlock.Emotes.Add(emoteId);
+        }
         foreach ((int groupId, long expiration) in other.StickerSets) {
             unlock.StickerSets[groupId] = expiration;
         }
@@ -106,11 +115,11 @@ internal class CharacterUnlock {
         foreach ((int petId, short rarity) in other.Pets) {
             unlock.Pets[petId] = rarity;
         }
-        foreach (Quest quest in other.Quests) {
-            unlock.Quests[quest.Id] = quest;
-        }
         foreach (FishEntry entry in other.FishAlbum) {
             unlock.FishAlbum[entry.Id] = entry;
+        }
+        foreach ((int itemId, byte quantity) in other.CollectedItems) {
+            unlock.CollectedItems[itemId] = quantity;
         }
 
         return unlock;
@@ -130,7 +139,8 @@ internal class CharacterUnlock {
         builder.Property(unlock => unlock.MasteryRewardsClaimed).HasJsonConversion();
         builder.Property(unlock => unlock.Pets).HasJsonConversion().IsRequired();
         builder.Property(unlock => unlock.FishAlbum).HasJsonConversion().IsRequired();
-        builder.Property(unlock => unlock.Quests).HasJsonConversion().IsRequired();
+        builder.Property(unlock => unlock.InteractedObjects).HasJsonConversion().IsRequired();
+        builder.Property(unlock => unlock.CollectedItems).HasJsonConversion().IsRequired();
 
         builder.Property(unlock => unlock.LastModified).IsRowVersion();
     }

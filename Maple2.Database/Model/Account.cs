@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Maple2.Database.Extensions;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -16,7 +18,6 @@ internal class Account {
     public int MaxCharacters { get; set; }
     public int PrestigeLevel { get; set; }
     public long PrestigeExp { get; set; }
-    public Trophy Trophy { get; set; }
     public long PremiumTime { get; set; }
     public IList<int> PremiumRewardsClaimed { get; set; } // TODO: clear list on daily reset
     public required AccountCurrency Currency { get; set; }
@@ -31,7 +32,11 @@ internal class Account {
 
     [return:NotNullIfNotNull(nameof(other))]
     public static implicit operator Account?(Maple2.Model.Game.Account? other) {
-        return other == null ? null : new Account {
+        if (other == null) {
+            return null;
+        }
+        
+        return new Account {
             LastModified = other.LastModified,
             Id = other.Id,
             Username = other.Username,
@@ -39,7 +44,6 @@ internal class Account {
             MaxCharacters = other.MaxCharacters,
             PrestigeLevel = other.PrestigeLevel,
             PrestigeExp = other.PrestigeExp,
-            Trophy = other.Trophy,
             PremiumTime = other.PremiumTime,
             PremiumRewardsClaimed = other.PremiumRewardsClaimed,
             Currency = new AccountCurrency(),
@@ -56,7 +60,7 @@ internal class Account {
         if (other == null) {
             return null;
         }
-
+        
         return new Maple2.Model.Game.Account {
             LastModified = other.LastModified,
             Id = other.Id,
@@ -65,7 +69,6 @@ internal class Account {
             MaxCharacters = other.MaxCharacters,
             PrestigeLevel = other.PrestigeLevel,
             PrestigeExp = other.PrestigeExp,
-            Trophy = other.Trophy,
             PremiumTime = other.PremiumTime,
             PremiumRewardsClaimed = other.PremiumRewardsClaimed,
             MesoMarketListed = other.MarketLimits.MesoListed,
@@ -82,7 +85,6 @@ internal class Account {
         builder.Property(account => account.MaxCharacters)
             .HasDefaultValue(4);
         builder.HasMany(account => account.Characters);
-        builder.Property(account => account.Trophy).HasJsonConversion().IsRequired();
         builder.Property(account => account.Currency).HasJsonConversion().IsRequired();
         builder.Property(account => account.MarketLimits).HasJsonConversion().IsRequired();
         builder.Property(account => account.PremiumRewardsClaimed).HasJsonConversion();
@@ -104,3 +106,4 @@ internal class MarketLimits {
     public int MesoListed { get; set; }
     public int MesoPurchased { get; set; }
 }
+

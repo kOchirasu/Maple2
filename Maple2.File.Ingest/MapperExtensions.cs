@@ -1,9 +1,11 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using Maple2.File.Ingest.Utils;
 using Maple2.File.Parser.Xml;
 using Maple2.File.Parser.Xml.Common;
 using Maple2.File.Parser.Xml.Skill;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using BeginCondition = Maple2.Model.Metadata.BeginCondition;
 using ItemOption = Maple2.Model.Metadata.ItemOption;
@@ -278,7 +280,14 @@ public static class MapperExtensions {
             Level: beginCondition.level,
             Gender: (Gender) beginCondition.gender,
             Mesos: beginCondition.money,
+            Stat: beginCondition.stat.ToDictionary(),
             JobCode: beginCondition.job.Select(job => (JobCode) job.code).ToArray(),
+            Probability: beginCondition.probability,
+            OnlyShadowWorld: beginCondition.onlyShadowWorld || beginCondition.isShadowWorld,
+            OnlyFlyableMap: beginCondition.onlyFlyableMap,
+            Weapon: beginCondition.weapon.Select(weapon => new BeginConditionWeapon(
+                new ItemType(1, (byte) weapon.lh),
+                new ItemType(1, (byte) weapon.rh))).ToArray(),
             Target: Convert(beginCondition.skillTarget),
             Owner: Convert(beginCondition.skillOwner),
             Caster: Convert(beginCondition.skillCaster));
@@ -392,5 +401,38 @@ public static class MapperExtensions {
         }
 
         return results;
+    }
+
+    public static ConditionMetadata.Parameters? ConvertCodes(this string[] codes) {
+        if (codes.Length == 0) {
+            return null;
+        }
+
+        if (codes.Length > 1) {
+            var integers = new List<int>();
+            var strings = new List<string>();
+            foreach (string code in codes) {
+                if (int.TryParse(code, out int intCode)) {
+                    integers.Add(intCode);
+                } else {
+                    strings.Add(code);
+                }
+            }
+
+            return new ConditionMetadata.Parameters(
+                Strings: strings.Count == 0 ? null : strings.ToArray(),
+                Integers: integers.Count == 0 ? null : integers.ToArray());
+        }
+
+        string[] split = codes[0].Split('-');
+        if (split.Length > 1) {
+            return new ConditionMetadata.Parameters(
+                Range: new ConditionMetadata.Range<int>(int.Parse(split[0]), int.Parse(split[1])));
+        }
+
+        if (int.TryParse(codes[0], out int integerResult)) {
+            return new ConditionMetadata.Parameters(Integers: new[] {integerResult});
+        }
+        return new ConditionMetadata.Parameters(Strings: new[] {codes[0]});
     }
 }

@@ -229,8 +229,14 @@ public class FishingHandler : PacketHandler<GameSession> {
                 fish.TotalPrizeFish++;
                 AddMastery(session, fishingGuideObject.Spot, fishEntry, CaughtFishType.Prize);
                 session.Field.Broadcast(FishingPacket.PrizeFish(session.PlayerName, fishEntry.Id));
+                session.ConditionUpdate(ConditionType.fish_big, codeLong: fishEntry.Id, targetLong: session.Player.Value.Character.MapId);
+                session.Exp.AddExp(ExpType.fishing, Constant.FishingBigFishExpModifier);
             } else {
+                if (fishSize >= fishEntry.BigSize.Min) {
+                    session.ConditionUpdate(ConditionType.fish_goldmedal, codeLong: fishEntry.Id);
+                }
                 AddMastery(session, fishingGuideObject.Spot, fishEntry, CaughtFishType.Default);
+                session.Exp.AddExp(ExpType.fishing);
             }
 
             fish.TotalCaught++;
@@ -242,6 +248,9 @@ public class FishingHandler : PacketHandler<GameSession> {
 
         if (success) {
             CatchItem(session);
+            session.ConditionUpdate(ConditionType.fish, codeLong: fishEntry.Id, targetLong: session.Player.Value.Character.MapId);
+        } else {
+            session.ConditionUpdate(ConditionType.fish_fail);
         }
     }
 
@@ -268,7 +277,7 @@ public class FishingHandler : PacketHandler<GameSession> {
             if (item == null) {
                 return;
             }
-            
+
             if (!session.Item.Inventory.Add(item, true)) {
                 return;
             }

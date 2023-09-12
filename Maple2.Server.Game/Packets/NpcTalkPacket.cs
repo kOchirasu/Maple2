@@ -16,6 +16,7 @@ public static class NpcTalkPacket {
         Continue = 2,
         Action = 3,
         Update = 4,
+        AllianceTalk = 9,
     }
 
     public static ByteWriter Close() {
@@ -104,6 +105,15 @@ public static class NpcTalkPacket {
         pWriter.WriteUnicodeString(voiceId);
         pWriter.WriteUnicodeString(illustration);
 
+        return pWriter;
+    }
+
+    public static ByteWriter AllianceTalk(NpcTalkType type, NpcDialogue dialogue) {
+        var pWriter = Packet.Of(SendOp.NpcTalk);
+        pWriter.Write<Command>(Command.AllianceTalk);
+        pWriter.Write<NpcTalkType>(type);
+        pWriter.Write<NpcDialogue>(dialogue);
+        
         return pWriter;
     }
 }

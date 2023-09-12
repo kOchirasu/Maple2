@@ -1,4 +1,6 @@
-﻿using Maple2.Model.Enum;
+﻿using System.Collections.Generic;
+using System.Numerics;
+using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
 
@@ -7,12 +9,14 @@ public record ItemMetadata(
     string? Name,
     EquipSlot[] SlotNames,
     string Mesh,
+    DefaultHairMetadata[] DefaultHairs,
     ItemMetadataLife Life,
     ItemMetadataProperty Property,
     ItemMetadataCustomize Customize,
     ItemMetadataLimit Limit,
     ItemMetadataSkill? Skill,
     ItemMetadataFunction? Function,
+    ItemMetadataAdditionalEffect[] AdditionalEffects,
     ItemMetadataOption? Option,
     ItemMetadataMusic? Music,
     ItemMetadataHousing? Housing) : ISearchResult;
@@ -36,6 +40,8 @@ public record ItemMetadataProperty(
     int TradableCount,
     int TradableCountDeduction,
     int RepackCount,
+    int RepackConsumeCount,
+    int[] RepackScrollIds,
     bool DisableDrop,
     int SocketId,
     bool IsFragment,
@@ -72,6 +78,10 @@ public record ItemMetadataFunction(
     string Name,
     string Parameters);
 
+public record ItemMetadataAdditionalEffect(
+    int Id,
+    short Level);
+
 public record ItemMetadataOption(
     int StaticId,
     int StaticType,
@@ -95,3 +105,11 @@ public record ItemMetadataHousing(
     int TrophyId,
     int TrophyLevel,
     int InteriorLevel);
+
+public record DefaultHairMetadata(
+    Vector3 BackPosition = default,
+    Vector3 BackRotation = default,
+    Vector3 FrontPosition = default,
+    Vector3 FrontRotation = default,
+    float MinScale = 0f,
+    float MaxScale = 0f);

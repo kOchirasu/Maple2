@@ -117,15 +117,15 @@ public static class PlayerInfoPacket {
             buffer.WriteInt(title);
         }
 
-        buffer.WriteInt(player.Account.Trophy.Total);
+        buffer.WriteInt(player.Character.AchievementInfo.Total);
         buffer.WriteInt(fieldPlayer.Stats.GearScore);
         buffer.WriteLong(player.Character.LastModified.ToEpochSeconds()); // Time entered map/logged in
         buffer.WriteInt();
         buffer.WriteInt();
         buffer.Write<SkinColor>(player.Character.SkinColor);
-        buffer.WriteShort();
-        buffer.WriteUnicodeString();
-        buffer.WriteUnicodeString();
-        buffer.WriteLong();
+        buffer.WriteShort(); // Marital Status
+        buffer.WriteUnicodeString(); // Spouse Name 1
+        buffer.WriteUnicodeString(); // Spouse Name 2
+        buffer.WriteLong(); // Proposal Time
     }
 }

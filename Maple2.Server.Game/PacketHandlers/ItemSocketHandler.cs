@@ -109,6 +109,9 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
 
             item.Socket.UnlockSlots++;
             session.Send(ItemSocketPacket.UnlockSocket(true, item));
+            session.ConditionUpdate(ConditionType.socket_unlock, targetLong: item.Socket.UnlockSlots);
+            session.ConditionUpdate(ConditionType.socket_unlock_success);
+            session.ConditionUpdate(ConditionType.socket_unlock_try);
         }
 
         #region Local Function
@@ -160,6 +163,9 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
 
                 result.Value.gem.ItemId = result.Value.entry.NextItemId;
                 session.Send(ItemSocketPacket.UpgradeGemstone(itemUid, true, gemUid, result.Value.gem));
+                session.ConditionUpdate(ConditionType.gemstone_upgrade, targetLong: result.Value.entry.Level + 1);
+                session.ConditionUpdate(ConditionType.gemstone_upgrade_try);
+                session.ConditionUpdate(ConditionType.gemstone_upgrade_success);
             } else {
                 (GemstoneUpgradeTable.Entry entry, ItemMetadata upgrade)? result = CheckUpgradeGemstoneInInventory(session, gemUid);
                 if (result == null) {
@@ -188,6 +194,9 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
                 }
 
                 session.Send(ItemSocketPacket.UpgradeGemstone(itemUid, true, upgradeGem));
+                session.ConditionUpdate(ConditionType.gemstone_upgrade, targetLong: result.Value.entry.Level + 1);
+                session.ConditionUpdate(ConditionType.gemstone_upgrade_try);
+                session.ConditionUpdate(ConditionType.gemstone_upgrade_success);
             }
         }
 
@@ -262,6 +271,8 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
             var itemGemstone = new ItemGemstone(gem.Id, gem.Binding, gem.IsLocked, gem.UnlockTime);
             item.Socket!.Sockets[socketSlot] = itemGemstone;
             session.Send(ItemSocketPacket.EquipGemstone(item.Uid, socketSlot, itemGemstone));
+            session.ConditionUpdate(ConditionType.gemstone_puton);
+            session.Player.Buffs.AddItemBuffs(gem);
         }
     }
 
@@ -302,6 +313,7 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
                 session.Send(ItemSocketPacket.Error(11, error: s_itemsocketsystem_error_server_default));
                 return;
             }
+            gem.Binding = gem.Binding;
 
             if (!session.Item.Inventory.Add(gem, true)) {
                 return; // Failed to add to inventory
@@ -309,6 +321,8 @@ public class ItemSocketHandler : PacketHandler<GameSession> {
 
             item.Socket!.Sockets[socketSlot] = null;
             session.Send(ItemSocketPacket.UnequipGemstone(item.Uid, socketSlot));
+            session.ConditionUpdate(ConditionType.gemstone_putoff);
+            session.Player.Buffs.RemoveItemBuffs(gem);
         }
 
         #region Local Function

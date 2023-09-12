@@ -21,6 +21,7 @@ public sealed class MetadataContext : DbContext {
     public DbSet<ScriptMetadata> ScriptMetadata { get; set; } = null!;
     public DbSet<StoredSkillMetadata> SkillMetadata { get; set; } = null!;
     public DbSet<TableMetadata> TableMetadata { get; set; } = null!;
+    public DbSet<AchievementMetadata> AchievementMetadata { get; set; } = null!;
     public DbSet<UgcMapMetadata> UgcMapMetadata { get; set; } = null!;
 
     public MetadataContext(DbContextOptions options) : base(options) { }
@@ -41,6 +42,7 @@ public sealed class MetadataContext : DbContext {
         modelBuilder.Entity<ScriptMetadata>(ConfigureScriptMetadata);
         modelBuilder.Entity<StoredSkillMetadata>(ConfigureSkillMetadata);
         modelBuilder.Entity<TableMetadata>(ConfigureTableMetadata);
+        modelBuilder.Entity<AchievementMetadata>(ConfigureAchievementMetadata);
         modelBuilder.Entity<UgcMapMetadata>(ConfigureUgcMapMetadata);
     }
 
@@ -54,6 +56,7 @@ public sealed class MetadataContext : DbContext {
         builder.Property(effect => effect.Status).HasJsonConversion();
         builder.Property(effect => effect.Recovery).HasJsonConversion();
         builder.Property(effect => effect.Dot).HasJsonConversion();
+        builder.Property(effect => effect.Reflect).HasJsonConversion();
         builder.Property(effect => effect.Shield).HasJsonConversion();
         builder.Property(effect => effect.InvokeEffect).HasJsonConversion();
         builder.Property(effect => effect.Skills).HasJsonConversion();
@@ -69,12 +72,14 @@ public sealed class MetadataContext : DbContext {
         builder.ToTable("item");
         builder.HasKey(item => item.Id);
         builder.Property(item => item.SlotNames).HasJsonConversion();
+        builder.Property(item => item.DefaultHairs).HasJsonConversion();
         builder.Property(item => item.Life).HasJsonConversion();
         builder.Property(item => item.Property).HasJsonConversion();
         builder.Property(item => item.Customize).HasJsonConversion();
         builder.Property(item => item.Limit).HasJsonConversion();
         builder.Property(item => item.Skill).HasJsonConversion();
         builder.Property(item => item.Function).HasJsonConversion();
+        builder.Property(item => item.AdditionalEffects).HasJsonConversion();
         builder.Property(item => item.Option).HasJsonConversion();
         builder.Property(item => item.Music).HasJsonConversion();
         builder.Property(item => item.Housing).HasJsonConversion();
@@ -95,6 +100,7 @@ public sealed class MetadataContext : DbContext {
         builder.HasKey(map => map.Id);
         builder.Property(map => map.Property).HasJsonConversion();
         builder.Property(map => map.Limit).HasJsonConversion();
+        builder.Property(map => map.Drop).HasJsonConversion();
         builder.Property(map => map.Spawns).HasJsonConversion();
         builder.Property(map => map.CashCall).HasJsonConversion();
         builder.Property(map => map.EntranceBuffs).HasJsonConversion();
@@ -128,6 +134,9 @@ public sealed class MetadataContext : DbContext {
         builder.Property(quest => quest.Require).HasJsonConversion();
         builder.Property(quest => quest.AcceptReward).HasJsonConversion();
         builder.Property(quest => quest.CompleteReward).HasJsonConversion();
+        builder.Property(quest => quest.Conditions).HasJsonConversion();
+        builder.Property(quest => quest.GoToNpc).HasJsonConversion();
+        builder.Property(quest => quest.GoToDungeon).HasJsonConversion();
     }
 
     private static void ConfigureRideMetadata(EntityTypeBuilder<RideMetadata> builder) {
@@ -157,6 +166,13 @@ public sealed class MetadataContext : DbContext {
         builder.ToTable("table");
         builder.HasKey(table => table.Name);
         builder.Property(table => table.Table).HasJsonConversion().IsRequired();
+    }
+    
+    private static void ConfigureAchievementMetadata(EntityTypeBuilder<AchievementMetadata> builder) {
+        builder.ToTable("achievement");
+        builder.HasKey(achievement => achievement.Id);
+        builder.Property(achievement => achievement.CategoryTags).HasJsonConversion();
+        builder.Property(achievement => achievement.Grades).HasJsonConversion();
     }
 
     private static void ConfigureUgcMapMetadata(EntityTypeBuilder<UgcMapMetadata> builder) {

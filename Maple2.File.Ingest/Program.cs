@@ -3,6 +3,7 @@ using System.Globalization;
 using Maple2.Database.Context;
 using Maple2.Database.Extensions;
 using Maple2.Database.Model.Metadata;
+using Maple2.File.Ingest.Generator;
 using Maple2.File.Ingest.Mapper;
 using Maple2.File.IO;
 using Maple2.File.Parser.Tools;
@@ -60,6 +61,7 @@ UpdateDatabase(metadataContext, new RideMapper(xmlReader));
 UpdateDatabase(metadataContext, new ScriptMapper(xmlReader));
 UpdateDatabase(metadataContext, new SkillMapper(xmlReader));
 UpdateDatabase(metadataContext, new TableMapper(xmlReader));
+UpdateDatabase(metadataContext, new AchievementMapper(xmlReader));
 
 UpdateDatabase(metadataContext, new MapEntityMapper(metadataContext, exportedReader));
 UpdateDatabase(metadataContext, new NavMeshMapper(terrainReader));

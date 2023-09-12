@@ -47,7 +47,7 @@ public static class PlayerInfoUpdateExtensions {
             info.PlotExpiryTime = update.Request.Home.ExpiryTime.Seconds;
         }
         if (update.Type.HasFlag(UpdateField.Trophy) && update.Request.Trophy != null) {
-            info.Trophy = new Trophy {
+            info.AchievementInfo = new Model.Game.AchievementInfo {
                 Combat = update.Request.Trophy.Combat,
                 Adventure = update.Request.Trophy.Adventure,
                 Lifestyle = update.Request.Trophy.Lifestyle,
@@ -90,7 +90,7 @@ public static class PlayerInfoUpdateExtensions {
             self.PlotExpiryTime = other.PlotExpiryTime;
         }
         if (type.HasFlag(UpdateField.Trophy)) {
-            self.Trophy = other.Trophy;
+            self.AchievementInfo = other.AchievementInfo;
         }
 
         self.UpdateTime = other.UpdateTime;
@@ -134,9 +134,9 @@ public static class PlayerInfoUpdateExtensions {
         }
         if (type.HasFlag(UpdateField.Trophy)) {
             request.Trophy = new TrophyInfo {
-                Combat = info.Trophy.Combat,
-                Adventure = info.Trophy.Adventure,
-                Lifestyle = info.Trophy.Lifestyle,
+                Combat = info.AchievementInfo.Combat,
+                Adventure = info.AchievementInfo.Adventure,
+                Lifestyle = info.AchievementInfo.Lifestyle,
             };
         }
     }

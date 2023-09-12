@@ -195,6 +195,9 @@ public class InventoryManager {
                 if (notifyNew) {
                     session.Send(ItemInventoryPacket.NotifyNew(item.Uid, added));
                 }
+                session.ConditionUpdate(ConditionType.item_collect, codeLong: item.Id);
+                session.ConditionUpdate(ConditionType.item_add, counter: item.Amount, codeLong: item.Id);
+                session.ConditionUpdate(ConditionType.item_exist, counter: item.Amount, codeLong: item.Id);
             }
 
             return true;
@@ -269,7 +272,7 @@ public class InventoryManager {
 
     public bool ConsumeItemComponents(IReadOnlyList<ItemComponent> components, int quantityMultiplier = 1) {
         lock (session.Item) {
-            
+
             // Check for components
             Dictionary<int, List<Item>> materialsById = components.ToDictionary(
                 ingredient => ingredient.ItemId,
@@ -308,7 +311,7 @@ public class InventoryManager {
                     return false;
                 }
             }
-            
+
             foreach (ItemComponent ingredient in components) {
                 int remainingIngredients = ingredient.Amount * quantityMultiplier;
                 if (ingredient.Tag != ItemTag.None) {

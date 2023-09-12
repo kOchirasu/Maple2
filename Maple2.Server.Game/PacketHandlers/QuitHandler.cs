@@ -23,6 +23,8 @@ public class QuitHandler : PacketHandler<GameSession> {
     public override void Handle(GameSession session, IByteReader packet) {
         bool quitGame = packet.ReadBool();
 
+        session.Player.Value.Character.MapId = session.Player.Value.Character.ReturnMapId;
+        
         // Fully close client
         if (quitGame) {
             session.Disconnect();

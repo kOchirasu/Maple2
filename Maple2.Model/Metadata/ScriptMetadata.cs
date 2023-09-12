@@ -11,6 +11,8 @@ public record ScriptMetadata(
 public record ScriptState(
     int Id,
     ScriptStateType Type,
+    bool Pick,
+    JobCode? JobCondition,
     CinematicContent[] Contents);
 
 public record CinematicContent(
