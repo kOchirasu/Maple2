@@ -84,6 +84,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public QuestManager Quest { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
+    public PartyManager Party { get; set; }
 
     public GameSession(TcpClient tcpClient, GameServer server, IComponentContext context) : base(tcpClient) {
         this.server = server;
@@ -135,6 +136,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Config = new ConfigManager(db, this);
         Buddy = new BuddyManager(db, this);
         Item = new ItemManager(db, this, ItemStatsCalc);
+        Party = new PartyManager(World, this);
 
         if (!PrepareField(player.Character.MapId)) {
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
@@ -159,6 +161,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Guild.Load();
         // Club
         Buddy.Load();
+        Party.Load();
 
         Send(TimeSyncPacket.Reset(DateTimeOffset.UtcNow));
         Send(TimeSyncPacket.Set(DateTimeOffset.UtcNow));
@@ -420,6 +423,7 @@ public sealed partial class GameSession : Core.Network.Session {
 #endif
             Guild.Dispose();
             Buddy.Dispose();
+            Party.Dispose();
 
             using (GameStorage.Request db = GameStorage.Context()) {
                 db.BeginTransaction();
