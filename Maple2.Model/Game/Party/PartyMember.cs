@@ -2,15 +2,13 @@ using System;
 using System.Numerics;
 using System.Threading;
 using Maple2.Model.Common;
-using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
-public class PartyMember : IByteSerializable, IDisposable
-{
+public class PartyMember : IByteSerializable, IDisposable {
     public long PartyId { get; init; }
     public required PlayerInfo Info;
     public long JoinTime;
@@ -22,8 +20,7 @@ public class PartyMember : IByteSerializable, IDisposable
 
     public CancellationTokenSource? TokenSource;
 
-    public void WriteTo(IByteWriter writer)
-    {
+    public void WriteTo(IByteWriter writer) {
         writer.WriteLong(Info.AccountId);
         writer.WriteLong(Info.CharacterId);
         writer.WriteUnicodeString(Info.Name);
@@ -36,10 +33,10 @@ public class PartyMember : IByteSerializable, IDisposable
         writer.WriteInt(Info.PlotMapId);
         writer.WriteShort(Info.Level);
         writer.WriteShort(Info.Channel);
-        writer.WriteInt((int)Info.Job.Code());
+        writer.WriteInt((int) Info.Job.Code());
         writer.Write(Info.Job);
-        writer.WriteInt((int)Info.CurrentHp);
-        writer.WriteInt((int)Info.TotalHp);
+        writer.WriteInt((int) Info.CurrentHp);
+        writer.WriteInt((int) Info.TotalHp);
         writer.WriteShort();
         writer.WriteLong();
         writer.WriteLong();
@@ -76,19 +73,16 @@ public class PartyMember : IByteSerializable, IDisposable
         writer.WriteLong();
     }
 
-    public void WriteDungeonEligibility(IByteWriter writer)
-    {
+    public void WriteDungeonEligibility(IByteWriter writer) {
         var Count = 0;
         writer.WriteInt(Count);
-        for (var i = 0; i < Count; i++)
-        {
+        for (var i = 0; i < Count; i++) {
             writer.WriteInt();
             writer.WriteByte();
         }
     }
 
-    public void Dispose()
-    {
+    public void Dispose() {
         TokenSource?.Cancel();
         TokenSource?.Dispose();
         TokenSource = null;

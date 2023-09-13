@@ -8,8 +8,7 @@ using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
-public class Party : IByteSerializable
-{
+public class Party : IByteSerializable {
     public int Capacity = 10;
 
     public required int Id { get; init; }
@@ -25,8 +24,7 @@ public class Party : IByteSerializable
     public readonly ConcurrentDictionary<long, PartyMember> Members;
 
     [SetsRequiredMembers]
-    public Party(int id, long leaderAccountId, long leaderCharacterId, string leaderName)
-    {
+    public Party(int id, long leaderAccountId, long leaderCharacterId, string leaderName) {
         Id = id;
         LeaderAccountId = leaderAccountId;
         LeaderCharacterId = leaderCharacterId;
@@ -39,16 +37,14 @@ public class Party : IByteSerializable
     [SetsRequiredMembers]
     public Party(int id, PartyMember leader) : this(id, leader.AccountId, leader.CharacterId, leader.Name) { }
 
-    public void WriteTo(IByteWriter writer)
-    {
+    public void WriteTo(IByteWriter writer) {
         writer.WriteBool(true);
         writer.WriteInt(Id);
         writer.WriteLong(LeaderCharacterId);
 
-        byte memberCount = (byte)Members.Count;
+        byte memberCount = (byte) Members.Count;
         writer.WriteByte(memberCount);
-        for (var i = 0; i < memberCount; i++)
-        {
+        for (var i = 0; i < memberCount; i++) {
             PartyMember member = Members.Values.ElementAt(i);
 
             writer.WriteBool(!member.Info.Online);
@@ -63,11 +59,9 @@ public class Party : IByteSerializable
         WriteMatchParty(writer);
     }
 
-    public void WriteMatchParty(IByteWriter writer)
-    {
+    public void WriteMatchParty(IByteWriter writer) {
         writer.WriteBool(IsMatching);
-        if (!IsMatching)
-        {
+        if (!IsMatching) {
             return;
         }
 

@@ -14,8 +14,7 @@ using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
 namespace Maple2.Server.Game.Manager;
 
-public class PartyManager : IDisposable
-{
+public class PartyManager : IDisposable {
     private readonly GameSession session;
     private readonly WorldClient world;
 
@@ -26,62 +25,49 @@ public class PartyManager : IDisposable
 
     private readonly ILogger logger = Log.Logger.ForContext<PartyManager>();
 
-    public PartyManager(WorldClient world, GameSession session)
-    {
+    public PartyManager(WorldClient world, GameSession session) {
         this.session = session;
         this.world = world;
         tokenSource = new CancellationTokenSource();
 
-        PartyInfoResponse response = session.World.PartyInfo(new PartyInfoRequest
-        {
+        PartyInfoResponse response = session.World.PartyInfo(new PartyInfoRequest {
             CharacterId = session.CharacterId,
         });
-        if (response.Party != null)
-        {
+        if (response.Party != null) {
             SetParty(response.Party);
         }
     }
 
-    public void Dispose()
-    {
+    public void Dispose() {
         session.Dispose();
         tokenSource.Dispose();
 
-        if (Party != null)
-        {
-            foreach (PartyMember member in Party.Members.Values)
-            {
+        if (Party != null) {
+            foreach (PartyMember member in Party.Members.Values) {
                 member.Dispose();
             }
         }
     }
 
-    public void Load()
-    {
-        if (Party == null)
-        {
+    public void Load() {
+        if (Party == null) {
             return;
         }
 
         session.Send(PartyPacket.Load(Party));
     }
 
-    public bool SetParty(PartyInfo info)
-    {
-        if (Party != null)
-        {
+    public bool SetParty(PartyInfo info) {
+        if (Party != null) {
             return false;
         }
 
-        PartyMember[] members = info.Members.Select(member =>
-        {
-            if (!session.PlayerInfo.GetOrFetch(member.CharacterId, out PlayerInfo? playerInfo))
-            {
+        PartyMember[] members = info.Members.Select(member => {
+            if (!session.PlayerInfo.GetOrFetch(member.CharacterId, out PlayerInfo? playerInfo)) {
                 return null;
             }
 
-            var result = new PartyMember
-            {
+            var result = new PartyMember {
                 PartyId = info.Id,
                 Info = playerInfo.Clone(),
                 JoinTime = member.JoinTime,
@@ -91,15 +77,13 @@ public class PartyManager : IDisposable
         }).WhereNotNull().ToArray();
 
         PartyMember? leader = members.SingleOrDefault(member => member.CharacterId == info.LeaderCharacterId);
-        if (leader == null)
-        {
+        if (leader == null) {
             logger.Error("Party {PartyId} does not have a valid leader", info.Id);
             session.Send(PartyPacket.Error(PartyError.s_party_err_not_found));
             return false;
         }
 
-        var party = new Party(info.Id, leader)
-        {
+        var party = new Party(info.Id, leader) {
             CreationTime = info.CreationTime,
             DungeonId = info.DungeonId,
             MatchPartyName = info.MatchPartyName,
@@ -107,10 +91,8 @@ public class PartyManager : IDisposable
             IsMatching = info.IsMatching,
             RequireApproval = info.RequireApproval,
         };
-        foreach (PartyMember member in members)
-        {
-            if (party.Members.TryAdd(member.CharacterId, member))
-            {
+        foreach (PartyMember member in members) {
+            if (party.Members.TryAdd(member.CharacterId, member)) {
                 BeginListen(member);
             }
         }
@@ -122,10 +104,8 @@ public class PartyManager : IDisposable
         return true;
     }
 
-    public void RemoveParty()
-    {
-        if (Party == null)
-        {
+    public void RemoveParty() {
+        if (Party == null) {
             return;
         }
 
@@ -133,14 +113,11 @@ public class PartyManager : IDisposable
         session.Player.Value.Character.PartyId = 0;
     }
 
-    public bool AddMember(PartyMember member)
-    {
-        if (Party == null)
-        {
+    public bool AddMember(PartyMember member) {
+        if (Party == null) {
             return false;
         }
-        if (!Party.Members.TryAdd(member.CharacterId, member))
-        {
+        if (!Party.Members.TryAdd(member.CharacterId, member)) {
             return false;
         }
 
@@ -149,14 +126,11 @@ public class PartyManager : IDisposable
         return true;
     }
 
-    public bool RemoveMember(long characterId, bool isKick, bool isSelf)
-    {
-        if (Party == null)
-        {
+    public bool RemoveMember(long characterId, bool isKick, bool isSelf) {
+        if (Party == null) {
             return false;
         }
-        if (!Party.Members.TryRemove(characterId, out PartyMember? member))
-        {
+        if (!Party.Members.TryRemove(characterId, out PartyMember? member)) {
             return false;
         }
         EndListen(member);
@@ -165,16 +139,13 @@ public class PartyManager : IDisposable
         return true;
     }
 
-    public bool UpdateLeader(long newLeaderCharacterId)
-    {
-        if (Party == null)
-        {
+    public bool UpdateLeader(long newLeaderCharacterId) {
+        if (Party == null) {
             return false;
         }
 
         PartyMember? leader = Party.Members.Values.SingleOrDefault(member => member.CharacterId == newLeaderCharacterId);
-        if (leader == null)
-        {
+        if (leader == null) {
             logger.Error("Party {PartyId} does not have a valid leader", Party.Id);
             session.Send(PartyPacket.Error(PartyError.s_party_err_not_found));
             return false;
@@ -188,15 +159,12 @@ public class PartyManager : IDisposable
         return true;
     }
 
-    public bool Disband()
-    {
-        if (Party == null)
-        {
+    public bool Disband() {
+        if (Party == null) {
             return false;
         }
 
-        foreach (PartyMember member in Party.Members.Values)
-        {
+        foreach (PartyMember member in Party.Members.Values) {
             EndListen(member);
         }
 
@@ -205,15 +173,12 @@ public class PartyManager : IDisposable
         return true;
     }
 
-    public PartyMember? GetMember(string name)
-    {
+    public PartyMember? GetMember(string name) {
         return Party?.Members.Values.FirstOrDefault(member => member.Name == name);
     }
 
-    public PartyMember? GetMember(long characterId)
-    {
-        if (Party?.Members.TryGetValue(characterId, out PartyMember? member) == true)
-        {
+    public PartyMember? GetMember(long characterId) {
+        if (Party?.Members.TryGetValue(characterId, out PartyMember? member) == true) {
             return member;
         }
 
@@ -221,11 +186,9 @@ public class PartyManager : IDisposable
     }
 
     #region PlayerInfo Events
-    private void BeginListen(PartyMember member)
-    {
+    private void BeginListen(PartyMember member) {
         // Clean up previous token if necessary
-        if (member.TokenSource != null)
-        {
+        if (member.TokenSource != null) {
             logger.Warning("BeginListen called on Member {Id} that was already listening", member.CharacterId);
             EndListen(member);
         }
@@ -236,17 +199,14 @@ public class PartyManager : IDisposable
         session.PlayerInfo.Listen(member.Info.CharacterId, listener);
     }
 
-    private void EndListen(PartyMember member)
-    {
+    private void EndListen(PartyMember member) {
         member.TokenSource?.Cancel();
         member.TokenSource?.Dispose();
         member.TokenSource = null;
     }
 
-    private bool SyncUpdate(CancellationToken cancel, long id, UpdateField type, IPlayerInfo info)
-    {
-        if (cancel.IsCancellationRequested || Party == null || !Party.Members.TryGetValue(id, out PartyMember? member))
-        {
+    private bool SyncUpdate(CancellationToken cancel, long id, UpdateField type, IPlayerInfo info) {
+        if (cancel.IsCancellationRequested || Party == null || !Party.Members.TryGetValue(id, out PartyMember? member)) {
             return true;
         }
 
@@ -254,28 +214,21 @@ public class PartyManager : IDisposable
         member.Info.Update(type, info);
         member.LoginTime = info.UpdateTime;
 
-        if (type == UpdateField.Health || type == UpdateField.Level)
-        {
+        if (type == UpdateField.Health || type == UpdateField.Level) {
             session.Send(PartyPacket.UpdateStats(member));
-        }
-        else
-        {
+        } else {
             session.Send(PartyPacket.Update(member));
         }
 
-        if (member.Info.Online != wasOnline)
-        {
+        if (member.Info.Online != wasOnline) {
             session.Send(member.Info.Online
                 ? PartyPacket.NotifyLogin(member)
                 : PartyPacket.NotifyLogout(member.CharacterId));
 
-            if (!member.Info.Online && member.CharacterId == Party.LeaderCharacterId)
-            {
-                world.Party(new PartyRequest
-                {
+            if (!member.Info.Online && member.CharacterId == Party.LeaderCharacterId) {
+                world.Party(new PartyRequest {
                     RequestorId = member.CharacterId,
-                    UpdateLeader = new PartyRequest.Types.UpdateLeader
-                    {
+                    UpdateLeader = new PartyRequest.Types.UpdateLeader {
                         PartyId = session.Party.Id,
                     },
                 });

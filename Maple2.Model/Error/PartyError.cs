@@ -5,8 +5,7 @@ using System.ComponentModel;
 
 namespace Maple2.Model.Error;
 
-public enum PartyError : byte
-{
+public enum PartyError : byte {
     none = 0,
     [Description("The party is full.")]
     s_party_err_full = 2,

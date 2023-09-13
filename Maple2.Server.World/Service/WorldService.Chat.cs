@@ -60,14 +60,14 @@ public partial class WorldService {
             return Task.FromResult(new ChatResponse());
         }
     }
-    
+
     private Task<ChatResponse> WorldChat(ChatRequest request) {
         foreach ((int channel, ChannelClient client) in channelClients) {
             client.Chat(request);
         }
         return Task.FromResult(new ChatResponse());
     }
-    
+
     private Task<ChatResponse> SuperChat(ChatRequest request) {
         foreach ((int channel, ChannelClient client) in channelClients) {
             client.Chat(request);

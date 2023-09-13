@@ -8,10 +8,8 @@ using System;
 
 namespace Maple2.Server.Game.Packets;
 
-public static class PartyPacket
-{
-    private enum Command : byte
-    {
+public static class PartyPacket {
+    private enum Command : byte {
         Error = 0,
         Joined = 2,
         Leave = 3,
@@ -44,8 +42,7 @@ public static class PartyPacket
         SurvivalPartySearch = 54,
     }
 
-    public static ByteWriter Error(PartyError error, string targetName = "")
-    {
+    public static ByteWriter Error(PartyError error, string targetName = "") {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.Error);
         pWriter.Write(error);
@@ -54,8 +51,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter Joined(PartyMember member)
-    {
+    public static ByteWriter Joined(PartyMember member) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.Joined);
         pWriter.WriteClass(member);
@@ -64,8 +60,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter Leave(long targetCharacterId, bool isSelf)
-    {
+    public static ByteWriter Leave(long targetCharacterId, bool isSelf) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.Leave);
         pWriter.WriteLong(targetCharacterId);
@@ -74,8 +69,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter Kicked(long targetCharacterId)
-    {
+    public static ByteWriter Kicked(long targetCharacterId) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.Kicked);
         pWriter.WriteLong(targetCharacterId);
@@ -83,8 +77,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter NotifyLogin(PartyMember member)
-    {
+    public static ByteWriter NotifyLogin(PartyMember member) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.NotifyLogin);
         pWriter.WriteClass(member);
@@ -92,8 +85,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter NotifyLogout(long targetCharacterId)
-    {
+    public static ByteWriter NotifyLogout(long targetCharacterId) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.NotifyLogout);
         pWriter.WriteLong(targetCharacterId);
@@ -101,16 +93,14 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter Disband()
-    {
+    public static ByteWriter Disband() {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.Disbanded);
 
         return pWriter;
     }
 
-    public static ByteWriter NotifyUpdateLeader(long newLeaderCharacterId)
-    {
+    public static ByteWriter NotifyUpdateLeader(long newLeaderCharacterId) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.NotifyUpdateLeader);
         pWriter.WriteLong(newLeaderCharacterId);
@@ -118,8 +108,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter Load(Party party)
-    {
+    public static ByteWriter Load(Party party) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.Load);
         pWriter.WriteClass(party);
@@ -127,8 +116,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter Invite(int partyId, string name)
-    {
+    public static ByteWriter Invite(int partyId, string name) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.Invited);
 
@@ -138,8 +126,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter Update(PartyMember member)
-    {
+    public static ByteWriter Update(PartyMember member) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.UpdateMember);
 
@@ -149,8 +136,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter UpdateDungeonInfo(PartyMember member)
-    {
+    public static ByteWriter UpdateDungeonInfo(PartyMember member) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.UpdateDungeonInfo);
 
@@ -160,8 +146,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter Unknown1()
-    {
+    public static ByteWriter Unknown1() {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.Unknown1);
 
@@ -171,8 +156,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter Tombstone()
-    {
+    public static ByteWriter Tombstone() {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.Tombstone);
 
@@ -182,22 +166,20 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter UpdateStats(PartyMember member)
-    {
+    public static ByteWriter UpdateStats(PartyMember member) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.UpdateStats);
 
         pWriter.WriteLong(member.CharacterId);
         pWriter.WriteLong(member.AccountId);
-        pWriter.WriteInt((int)member.Info.CurrentHp);
-        pWriter.WriteInt((int)member.Info.TotalHp);
+        pWriter.WriteInt((int) member.Info.CurrentHp);
+        pWriter.WriteInt((int) member.Info.TotalHp);
         pWriter.WriteShort(member.Info.Level);
 
         return pWriter;
     }
 
-    public static ByteWriter DungeonNotice()
-    {
+    public static ByteWriter DungeonNotice() {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.DungeonNotice);
 
@@ -208,8 +190,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter Unknown2(string message, bool htmlEncoded = false)
-    {
+    public static ByteWriter Unknown2(string message, bool htmlEncoded = false) {
         var text = new InterfaceText(message, htmlEncoded);
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.Unknown2);
@@ -219,8 +200,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter DungeonReset()
-    {
+    public static ByteWriter DungeonReset() {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.DungeonReset);
         pWriter.WriteBool(false); // started dungeon
@@ -229,8 +209,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter PartyFinderListing(Party party)
-    {
+    public static ByteWriter PartyFinderListing(Party party) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.PartyFinder);
         party.WriteMatchParty(pWriter);
@@ -238,8 +217,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter PartySearch(byte type, bool searching)
-    {
+    public static ByteWriter PartySearch(byte type, bool searching) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.PartySearch);
         /**
@@ -262,8 +240,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter PartySearchDungeon()
-    {
+    public static ByteWriter PartySearchDungeon() {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.PartySearchDungeon);
         pWriter.WriteLong(); // s_party_match_dungeon
@@ -271,8 +248,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter DungeonRecord()
-    {
+    public static ByteWriter DungeonRecord() {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.DungeonRecord);
         pWriter.WriteLong();
@@ -280,8 +256,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter Unknown3()
-    {
+    public static ByteWriter Unknown3() {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.Unknown3);
         pWriter.WriteLong();
@@ -290,8 +265,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter DungeonHelperCooldown()
-    {
+    public static ByteWriter DungeonHelperCooldown() {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.DungeonHelperCooldown);
         pWriter.WriteInt(); // s_party_find_dungeon_helper_cooldown
@@ -299,8 +273,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter JoinRequest(string name)
-    {
+    public static ByteWriter JoinRequest(string name) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.JoinRequest);
         pWriter.WriteUnicodeString(name);
@@ -308,8 +281,7 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter StartVote(bool kick, int size)
-    {
+    public static ByteWriter StartVote(bool kick, int size) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.StartVote);
         pWriter.WriteBool(kick); // 0 = Ready Check, 1 = Kick
@@ -319,30 +291,26 @@ public static class PartyPacket
 
         // Party Size
         pWriter.WriteInt(size);
-        for (var i = 0; i < size; i++)
-        {
+        for (var i = 0; i < size; i++) {
             pWriter.WriteLong(); // character id
         }
 
         // Ready Count
         pWriter.WriteInt(size);
-        for (var i = 0; i < size; i++)
-        {
+        for (var i = 0; i < size; i++) {
             pWriter.WriteLong(); // character id
         }
 
         // Not Ready Count
         pWriter.WriteInt(size);
-        for (var i = 0; i < size; i++)
-        {
+        for (var i = 0; i < size; i++) {
             pWriter.WriteLong(); // character id
         }
 
         return pWriter;
     }
 
-    public static ByteWriter ReadyCheck(long characterId, bool isReady)
-    {
+    public static ByteWriter ReadyCheck(long characterId, bool isReady) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.ReadyCheck);
         pWriter.WriteLong(characterId);
@@ -351,16 +319,14 @@ public static class PartyPacket
         return pWriter;
     }
 
-    public static ByteWriter EndReadyCheck()
-    {
+    public static ByteWriter EndReadyCheck() {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.EndReadyCheck);
 
         return pWriter;
     }
 
-    public static ByteWriter SurvivalPartySearch(bool searching)
-    {
+    public static ByteWriter SurvivalPartySearch(bool searching) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write(Command.SurvivalPartySearch);
         pWriter.WriteBool(searching); // Searching
