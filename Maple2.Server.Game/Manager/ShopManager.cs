@@ -36,7 +36,7 @@ public sealed class ShopManager {
     private IDictionary<int, Shop> instancedShops;
     private IDictionary<int, IDictionary<int, CharacterShopItemData>> characterShopItemData;
     private IDictionary<int, IDictionary<int, CharacterShopItemData>> accountShopItemData;
-    private IDictionary<int, BuyBackItem> buyBackItems = new Dictionary<int, BuyBackItem>();
+    private IDictionary<int, BuyBackItem> buyBackItems;
     private Shop? activeShop;
     private int shopSourceId;
 
@@ -45,6 +45,7 @@ public sealed class ShopManager {
     public ShopManager(GameSession session) {
         this.session = session;
         instancedShops = new Dictionary<int, Shop>();
+        buyBackItems = new Dictionary<int, BuyBackItem>();
         using GameStorage.Request db = session.GameStorage.Context();
 
         accountShopData = new Dictionary<int, CharacterShopData>();
@@ -144,7 +145,7 @@ public sealed class ShopManager {
         // assemble shop
         instancedShop = shop.Clone()!;
         instancedShop.RestockTime = data.RestockTime;
-        instancedShop.Items = GetShopItems(shop);
+        instancedShop.Items = GetShopItems(shop); // TODO: This is bad because we're making items to just replace it right after. Maybe an alt method.
         ApplyItemData(instancedShop);
         instancedShops[instancedShop.Id] = instancedShop;
         return instancedShop;
@@ -191,6 +192,7 @@ public sealed class ShopManager {
                 continue;
             }
 
+            item.Item = data.Item;
             item.StockPurchased = data.StockPurchased;
         }
     }
@@ -260,6 +262,7 @@ public sealed class ShopManager {
                 var data = new CharacterShopItemData {
                     ShopId = shop.Id,
                     ShopItemId = id,
+                    Item = item.Item,
                 };
                 data = db.CreateCharacterShopItemData(ownerId, data);
                 if (data == null) {

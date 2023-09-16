@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ internal class Shop {
     public bool OpenWallet { get; set; }
     public bool DisplayNew { get; set; }
     public bool RandomizeOrder { get; set; }
+    public DateTime RestockTime { get; set; }
     public ShopRestockData? RestockData { get; set; }
 
 
@@ -33,6 +35,7 @@ internal class Shop {
             DisplayNew = other.DisplayNew,
             RandomizeOrder = other.RandomizeOrder,
             RestockData = other.RestockData,
+            RestockTime = other.RestockTime.ToEpochSeconds(),
         };
     }
 

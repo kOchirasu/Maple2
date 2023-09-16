@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.Model.Game.Shop;
+using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
 
 namespace Maple2.Database.Storage;
@@ -76,8 +78,9 @@ public partial class GameStorage {
 
         public ICollection<CharacterShopItemData> GetCharacterShopItemData(long ownerId) {
             return Context.CharacterShopItemData.Where(data => data.OwnerId == ownerId)
-                .Select<Model.Shop.CharacterShopItemData, CharacterShopItemData>(data => data)
-                .ToList();
+                .AsEnumerable()
+                .Select(ToShopItemData)
+                .ToList()!;
         }
 
         public bool SaveCharacterShopItemData(long ownerId, ICollection<CharacterShopItemData> itemDatas) {
@@ -101,6 +104,19 @@ public partial class GameStorage {
 
             Context.CharacterShopItemData.Remove(data);
             return SaveChanges();
+        }
+        
+        private CharacterShopItemData? ToShopItemData(Model.Shop.CharacterShopItemData? model) {
+            if (model == null) {
+                return null;
+            }
+            if (!game.itemMetadata.TryGet(model.Item.ItemId, out ItemMetadata? metadata)) {
+                return null;
+            }
+            Item item = model.Item.Convert(metadata);
+            CharacterShopItemData data = model;
+            data.Item = item;
+            return data;
         }
     }
 }

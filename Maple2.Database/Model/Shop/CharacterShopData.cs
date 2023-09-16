@@ -1,4 +1,6 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿using System;
+using System.Diagnostics.CodeAnalysis;
+using Maple2.Database.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -7,14 +9,14 @@ namespace Maple2.Database.Model.Shop;
 internal class CharacterShopData {
     public int ShopId { get; set; }
     public long OwnerId { get; set; }
-    public long RestockTime { get; set; }
+    public DateTime RestockTime { get; set; }
     public int RestockCount { get; set; }
 
     [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator CharacterShopData?(Maple2.Model.Game.Shop.CharacterShopData? other) {
         return other == null ? null : new CharacterShopData {
             ShopId = other.ShopId,
-            RestockTime = other.RestockTime,
+            RestockTime = other.RestockTime.FromEpochSeconds(),
             RestockCount = other.RestockCount,
         };
     }
@@ -23,7 +25,7 @@ internal class CharacterShopData {
     public static implicit operator Maple2.Model.Game.Shop.CharacterShopData?(CharacterShopData? other) {
         return other == null ? null : new Maple2.Model.Game.Shop.CharacterShopData {
             ShopId = other.ShopId,
-            RestockTime = other.RestockTime,
+            RestockTime = other.RestockTime.ToEpochSeconds(),
             RestockCount = other.RestockCount,
         };
     }
