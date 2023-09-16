@@ -11,7 +11,7 @@ public class ShopItem : IByteSerializable {
     public ShopCost Cost { get; init; } = ShopCost.Zero;
     public byte Rarity { get; init; }
     public int StockCount { get; init; }
-    public int StockPurchased { get; init; }
+    public int StockPurchased { get; set; }
     public string Category { get; init; }
     public int RequireGuildTrophy { get; init; }
     public int RequireAchievementId { get; init; }
@@ -30,6 +30,31 @@ public class ShopItem : IByteSerializable {
 
     public ShopItem(int id) {
         Id = id;
+    }
+
+    public ShopItem Clone() {
+        return new ShopItem(Id) {
+            AutoPreviewEquip = AutoPreviewEquip,
+            Category = Category,
+            Cost = Cost,
+            CurrencyIdString = CurrencyIdString,
+            Item = Item.Clone(),
+            ItemId = ItemId,
+            Label = Label,
+            Quantity = Quantity,
+            Rarity = Rarity,
+            RequireAchievementId = RequireAchievementId,
+            RequireAchievementRank = RequireAchievementRank,
+            RequireChampionshipGrade = RequireChampionshipGrade,
+            RequireChampionshipJoinCount = RequireChampionshipJoinCount,
+            RequireFameGrade = RequireFameGrade,
+            RequireGuildMerchantLevel = RequireGuildMerchantLevel,
+            RequireGuildMerchantType = RequireGuildMerchantType,
+            RequireGuildTrophy = RequireGuildTrophy,
+            RequireQuestAllianceId = RequireQuestAllianceId,
+            StockCount = StockCount,
+            StockPurchased = StockPurchased,
+        };
     }
 
     public virtual void WriteTo(IByteWriter writer) {

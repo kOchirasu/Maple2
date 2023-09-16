@@ -92,18 +92,19 @@ public class GameServer : Server<GameSession> {
         return gameEvent;
     }
 
-    public Shop? FindShop(int shopId) {
+    public Shop? FindShop(GameSession session, int shopId) {
         if (!shopCache.TryGetValue(shopId, out Shop? shop)) {
             using GameStorage.Request db = gameStorage.Context();
             shop = db.GetShop(shopId);
             if (shop?.RestockTime == 0) { // everything else would be player-based shops that would get refreshed
                 shopCache[shopId] = shop;
-                foreach (ShopItem item in db.GetShopItems(shopId)) {
-                    if (!itemMetadataStorage.TryGet(item.ItemId, out ItemMetadata? metadata)) {
+                foreach (ShopItem shopItem in db.GetShopItems(shopId)) {
+                    Item? item = session.Item.CreateItem(shopItem.ItemId, shopItem.Rarity, shopItem.Quantity);
+                    if (item == null) {
                         continue;
                     }
-                    item.Item = new Item(metadata, item.Rarity, item.Quantity);
-                    shop.Items.Add(item);
+                    shopItem.Item = item;
+                    shop.Items[shopItem.Id] = shopItem;
                 }
             } else {
                 return shop;

@@ -35,7 +35,6 @@ public partial class GameSession {
 
     public NpcScript? NpcScript;
 
-    public Shop? Shop;
     public BeautyShop? BeautyShop;
 
     public bool FishingMiniGameActive;

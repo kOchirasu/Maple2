@@ -83,6 +83,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public ExperienceManager Exp { get; set; }
     public AchievementManager Achievement { get; set; }
     public QuestManager Quest { get; set; }
+    public ShopManager Shop { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
 
@@ -132,6 +133,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Exp = new ExperienceManager(this, Lua);
         Achievement = new AchievementManager(this);
         Quest = new QuestManager(this);
+        Shop = new ShopManager(this);
         Guild = new GuildManager(this);
         Config = new ConfigManager(db, this);
         Buddy = new BuddyManager(db, this);
@@ -360,7 +362,7 @@ public sealed partial class GameSession : Core.Network.Session {
         server.Broadcast(packet);
     }
 
-    public Shop? FindShop(int shopId) => server.FindShop(shopId);
+    public Shop? FindShop(int shopId) => server.FindShop(this, shopId);
 
     public bool Temp() {
         // -> RequestMoveField
@@ -428,6 +430,7 @@ public sealed partial class GameSession : Core.Network.Session {
                 db.BeginTransaction();
                 db.SavePlayer(Player);
                 Config.Save(db);
+                Shop.Save(db);
                 Item.Save(db);
                 Housing.Save(db);
                 GameEventUserValue.Save(db);

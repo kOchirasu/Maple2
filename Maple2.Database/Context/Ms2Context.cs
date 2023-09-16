@@ -74,8 +74,8 @@ public sealed class Ms2Context : DbContext {
         modelBuilder.Entity<SoldMesoListing>(SoldMesoListing.Configure);
         modelBuilder.Entity<Shop>(Maple2.Database.Model.Shop.Shop.Configure);
         modelBuilder.Entity<ShopItem>(Maple2.Database.Model.Shop.ShopItem.Configure);
-        modelBuilder.Entity<CharacterShopData>(Maple2.Database.Model.CharacterShopData.Configure);
-        modelBuilder.Entity<CharacterShopItemData>(Maple2.Database.Model.CharacterShopItemData.Configure);
+        modelBuilder.Entity<CharacterShopData>(Maple2.Database.Model.Shop.CharacterShopData.Configure);
+        modelBuilder.Entity<CharacterShopItemData>(Maple2.Database.Model.Shop.CharacterShopItemData.Configure);
         modelBuilder.Entity<BeautyShop>(Maple2.Database.Model.Shop.BeautyShop.Configure);
         modelBuilder.Entity<BeautyShopEntry>(Maple2.Database.Model.Shop.BeautyShopEntry.Configure);
 

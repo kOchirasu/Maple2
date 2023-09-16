@@ -8,7 +8,6 @@ namespace Maple2.Model.Game.Shop;
 
 public class Shop : IByteSerializable {
     public readonly int Id;
-    public int NpcId;
     public int CategoryId { get; init; }
     public string Name  { get; init; }
     public ShopSkin Skin  { get; init; }
@@ -18,17 +17,38 @@ public class Shop : IByteSerializable {
     public bool OpenWallet  { get; init; }
     public bool DisplayNew  { get; init; }
     public bool RandomizeOrder  { get; init; }
-    public long RestockTime  { get; init; }
+    public long RestockTime  { get; set; }
     public ShopRestockData? RestockData { get; init; }
-    public IList<ShopItem> Items;
-    
+    public IDictionary<int, ShopItem> Items;
+
     public Shop(int id) {
         Id = id;
-        Items = new List<ShopItem>();
+        Items = new Dictionary<int, ShopItem>();
+    }
+
+    /// <summary>
+    /// Clones shops for instanced player shops.
+    /// </summary>
+    /// <returns></returns>
+    public Shop? Clone() {
+        if (RestockData == null) {
+            return null;
+        }
+        return new Shop(Id) {
+            CategoryId = CategoryId,
+            Name = Name,
+            Skin = Skin,
+            HideUnuseable = HideUnuseable,
+            HideStats = HideStats,
+            DisableBuyback = DisableBuyback,
+            OpenWallet = OpenWallet,
+            DisplayNew = DisplayNew,
+            RandomizeOrder = RandomizeOrder,
+            RestockData = RestockData,
+        };
     }
 
     public virtual void WriteTo(IByteWriter writer) {
-        writer.WriteInt(NpcId);
         writer.WriteInt(Id);
         writer.WriteLong(RestockTime);
         writer.WriteInt();
@@ -43,7 +63,7 @@ public class Shop : IByteSerializable {
         writer.WriteBool(HideStats);
         writer.WriteBool(false);
         writer.WriteBool(DisplayNew);
-        writer.WriteUnicodeString(Name);
+        writer.WriteString(Name);
         if (RestockTime > 0 && RestockData != null) {
             writer.WriteClass<ShopRestockData>(RestockData);
         }

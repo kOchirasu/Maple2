@@ -20,6 +20,9 @@ public class NpcMapper : TypeMapper<NpcMetadata> {
         foreach ((int id, string name, NpcData data, List<EffectDummy> _) in parser.Parse()) {
             Debug.Assert(data.collision.shape == "box" || string.IsNullOrWhiteSpace(data.collision.shape));
 
+            if (data.basic.shopId != 0) {
+                Console.WriteLine($"{id},{name},{data.basic.shopId}");
+            }
             yield return new NpcMetadata(Id: id,
                 Name: name,
                 Model: data.model.kfm,
