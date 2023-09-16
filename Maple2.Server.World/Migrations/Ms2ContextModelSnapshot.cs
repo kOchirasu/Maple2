@@ -1025,46 +1025,6 @@ namespace Maple2.Server.World.Migrations
                     b.ToTable("beauty-shop-entry", (string)null);
                 });
 
-            modelBuilder.Entity("Maple2.Database.Model.Shop.CharacterShopData", b =>
-                {
-                    b.Property<int>("ShopId")
-                        .HasColumnType("int");
-
-                    b.Property<long>("OwnerId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("RestockCount")
-                        .HasColumnType("int");
-
-                    b.Property<long>("RestockTime")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("ShopId", "OwnerId");
-
-                    b.ToTable("character-shop-data", (string)null);
-                });
-
-            modelBuilder.Entity("Maple2.Database.Model.Shop.CharacterShopItemData", b =>
-                {
-                    b.Property<int>("ShopItemId")
-                        .HasColumnType("int");
-
-                    b.Property<long>("OwnerId")
-                        .HasColumnType("bigint");
-
-                    b.Property<int>("ShopId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StockPurchased")
-                        .HasColumnType("int");
-
-                    b.HasKey("ShopItemId", "OwnerId");
-
-                    b.HasIndex("ShopId");
-
-                    b.ToTable("character-shop-item-data", (string)null);
-                });
-
             modelBuilder.Entity("Maple2.Database.Model.Shop.Shop", b =>
                 {
                     b.Property<int>("Id")
@@ -1077,8 +1037,17 @@ namespace Maple2.Server.World.Migrations
                     b.Property<bool>("DisableBuyback")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool>("DisableInstantRestock")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("DisplayNew")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("EnableRestockCostMultiplier")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<byte>("ExcessRestockCurrencyType")
+                        .HasColumnType("tinyint unsigned");
 
                     b.Property<bool>("HideStats")
                         .HasColumnType("tinyint(1)");
@@ -1093,14 +1062,29 @@ namespace Maple2.Server.World.Migrations
                     b.Property<bool>("OpenWallet")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool>("PersistantInventory")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("RandomizeOrder")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("RestockData")
-                        .HasColumnType("json");
+                    b.Property<int>("RestockCost")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("RestockCurrencyType")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<byte>("RestockInterval")
+                        .HasColumnType("tinyint unsigned");
+
+                    b.Property<long>("RestockTime")
+                        .HasColumnType("bigint");
 
                     b.Property<byte>("Skin")
                         .HasColumnType("tinyint unsigned");
+
+                    b.Property<int>("TotalRestockCount")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -1115,10 +1099,6 @@ namespace Maple2.Server.World.Migrations
 
                     b.Property<bool>("AutoPreviewEquip")
                         .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("Category")
-                        .IsRequired()
-                        .HasColumnType("longtext");
 
                     b.Property<string>("CurrencyIdString")
                         .IsRequired()
@@ -1166,9 +1146,6 @@ namespace Maple2.Server.World.Migrations
                     b.Property<byte>("RequireGuildMerchantType")
                         .HasColumnType("tinyint unsigned");
 
-                    b.Property<int>("RequireGuildTrophy")
-                        .HasColumnType("int");
-
                     b.Property<short>("RequireQuestAllianceId")
                         .HasColumnType("smallint");
 
@@ -1179,6 +1156,9 @@ namespace Maple2.Server.World.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("StockCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("StockPurchased")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -1652,30 +1632,6 @@ namespace Maple2.Server.World.Migrations
                     b.HasOne("Maple2.Database.Model.Shop.BeautyShop", null)
                         .WithMany()
                         .HasForeignKey("ShopId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Maple2.Database.Model.Shop.CharacterShopData", b =>
-                {
-                    b.HasOne("Maple2.Database.Model.Shop.Shop", null)
-                        .WithMany()
-                        .HasForeignKey("ShopId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Maple2.Database.Model.Shop.CharacterShopItemData", b =>
-                {
-                    b.HasOne("Maple2.Database.Model.Shop.Shop", null)
-                        .WithMany()
-                        .HasForeignKey("ShopId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Maple2.Database.Model.Shop.ShopItem", null)
-                        .WithMany()
-                        .HasForeignKey("ShopItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
