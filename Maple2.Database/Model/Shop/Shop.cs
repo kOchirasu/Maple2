@@ -21,7 +21,6 @@ internal class Shop {
     public DateTime RestockTime { get; set; }
     public ShopRestockData? RestockData { get; set; }
 
-
     [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator Maple2.Model.Game.Shop.Shop?(Shop? other) {
         return other == null ? null : new Maple2.Model.Game.Shop.Shop(other.Id) {

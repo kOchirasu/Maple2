@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Maple2.Model.Enum;
 using System.Diagnostics.CodeAnalysis;
 using Maple2.Database.Extensions;
@@ -81,10 +80,9 @@ internal class RestrictedBuyData {
     public IList<BuyTimeOfDay> TimeRanges { get; init; }
     public IList<ShopBuyDay> Days { get; init; }
 
-
     [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator Maple2.Model.Game.Shop.RestrictedBuyData?(RestrictedBuyData? other) {
-        return other == null ? null : new Maple2.Model.Game.Shop.RestrictedBuyData{
+        return other == null ? null : new Maple2.Model.Game.Shop.RestrictedBuyData {
             StartTime = other.StartTime,
             EndTime = other.EndTime,
             TimeRanges = other.TimeRanges,
@@ -94,7 +92,7 @@ internal class RestrictedBuyData {
 
     [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator RestrictedBuyData?(Maple2.Model.Game.Shop.RestrictedBuyData? other) {
-        return other == null ? null : new RestrictedBuyData{
+        return other == null ? null : new RestrictedBuyData {
             StartTime = other.StartTime,
             EndTime = other.EndTime,
             TimeRanges = other.TimeRanges,

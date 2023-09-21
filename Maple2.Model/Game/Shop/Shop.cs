@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Collections.Specialized;
 using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
@@ -30,7 +29,6 @@ public class Shop : IByteSerializable {
     /// <summary>
     /// Clones shops for instanced player shops.
     /// </summary>
-    /// <returns></returns>
     public Shop? Clone() {
         if (RestockData == null) {
             return null;

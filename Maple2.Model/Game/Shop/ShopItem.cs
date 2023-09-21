@@ -85,30 +85,9 @@ public class ShopItem : IByteSerializable {
         writer.WriteBool(AutoPreviewEquip);
         writer.WriteBool(RestrictedBuyData != null);
         if (RestrictedBuyData != null) {
-            writer.WriteClass(RestrictedBuyData);
+            writer.WriteClass<Game.Shop.RestrictedBuyData>(RestrictedBuyData);
         }
 
-        /*// TODO: Implement buy period
-        bool buyPeriod = false;
-        writer.WriteBool(buyPeriod);
-        if (buyPeriod) {
-            bool timeSpecific = true;
-            writer.WriteBool(timeSpecific);
-            writer.WriteLong(); // start time
-            writer.WriteLong(); // end time
-            writer.WriteBool(true); // unknown
-            writer.WriteByte(1); // amount of buy periods count.
-
-            // loop start
-            writer.WriteInt(); // time begin in seconds. ex 1200 = 12:20 AM
-            writer.WriteInt(); // time end in seconds. ex 10600 = 2:56 AM
-            // loop end
-
-            writer.WriteByte(1); // days of the week you can buy at. loop
-            // loop start
-            writer.WriteByte(); // 1 = Sunday, 7 = Saturday
-            // loop end
-        }*/
         writer.WriteClass<Item>(Item);
     }
 }

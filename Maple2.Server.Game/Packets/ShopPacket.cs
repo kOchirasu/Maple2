@@ -22,13 +22,10 @@ public static class ShopPacket {
         Error = 15,
     }
 
-    /// <param name="shop">Shop class to load.</param>
-    /// <param name="sourceId">The source of where the shop is being loaded from. (Npc Id, Item Id, etc)</param>
-    /// <returns></returns>
-    public static ByteWriter Open(Shop shop, int sourceId = 0) {
+    public static ByteWriter Open(Shop shop, int npcId = 0) {
         var pWriter = Packet.Of(SendOp.Shop);
         pWriter.Write<Command>(Command.Open);
-        pWriter.WriteInt(sourceId);
+        pWriter.WriteInt(npcId);
         pWriter.WriteClass<Shop>(shop);
 
         return pWriter;

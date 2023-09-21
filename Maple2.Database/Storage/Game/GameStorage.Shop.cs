@@ -1,8 +1,6 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
-using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.Model.Game.Shop;
 using Maple2.Model.Metadata;
@@ -21,7 +19,7 @@ public partial class GameStorage {
         }
 
         public Dictionary<int, Dictionary<int, ShopItem>> GetShopItems() {
-           return Context.ShopItem
+            return Context.ShopItem
                 .GroupBy(item => item.ShopId)
                 .ToDictionary(item => item.Key, x => x
                     .Select<Model.Shop.ShopItem, ShopItem>(item => item)
@@ -74,7 +72,6 @@ public partial class GameStorage {
             Context.CharacterShopData.Remove(data);
             return SaveChanges();
         }
-
 
         public CharacterShopItemData? CreateCharacterShopItemData(long ownerId, CharacterShopItemData item) {
             Model.Shop.CharacterShopItemData model = item;
