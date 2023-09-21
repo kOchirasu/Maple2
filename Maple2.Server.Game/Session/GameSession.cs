@@ -284,7 +284,7 @@ public sealed partial class GameSession : Core.Network.Session {
             //Exp.AddExp(ExpType.mapCommon);
         //}
         Player.Value.Unlock.Maps.Add(Player.Value.Character.MapId);
-
+        Config.LoadHotBars();
         Field.OnAddPlayer(Player);
         Scheduler.Start();
         State = SessionState.Connected;
