@@ -47,7 +47,8 @@ public record ItemMetadataProperty(
     bool IsFragment,
     int[] SetOptionIds,
     long[] SellPrices,
-    long[] CustomSellPrices);
+    long[] CustomSellPrices,
+    int ShopId);
 
 public record ItemMetadataCustomize(
     int ColorPalette,

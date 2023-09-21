@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
 using Maple2.Database.Extensions;
+using Maple2.Model.Enum;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,6 +12,7 @@ internal class CharacterShopData {
     public long OwnerId { get; set; }
     public DateTime RestockTime { get; set; }
     public int RestockCount { get; set; }
+    public ShopRestockInterval Interval { get; set; }
 
     [return: NotNullIfNotNull(nameof(other))]
     public static implicit operator CharacterShopData?(Maple2.Model.Game.Shop.CharacterShopData? other) {
@@ -18,6 +20,7 @@ internal class CharacterShopData {
             ShopId = other.ShopId,
             RestockTime = other.RestockTime.FromEpochSeconds(),
             RestockCount = other.RestockCount,
+            Interval = other.Interval,
         };
     }
 
@@ -27,6 +30,7 @@ internal class CharacterShopData {
             ShopId = other.ShopId,
             RestockTime = other.RestockTime.ToEpochSeconds(),
             RestockCount = other.RestockCount,
+            Interval = other.Interval,
         };
     }
 

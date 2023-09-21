@@ -57,6 +57,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public required SkillMetadataStorage SkillMetadata { get; init; }
     public required TableMetadataStorage TableMetadata { get; init; }
     public required MapMetadataStorage MapMetadata { get; init; }
+    public required NpcMetadataStorage NpcMetadata { get; init; }
     public required AchievementMetadataStorage AchievementMetadata { get; init; }
     public required QuestMetadataStorage QuestMetadata { get; init; }
     public required ScriptMetadataStorage ScriptMetadata { get; init; }
@@ -363,6 +364,8 @@ public sealed partial class GameSession : Core.Network.Session {
     }
 
     public Shop? FindShop(int shopId) => server.FindShop(this, shopId);
+
+    public IList<ShopItem> FindShopItems(int shopId) => server.FindShopItems(shopId);
 
     public bool Temp() {
         // -> RequestMoveField

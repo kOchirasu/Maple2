@@ -74,7 +74,9 @@ public static class Constant {
     public const ItemTag BeautyItemColorVoucherTag = ItemTag.beauty_itemcolor;
     public const int HairPaletteId = 2;
     public const int MaxBuyBackItems = 12;
-    public const DayOfWeek ResetDay = DayOfWeek.Friday;
+    public const DayOfWeek ResetDay = DayOfWeek.Thursday;
+    public const int PvpArenaNpcId = 11001562;
+    public const int FishingNpcId = 11001609;
 
 
     public const long FurnishingBaseId = 2870000000000000000;
@@ -104,6 +106,7 @@ public static class Constant {
     public const int MapleopolyTicketCostCount = 2;
     public const int MapleopolyTicketRarity = 1;
     public const short HairSlotCount = 30;
+    public const ShopCurrencyType InitialTierExcessRestockCurrency = ShopCurrencyType.Meso;
     #endregion
 
     #region table/constants.xml

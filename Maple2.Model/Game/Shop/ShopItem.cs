@@ -22,10 +22,11 @@ public class ShopItem : IByteSerializable {
     public short RequireGuildMerchantLevel { get; init; }
     public short Quantity { get; init; }
     public ShopItemLabel Label { get; init; }
-    public string CurrencyIdString { get; init; }
+    public string IconCode { get; init; }
     public short RequireQuestAllianceId { get; init; }
     public int RequireFameGrade { get; init; }
     public bool AutoPreviewEquip { get; init; }
+    public RestrictedBuyData? RestrictedBuyData { get; init; }
     public Item Item;
 
     public ShopItem(int id) {
@@ -37,7 +38,7 @@ public class ShopItem : IByteSerializable {
             AutoPreviewEquip = AutoPreviewEquip,
             Category = Category,
             Cost = Cost,
-            CurrencyIdString = CurrencyIdString,
+            IconCode = IconCode,
             Item = Item.Clone(),
             ItemId = ItemId,
             Label = Label,
@@ -54,6 +55,7 @@ public class ShopItem : IByteSerializable {
             RequireQuestAllianceId = RequireQuestAllianceId,
             StockCount = StockCount,
             StockPurchased = StockPurchased,
+            RestrictedBuyData = RestrictedBuyData ?? null,
         };
     }
 
@@ -77,12 +79,16 @@ public class ShopItem : IByteSerializable {
         writer.WriteShort(Quantity);
         writer.WriteByte();
         writer.Write<ShopItemLabel>(Label);
-        writer.WriteString(CurrencyIdString);
+        writer.WriteString(IconCode);
         writer.WriteShort(RequireQuestAllianceId);
         writer.WriteInt(RequireFameGrade);
         writer.WriteBool(AutoPreviewEquip);
+        writer.WriteBool(RestrictedBuyData != null);
+        if (RestrictedBuyData != null) {
+            writer.WriteClass(RestrictedBuyData);
+        }
 
-        // TODO: Implement buy period
+        /*// TODO: Implement buy period
         bool buyPeriod = false;
         writer.WriteBool(buyPeriod);
         if (buyPeriod) {
@@ -102,7 +108,7 @@ public class ShopItem : IByteSerializable {
             // loop start
             writer.WriteByte(); // 1 = Sunday, 7 = Saturday
             // loop end
-        }
+        }*/
         writer.WriteClass<Item>(Item);
     }
 }

@@ -73,6 +73,7 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
 
     private void HandleClose(GameSession session) {
         session.NpcScript = null;
+        session.Shop.ClearActiveShop();
     }
 
     private void HandleTalk(GameSession session, IByteReader packet) {

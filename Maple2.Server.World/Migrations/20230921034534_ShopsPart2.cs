@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Maple2.Server.World.Migrations
 {
     /// <inheritdoc />
-    public partial class Shops2 : Migration
+    public partial class ShopsPart2 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -48,6 +48,11 @@ namespace Maple2.Server.World.Migrations
                 table: "shop-item",
                 newName: "RequireGuildTrophy");
 
+            migrationBuilder.RenameColumn(
+                name: "CurrencyIdString",
+                table: "shop-item",
+                newName: "IconCode");
+
             migrationBuilder.AddColumn<string>(
                 name: "Category",
                 table: "shop-item",
@@ -55,11 +60,17 @@ namespace Maple2.Server.World.Migrations
                 nullable: false)
                 .Annotation("MySql:CharSet", "utf8mb4");
 
+            migrationBuilder.AddColumn<string>(
+                name: "RestrictedBuyData",
+                table: "shop-item",
+                type: "json",
+                nullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4");
+
             migrationBuilder.AlterColumn<DateTime>(
                 name: "RestockTime",
                 table: "shop",
                 type: "datetime(6)",
-                defaultValue: "1969-12-31 16:00:00.000000",
                 nullable: false,
                 oldClrType: typeof(long),
                 oldType: "bigint");
@@ -78,7 +89,8 @@ namespace Maple2.Server.World.Migrations
                     ShopId = table.Column<int>(type: "int", nullable: false),
                     OwnerId = table.Column<long>(type: "bigint", nullable: false),
                     RestockTime = table.Column<DateTime>(type: "datetime(6)", nullable: false),
-                    RestockCount = table.Column<int>(type: "int", nullable: false)
+                    RestockCount = table.Column<int>(type: "int", nullable: false),
+                    Interval = table.Column<byte>(type: "tinyint unsigned", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -141,6 +153,10 @@ namespace Maple2.Server.World.Migrations
                 table: "shop-item");
 
             migrationBuilder.DropColumn(
+                name: "RestrictedBuyData",
+                table: "shop-item");
+
+            migrationBuilder.DropColumn(
                 name: "RestockData",
                 table: "shop");
 
@@ -148,6 +164,11 @@ namespace Maple2.Server.World.Migrations
                 name: "RequireGuildTrophy",
                 table: "shop-item",
                 newName: "StockPurchased");
+
+            migrationBuilder.RenameColumn(
+                name: "IconCode",
+                table: "shop-item",
+                newName: "CurrencyIdString");
 
             migrationBuilder.AlterColumn<long>(
                 name: "RestockTime",

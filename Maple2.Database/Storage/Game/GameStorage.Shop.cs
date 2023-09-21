@@ -12,8 +12,20 @@ namespace Maple2.Database.Storage;
 
 public partial class GameStorage {
     public partial class Request {
+        public IList<Shop> GetShops() {
+            return Context.Shop.Select<Model.Shop.Shop, Shop>(shop => shop).ToList();
+        }
+
         public Shop? GetShop(int shopId) {
             return Context.Shop.Find(shopId);
+        }
+
+        public Dictionary<int, Dictionary<int, ShopItem>> GetShopItems() {
+           return Context.ShopItem
+                .GroupBy(item => item.ShopId)
+                .ToDictionary(item => item.Key, x => x
+                    .Select<Model.Shop.ShopItem, ShopItem>(item => item)
+                    .ToDictionary(item => item.Id));
         }
 
         public IList<ShopItem> GetShopItems(int shopId) {
@@ -69,11 +81,7 @@ public partial class GameStorage {
             model.OwnerId = ownerId;
             Context.CharacterShopItemData.Add(model);
 
-            return SaveChanges() ? model : null;
-        }
-
-        public CharacterShopItemData? GetCharacterShopItemData(long ownerId, int shopItemId) {
-            return Context.CharacterShopItemData.Find(shopItemId, ownerId);
+            return SaveChanges() ? ToShopItemData(model) : null;
         }
 
         public ICollection<CharacterShopItemData> GetCharacterShopItemData(long ownerId) {
@@ -105,7 +113,7 @@ public partial class GameStorage {
             Context.CharacterShopItemData.Remove(data);
             return SaveChanges();
         }
-        
+
         private CharacterShopItemData? ToShopItemData(Model.Shop.CharacterShopItemData? model) {
             if (model == null) {
                 return null;

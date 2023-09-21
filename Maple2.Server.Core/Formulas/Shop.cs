@@ -1,5 +1,7 @@
 ﻿using System;
+using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Model.Game.Shop;
 using Maple2.Model.Metadata;
 
 namespace Maple2.Server.Core.Formulas;
@@ -25,5 +27,18 @@ public static class Shop {
         }
 
         return metadata.Property.SellPrices[rarity - 1];
+    }
+
+    public static (ShopCurrencyType CurrencyType, int Cost) ExcessRestockCost(ShopRestockData restockData) {
+        return restockData.RestockCount switch {
+            > 0 and <= 5 => (Constant.InitialTierExcessRestockCurrency, 50000),
+            6 => (restockData.ExcessCurrencyType, 10),
+            7 => (restockData.ExcessCurrencyType, 20),
+            8 => (restockData.ExcessCurrencyType, 40),
+            9 => (restockData.ExcessCurrencyType, 60),
+            10 => (restockData.ExcessCurrencyType, 80),
+            <= 15 => (restockData.ExcessCurrencyType, 100),
+            _ => (restockData.ExcessCurrencyType, 150),
+        };
     }
 }

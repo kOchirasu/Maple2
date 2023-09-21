@@ -1033,6 +1033,9 @@ namespace Maple2.Server.World.Migrations
                     b.Property<long>("OwnerId")
                         .HasColumnType("bigint");
 
+                    b.Property<byte>("Interval")
+                        .HasColumnType("tinyint unsigned");
+
                     b.Property<int>("RestockCount")
                         .HasColumnType("int");
 
@@ -1127,15 +1130,15 @@ namespace Maple2.Server.World.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("CurrencyIdString")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<int>("CurrencyItemId")
                         .HasColumnType("int");
 
                     b.Property<byte>("CurrencyType")
                         .HasColumnType("tinyint unsigned");
+
+                    b.Property<string>("IconCode")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<int>("ItemId")
                         .HasColumnType("int");
@@ -1178,6 +1181,9 @@ namespace Maple2.Server.World.Migrations
 
                     b.Property<short>("RequireQuestAllianceId")
                         .HasColumnType("smallint");
+
+                    b.Property<string>("RestrictedBuyData")
+                        .HasColumnType("json");
 
                     b.Property<int>("SalePrice")
                         .HasColumnType("int");

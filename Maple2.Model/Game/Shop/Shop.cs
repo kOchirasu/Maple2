@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Specialized;
 using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
@@ -19,11 +20,11 @@ public class Shop : IByteSerializable {
     public bool RandomizeOrder  { get; init; }
     public long RestockTime  { get; set; }
     public ShopRestockData? RestockData { get; init; }
-    public IDictionary<int, ShopItem> Items;
+    public SortedDictionary<int, ShopItem> Items;
 
     public Shop(int id) {
         Id = id;
-        Items = new Dictionary<int, ShopItem>();
+        Items = new SortedDictionary<int, ShopItem>();
     }
 
     /// <summary>

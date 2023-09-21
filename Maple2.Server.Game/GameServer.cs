@@ -11,7 +11,6 @@ using Maple2.Model.Game;
 using Maple2.Model.Game.Event;
 using Maple2.PacketLib.Tools;
 using Maple2.Model.Game.Shop;
-using Maple2.Model.Metadata;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Network;
 using Maple2.Server.Core.Packets;
@@ -28,13 +27,13 @@ public class GameServer : Server<GameSession> {
     private readonly Dictionary<string, GameEvent> eventCache = new();
     private readonly ImmutableList<SystemBanner> bannerCache;
     private readonly ConcurrentDictionary<int, PremiumMarketItem> premiumMarketCache;
-    private readonly Dictionary<int, Shop> shopCache = new();
+    private Dictionary<int, Shop> shopCache;
+    private Dictionary<int, Dictionary<int, ShopItem>> shopItemCache;
     private readonly GameStorage gameStorage;
-    private readonly ItemMetadataStorage itemMetadataStorage;
 
     public int Channel => Target.GameChannel;
 
-    public GameServer(FieldManager.Factory fieldFactory, PacketRouter<GameSession> router, IComponentContext context, GameStorage gameStorage, ItemMetadataStorage itemMetadataStorage)
+    public GameServer(FieldManager.Factory fieldFactory, PacketRouter<GameSession> router, IComponentContext context, GameStorage gameStorage)
             : base(Target.GamePort, router, context) {
         this.fieldFactory = fieldFactory;
         connectingSessions = new HashSet<GameSession>();
@@ -45,7 +44,9 @@ public class GameServer : Server<GameSession> {
         bannerCache = db.GetBanners().ToImmutableList();
         premiumMarketCache = new ConcurrentDictionary<int, PremiumMarketItem>(
             db.GetMarketItems().Select(item => new KeyValuePair<int, PremiumMarketItem>(item.Id, item)));
-        this.itemMetadataStorage = itemMetadataStorage;
+
+        shopCache = db.GetShops().ToDictionary(shop => shop.Id, shop => shop);
+        shopItemCache = db.GetShopItems();
     }
 
     public override void OnConnected(GameSession session) {
@@ -93,12 +94,18 @@ public class GameServer : Server<GameSession> {
     }
 
     public Shop? FindShop(GameSession session, int shopId) {
+        using GameStorage.Request db = gameStorage.Context();
         if (!shopCache.TryGetValue(shopId, out Shop? shop)) {
-            using GameStorage.Request db = gameStorage.Context();
             shop = db.GetShop(shopId);
-            if (shop?.RestockTime == 0) { // everything else would be player-based shops that would get refreshed
+            if (shop != null) {
                 shopCache[shopId] = shop;
-                foreach (ShopItem shopItem in db.GetShopItems(shopId)) {
+            }
+            if (shop?.RestockTime == 0) { // everything else would be player-based shops that would get refreshed
+                if (!shopItemCache.TryGetValue(shopId, out Dictionary<int, ShopItem>? shopItems)) {
+                    shopItems = db.GetShopItems(shopId).ToDictionary(item => item.Id);
+                    shopItemCache[shopId] = shopItems;
+                }
+                foreach ((int shopItemId, ShopItem shopItem) in shopItems) {
                     Item? item = session.Item.CreateItem(shopItem.ItemId, shopItem.Rarity, shopItem.Quantity);
                     if (item == null) {
                         continue;
@@ -111,7 +118,27 @@ public class GameServer : Server<GameSession> {
             }
         }
 
+        if (shop.Items.Count == 0 && shopItemCache.TryGetValue(shop.Id, out Dictionary<int, ShopItem>? items)) {
+            foreach ((int shopItemId, ShopItem shopItem) in items) {
+                Item? item = session.Item.CreateItem(shopItem.ItemId, shopItem.Rarity, shopItem.Quantity);
+                if (item == null) {
+                    continue;
+                }
+                shopItem.Item = item;
+                shop.Items[shopItem.Id] = shopItem;
+            }
+        }
+
         return shopCache[shopId];
+    }
+
+    public IList<ShopItem> FindShopItems(int shopId) {
+        if (shopItemCache.TryGetValue(shopId, out Dictionary<int, ShopItem>? items)) {
+            return items.Values.ToList();
+        }
+
+        using GameStorage.Request db = gameStorage.Context();
+        return db.GetShopItems(shopId);
     }
 
     public IList<SystemBanner> GetSystemBanners() => bannerCache;
