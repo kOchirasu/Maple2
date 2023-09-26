@@ -43,7 +43,7 @@ public class MapMapper : TypeMapper<MapMetadata> {
                 Name: name,
                 XBlock: data.xblock.name.ToLower(),
                 Property: new MapMetadataProperty(
-                    Continent: data.property.continentCode,
+                    Continent: (Continent) data.property.continentCode,
                     Region: (MapRegion) data.property.regionCode,
                     Category: data.property.mapCategoryCode,
                     Type: (MapType) data.property.mapType,
