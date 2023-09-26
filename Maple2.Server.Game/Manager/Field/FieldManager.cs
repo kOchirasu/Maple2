@@ -128,7 +128,6 @@ public sealed partial class FieldManager : IDisposable {
             }
         }
 
-
         IList<MapMetadata> bonusMaps = MapMetadata.GetMapsByType(Metadata.Property.Continent, MapType.PocketRealm);
         foreach (MapMetadataSpawn spawn in Metadata.Spawns) {
             if (!Entities.RegionSpawns.TryGetValue(spawn.Id, out Ms2RegionSpawn? regionSpawn)) {
@@ -284,7 +283,6 @@ public sealed partial class FieldManager : IDisposable {
             session.Send(NoticePacket.Message(StringCode.s_home_password_mismatch, NoticePacket.Flags.Alert));
             return false;
         }
-
 
         /* TODO: Remove portal once capacity is reached for Event portals
         if (fieldPortal.Value.Type == PortalType.Event) {
