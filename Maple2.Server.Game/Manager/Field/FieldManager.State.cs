@@ -159,6 +159,18 @@ public partial class FieldManager {
         return fieldItem;
     }
 
+    public FieldItem SpawnItem(IFieldEntity owner, Vector3 position, Vector3 rotation, Item item, bool fixedPosition) {
+        var fieldItem = new FieldItem(this, NextLocalId(), item) {
+            Owner = owner,
+            Position = position,
+            Rotation = rotation,
+            FixedPosition = fixedPosition,
+        };
+        fieldItems[fieldItem.ObjectId] = fieldItem;
+
+        return fieldItem;
+    }
+
     public FieldBreakable? AddBreakable(string entityId, BreakableActor breakable) {
         if (fieldBreakables.ContainsKey(entityId)) {
             return null;

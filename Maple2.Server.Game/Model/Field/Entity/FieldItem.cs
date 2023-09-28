@@ -7,7 +7,7 @@ using Maple2.Server.Game.Packets;
 namespace Maple2.Server.Game.Model;
 
 public class FieldItem : FieldEntity<Item> {
-    public IActor? Owner { get; init; }
+    public IFieldEntity? Owner { get; init; }
 
     private readonly long despawnTick;
     public bool FixedPosition { get; init; }
