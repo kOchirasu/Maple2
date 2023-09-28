@@ -3,6 +3,7 @@ using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.CommandLine.IO;
 using Maple2.Database.Storage;
+using Maple2.Model;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
@@ -46,11 +47,13 @@ public class ItemCommand : Command {
                 return;
             }
 
-            if (item.Metadata.Property.SlotMax == 0) {
-                ctx.Console.Error.WriteLine($"{itemId} has SlotMax of 0, ignoring...");
-                amount = Math.Clamp(amount, 1, int.MaxValue);
-            } else {
-                amount = Math.Clamp(amount, 1, item.Metadata.Property.SlotMax);
+            if (!item.IsCurrency()) {
+                if (item.Metadata.Property.SlotMax == 0) {
+                    ctx.Console.Error.WriteLine($"{itemId} has SlotMax of 0, ignoring...");
+                    amount = Math.Clamp(amount, 1, int.MaxValue);
+                } else {
+                    amount = Math.Clamp(amount, 1, item.Metadata.Property.SlotMax);
+                }
             }
             item.Amount = amount;
 

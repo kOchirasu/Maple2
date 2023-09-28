@@ -1200,7 +1200,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 }
             }
         }
-        
+
         var nextExpResults = new Dictionary<int, long>();
         foreach ((int level, NextExp entry) in parser.ParseNextExp()) {
             nextExpResults.Add(entry.level, entry.value);
@@ -1211,8 +1211,15 @@ public class TableMapper : TypeMapper<TableMetadata> {
     private CommonExpTable ParseCommonExpTable() {
         var results = new Dictionary<ExpType, CommonExpTable.Entry>();
         foreach ((CommonExpType type, CommonExp exp) in parser.ParseCommonExp()) {
-            results.Add((ExpType) type, new CommonExpTable.Entry(ExpTableId: exp.expTableID, Factor: exp.factor));
+            results.Add(ToExpType(type), new CommonExpTable.Entry(ExpTableId: exp.expTableID, Factor: exp.factor));
         }
         return new CommonExpTable(results);
+    }
+
+    private static ExpType ToExpType(CommonExpType commonExpType) {
+        if (Enum.TryParse(commonExpType.ToString(), out ExpType expType)) {
+            return expType;
+        }
+        return ExpType.none;
     }
 }

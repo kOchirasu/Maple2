@@ -11,28 +11,15 @@ public static class ExperienceUpPacket {
         SetRestExp = 1,
     }
 
-    public static ByteWriter Add(long gainedExp, long totalExp, long restExp, int sourceObjectId, bool additional = false) {
+    public static ByteWriter Add(long gainedExp, long totalExp, long restExp, ExpMessageCode message, int parameter = 0, bool additional = false) {
         var pWriter = Packet.Of(SendOp.ExpUp);
         pWriter.Write<Command>(Command.Add);
         pWriter.WriteLong(gainedExp);
-        pWriter.WriteShort(); // Unknown
+        pWriter.Write<ExpMessageCode>(message);
         pWriter.WriteLong(totalExp);
         pWriter.WriteLong(restExp);
-        pWriter.WriteInt(sourceObjectId);
-        pWriter.WriteBool(additional); // if true, s_msg_take_event_additional
-
-        return pWriter;
-    }
-
-    public static ByteWriter Add(long gainedExp, long totalExp, long restExp, ExpMessageCode expMessageCode, bool additional = false) {
-        var pWriter = Packet.Of(SendOp.ExpUp);
-        pWriter.Write<Command>(Command.Add);
-        pWriter.WriteLong(gainedExp);
-        pWriter.WriteShort(); // Unknown
-        pWriter.WriteLong(totalExp);
-        pWriter.WriteLong(restExp);
-        pWriter.Write<ExpMessageCode>(expMessageCode);
-        pWriter.WriteBool(additional); // if true, s_msg_take_event_additional
+        pWriter.WriteInt(parameter);
+        pWriter.WriteBool(additional);
 
         return pWriter;
     }

@@ -275,7 +275,13 @@ public sealed class QuestManager {
                 entry.
             }
             long exp = reward.Exp;*/
-            session.Exp.AddExp(reward.Exp);
+            ExpType expType = quest.Metadata.Basic.Type switch {
+                QuestType.EpicQuest => ExpType.epicQuest,
+                QuestType.FieldMission => ExpType.mission,
+                QuestType.AllianceQuest => ExpType.questSkyFortress,
+                _ => ExpType.quest,
+            };
+            session.Exp.AddExp(expType, reward.Exp);
         }
 
         if (reward.Meso > 0) {

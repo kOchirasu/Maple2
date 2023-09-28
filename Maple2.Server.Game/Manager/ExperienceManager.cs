@@ -56,7 +56,7 @@ public sealed class ExperienceManager {
         }
         expGained += GetRestExp((long) (expGained * expRate));
         LevelUp();
-        session.Send(ExperienceUpPacket.Add(expGained, Exp, RestExp, npc.ObjectId));
+        session.Send(ExperienceUpPacket.Add(expGained, Exp, RestExp, ExpMessageCode.monster, npc.ObjectId));
     }
 
     private long GetRestExp(long expGained) {
@@ -66,10 +66,13 @@ public sealed class ExperienceManager {
         return addedRestExp;
     }
 
-    public void AddExp(long expGained, ExpMessageCode expMessageCode = ExpMessageCode.s_msg_take_exp) {
+    public void AddExp(ExpMessageCode message, long expGained) {
         expGained += GetRestExp(expGained);
+        if (expGained <= 0) {
+            return;
+        }
         LevelUp();
-        session.Send(ExperienceUpPacket.Add(expGained, Exp, RestExp, expMessageCode));
+        session.Send(ExperienceUpPacket.Add(expGained, Exp, RestExp, message));
     }
 
     public void AddExp(ExpType expType, float modifier = 1f, long additionalExp = 0) {
@@ -89,6 +92,7 @@ public sealed class ExperienceManager {
             case ExpType.manufacturing:
             case ExpType.gathering:
             case ExpType.arcade:
+            case ExpType.expDrop:
                 if (!expBase.TryGetValue(session.Player.Value.Character.Level, out expValue)) {
                     return;
                 }
@@ -107,17 +111,47 @@ public sealed class ExperienceManager {
         }
 
         ExpMessageCode message = expType switch {
-            ExpType.fishing => ExpMessageCode.s_msg_take_fishing_exp,
-            ExpType.musicMastery1 or ExpType.musicMastery2 or ExpType.musicMastery3 or ExpType.musicMastery4 => ExpMessageCode.s_msg_take_play_instrument_exp,
-            ExpType.rareChestFirst => ExpMessageCode.s_msg_take_normal_rare_first_exp,
-            ExpType.rareChest => ExpMessageCode.s_msg_take_normal_rare_exp,
-            ExpType.normalChest => ExpMessageCode.s_msg_take_normal_chest_exp,
-            ExpType.arcade => ExpMessageCode.s_msg_take_arcade_exp,
-            ExpType.taxi => ExpMessageCode.s_msg_take_taxi_exp,
-            _ => ExpMessageCode.s_msg_take_exp,
+            ExpType.mapCommon => ExpMessageCode.mapCommon,
+            ExpType.mapHidden => ExpMessageCode.mapHidden,
+            ExpType.taxi => ExpMessageCode.taxi,
+            ExpType.telescope => ExpMessageCode.telescope,
+            ExpType.rareChestFirst => ExpMessageCode.rareChestFirst,
+            ExpType.rareChest => ExpMessageCode.rareChest,
+            ExpType.normalChest => ExpMessageCode.normalChest,
+            ExpType.expDrop => ExpMessageCode.expDrop,
+            ExpType.musicMastery1 or ExpType.musicMastery2 or ExpType.musicMastery3 or ExpType.musicMastery4 => ExpMessageCode.musicMastery,
+            ExpType.arcade => ExpMessageCode.arcade,
+            ExpType.fishing => ExpMessageCode.fishing,
+            ExpType.rest => ExpMessageCode.rest,
+            ExpType.bloodMineRank1 => ExpMessageCode.bloodMineRank1,
+            ExpType.bloodMineRank2 => ExpMessageCode.bloodMineRank2,
+            ExpType.bloodMineRank3 => ExpMessageCode.bloodMineRank3,
+            ExpType.bloodMineRankOther => ExpMessageCode.bloodMineRankOther,
+            ExpType.redDuelWin => ExpMessageCode.redDuelWin,
+            ExpType.redDuelLose => ExpMessageCode.redDuelLose,
+            ExpType.btiTeamLose => ExpMessageCode.btiTeamLose,
+            ExpType.btiTeamWin => ExpMessageCode.btiTeamWin,
+            ExpType.rankDuelLose => ExpMessageCode.rankDuelLose,
+            ExpType.rankDuelWin => ExpMessageCode.rankDuelWin,
+            ExpType.gathering => ExpMessageCode.gathering,
+            ExpType.manufacturing => ExpMessageCode.manufacturing,
+            ExpType.miniGame or ExpType.userMiniGame or ExpType.userMiniGameExtra => ExpMessageCode.miniGame,
+            ExpType.dungeonRelative => ExpMessageCode.dungeonRelative,
+            ExpType.randomDungeonBonus => ExpMessageCode.randomDungeonBonus,
+            ExpType.guildUserExp => ExpMessageCode.guildUserExp,
+            ExpType.petTaming => ExpMessageCode.petTaming,
+            ExpType.construct => ExpMessageCode.construct,
+            ExpType.dailymission or ExpType.dailymissionLevelUp => ExpMessageCode.dailymission,
+            ExpType.dailyGuildQuest => ExpMessageCode.dailyGuildQuest,
+            ExpType.weeklyGuildQuest => ExpMessageCode.weeklyGuildQuest,
+            ExpType.quest or ExpType.epicQuest or ExpType.questSkyFortress => ExpMessageCode.quest,
+            ExpType.mapleSurvival => ExpMessageCode.mapleSurvival,
+            ExpType.assist => ExpMessageCode.assist,
+            ExpType.assistBonus => ExpMessageCode.assistBonus,
+            _ => ExpMessageCode.none,
         };
 
-        AddExp((long) ((expValue * modifier) * entry.Factor) + additionalExp, message);
+        AddExp(message, (long) ((expValue * modifier) * entry.Factor) + additionalExp);
     }
 
     public bool LevelUp() {
