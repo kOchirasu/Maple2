@@ -66,6 +66,7 @@ public record SkillMetadataAttack(
     int TargetCount,
     long MagicPathId,
     long CubeMagicPathId,
+    CompulsionType[] CompulsionTypes,
     SkillMetadataPet? Pet,
     SkillMetadataRange Range,
     SkillMetadataArrow Arrow,
