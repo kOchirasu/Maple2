@@ -94,12 +94,6 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
                                     };
                                     continue;
                             }
-                            continue;
-                        case IEventSpawnPointItem itemSpawn:
-                            yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                                Block = new EventSpawnPointItem(itemSpawn.SpawnPointID, itemSpawn.Position, itemSpawn.Rotation, itemSpawn.LifeTime, int.TryParse(itemSpawn.individualDropBoxId, out int individualDropBoxId) ? individualDropBoxId : 0, int.TryParse(itemSpawn.globalDropBoxId, out int globalDropBoxId) ? globalDropBoxId : 0, (int) itemSpawn.globalDropLevel, itemSpawn.IsVisible)
-                            };
-                            continue;
                     }
                     continue;
                 case IMS2RegionSpawnBase spawn:

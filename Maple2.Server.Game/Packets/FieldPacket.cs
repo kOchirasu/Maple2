@@ -204,7 +204,7 @@ public static class FieldPacket {
         pWriter.WriteByte(2); // Required for item to show up
         pWriter.WriteInt(item.Rarity);
         pWriter.WriteShort();
-        pWriter.WriteBool(fieldItem.FixedPosition);
+        pWriter.WriteBool(false);
         pWriter.WriteBool(false);
 
         if (!item.IsMeso()) {

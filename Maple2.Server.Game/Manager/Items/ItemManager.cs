@@ -72,14 +72,14 @@ public class ItemManager {
 
         return item;
     }
-
+    
     private EquipColor GetColor(ItemMetadataCustomize metadata) {
         // Item has no color
-        if (metadata.ColorPalette == 0 ||
+        if (metadata.ColorPalette == 0 || 
             !session.TableMetadata.ColorPaletteTable.Entries.TryGetValue(metadata.ColorPalette, out IReadOnlyDictionary<int, ColorPaletteTable.Entry>? palette)) {
             return default;
         }
-
+        
         // Item has random color
         if (metadata.DefaultColorIndex < 0) {
             // random entry from palette
@@ -87,7 +87,7 @@ public class ItemManager {
             ColorPaletteTable.Entry randomEntry = palette.Values.ElementAt(index);
             return new EquipColor(randomEntry.Primary, randomEntry.Secondary, randomEntry.Tertiary, metadata.ColorPalette, index);
         }
-
+        
         // Item has specified color
         if (palette.TryGetValue(metadata.DefaultColorIndex, out ColorPaletteTable.Entry? entry)) {
             return new EquipColor(entry.Primary, entry.Secondary, entry.Tertiary, metadata.ColorPalette, metadata.DefaultColorIndex);
@@ -101,7 +101,7 @@ public class ItemManager {
             session.Send(ItemInventoryPacket.UpdateItem(item));
         }
     }
-
+    
     public bool MailItem(Item item) {
         lock (session.Item) {
             using GameStorage.Request db = session.GameStorage.Context();
@@ -135,25 +135,6 @@ public class ItemManager {
             } catch { /* ignored */ }
         }
         return true;
-    }
-
-    public ICollection<Item> GetIndividualDropBoxItems(int individualDropBoxId) {
-        var items = new List<Item>();
-        if (session.TableMetadata.IndividualItemDropTable.Entries.TryGetValue(individualDropBoxId, out Dictionary<byte, IList<IndividualItemDropTable.Entry>>? entries)) {
-            foreach ((int groupId, IList<IndividualItemDropTable.Entry> list) in entries) {
-                foreach (IndividualItemDropTable.Entry entry in list) {
-                    foreach (int entryItemId in entry.ItemIds) {
-                        Item? individualDropItem = CreateItem(entryItemId, entry.Rarity ?? 1, Random.Shared.Next(entry.MinCount, entry.MaxCount + 1));
-                        if (individualDropItem == null) {
-                            continue;
-                        }
-                        items.Add(individualDropItem);
-                    }
-                }
-
-            }
-        }
-        return items;
     }
 
     public void Save(GameStorage.Request db) {

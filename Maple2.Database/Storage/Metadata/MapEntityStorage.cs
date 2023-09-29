@@ -41,7 +41,6 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
             var regionSpawns = new Dictionary<int, Ms2RegionSpawn>();
             var regionSkills = new List<Ms2RegionSkill>();
             var eventNpcSpawns = new Dictionary<int, EventSpawnPointNPC>();
-            var eventItemSpawns = new Dictionary<int, EventSpawnPointItem>();
             TaxiStation? taxi = null;
             Prism? bounding = null;
             var breakableActors = new Dictionary<Guid, BreakableActor>();
@@ -81,9 +80,6 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                             npcSpawns.Add(npcSpawn);
                         }
                         break;
-                    case EventSpawnPointItem eventItemSpawn:
-                        eventItemSpawns.Add(eventItemSpawn.Id, eventItemSpawn);
-                        break;
                     case TaxiStation taxiStation:
                         Debug.Assert(taxi == null, $"Multiple taxi stations found in xblock:{xblock}");
                         taxi = taxiStation;
@@ -118,7 +114,6 @@ public class MapEntityStorage : MetadataStorage<string, MapEntityMetadata> {
                 PlayerSpawns = playerSpawns,
                 NpcSpawns = npcSpawns,
                 EventNpcSpawns = eventNpcSpawns,
-                EventItemSpawns = eventItemSpawns,
                 RegionSpawns = regionSpawns,
                 RegionSkills = regionSkills,
                 Taxi = taxi,

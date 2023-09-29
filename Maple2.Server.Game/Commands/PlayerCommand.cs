@@ -61,7 +61,7 @@ public class PlayerCommand : Command {
             }
         }
     }
-
+    
     private class ExpCommand : Command {
         private readonly GameSession session;
 
@@ -76,7 +76,7 @@ public class PlayerCommand : Command {
 
         private void Handle(InvocationContext ctx, long exp) {
             try {
-                session.Exp.AddExp(ExpType.none, exp);
+                session.Exp.AddExp(exp);
 
                 ctx.ExitCode = 0;
             } catch (SystemException ex) {

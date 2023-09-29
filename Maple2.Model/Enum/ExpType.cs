@@ -2,7 +2,6 @@
 
 public enum ExpType {
     none,
-    unknown,
     mapCommon,
     mapHidden,
     taxi,
@@ -46,8 +45,4 @@ public enum ExpType {
     dailymission,
     dailymissionLevelUp,
     questSkyFortress,
-    randomDungeonBonus,
-    monster,
-    assist,
-    assistBonus,
 }

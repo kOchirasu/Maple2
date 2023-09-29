@@ -58,8 +58,7 @@ public record MapMetadataProperty(
     bool OnlyDarkTomb,
     bool PkMode,
     bool CanFly,
-    bool CanClimb,
-    float IndoorType);
+    bool CanClimb);
 
 public record MapMetadataDrop(
     int Level,
