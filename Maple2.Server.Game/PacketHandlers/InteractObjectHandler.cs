@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Maple2.Model.Enum;
+﻿using Maple2.Model.Enum;
 using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -68,25 +65,6 @@ public class InteractObjectHandler : PacketHandler<GameSession> {
                     break;
                 case InteractType.WatchTower:
                     break;
-            }
-
-            ICollection<Item> items = new List<Item>();
-            if (interact.Value.Drop.IndividualDropBoxIds.Length > 0) {
-                foreach (int individualDropBoxId in interact.Value.Drop.IndividualDropBoxIds) {
-                    ICollection<Item> individualDropBoxItems =  session.Item.GetIndividualDropBoxItems(individualDropBoxId, interact.Value.Drop.Rarity);
-                    items.Add(individualDropBoxItems.ElementAt(Random.Shared.Next(individualDropBoxItems.Count)));
-                }
-            }
-
-            if (interact.Value.Drop.GlobalDropBoxIds.Length > 0) {
-                // TODO: Handle GlobalDropBoxes
-            }
-
-            foreach (Item item in items) {
-                FieldItem fieldItem = session.Field.SpawnItem(interact, interact.Position with {
-                    Z = interact.Position.Z + interact.Value.Drop.DropHeight,
-                }, interact.Rotation, item, false);
-                session.Field.Broadcast(FieldPacket.DropItem(fieldItem));
             }
         }
     }

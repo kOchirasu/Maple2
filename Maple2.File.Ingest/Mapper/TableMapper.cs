@@ -289,7 +289,6 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 WeaponItemId: info.weapon.weaponItemId,
                 Item: new InteractObjectMetadataItem(info.item.code, info.item.consume, info.item.rank, info.item.checkCount, info.gathering.receipeID),
                 Time: new InteractObjectMetadataTime(info.time.resetTime, info.time.reactTime, info.time.hideTime),
-                Drop: new InteractObjectMetadataDrop(info.drop.objectDropRank, info.drop.globalDropBoxId ?? Array.Empty<int>(), info.drop.individualDropBoxId ?? Array.Empty<int>(), info.drop.dropHeight, info.drop.dropDistance),
                 AdditionalEffect: new InteractObjectMetadataEffect(
                     Condition: ParseConditional(info.conditionAdditionalEffect),
                     Invoke: ParseInvoke(info.additionalEffect),

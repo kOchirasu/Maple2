@@ -56,7 +56,6 @@ public class ItemCommand : Command {
                 }
             }
             item.Amount = amount;
-            item.Transfer?.Bind(session.Player.Value.Character);
 
             using (GameStorage.Request db = session.GameStorage.Context()) {
                 item = db.CreateItem(session.CharacterId, item);
