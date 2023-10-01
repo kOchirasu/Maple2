@@ -109,7 +109,7 @@ public class MasteryManager {
         }
 
         if (!gatheringCounts.TryGetValue(recipeMetadata.Id, out int currentCount)) {
-            gatheringCounts[recipeMetadata.Id] = currentCount;
+            gatheringCounts[recipeMetadata.Id] = 0;
         }
 
         // TODO: Implement the bool on the last parameter of the formula. Is in someone else's home ?
@@ -118,9 +118,6 @@ public class MasteryManager {
         int gatheringAmount = 0;
         switch (recipeMetadata.Type) {
             case MasteryType.Farming:
-                session.ConditionUpdate(ConditionType.mastery_harvest_try, codeLong: recipeMetadata.Id);
-                session.ConditionUpdate(ConditionType.mastery_farming_try, codeLong: recipeMetadata.Id);
-                break;
             case MasteryType.Breeding:
                 session.ConditionUpdate(ConditionType.mastery_harvest_try, codeLong: recipeMetadata.Id);
                 session.ConditionUpdate(ConditionType.mastery_farming_try, codeLong: recipeMetadata.Id);
