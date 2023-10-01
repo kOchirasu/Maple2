@@ -42,11 +42,11 @@ public class PartyMember : IByteSerializable, IDisposable {
         writer.WriteLong();
         writer.WriteLong();
         writer.WriteInt();
-        writer.Write(new Vector3());
+        writer.Write<Vector3>(default);
         writer.WriteInt(Info.GearScore);
-        writer.Write(new SkinColor());
+        writer.Write<SkinColor>(default);
         writer.WriteLong();
-        writer.Write(new AchievementInfo());
+        writer.Write<AchievementInfo>(default);
         writer.WriteLong();
         writer.WriteUnicodeString();
         writer.WriteUnicodeString(Info.Motto);

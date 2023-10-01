@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 using Maple2.Tools.Extensions;
@@ -9,7 +10,8 @@ using Maple2.Tools.Extensions;
 namespace Maple2.Model.Game;
 
 public class Party : IByteSerializable {
-    public int Capacity = 10;
+    private int capacity = Constant.PartyMaxCapacity;
+    public int Capacity { get => capacity; set { capacity = Math.Clamp(value, Constant.PartyMinCapacity, Constant.PartyMaxCapacity); } }
 
     public required int Id { get; init; }
     public required long LeaderAccountId;
@@ -44,9 +46,7 @@ public class Party : IByteSerializable {
 
         byte memberCount = (byte) Members.Count;
         writer.WriteByte(memberCount);
-        for (var i = 0; i < memberCount; i++) {
-            PartyMember member = Members.Values.ElementAt(i);
-
+        foreach (PartyMember member in Members.Values) {
             writer.WriteBool(!member.Info.Online);
             writer.WriteClass(member);
             member.WriteDungeonEligibility(writer);

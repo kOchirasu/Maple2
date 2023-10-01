@@ -44,8 +44,8 @@ public static class PartyPacket {
 
     public static ByteWriter Error(PartyError error, string targetName = "") {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.Error);
-        pWriter.Write(error);
+        pWriter.Write<Command>(Command.Error);
+        pWriter.Write<PartyError>(error);
         pWriter.WriteUnicodeString(targetName);
 
         return pWriter;
@@ -53,7 +53,7 @@ public static class PartyPacket {
 
     public static ByteWriter Joined(PartyMember member) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.Joined);
+        pWriter.Write<Command>(Command.Joined);
         pWriter.WriteClass(member);
         member.WriteDungeonEligibility(pWriter);
 
@@ -62,7 +62,7 @@ public static class PartyPacket {
 
     public static ByteWriter Leave(long targetCharacterId, bool isSelf) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.Leave);
+        pWriter.Write<Command>(Command.Leave);
         pWriter.WriteLong(targetCharacterId);
         pWriter.WriteBool(isSelf);
 
@@ -71,7 +71,7 @@ public static class PartyPacket {
 
     public static ByteWriter Kicked(long targetCharacterId) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.Kicked);
+        pWriter.Write<Command>(Command.Kicked);
         pWriter.WriteLong(targetCharacterId);
 
         return pWriter;
@@ -79,7 +79,7 @@ public static class PartyPacket {
 
     public static ByteWriter NotifyLogin(PartyMember member) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.NotifyLogin);
+        pWriter.Write<Command>(Command.NotifyLogin);
         pWriter.WriteClass(member);
 
         return pWriter;
@@ -87,7 +87,7 @@ public static class PartyPacket {
 
     public static ByteWriter NotifyLogout(long targetCharacterId) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.NotifyLogout);
+        pWriter.Write<Command>(Command.NotifyLogout);
         pWriter.WriteLong(targetCharacterId);
 
         return pWriter;
@@ -95,14 +95,14 @@ public static class PartyPacket {
 
     public static ByteWriter Disband() {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.Disbanded);
+        pWriter.Write<Command>(Command.Disbanded);
 
         return pWriter;
     }
 
     public static ByteWriter NotifyUpdateLeader(long newLeaderCharacterId) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.NotifyUpdateLeader);
+        pWriter.Write<Command>(Command.NotifyUpdateLeader);
         pWriter.WriteLong(newLeaderCharacterId);
 
         return pWriter;
@@ -110,7 +110,7 @@ public static class PartyPacket {
 
     public static ByteWriter Load(Party party) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.Load);
+        pWriter.Write<Command>(Command.Load);
         pWriter.WriteClass(party);
 
         return pWriter;
@@ -118,7 +118,7 @@ public static class PartyPacket {
 
     public static ByteWriter Invite(int partyId, string name) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.Invited);
+        pWriter.Write<Command>(Command.Invited);
 
         pWriter.WriteUnicodeString(name);
         pWriter.WriteInt(partyId);
@@ -128,7 +128,7 @@ public static class PartyPacket {
 
     public static ByteWriter Update(PartyMember member) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.UpdateMember);
+        pWriter.Write<Command>(Command.UpdateMember);
 
         pWriter.WriteLong(member.CharacterId);
         pWriter.WriteClass(member);
@@ -138,7 +138,7 @@ public static class PartyPacket {
 
     public static ByteWriter UpdateDungeonInfo(PartyMember member) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.UpdateDungeonInfo);
+        pWriter.Write<Command>(Command.UpdateDungeonInfo);
 
         pWriter.Write(member.CharacterId);
         member.WriteDungeonEligibility(pWriter);
@@ -148,7 +148,7 @@ public static class PartyPacket {
 
     public static ByteWriter Unknown1() {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.Unknown1);
+        pWriter.Write<Command>(Command.Unknown1);
 
         pWriter.WriteLong();
         pWriter.WriteInt();
@@ -158,7 +158,7 @@ public static class PartyPacket {
 
     public static ByteWriter Tombstone() {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.Tombstone);
+        pWriter.Write<Command>(Command.Tombstone);
 
         pWriter.WriteLong();
         pWriter.WriteBool(true); // Dark tombstone vs light tombstone
@@ -168,7 +168,7 @@ public static class PartyPacket {
 
     public static ByteWriter UpdateStats(PartyMember member) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.UpdateStats);
+        pWriter.Write<Command>(Command.UpdateStats);
 
         pWriter.WriteLong(member.CharacterId);
         pWriter.WriteLong(member.AccountId);
@@ -181,7 +181,7 @@ public static class PartyPacket {
 
     public static ByteWriter DungeonNotice() {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.DungeonNotice);
+        pWriter.Write<Command>(Command.DungeonNotice);
 
         pWriter.WriteUnicodeString(); // Notices: s_party_vote_expired|s_field_enteracne_party_notify_reset_dungeon|s_party_vote_rejected_kick_user
         pWriter.WriteUnicodeString("Field_Enterance_Reset_Dungeon");
@@ -193,7 +193,7 @@ public static class PartyPacket {
     public static ByteWriter Unknown2(string message, bool htmlEncoded = false) {
         var text = new InterfaceText(message, htmlEncoded);
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.Unknown2);
+        pWriter.Write<Command>(Command.Unknown2);
         pWriter.WriteClass(text);
         pWriter.WriteUnicodeString(); // effect?
 
@@ -202,7 +202,7 @@ public static class PartyPacket {
 
     public static ByteWriter DungeonReset() {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.DungeonReset);
+        pWriter.Write<Command>(Command.DungeonReset);
         pWriter.WriteBool(false); // started dungeon
         pWriter.WriteInt(); // dungeon id
 
@@ -211,7 +211,7 @@ public static class PartyPacket {
 
     public static ByteWriter PartyFinderListing(Party party) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.PartyFinder);
+        pWriter.Write<Command>(Command.PartyFinder);
         party.WriteMatchParty(pWriter);
 
         return pWriter;
@@ -219,7 +219,7 @@ public static class PartyPacket {
 
     public static ByteWriter PartySearch(byte type, bool searching) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.PartySearch);
+        pWriter.Write<Command>(Command.PartySearch);
         /**
             if type == 1:
                 dungeon_message(1) # s_enum_dungeon_group_normal
@@ -242,7 +242,7 @@ public static class PartyPacket {
 
     public static ByteWriter PartySearchDungeon() {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.PartySearchDungeon);
+        pWriter.Write<Command>(Command.PartySearchDungeon);
         pWriter.WriteLong(); // s_party_match_dungeon
 
         return pWriter;
@@ -250,7 +250,7 @@ public static class PartyPacket {
 
     public static ByteWriter DungeonRecord() {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.DungeonRecord);
+        pWriter.Write<Command>(Command.DungeonRecord);
         pWriter.WriteLong();
 
         return pWriter;
@@ -258,7 +258,7 @@ public static class PartyPacket {
 
     public static ByteWriter Unknown3() {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.Unknown3);
+        pWriter.Write<Command>(Command.Unknown3);
         pWriter.WriteLong();
         pWriter.WriteUnicodeString();
 
@@ -267,7 +267,7 @@ public static class PartyPacket {
 
     public static ByteWriter DungeonHelperCooldown() {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.DungeonHelperCooldown);
+        pWriter.Write<Command>(Command.DungeonHelperCooldown);
         pWriter.WriteInt(); // s_party_find_dungeon_helper_cooldown
 
         return pWriter;
@@ -275,7 +275,7 @@ public static class PartyPacket {
 
     public static ByteWriter JoinRequest(string name) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.JoinRequest);
+        pWriter.Write<Command>(Command.JoinRequest);
         pWriter.WriteUnicodeString(name);
 
         return pWriter;
@@ -283,7 +283,7 @@ public static class PartyPacket {
 
     public static ByteWriter StartVote(bool kick, int size) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.StartVote);
+        pWriter.Write<Command>(Command.StartVote);
         pWriter.WriteBool(kick); // 0 = Ready Check, 1 = Kick
         pWriter.WriteInt(kick ? 36 : 34);
         pWriter.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
@@ -312,7 +312,7 @@ public static class PartyPacket {
 
     public static ByteWriter ReadyCheck(long characterId, bool isReady) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.ReadyCheck);
+        pWriter.Write<Command>(Command.ReadyCheck);
         pWriter.WriteLong(characterId);
         pWriter.WriteBool(isReady);
 
@@ -321,14 +321,14 @@ public static class PartyPacket {
 
     public static ByteWriter EndReadyCheck() {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.EndReadyCheck);
+        pWriter.Write<Command>(Command.EndReadyCheck);
 
         return pWriter;
     }
 
     public static ByteWriter SurvivalPartySearch(bool searching) {
         var pWriter = Packet.Of(SendOp.Party);
-        pWriter.Write(Command.SurvivalPartySearch);
+        pWriter.Write<Command>(Command.SurvivalPartySearch);
         pWriter.WriteBool(searching); // Searching
         pWriter.WriteBool(true); // always true
 

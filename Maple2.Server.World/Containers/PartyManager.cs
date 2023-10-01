@@ -20,7 +20,11 @@ public class PartyManager : IDisposable {
         pendingInvites = new ConcurrentDictionary<long, (string, DateTime)>();
     }
 
-    public void Dispose() { }
+    public void Dispose() {
+        Broadcast(new PartyRequest {
+            Disband = new PartyRequest.Types.Disband { },
+        });
+    }
 
     public void Broadcast(PartyRequest request) {
         if (request.PartyId > 0 && request.PartyId != Party.Id) {
@@ -45,9 +49,18 @@ public class PartyManager : IDisposable {
     public void FindNewLeader(long characterId) {
         PartyMember? newLeader = Party.Members.Values.FirstOrDefault(m => m.CharacterId != characterId);
         if (newLeader == null) {
+            CheckForDisband();
             return;
         }
         UpdateLeader(characterId, newLeader.CharacterId);
+    }
+
+    public bool CheckForDisband() {
+        if (Party.Members.Count <= 2) {
+            Dispose();
+            return true;
+        }
+        return false;
     }
 
     public PartyError Invite(long requestorId, PlayerInfo player) {
@@ -125,13 +138,7 @@ public class PartyManager : IDisposable {
         if (!Party.Members.TryGetValue(characterId, out PartyMember? member)) {
             return PartyError.s_party_err_not_exist;
         }
-        if (Party.Members.Count <= 2) {
-            Broadcast(new PartyRequest {
-                Disband = new PartyRequest.Types.Disband {
-                    CharacterId = characterId,
-                },
-            });
-            Dispose();
+        if (CheckForDisband()) {
             return PartyError.none;
         }
 
@@ -150,18 +157,12 @@ public class PartyManager : IDisposable {
             return PartyError.s_party_err_not_found;
         }
 
-        if (Party.Members.Count <= 2) {
-            Broadcast(new PartyRequest {
-                Disband = new PartyRequest.Types.Disband {
-                    CharacterId = characterId,
-                },
-            });
-            Dispose();
-            return PartyError.none;
-        }
-
         if (characterId == Party.LeaderCharacterId) {
             FindNewLeader(characterId);
+        }
+
+        if (CheckForDisband()) {
+            return PartyError.none;
         }
 
         Broadcast(new PartyRequest {

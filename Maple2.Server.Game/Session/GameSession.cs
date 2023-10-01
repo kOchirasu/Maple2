@@ -149,6 +149,10 @@ public sealed partial class GameSession : Core.Network.Session {
             CharacterId = characterId,
         };
         playerUpdate.SetFields(UpdateField.All, player);
+        playerUpdate.Health = new HealthInfo {
+            CurrentHp = Player.Stats[BasicAttribute.Health].Current,
+            TotalHp = Player.Stats[BasicAttribute.Health].Total,
+        };
         PlayerInfo.SendUpdate(playerUpdate);
 
         //session.Send(Packet.Of(SendOp.REQUEST_SYSTEM_INFO));
@@ -279,8 +283,8 @@ public sealed partial class GameSession : Core.Network.Session {
         }
 
         //if (!Player.Value.Unlock.Maps.Contains(Player.Value.Character.MapId)) {
-            // Figure out what maps give exp. MapType >= 1 < 5 || 11 ?
-            //Exp.AddExp(ExpType.mapCommon);
+        // Figure out what maps give exp. MapType >= 1 < 5 || 11 ?
+        //Exp.AddExp(ExpType.mapCommon);
         //}
         Player.Value.Unlock.Maps.Add(Player.Value.Character.MapId);
 

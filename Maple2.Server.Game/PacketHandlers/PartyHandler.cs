@@ -100,6 +100,9 @@ public class PartyHandler : PacketHandler<GameSession> {
             }
 
             session.Party.SetParty(response.Party);
+        } else if (session.Party.Party.LeaderCharacterId != session.CharacterId) {
+            session.Send(PartyPacket.Error(PartyError.s_party_err_not_chief));
+            return;
         }
 
         string playerName = packet.ReadUnicodeString();
@@ -134,6 +137,11 @@ public class PartyHandler : PacketHandler<GameSession> {
         string name = packet.ReadUnicodeString();
         PartyInvite.Response response = (PartyInvite.Response) packet.ReadByte();
         int partyId = packet.ReadInt();
+
+        if (session.Party.Party != null) {
+            session.Send(PartyPacket.Error(PartyError.s_party_err_already));
+            return;
+        }
 
         PartyResponse partyResponse = World.Party(new PartyRequest {
             RequestorId = session.CharacterId,

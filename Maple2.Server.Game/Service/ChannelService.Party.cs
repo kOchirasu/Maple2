@@ -38,17 +38,16 @@ public partial class ChannelService {
             if (session.Buddy.IsBlocked(invite.SenderId)) {
                 return new PartyResponse { Error = (int) PartyError.s_party_err_cannot_invite };
             }
-            if (session.Party.Party != null) {
-                if (session.Party.Party.Members.Count > 1) {
-                    if (session.Party.Party.LeaderCharacterId == receiverId) {
-                        session.Send(PartyPacket.JoinRequest(invite.SenderName));
-                        return new PartyResponse { Error = (int) PartyError.s_party_request_invite };
-                    }
-                    return new PartyResponse { Error = (int) PartyError.s_party_err_cannot_invite };
+            // Check if the receiver is already in a party, and if it has more than 1 member
+            if (session.Party.Party != null && session.Party.Party.Members.Count > 1) {
+                if (session.Party.Party.LeaderCharacterId == receiverId) {
+                    session.Send(PartyPacket.JoinRequest(invite.SenderName));
+                    return new PartyResponse { Error = (int) PartyError.s_party_request_invite };
                 }
-
-                session.Party.RemoveParty();
+                return new PartyResponse { Error = (int) PartyError.s_party_err_cannot_invite };
             }
+            // Remove any existing 1 person party
+            session.Party.RemoveParty();
 
             session.Send(PartyPacket.Invite(partyId, invite.SenderName));
         }
