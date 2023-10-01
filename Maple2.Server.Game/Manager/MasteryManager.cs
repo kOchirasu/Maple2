@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Maple2.Database.Extensions;
 using Maple2.Model.Enum;
+using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
 
@@ -11,10 +14,13 @@ namespace Maple2.Server.Game.Manager;
 
 public class MasteryManager {
     private readonly GameSession session;
+    private readonly Lua.Lua lua;
 
     private Mastery Mastery => session.Player.Value.Character.Mastery;
-    public MasteryManager(GameSession session) {
+    private IDictionary<int, int> gatheringCounts => session.Config.GatheringCounts;
+    public MasteryManager(GameSession session, Lua.Lua lua) {
         this.session = session;
+        this.lua = lua;
     }
 
     public int this[MasteryType type] {
@@ -88,6 +94,78 @@ public class MasteryManager {
             return 1;
         }
 
-        return (short) Math.Max(1, masteryRewardEntries.FirstOrDefault(mastery => session.Mastery[MasteryType.Fishing] >= mastery.Value.Value).Key);
+        return (short) Math.Max(1, masteryRewardEntries.OrderByDescending(mastery => mastery.Key).FirstOrDefault(mastery => session.Mastery[type] >= mastery.Value.Value).Key);
+    }
+
+    public void Gather(FieldInteract fieldInteract) {
+        if (!session.TableMetadata.MasteryRecipeTable.Entries.TryGetValue(fieldInteract.Value.Item.RecipeId, out MasteryRecipeTable.Entry? recipeMetadata)) {
+            session.Send(MasteryPacket.Error(MasteryError.s_mastery_error_unknown));
+            return;
+        }
+
+        if (recipeMetadata.RequiredMastery > this[recipeMetadata.Type]) {
+            session.Send(MasteryPacket.Error(MasteryError.s_mastery_error_lack_mastery));
+            return;
+        }
+
+        if (!gatheringCounts.TryGetValue(recipeMetadata.Id, out int currentCount)) {
+            gatheringCounts[recipeMetadata.Id] = 0;
+        }
+
+        // TODO: Implement the bool on the last parameter of the formula. Is in someone else's home ?
+        float successRate = lua.CalcGatheringObjectSuccessRate(currentCount, recipeMetadata.HighRateLimitCount, recipeMetadata.NormalRateLimitCount);
+
+        int gatheringAmount = 0;
+        switch (recipeMetadata.Type) {
+            case MasteryType.Farming:
+            case MasteryType.Breeding:
+                session.ConditionUpdate(ConditionType.mastery_harvest_try, codeLong: recipeMetadata.Id);
+                session.ConditionUpdate(ConditionType.mastery_farming_try, codeLong: recipeMetadata.Id);
+                break;
+            case MasteryType.Gathering:
+            case MasteryType.Mining:
+                session.ConditionUpdate(ConditionType.mastery_gathering_try, codeLong: recipeMetadata.Id);
+                break;
+        }
+        if (Random.Shared.NextDouble() > (successRate / 100)) {
+            session.Send(InteractObjectPacket.Interact(fieldInteract, GatherResult.Fail, decreaseAmount: gatheringAmount));
+            return;
+        }
+
+        foreach (ItemComponent itemReward in recipeMetadata.RewardItems) {
+            Item? item = session.Item.CreateItem(itemReward.ItemId, itemReward.Rarity, itemReward.Amount);
+            if (item == null) {
+                continue;
+            }
+            FieldItem fieldItem = session.Field!.SpawnItem(fieldInteract, item);
+            session.Field.Broadcast(FieldPacket.DropItem(fieldItem));
+        }
+
+        gatheringAmount++;
+        switch (recipeMetadata.Type) {
+            case MasteryType.Breeding:
+            case MasteryType.Farming:
+                if (session.Field!.Metadata.Property.Type == MapType.Home && session.Field.OwnerId != session.AccountId) {
+                    session.ConditionUpdate(ConditionType.mastery_harvest_otherhouse, counter: gatheringAmount, codeLong: recipeMetadata.Id);
+                }
+                if (recipeMetadata.Type == MasteryType.Farming) {
+                    session.ConditionUpdate(ConditionType.mastery_farming, counter: gatheringAmount, codeLong: recipeMetadata.Id);
+                }
+                session.ConditionUpdate(ConditionType.mastery_harvest, counter: gatheringAmount, codeLong: recipeMetadata.Id);
+                break;
+            case MasteryType.Gathering:
+            case MasteryType.Mining:
+                session.ConditionUpdate(ConditionType.mastery_gathering, counter: gatheringAmount, codeLong: recipeMetadata.Id);
+                break;
+        }
+
+        this[recipeMetadata.Type] += recipeMetadata.RewardMastery;
+        if (!recipeMetadata.NoRewardExp) {
+            session.Exp.AddExp(ExpType.gathering);
+        }
+        gatheringCounts[recipeMetadata.Id] += gatheringAmount;
+        session.Send(InteractObjectPacket.Interact(fieldInteract, decreaseAmount: gatheringAmount));
+
+
     }
 }
