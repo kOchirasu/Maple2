@@ -58,12 +58,15 @@ public class InteractObjectHandler : PacketHandler<GameSession> {
                     break;
                 case InteractType.Web:
                 case InteractType.DisplayImage:
-                case InteractType.Gathering:
                 case InteractType.GuildPoster:
+                case InteractType.WatchTower:
+                    break;
                 case InteractType.BillBoard: // AdBalloon
                     session.Send(PlayerHostPacket.AdBalloonWindow((interact.Object as InteractBillBoardObject)!));
                     break;
-                case InteractType.WatchTower:
+                case InteractType.Gathering:
+                    session.Mastery.Gather(interact);
+                    session.Send(InteractObjectPacket.Result(InteractResult.none, interact));
                     break;
             }
         }
