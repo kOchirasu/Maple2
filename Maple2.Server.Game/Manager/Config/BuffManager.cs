@@ -27,7 +27,7 @@ public class BuffManager : IUpdatable {
     private readonly IActor actor;
     // TODO: Change this to support multiple buffs of the same id, different casters. Possibly also different levels?
     public ConcurrentDictionary<int, Buff> Buffs { get; } = new();
-    public ReflectRecord? Reflect; 
+    public ReflectRecord? Reflect;
     private readonly ILogger logger = Log.ForContext<BuffManager>();
 
     public BuffManager(IActor actor) {
@@ -114,7 +114,7 @@ public class BuffManager : IUpdatable {
             owner.Field.Broadcast(BuffPacket.Update(buff));
             return;
         }
-        
+
         // Set Reflect if applicable
         SetReflect(buff);
 
@@ -124,13 +124,16 @@ public class BuffManager : IUpdatable {
 
         logger.Information("{Id} AddBuff to {ObjectId}: {SkillId},{Level} for {Tick}ms", buff.ObjectId, owner.ObjectId, id, level, buff.EndTick - buff.StartTick);
         // Logger.Information("> {Data}", additionalEffect.Property);
+        if (owner is FieldPlayer player) {
+            player.Session.ConditionUpdate(ConditionType.buff, codeLong: buff.Id);
+        }
         if (notifyField) {
             owner.Field.Broadcast(BuffPacket.Add(buff));
         }
     }
 
     private void SetReflect(Buff buff) {
-        if (buff.Metadata.Reflect.EffectId == 0 || !actor.Field.SkillMetadata.TryGetEffect(buff.Metadata.Reflect.EffectId, buff.Metadata.Reflect.EffectLevel, 
+        if (buff.Metadata.Reflect.EffectId == 0 || !actor.Field.SkillMetadata.TryGetEffect(buff.Metadata.Reflect.EffectId, buff.Metadata.Reflect.EffectLevel,
                 out AdditionalEffectMetadata? _)) {
             return;
         }

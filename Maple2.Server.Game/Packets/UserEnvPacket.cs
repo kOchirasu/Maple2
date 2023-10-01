@@ -12,7 +12,7 @@ public static class UserEnvPacket {
         LoadTitles = 2,
         ItemCollects = 3,
         InteractedObjects = 4,
-        LifeSkillCount = 8,
+        GatheringCounts = 8,
         MasteryRewardsClaimed = 9,
     }
 
@@ -53,7 +53,7 @@ public static class UserEnvPacket {
 
         return pWriter;
     }
-    
+
     public static ByteWriter InteractedObjects(ISet<int> interactedObjects) {
         var pWriter = Packet.Of(SendOp.UserEnv);
         pWriter.Write<Command>(Command.InteractedObjects);
@@ -61,6 +61,19 @@ public static class UserEnvPacket {
         foreach(int id in interactedObjects) {
             pWriter.WriteInt(id);
         }
+
+        return pWriter;
+    }
+
+    public static ByteWriter GatheringCounts(IDictionary<int, int> gatheringCounts) {
+        var pWriter = Packet.Of(SendOp.UserEnv);
+        pWriter.Write<Command>(Command.GatheringCounts);
+        pWriter.WriteInt(gatheringCounts.Count);
+        foreach ((int recipeId, int count) in gatheringCounts) {
+            pWriter.WriteInt(recipeId);
+            pWriter.WriteInt(count);
+        }
+        pWriter.WriteInt();
 
         return pWriter;
     }

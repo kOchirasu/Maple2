@@ -22,6 +22,7 @@ public enum InteractState : byte {
 
 // ReSharper disable InconsistentNaming, IdentifierTypo
 public enum InteractResult : byte {
+    none = 0,
     [Description("You get a good look at the area.")]
     s_interact_find_new_telescope = 0,
     [Description("System Error: interact. {0}")]
@@ -39,4 +40,9 @@ public enum InteractResult : byte {
     // 12
     [Description("Requires rank {1} {0}.")] // {0} Life Skill Type, {1} Life Skill Rank
     s_interact_result_mastery = 13,
+}
+
+public enum GatherResult : short {
+    Success = 0,
+    Fail = 1,
 }

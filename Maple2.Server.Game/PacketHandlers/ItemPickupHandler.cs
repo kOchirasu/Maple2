@@ -97,6 +97,8 @@ public class ItemPickupHandler : PacketHandler<GameSession> {
                 return;
             }
 
+            session.ConditionUpdate(ConditionType.item_pickup, counter: item.Amount, codeLong: item.Id);
+
             item.Slot = -1;
             if (session.Item.Inventory.Add(item, true) && item.Metadata.Limit.TransferType == TransferType.BindOnLoot) {
                 session.Item.Bind(item);
