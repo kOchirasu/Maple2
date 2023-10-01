@@ -56,7 +56,7 @@ public enum BuffKeepCondition {
 
 public enum BuffResetCondition {
     Reset = 0,
-    PersistEndTick = 1, // end tick does not reset
+    PersistEndTick = 1, // end tick does not reset 
     Reset2 = 2, // behaves the same as Reset ??
     Reset3 = 3, // also behaves like Reset ??
 }
@@ -65,11 +65,4 @@ public enum BuffDotCondition {
     Instant = 0,
     Delayed = 1,
     Unknown = 2,
-}
-
-[Flags]
-public enum BuffFlag {
-    None = 0,
-    UpdateBuff = 1,
-    UpdateShield = 2,
 }

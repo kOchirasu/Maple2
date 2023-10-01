@@ -1,5 +1,4 @@
-﻿using Maple2.Model.Enum;
-using Maple2.PacketLib.Tools;
+﻿using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Model;
@@ -35,19 +34,16 @@ public static class BuffPacket {
         return pWriter;
     }
 
-    public static ByteWriter Update(Buff buff, BuffFlag flag = BuffFlag.UpdateBuff | BuffFlag.UpdateShield) {
+    public static ByteWriter Update(Buff buff) {
         var pWriter = Packet.Of(SendOp.Buff);
         pWriter.Write<Command>(Command.Update);
         pWriter.WriteInt(buff.Owner.ObjectId);
         pWriter.WriteInt(buff.ObjectId);
         pWriter.WriteInt(buff.Caster.ObjectId);
-        pWriter.Write<BuffFlag>(flag);
-        if (flag.HasFlag(BuffFlag.UpdateBuff)) {
-            buff.WriteAdditionalEffect(pWriter);
-        }
-        if (flag.HasFlag(BuffFlag.UpdateShield)) {
-            buff.WriteShieldHealth(pWriter);
-        }
+        pWriter.WriteInt(1); // TODO: complete this...
+        buff.WriteAdditionalEffect(pWriter);
+        // buff.WriteAdditionalEffect2(pWriter);
+
 
         return pWriter;
     }
