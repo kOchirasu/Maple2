@@ -47,8 +47,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "job.xml", Table = ParseJobTable()};
         yield return new TableMetadata {Name = "magicpath.xml", Table = ParseMagicPath()};
         yield return new TableMetadata {Name = "instrumentcategoryinfo.xml", Table = ParseInstrument()};
-        yield return new TableMetadata {Name = "interactobject.xml", Table = ParseInteractObject(false)};
-        yield return new TableMetadata {Name = "interactobject_mastery.xml", Table = ParseInteractObject(true)};
+        yield return new TableMetadata {Name = "interactobject*.xml", Table = ParseInteractObject()};
         yield return new TableMetadata {Name = "itemlapenshardupgrade.xml", Table = ParseLapenshardUpgradeTable()};
         yield return new TableMetadata {Name = "itemsocket.xml", Table = ParseItemSocketTable()};
         yield return new TableMetadata {Name = "masteryreceipe.xml", Table = ParseMasteryRecipe()};
@@ -265,11 +264,14 @@ public class TableMapper : TypeMapper<TableMetadata> {
         return new InstrumentTable(results);
     }
 
-    private InteractObjectTable ParseInteractObject(bool isMastery) {
+    private InteractObjectTable ParseInteractObject() {
         var results = new Dictionary<int, InteractObjectMetadata>();
-        IEnumerable<(int Id, InteractObject Info)> data = isMastery ? parser.ParseInteractObjectMastery()
-            : parser.ParseInteractObject().Select(entry => (entry.Id, entry.Info));
-        foreach ((int id, InteractObject info) in data) {
+        results = MergeInteractObjectTable(results, parser.ParseInteractObjectMastery());
+        results = MergeInteractObjectTable(results, parser.ParseInteractObjectMastery().Select(entry => (entry.Id, entry.Info)));
+        return new InteractObjectTable(results);
+    }
+    private Dictionary<int, InteractObjectMetadata> MergeInteractObjectTable(Dictionary<int, InteractObjectMetadata> results, IEnumerable<(int Id, InteractObject Info)> parser) {
+        foreach ((int id, InteractObject info) in parser) {
             var spawn = new InteractObjectMetadataSpawn[info.spawn.code.Length];
             for (int i = 0; i < spawn.Length; i++) {
                 spawn[i] = new InteractObjectMetadataSpawn(
@@ -298,8 +300,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 Spawn: spawn
             );
         }
-
-        return new InteractObjectTable(results);
+        return results;
 
         InteractObjectMetadataEffect.ConditionEffect[] ParseConditional(InteractObject.ConditionAdditionalEffect additionalEffect) {
             if (additionalEffect.id.Length == 0 || additionalEffect.id[0] == 0) {
@@ -1201,7 +1202,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 }
             }
         }
-        
+
         var nextExpResults = new Dictionary<int, long>();
         foreach ((int level, NextExp entry) in parser.ParseNextExp()) {
             nextExpResults.Add(entry.level, entry.value);

@@ -28,6 +28,7 @@ public class ConfigManager {
     private IList<long> favoriteDesigners;
     private readonly IDictionary<LapenshardSlot, int> lapenshards;
     private readonly StatAttributes statAttributes;
+    public IDictionary<int, int> GatheringCounts;
 
     public readonly SkillManager Skill;
 
@@ -47,21 +48,30 @@ public class ConfigManager {
             IList<long>? FavoriteDesigners,
             IDictionary<LapenshardSlot, int>? Lapenshards,
             IDictionary<BasicAttribute, int>? Allocation,
-            SkillBook? SkillBook
+            IDictionary<int, int>? GatheringCounts,
+        SkillBook? SkillBook
             ) load = db.LoadCharacterConfig(session.CharacterId);
         if (load.KeyBinds != null) {
             foreach (KeyBind keyBind in load.KeyBinds) {
                 SetKeyBind(keyBind);
             }
         }
+        Skill = new SkillManager(session, load.SkillBook ?? new SkillBook());
+
         for (int i = 0; i < TOTAL_HOT_BARS; i++) {
             hotBars.Add(new HotBar(load.HotBars?.ElementAtOrDefault(i)));
         }
+
+        if (load.HotBars == null) {
+            UpdateHotbarSkills();
+        }
+
         skillMacros = load.Macros ?? new List<SkillMacro>();
         wardrobes = load.Wardrobes ?? new List<Wardrobe>();
         favoriteStickers = load.FavoriteStickers ?? new List<int>();
         favoriteDesigners = load.FavoriteDesigners ?? new List<long>();
         lapenshards = load.Lapenshards ?? new Dictionary<LapenshardSlot, int>();
+        GatheringCounts = load.GatheringCounts ?? new Dictionary<int, int>();
 
         statAttributes = new StatAttributes();
         if (load.Allocation != null) {
@@ -71,7 +81,25 @@ public class ConfigManager {
             }
         }
 
-        Skill = new SkillManager(session, load.SkillBook ?? new SkillBook());
+    }
+
+    public void UpdateHotbarSkills() {
+        SortedDictionary<int, SkillInfo.Skill> skills = Skill.SkillInfo.GetMainLearnedJobSkills(SkillType.Active, SkillRank.Both);
+
+        foreach (HotBar hotBar in hotBars) {
+            foreach (QuickSlot quickSlot in hotBar.Slots) {
+                if (quickSlot.SkillId > 0 && !skills.ContainsKey(quickSlot.SkillId)) {
+                    hotBar.RemoveQuickSlot(quickSlot.SkillId, 0);
+                }
+            }
+        }
+
+        foreach ((int skillId, SkillInfo.Skill skill) in skills) {
+            if (hotBars[activeHotBar].FindQuickSlotIndex(skillId) == -1) {
+                hotBars[activeHotBar].MoveQuickSlot(-1, new QuickSlot(skillId), false);
+            }
+        }
+        session.Send(KeyTablePacket.LoadHotBar(activeHotBar, hotBars));
     }
 
     public void LoadKeyTable() {
@@ -365,6 +393,7 @@ public class ConfigManager {
             favoriteDesigners,
             lapenshards,
             statAttributes.Allocation,
+            GatheringCounts,
             Skill.SkillBook
         );
     }

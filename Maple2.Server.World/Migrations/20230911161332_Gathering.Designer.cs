@@ -3,6 +3,7 @@ using System;
 using Maple2.Database.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Maple2.Server.World.Migrations
 {
     [DbContext(typeof(Ms2Context))]
-    partial class Ms2ContextModelSnapshot : ModelSnapshot
+    [Migration("20230911161332_Gathering")]
+    partial class Gathering
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -228,9 +231,6 @@ namespace Maple2.Server.World.Migrations
                 {
                     b.Property<long>("CharacterId")
                         .HasColumnType("bigint");
-
-                    b.Property<string>("FavoriteDesigners")
-                        .HasColumnType("json");
 
                     b.Property<string>("FavoriteStickers")
                         .HasColumnType("json");
@@ -848,9 +848,6 @@ namespace Maple2.Server.World.Migrations
                     b.Property<byte>("CurrencyType")
                         .HasColumnType("tinyint unsigned");
 
-                    b.Property<bool>("Giftable")
-                        .HasColumnType("tinyint(1)");
-
                     b.Property<int>("ItemDuration")
                         .HasColumnType("int");
 
@@ -1239,36 +1236,6 @@ namespace Maple2.Server.World.Migrations
                     b.ToTable("meso-market-sold", (string)null);
                 });
 
-            modelBuilder.Entity("Maple2.Database.Model.SoldUgcMarketItem", b =>
-                {
-                    b.Property<long>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("AccountId")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<long>("Price")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("Profit")
-                        .HasColumnType("bigint");
-
-                    b.Property<DateTime>("SoldTime")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.ToTable("ugc-market-item-sold", (string)null);
-                });
-
             modelBuilder.Entity("Maple2.Database.Model.SystemBanner", b =>
                 {
                     b.Property<int>("Id")
@@ -1429,9 +1396,6 @@ namespace Maple2.Server.World.Migrations
                     b.Property<byte>("Status")
                         .HasColumnType("tinyint unsigned");
 
-                    b.Property<int>("TabId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Tags")
                         .IsRequired()
                         .HasColumnType("json");
@@ -1459,10 +1423,9 @@ namespace Maple2.Server.World.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<byte>("Type")
-                        .HasColumnType("tinyint unsigned");
-
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("ugcresource", (string)null);
                 });
@@ -1694,15 +1657,6 @@ namespace Maple2.Server.World.Migrations
                     b.HasOne("Maple2.Database.Model.Character", null)
                         .WithMany()
                         .HasForeignKey("CharacterId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("Maple2.Database.Model.SoldUgcMarketItem", b =>
-                {
-                    b.HasOne("Maple2.Database.Model.Account", null)
-                        .WithMany()
-                        .HasForeignKey("AccountId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });

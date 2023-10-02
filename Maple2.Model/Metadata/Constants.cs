@@ -72,6 +72,8 @@ public static class Constant {
     public const ItemTag BeautySkinVoucherTag = ItemTag.beauty_skin;
     public const ItemTag BeautyItemColorVoucherTag = ItemTag.beauty_itemcolor;
     public const int HairPaletteId = 2;
+    public const int PartyMaxCapacity = 10;
+    public const int PartyMinCapacity = 4;
 
 
     public const long FurnishingBaseId = 2870000000000000000;

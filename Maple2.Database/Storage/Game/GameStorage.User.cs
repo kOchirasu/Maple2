@@ -223,7 +223,7 @@ public partial class GameStorage {
             return Context.TrySaveChanges();
         }
 
-        public (IList<KeyBind>? KeyBinds, IList<QuickSlot[]>? HotBars, List<SkillMacro>?, List<Wardrobe>?, List<int>? FavoriteStickers, List<long>? FavoriteDesigners, IDictionary<LapenshardSlot, int>? Lapenshards, IDictionary<BasicAttribute, int>?, SkillBook?) LoadCharacterConfig(long characterId) {
+        public (IList<KeyBind>? KeyBinds, IList<QuickSlot[]>? HotBars, List<SkillMacro>?, List<Wardrobe>?, List<int>? FavoriteStickers, List<long>? FavoriteDesigners, IDictionary<LapenshardSlot, int>? Lapenshards, IDictionary<BasicAttribute, int>?, IDictionary<int, int>? GatheringCounts, SkillBook?) LoadCharacterConfig(long characterId) {
             CharacterConfig? config = Context.CharacterConfig.Find(characterId);
             if (config == null) {
                 return (null, null, null, null, null, null, null, null, null);
@@ -250,6 +250,7 @@ public partial class GameStorage {
                 config.FavoriteDesigners?.Select(designer => designer).ToList(),
                 config.Lapenshards,
                 config.StatAllocation,
+                config.GatheringCounts,
                 skillBook
             );
         }
@@ -264,6 +265,7 @@ public partial class GameStorage {
                 IList<long> favoriteDesigners,
                 IDictionary<LapenshardSlot, int> lapenshards,
                 StatAttributes.PointAllocation allocation,
+                IDictionary<int, int> gatheringCounts,
                 SkillBook skillBook) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
 
@@ -282,6 +284,7 @@ public partial class GameStorage {
             config.StatAllocation = allocation.Attributes.ToDictionary(
                 attribute => attribute,
                 attribute => allocation[attribute]);
+            config.GatheringCounts = gatheringCounts;
             config.SkillBook = new Model.SkillBook {
                 MaxSkillTabs = skillBook.MaxSkillTabs,
                 ActiveSkillTabId = skillBook.ActiveSkillTabId,
