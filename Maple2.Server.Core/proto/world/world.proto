@@ -21,6 +21,9 @@ service World {
   // Manage guild.
   rpc GuildInfo(GuildInfoRequest) returns (GuildInfoResponse);
   rpc Guild(GuildRequest) returns (GuildResponse);
+  // Manage party.
+  rpc PartyInfo(PartyInfoRequest) returns (PartyInfoResponse);
+  rpc Party(PartyRequest) returns (PartyResponse);
   // Retrieve player info from online player.
   rpc PlayerInfo(maple2.PlayerInfoRequest) returns (maple2.PlayerInfoResponse);
   // Update player info
@@ -169,6 +172,82 @@ message GuildResponse {
   oneof Info {
     int64 guild_id = 1;
     GuildInfo guild = 2;
+  }
+
+  int32 error = 3;
+}
+
+message PartyInfo {
+  message Member {
+    int64 character_id = 1;
+    int64 join_time = 2;
+    int64 login_time = 3;
+  }
+
+  int32 id = 1;
+  int64 leader_account_id = 2;
+  int64 leader_character_id = 3;
+  string leader_name = 4;
+  int64 creation_time = 5;
+  optional int32 dungeon_id = 6;
+  optional string match_party_name = 7;
+  optional int32 match_party_id = 8;
+  optional bool is_matching = 9;
+  optional bool require_approval = 10;
+  repeated Member members = 11;
+}
+
+message PartyInfoRequest {
+  optional int32 party_id = 1;
+  optional int64 character_id = 2;
+}
+
+message PartyInfoResponse {
+  optional PartyInfo party = 1;
+}
+
+message PartyRequest {
+  message Create {}
+
+  message Disband {
+    int32 party_id = 1;
+  }
+  message Invite {
+    int32 party_id = 1;
+    int64 receiver_id = 2;
+  }
+  message RespondInvite {
+    int32 party_id = 1;
+    int32 reply = 2;
+  }
+  message Leave {
+    int32 party_id = 1;
+  }
+  message Kick {
+    int32 party_id = 1;
+    int64 receiver_id = 2;
+  }
+  message UpdateLeader {
+    int32 party_id = 1;
+    optional int64 character_id = 2;
+  }
+
+  int64 requestor_id = 1;
+  oneof party {
+    Create create = 2;
+    Disband disband = 3;
+    Invite invite = 4;
+    RespondInvite respond_invite = 5;
+    Leave leave = 6;
+    Kick kick = 7;
+    UpdateLeader update_leader = 8;
+  }
+}
+
+message PartyResponse {
+  oneof Info {
+    int32 party_id = 1;
+    PartyInfo party = 2;
   }
 
   int32 error = 3;
