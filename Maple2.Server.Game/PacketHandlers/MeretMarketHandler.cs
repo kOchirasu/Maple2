@@ -160,7 +160,7 @@ public class MeretMarketHandler : PacketHandler<GameSession> {
             return;
         }
 
-        session.UgcMarket.Add(marketItem);
+        session.UgcMarket.ListItem(marketItem);
         return;
 
         Item? GetUgcItem(long uid) {

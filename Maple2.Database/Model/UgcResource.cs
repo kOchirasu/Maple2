@@ -35,6 +35,7 @@ internal class UgcResource {
     public static void Configure(EntityTypeBuilder<UgcResource> builder) {
         builder.ToTable("ugcresource");
         builder.HasKey(ugc => ugc.Id);
+        builder.HasIndex(ugc => ugc.OwnerId);
 
         builder.Property(ugc => ugc.LastModified)
             .IsRowVersion();

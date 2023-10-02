@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Maple2.Server.World.Migrations
 {
     [DbContext(typeof(Ms2Context))]
-    [Migration("20230911002445_UgcMarket")]
+    [Migration("20231002044140_UgcMarket")]
     partial class UgcMarket
     {
         /// <inheritdoc />
@@ -236,6 +236,9 @@ namespace Maple2.Server.World.Migrations
                         .HasColumnType("json");
 
                     b.Property<string>("FavoriteStickers")
+                        .HasColumnType("json");
+
+                    b.Property<string>("GatheringCounts")
                         .HasColumnType("json");
 
                     b.Property<string>("HotBars")
@@ -1462,6 +1465,8 @@ namespace Maple2.Server.World.Migrations
                         .HasColumnType("tinyint unsigned");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("ugcresource", (string)null);
                 });

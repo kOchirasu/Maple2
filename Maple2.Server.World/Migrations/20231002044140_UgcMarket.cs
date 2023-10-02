@@ -12,10 +12,6 @@ namespace Maple2.Server.World.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropIndex(
-                name: "IX_ugcresource_OwnerId",
-                table: "ugcresource");
-
             migrationBuilder.AddColumn<byte>(
                 name: "Type",
                 table: "ugcresource",
@@ -37,10 +33,22 @@ namespace Maple2.Server.World.Migrations
                 nullable: false,
                 defaultValue: false);
 
+            migrationBuilder.AlterColumn<string>(
+                name: "GatheringCounts",
+                table: "character-config",
+                type: "json",
+                nullable: true,
+                defaultValue: "{}",
+                oldClrType: typeof(string),
+                oldType: "json")
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
+
             migrationBuilder.AddColumn<string>(
                 name: "FavoriteDesigners",
                 table: "character-config",
                 type: "json",
+                defaultValue: "{}",
                 nullable: true)
                 .Annotation("MySql:CharSet", "utf8mb4");
 
@@ -98,10 +106,23 @@ namespace Maple2.Server.World.Migrations
                 name: "FavoriteDesigners",
                 table: "character-config");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_ugcresource_OwnerId",
-                table: "ugcresource",
-                column: "OwnerId");
+            migrationBuilder.UpdateData(
+                table: "character-config",
+                keyColumn: "GatheringCounts",
+                keyValue: null,
+                column: "GatheringCounts",
+                value: "");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "GatheringCounts",
+                table: "character-config",
+                type: "json",
+                nullable: false,
+                oldClrType: typeof(string),
+                oldType: "json",
+                oldNullable: true)
+                .Annotation("MySql:CharSet", "utf8mb4")
+                .OldAnnotation("MySql:CharSet", "utf8mb4");
         }
     }
 }

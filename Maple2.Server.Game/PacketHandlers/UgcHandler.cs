@@ -133,16 +133,18 @@ public class UgcHandler : PacketHandler<GameSession> {
 
         Item? item = session.Item.CreateItem(itemId, ugcMetadata.ItemRarity);
         if (item == null) {
-            return;
+            Logger.Fatal("Failed to create UGC item {ItemId}", itemId);
+            throw new InvalidOperationException($"Fatal: Creating UGC item: {itemId}");
         }
 
         using WebStorage.Request request = WebStorage.Context();
         UgcResource? resource = request.CreateUgc(ugcType, session.CharacterId);
         if (resource == null) {
-            return;
+            Logger.Fatal("Failed to create UGC resource for item {ItemUid}", item.Uid);
+            throw new InvalidOperationException($"Fatal: Creating UGC resource: {item.Uid}");
         }
 
-        item.Template = new UgcItemLook() {
+        item.Template = new UgcItemLook {
             Id = resource.Id,
             AccountId = session.AccountId,
             Author = session.PlayerName,
@@ -169,7 +171,7 @@ public class UgcHandler : PacketHandler<GameSession> {
 
 
         Item? item = session.StagedUgcItem;
-        if (item?.Template == null) {
+        if (item?.Template == null || !TableMetadata.UgcDesignTable.Entries.TryGetValue(item.Id, out UgcDesignTable.Entry? ugcMetadata)) {
             return;
         }
 
@@ -188,7 +190,7 @@ public class UgcHandler : PacketHandler<GameSession> {
         }
 
         session.Item.Inventory.Add(item, true);
-        session.Send(UgcPacket.UpdateItem(session.Player.ObjectId, item));
+        session.Send(UgcPacket.UpdateItem(session.Player.ObjectId, item, ugcMetadata.CreatePrice));
         session.Send(UgcPacket.UpdatePath(resource));
     }
 

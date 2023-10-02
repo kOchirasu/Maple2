@@ -51,7 +51,7 @@ public sealed class UgcMarketManager {
         session.Send(MeretMarketPacket.LoadSales(sales.Values));
     }
 
-    public void Add(UgcMarketItem item) {
+    public void ListItem(UgcMarketItem item) {
         items.Add(item.Id, item);
         session.Send(MeretMarketPacket.ListItem(item));
         session.Send(MeretMarketPacket.UpdateExpiration(item));
@@ -111,12 +111,12 @@ public sealed class UgcMarketManager {
         }
 
         using GameStorage.Request db = session.GameStorage.Context();
-        PlayerInfo? info = db.GetPlayerInfo(characterId);
-        if (info == null) {
+        if (!session.PlayerInfo.GetOrFetch(characterId, out PlayerInfo? info)) {
             return;
         }
 
         favoriteDesigners.Add(characterId, info);
+        session.Config.AddFavoriteDesigner(characterId);
         IList<UgcMarketItem> designerItems = db.GetUgcListingsByCharacterId(characterId);
         session.Send(MeretMarketPacket.AddDesigner(info, designerItems));
     }
@@ -125,6 +125,7 @@ public sealed class UgcMarketManager {
         if (!favoriteDesigners.Remove(characterId)) {
             return;
         }
+        session.Config.RemoveFavoriteDesigner(characterId);
 
         session.Send(MeretMarketPacket.RemoveDesigner(characterId));
     }
@@ -154,7 +155,5 @@ public sealed class UgcMarketManager {
     public void Save(GameStorage.Request db) {
         db.SaveUgcMarketItems(items.Values);
         db.SaveSoldUgcMarketItems(sales.Values);
-        session.Config.UpdateFavoriteDesigners(favoriteDesigners.Keys.ToList());
     }
-
 }

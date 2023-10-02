@@ -6,8 +6,7 @@ using Maple2.Tools.Extensions;
 
 namespace Maple2.Model.Game;
 
-public class
-    UgcMarketItem : MarketItem {
+public class UgcMarketItem : MarketItem {
     public long Id { get; init; }
     public required UgcMarketListingStatus Status { get; set; }
     public required long ListingEndTime { get; set; }

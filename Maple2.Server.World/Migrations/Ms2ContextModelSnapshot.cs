@@ -236,7 +236,6 @@ namespace Maple2.Server.World.Migrations
                         .HasColumnType("json");
 
                     b.Property<string>("GatheringCounts")
-                        .IsRequired()
                         .HasColumnType("json");
 
                     b.Property<string>("HotBars")
@@ -1463,6 +1462,8 @@ namespace Maple2.Server.World.Migrations
                         .HasColumnType("tinyint unsigned");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
 
                     b.ToTable("ugcresource", (string)null);
                 });

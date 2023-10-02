@@ -39,8 +39,8 @@ public static class MeretMarketPacket {
         pWriter.WriteInt(items.Count);
 
         foreach (UgcMarketItem item in items) {
-            pWriter.WriteBool(true);
-            pWriter.WriteBool(true);
+            pWriter.WriteBool(true); // Is Market Item
+            pWriter.WriteBool(true); // Is UGC Item
             pWriter.WriteClass<UgcMarketItem>(item);
         }
 
@@ -79,7 +79,7 @@ public static class MeretMarketPacket {
     public static ByteWriter RelistItem(UgcMarketItem item) {
         var pWriter = Packet.Of(SendOp.MeretMarket);
         pWriter.Write<Command>(Command.RelistItem);
-        pWriter.WriteBool(true);
+        pWriter.WriteBool(true); // Is Market Item
         pWriter.WriteClass<UgcMarketItem>(item);
 
         return pWriter;

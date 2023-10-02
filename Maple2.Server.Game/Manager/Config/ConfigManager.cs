@@ -25,7 +25,7 @@ public class ConfigManager {
     private IList<SkillMacro> skillMacros;
     private IList<Wardrobe> wardrobes;
     private IList<int> favoriteStickers;
-    private IList<long> favoriteDesigners;
+    private readonly IList<long> favoriteDesigners;
     private readonly IDictionary<LapenshardSlot, int> lapenshards;
     private readonly StatAttributes statAttributes;
     public IDictionary<int, int> GatheringCounts;
@@ -173,8 +173,12 @@ public class ConfigManager {
         return favoriteDesigners;
     }
 
-    public void UpdateFavoriteDesigners(IList<long> designers) {
-        favoriteDesigners = designers;
+    public void AddFavoriteDesigner(long designer) {
+        favoriteDesigners.Add(designer);
+    }
+
+    public void RemoveFavoriteDesigner(long designer) {
+        favoriteDesigners.Remove(designer);
     }
 
     #region KeyBind

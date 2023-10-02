@@ -31,7 +31,7 @@ public static class UgcPacket {
 
         return pWriter;
     }
-    
+
     public static ByteWriter UpdatePath(UgcResource ugc) {
         var pWriter = Packet.Of(SendOp.Ugc);
         pWriter.Write(Command.UpdatePath);
@@ -72,20 +72,20 @@ public static class UgcPacket {
 
         return pWriter;
     }
-    
-    public static ByteWriter UpdateItem(int objectId, Item item) {
+
+    public static ByteWriter UpdateItem(int objectId, Item item, long createPrice) {
         var pWriter = Packet.Of(SendOp.Ugc);
         pWriter.Write<Command>(Command.UpdateItem);
         pWriter.WriteInt(objectId);
-        
+
         pWriter.WriteLong(item.Uid);
         pWriter.WriteInt(item.Id);
         pWriter.WriteInt(item.Amount);
         pWriter.WriteUnicodeString(item.Template!.Name);
         pWriter.WriteByte(1);
-        pWriter.WriteLong(1); // price
+        pWriter.WriteLong(createPrice);
         pWriter.WriteByte();
-        
+
         pWriter.WriteClass<UgcItemLook>(item.Template);
 
         return pWriter;

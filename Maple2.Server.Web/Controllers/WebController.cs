@@ -51,12 +51,15 @@ public class WebController : ControllerBase {
             if (resource == null) {
                 return Results.NotFound($"{ugcUid} does not exist.");
             }
-            /*if (System.IO.File.Exists(resource.Path)) {
-                return Results.Conflict("resource already exists.");
-            }
 
-            await System.IO.File.WriteAllBytesAsync(resource.Path, fileBytes);
-            return Results.Text($"0,{resource.Path}");*/
+            if (type != UgcType.ItemIcon && !string.IsNullOrEmpty(resource.Path)) {
+                if (System.IO.File.Exists(resource.Path)) {
+                    return Results.Conflict("resource already exists.");
+                }
+
+                await System.IO.File.WriteAllBytesAsync(resource.Path, fileBytes);
+                return Results.Text($"0,{resource.Path}");
+            }
         }
 
         return type switch {
