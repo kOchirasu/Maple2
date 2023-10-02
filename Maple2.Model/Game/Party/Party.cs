@@ -11,7 +11,12 @@ namespace Maple2.Model.Game;
 
 public class Party : IByteSerializable {
     private int capacity = Constant.PartyMaxCapacity;
-    public int Capacity { get => capacity; set { capacity = Math.Clamp(value, Constant.PartyMinCapacity, Constant.PartyMaxCapacity); } }
+    public int Capacity {
+        get => capacity;
+        set {
+            capacity = Math.Clamp(value, Constant.PartyMinCapacity, Constant.PartyMaxCapacity);
+        }
+    }
 
     public required int Id { get; init; }
     public required long LeaderAccountId;
@@ -40,7 +45,7 @@ public class Party : IByteSerializable {
     public Party(int id, PartyMember leader) : this(id, leader.AccountId, leader.CharacterId, leader.Name) { }
 
     public void WriteTo(IByteWriter writer) {
-        writer.WriteBool(true);
+        writer.WriteBool(true); // joining from offline?
         writer.WriteInt(Id);
         writer.WriteLong(LeaderCharacterId);
 
@@ -48,34 +53,12 @@ public class Party : IByteSerializable {
         writer.WriteByte(memberCount);
         foreach (PartyMember member in Members.Values) {
             writer.WriteBool(!member.Info.Online);
-            writer.WriteClass(member);
+            writer.WriteClass<PartyMember>(member);
             member.WriteDungeonEligibility(writer);
         }
 
-        writer.WriteBool(false);
+        writer.WriteBool(false); // unk bool
         writer.WriteInt(DungeonId);
-        writer.WriteBool(false);
-        writer.WriteByte();
-        WriteMatchParty(writer);
-    }
-
-    public void WriteMatchParty(IByteWriter writer) {
-        writer.WriteBool(IsMatching);
-        if (!IsMatching) {
-            return;
-        }
-
-        writer.WriteLong(MatchPartyId);
-        writer.WriteInt(Id);
-        writer.WriteInt(); // Unknown
-        writer.WriteInt(); // Unknown
-        writer.WriteUnicodeString(MatchPartyName);
-        writer.WriteBool(RequireApproval);
-        writer.WriteInt(Members.Count);
-        writer.WriteInt(Capacity);
-        writer.WriteLong(LeaderAccountId);
-        writer.WriteLong(LeaderCharacterId);
-        writer.WriteUnicodeString(LeaderName);
-        writer.WriteLong(CreationTime);
+        writer.WriteBool(false); // unk bool
     }
 }

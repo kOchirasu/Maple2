@@ -111,7 +111,8 @@ public static class PartyPacket {
     public static ByteWriter Load(Party party) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write<Command>(Command.Load);
-        pWriter.WriteClass(party);
+        pWriter.WriteClass<Party>(party);
+        pWriter.WriteMatchParty(party);
 
         return pWriter;
     }
@@ -131,7 +132,7 @@ public static class PartyPacket {
         pWriter.Write<Command>(Command.UpdateMember);
 
         pWriter.WriteLong(member.CharacterId);
-        pWriter.WriteClass(member);
+        pWriter.WriteClass<PartyMember>(member);
 
         return pWriter;
     }
@@ -194,7 +195,7 @@ public static class PartyPacket {
         var text = new InterfaceText(message, htmlEncoded);
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write<Command>(Command.Unknown2);
-        pWriter.WriteClass(text);
+        pWriter.WriteClass<InterfaceText>(text);
         pWriter.WriteUnicodeString(); // effect?
 
         return pWriter;
@@ -212,7 +213,7 @@ public static class PartyPacket {
     public static ByteWriter PartyFinderListing(Party party) {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write<Command>(Command.PartyFinder);
-        party.WriteMatchParty(pWriter);
+        pWriter.WriteMatchParty(party);
 
         return pWriter;
     }
@@ -288,7 +289,6 @@ public static class PartyPacket {
         pWriter.WriteInt(kick ? 36 : 34);
         pWriter.WriteLong(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
 
-
         // Party Size
         pWriter.WriteInt(size);
         for (var i = 0; i < size; i++) {
@@ -333,5 +333,23 @@ public static class PartyPacket {
         pWriter.WriteBool(true); // always true
 
         return pWriter;
+    }
+
+    private static void WriteMatchParty(this IByteWriter writer, Party party) {
+        writer.WriteBool(party.IsMatching);
+        if (party.IsMatching) {
+            writer.WriteLong(party.MatchPartyId);
+            writer.WriteInt(party.Id);
+            writer.WriteInt(); // Unknown
+            writer.WriteInt(); // Unknown
+            writer.WriteUnicodeString(party.MatchPartyName);
+            writer.WriteBool(party.RequireApproval);
+            writer.WriteInt(party.Members.Count);
+            writer.WriteInt(party.Capacity);
+            writer.WriteLong(party.LeaderAccountId);
+            writer.WriteLong(party.LeaderCharacterId);
+            writer.WriteUnicodeString(party.LeaderName);
+            writer.WriteLong(party.CreationTime);
+        }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using System.Threading;
 using Maple2.Model.Common;
+using Maple2.Model.Enum;
 using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 using Maple2.Tools.Extensions;
@@ -24,7 +25,7 @@ public class PartyMember : IByteSerializable, IDisposable {
         writer.WriteLong(Info.AccountId);
         writer.WriteLong(Info.CharacterId);
         writer.WriteUnicodeString(Info.Name);
-        writer.Write(Info.Gender);
+        writer.Write<Gender>(Info.Gender);
         writer.WriteByte(1);
         writer.WriteLong();
         writer.WriteInt();
@@ -34,7 +35,7 @@ public class PartyMember : IByteSerializable, IDisposable {
         writer.WriteShort(Info.Level);
         writer.WriteShort(Info.Channel);
         writer.WriteInt((int) Info.Job.Code());
-        writer.Write(Info.Job);
+        writer.Write<Job>(Info.Job);
         writer.WriteInt((int) Info.CurrentHp);
         writer.WriteInt((int) Info.TotalHp);
         writer.WriteShort();
@@ -53,7 +54,7 @@ public class PartyMember : IByteSerializable, IDisposable {
         writer.WriteUnicodeString(Info.Picture);
         writer.WriteByte();
         writer.WriteByte();
-        writer.WriteClass(new Mastery());
+        writer.WriteClass<Mastery>(new Mastery());
         writer.WriteUnicodeString();
         writer.WriteLong();
         writer.WriteLong();
