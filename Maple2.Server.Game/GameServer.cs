@@ -40,7 +40,7 @@ public class GameServer : Server<GameSession> {
         using GameStorage.Request db = gameStorage.Context();
         bannerCache = db.GetBanners().ToImmutableList();
         premiumMarketCache = new ConcurrentDictionary<int, PremiumMarketItem>(
-            db.GetMarketItems().Select(item => new KeyValuePair<int, PremiumMarketItem>(item.Id, item)));
+            db.GetPremiumMarketItems().Select(item => new KeyValuePair<int, PremiumMarketItem>(item.Id, item)));
     }
 
     public override void OnConnected(GameSession session) {

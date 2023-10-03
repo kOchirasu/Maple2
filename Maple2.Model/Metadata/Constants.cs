@@ -103,6 +103,8 @@ public static class Constant {
     public const int MapleopolyTicketCostCount = 2;
     public const int MapleopolyTicketRarity = 1;
     public const short HairSlotCount = 30;
+    public const float UGCShopProfitFee = 0.25f;
+    public const int UGCShopProfitDelayDays = 10;
     #endregion
 
     #region table/constants.xml

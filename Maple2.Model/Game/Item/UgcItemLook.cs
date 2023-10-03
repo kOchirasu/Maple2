@@ -1,4 +1,5 @@
-﻿using Maple2.PacketLib.Tools;
+﻿using Maple2.Model.Enum;
+using Maple2.PacketLib.Tools;
 using Maple2.Tools;
 
 namespace Maple2.Model.Game;
@@ -6,6 +7,7 @@ namespace Maple2.Model.Game;
 public sealed class UgcItemLook : IByteSerializable, IByteDeserializable {
     public static readonly UgcItemLook Default = new UgcItemLook();
 
+    public long Id;
     public string FileName;
     public string Name;
     public long AccountId;
@@ -13,7 +15,6 @@ public sealed class UgcItemLook : IByteSerializable, IByteDeserializable {
     public string Author;
     public long CreationTime;
     public string Url;
-
     public UgcItemLook() {
         FileName = string.Empty;
         Name = string.Empty;
@@ -26,11 +27,11 @@ public sealed class UgcItemLook : IByteSerializable, IByteDeserializable {
     }
 
     public void WriteTo(IByteWriter writer) {
-        writer.WriteLong();
-        writer.WriteUnicodeString(FileName); // UUID (filename)
+        writer.WriteLong(Id);
+        writer.WriteUnicodeString(Id.ToString()); // UUID (filename)
         writer.WriteUnicodeString(Name); // Name (itemname)
-        writer.WriteByte();
-        writer.WriteInt();
+        writer.WriteByte(1); // Needs to be 1 to show the proper UGC icon?
+        writer.WriteInt(1);
         writer.WriteLong(AccountId); // AccountId
         writer.WriteLong(CharacterId); // CharacterId
         writer.WriteUnicodeString(Author); // CharacterName
