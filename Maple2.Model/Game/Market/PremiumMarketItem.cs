@@ -8,7 +8,6 @@ namespace Maple2.Model.Game;
 public class PremiumMarketItem : MarketItem {
     public required int Id { get; init; }
     public required int ParentId { get; init; }
-    public required int TabId { get; init; }
     public required MeretMarketItemLabel Label { get; init; }
     public required MeretMarketCurrencyType CurrencyType { get; init; }
     public required long SalePrice { get; init; }
@@ -27,6 +26,7 @@ public class PremiumMarketItem : MarketItem {
     public required int RequireAchievementId { get; init; }
     public required int RequireAchievementRank { get; init; }
     public required bool PcCafe { get; init; }
+    public required bool Giftable { get; init; }
     public required PremiumMarketPromoData? PromoData { get; init; }
     public required bool ShowSaleTime { get; init; }
     public IList<PremiumMarketItem> AdditionalQuantities { get; set; }
@@ -48,7 +48,7 @@ public class PremiumMarketItem : MarketItem {
         writer.Write<MeretMarketCurrencyType>(CurrencyType);
         writer.WriteLong(Price);
         writer.WriteLong(SalePrice);
-        writer.WriteByte();
+        writer.WriteBool(Giftable);
         writer.WriteLong(SellBeginTime);
         writer.WriteLong(SellEndTime);
         writer.WriteInt(); // Another flag

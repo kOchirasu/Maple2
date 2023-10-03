@@ -1,6 +1,13 @@
-﻿namespace Maple2.Model.Game;
+﻿using Maple2.Model.Enum;
+
+namespace Maple2.Model.Game;
 
 public class UgcResource {
-    public required long Id { get; init; }
-    public required string Path { get; init; }
+    public long Id { get; init; }
+    public string Path { get; set; }
+    public UgcType Type { get; init; }
+
+    public UgcResource() {
+        Path = string.Empty;
+    }
 }
