@@ -82,6 +82,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public ExperienceManager Exp { get; set; }
     public AchievementManager Achievement { get; set; }
     public QuestManager Quest { get; set; }
+    public UgcMarketManager UgcMarket { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
     public PartyManager Party { get; set; }
@@ -136,6 +137,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Config = new ConfigManager(db, this);
         Buddy = new BuddyManager(db, this);
         Item = new ItemManager(db, this, ItemStatsCalc);
+        UgcMarket = new UgcMarketManager(this);
         Party = new PartyManager(World, this);
 
         if (!PrepareField(player.Character.MapId)) {
@@ -433,6 +435,7 @@ public sealed partial class GameSession : Core.Network.Session {
             using (GameStorage.Request db = GameStorage.Context()) {
                 db.BeginTransaction();
                 db.SavePlayer(Player);
+                UgcMarket.Save(db);
                 Config.Save(db);
                 Item.Save(db);
                 Housing.Save(db);

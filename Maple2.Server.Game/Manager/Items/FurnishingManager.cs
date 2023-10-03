@@ -67,6 +67,12 @@ public class FurnishingManager {
         }
     }
 
+    public Item? GetCube(long itemUid) {
+        lock (session.Item) {
+            return storage.FirstOrDefault(item => item.Uid == itemUid);
+        }
+    }
+
     /// <summary>
     /// Places a cube of the specified item uid at the requested location.
     /// If there are no amount remaining, we still keep the entry to allow reuse of the item uid.

@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Maple2.Database.Extensions;
+using Maple2.Model.Enum;
+using Maple2.Model.Game;
 using Maple2.Model.Metadata;
+using Microsoft.EntityFrameworkCore;
 using MesoListing = Maple2.Model.Game.MesoListing;
 using PremiumMarketItem = Maple2.Model.Game.PremiumMarketItem;
 
@@ -57,13 +60,99 @@ public partial class GameStorage {
             return Context.TrySaveChanges();
         }
 
-        public ICollection<PremiumMarketItem> GetMarketItems() {
+        public IDictionary<long, UgcMarketItem> GetUgcListingsByAccountId(long accountId) {
+            return Context.UgcMarketItem.Where(listing => listing.AccountId == accountId)
+                .AsEnumerable()
+                .Select(ToMarketEntry)
+                .ToDictionary(entry => entry.Id, entry => entry);
+        }
+
+        /// <summary>
+        ///  Get active UGC listings by character Id
+        /// </summary>
+        public IList<UgcMarketItem> GetUgcListingsByCharacterId(long characterId) {
+            return Context.UgcMarketItem.Where(listing => listing.CharacterId == characterId && listing.ListingEndTime > DateTime.Now)
+                .AsEnumerable()
+                .Select(ToMarketEntry)
+                .ToList()!;
+        }
+
+        public IDictionary<long, SoldUgcMarketItem> GetMySoldUgcListings(long accountId) {
+            return Context.SoldUgcMarketItem.Where(listing => listing.AccountId == accountId)
+                .AsEnumerable()
+                .Select<Model.SoldUgcMarketItem, SoldUgcMarketItem>(listing => listing)
+                .ToDictionary(entry => entry.Id, entry => entry);
+        }
+
+        public UgcMarketItem? CreateUgcMarketItem(UgcMarketItem item) {
+            Model.UgcMarketItem model = item;
+            Context.UgcMarketItem.Add(model);
+
+            return Context.TrySaveChanges() ? ToMarketEntry(model) : null;
+        }
+
+        public bool SaveUgcMarketItems(ICollection<UgcMarketItem> items) {
+            foreach (UgcMarketItem item in items) {
+                Model.UgcMarketItem model = item;
+                Context.UgcMarketItem.Update(model);
+            }
+
+            return Context.TrySaveChanges();
+        }
+
+        public bool SaveUgcMarketItem(UgcMarketItem item) {
+            Model.UgcMarketItem model = item;
+            Context.UgcMarketItem.Update(model);
+            return Context.TrySaveChanges();
+        }
+
+        public bool DeleteUgcMarketItem(long id) {
+            Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
+
+            Model.UgcMarketItem? listing = Context.UgcMarketItem.Find(id);
+            if (listing == null) {
+                return false;
+            }
+
+            Context.UgcMarketItem.Remove(listing);
+            return SaveChanges();
+        }
+
+        public SoldUgcMarketItem? CreateSoldUgcMarketItem(SoldUgcMarketItem item) {
+            Model.SoldUgcMarketItem model = item;
+            Context.SoldUgcMarketItem.Add(model);
+
+            return Context.TrySaveChanges() ? model : null;
+        }
+
+        public bool SaveSoldUgcMarketItems(ICollection<SoldUgcMarketItem> items) {
+            foreach (SoldUgcMarketItem item in items) {
+                Model.SoldUgcMarketItem model = item;
+                Context.SoldUgcMarketItem.Update(model);
+            }
+
+            return Context.TrySaveChanges();
+        }
+
+        public bool DeleteSoldUgcMarketItem(long id) {
+            Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
+
+            Model.SoldUgcMarketItem? item = Context.SoldUgcMarketItem.Find(id);
+            if (item == null) {
+                return false;
+            }
+
+            Context.SoldUgcMarketItem.Remove(item);
+            return SaveChanges();
+        }
+
+        public ICollection<PremiumMarketItem> GetPremiumMarketItems() {
             IList<PremiumMarketItem> selectedResults = Context.PremiumMarketItem
                 .Where(entry => entry.ParentId == 0)
                 .AsEnumerable()
                 .Select(ToMarketEntry)
                 .ToList()!;
-            
+
             foreach (PremiumMarketItem marketEntry in selectedResults) {
                 marketEntry.AdditionalQuantities = Context.PremiumMarketItem
                     .Where(subEntry => subEntry.ParentId == marketEntry.Id)
@@ -74,7 +163,67 @@ public partial class GameStorage {
             return selectedResults;
         }
 
+        public ICollection<UgcMarketItem> GetUgcMarketItems(params int[] tabIds) {
+            if (tabIds.Length == 0) {
+                return Context.UgcMarketItem
+                    .Where(item => item.ListingEndTime > DateTime.Now)
+                    .AsEnumerable()
+                    .Select(ToMarketEntry)
+                    .ToList()!;
+            }
+
+            return Context.UgcMarketItem
+                .Where(item => item.ListingEndTime > DateTime.Now && tabIds.Contains(item.TabId))
+                .AsEnumerable()
+                .Select(ToMarketEntry)
+                .ToList()!;
+        }
+
+        public ICollection<UgcMarketItem> GetUgcMarketPromotedItems() {
+            ICollection<UgcMarketItem> items = Context.UgcMarketItem
+                .Where(item => item.PromotionEndTime > DateTime.Now)
+                .OrderBy(item => EF.Functions.Random())
+                .Take(12)
+                .AsEnumerable()
+                .Select(ToMarketEntry)
+                .ToList()!;
+
+            foreach (UgcMarketItem item in items) {
+                item.Category = UgcMarketHomeCategory.Promoted;
+            }
+            return items;
+        }
+
+        public ICollection<UgcMarketItem> GetUgcMarketNewItems() {
+            ICollection<UgcMarketItem> items = Context.UgcMarketItem
+                .Where(item => item.ListingEndTime > DateTime.Now)
+                .OrderBy(item => item.CreationTime)
+                .Take(6)
+                .AsEnumerable()
+                .Select(ToMarketEntry)
+                .ToList()!;
+
+
+            foreach (UgcMarketItem item in items) {
+                item.Category = UgcMarketHomeCategory.New;
+            }
+            return items;
+        }
+
+        public UgcMarketItem? GetUgcMarketItem(long id) {
+            Model.UgcMarketItem? item = Context.UgcMarketItem.Find(id);
+            return ToMarketEntry(item);
+        }
+
         private PremiumMarketItem? ToMarketEntry(Model.PremiumMarketItem? model) {
+            if (model == null) {
+                return null;
+            }
+
+            return game.itemMetadata.TryGet(model.ItemId, out ItemMetadata? metadata) ? model.Convert(metadata) : null;
+        }
+
+        private UgcMarketItem? ToMarketEntry(Model.UgcMarketItem? model) {
             if (model == null) {
                 return null;
             }

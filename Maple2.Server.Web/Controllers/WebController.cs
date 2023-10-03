@@ -44,22 +44,28 @@ public class WebController : ControllerBase {
 
         byte[] fileBytes = packet.ReadBytes(packet.Available);
 
+        UgcResource? resource = null;
         if (ugcUid != 0) {
             using WebStorage.Request db = webStorage.Context();
-            UgcResource? resource = db.GetUgc(ugcUid);
+            resource = db.GetUgc(ugcUid);
             if (resource == null) {
                 return Results.NotFound($"{ugcUid} does not exist.");
             }
-            if (System.IO.File.Exists(resource.Path)) {
-                return Results.Conflict("resource already exists.");
-            }
 
-            await System.IO.File.WriteAllBytesAsync(resource.Path, fileBytes);
-            return Results.Text($"0,{resource.Path}");
+            if (type != UgcType.ItemIcon && !string.IsNullOrEmpty(resource.Path)) {
+                if (System.IO.File.Exists(resource.Path)) {
+                    return Results.Conflict("resource already exists.");
+                }
+
+                await System.IO.File.WriteAllBytesAsync(resource.Path, fileBytes);
+                return Results.Text($"0,{resource.Path}");
+            }
         }
 
         return type switch {
             UgcType.ProfileAvatar => UploadProfileAvatar(fileBytes, characterId),
+            UgcType.Item or UgcType.Mount or UgcType.Furniture => UploadItem(fileBytes, id, ugcUid, resource),
+            UgcType.ItemIcon => UploadItemIcon(fileBytes, id, ugcUid, resource),
             _ => HandleUnknownMode(type),
         };
     }
@@ -80,6 +86,37 @@ public class WebController : ControllerBase {
         string uniqueFileName = Guid.NewGuid().ToString();
         System.IO.File.WriteAllBytes($"{filePath}/{uniqueFileName}.png", fileBytes);
         return Results.Text($"0,data/profiles/avatar/{characterId}/{uniqueFileName}.png");
+    }
+
+    private IResult UploadItem(byte[] fileBytes, int itemId, long ugcId, UgcResource resource) {
+        string filePath = $"{RootDir}/items/{itemId}/";
+        try {
+            Directory.CreateDirectory(filePath);
+        } catch (Exception ex) {
+            Log.Error(ex, "Failed preparing directory: {Path}", filePath);
+            return Results.Problem("Internal Server Error", statusCode: 500);
+        }
+        using WebStorage.Request db = webStorage.Context();
+        string ugcPath = $"item/ms2/01/{itemId}/{resource.Id}.m2u";
+
+        db.UpdatePath(ugcId, ugcPath);
+        System.IO.File.WriteAllBytes($"{filePath}/{resource.Id}.m2u", fileBytes);
+        return Results.Text($"0,{ugcPath}");
+    }
+
+    private IResult UploadItemIcon(byte[] fileBytes, int itemId, long ugcId, UgcResource resource) {
+        string filePath = $"{RootDir}/itemicon/{itemId}/";
+        try {
+            Directory.CreateDirectory(filePath);
+        } catch (Exception ex) {
+            Log.Error(ex, "Failed preparing directory: {Path}", filePath);
+            return Results.Problem("Internal Server Error", statusCode: 500);
+        }
+        //TODO: Verify that the item exists in the database
+        string ugcPath = $"itemicon/ms2/01/{itemId}/{resource.Id}.png";
+
+        System.IO.File.WriteAllBytes($"{filePath}/{ugcId}.png", fileBytes);
+        return Results.Text($"0,{ugcPath}");
     }
 
     private static IResult HandleUnknownMode(UgcType mode) {
