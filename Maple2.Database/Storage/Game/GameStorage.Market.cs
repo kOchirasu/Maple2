@@ -182,9 +182,9 @@ public partial class GameStorage {
         public ICollection<UgcMarketItem> GetUgcMarketPromotedItems() {
             ICollection<UgcMarketItem> items = Context.UgcMarketItem
                 .Where(item => item.PromotionEndTime > DateTime.Now)
-                .AsEnumerable()
-                .OrderBy(_ => Random.Shared.Next())
+                .OrderBy(item => EF.Functions.Random())
                 .Take(12)
+                .AsEnumerable()
                 .Select(ToMarketEntry)
                 .ToList()!;
 
