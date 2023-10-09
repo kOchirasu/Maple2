@@ -31,6 +31,7 @@ public record ItemMetadataProperty(
     int SlotMax,
     int Type,
     int SubType,
+    string Category,
     ItemTag Tag,
     int Group,
     int Collection,

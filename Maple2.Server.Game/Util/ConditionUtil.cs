@@ -62,7 +62,20 @@ public static class ConditionUtil {
             case ConditionType.level:
             case ConditionType.level_up:
             case ConditionType.item_exist:
+            case ConditionType.item_pickup:
             case ConditionType.quest:
+            case ConditionType.mastery_gathering:
+            case ConditionType.mastery_gathering_try:
+            case ConditionType.mastery_harvest:
+            case ConditionType.mastery_harvest_try:
+            case ConditionType.mastery_farming_try:
+            case ConditionType.mastery_farming:
+            case ConditionType.mastery_harvest_otherhouse:
+            case ConditionType.mastery_manufacturing:
+            case ConditionType.openStoryBook:
+            case ConditionType.quest_accept:
+            case ConditionType.quest_clear_by_chapter:
+            case ConditionType.buff:
                 if (code.Range != null && InRange((ConditionMetadata.Range<int>) code.Range, (int) longValue)) {
                     return true;
                 }
@@ -144,12 +157,24 @@ public static class ConditionUtil {
             case ConditionType.set_mastery_grade:
             case ConditionType.music_play_grade:
             case ConditionType.item_add:
+            case ConditionType.item_pickup:
             case ConditionType.beauty_add:
             case ConditionType.beauty_change_color:
             case ConditionType.beauty_random:
             case ConditionType.beauty_style_add:
             case ConditionType.beauty_style_apply:
             case ConditionType.trigger:
+            case ConditionType.mastery_gathering:
+            case ConditionType.mastery_gathering_try:
+            case ConditionType.mastery_harvest:
+            case ConditionType.mastery_harvest_try:
+            case ConditionType.mastery_farming_try:
+            case ConditionType.mastery_farming:
+            case ConditionType.mastery_harvest_otherhouse:
+            case ConditionType.mastery_manufacturing:
+            case ConditionType.quest_accept:
+            case ConditionType.quest_clear_by_chapter:
+            case ConditionType.buff:
                 return true;
         }
         return false;

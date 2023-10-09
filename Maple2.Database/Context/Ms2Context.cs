@@ -36,6 +36,7 @@ public sealed class Ms2Context : DbContext {
     internal DbSet<SystemBanner> SystemBanner { get; set; } = null!;
     internal DbSet<PremiumMarketItem> PremiumMarketItem { get; set; } = null!;
     internal DbSet<UgcMarketItem> UgcMarketItem { get; set; } = null!;
+    internal DbSet<SoldUgcMarketItem> SoldUgcMarketItem { get; set; } = null!;
     internal DbSet<BeautyShop> BeautyShop { get; set; } = null!;
     internal DbSet<BeautyShopEntry> BeautyShopEntry { get; set; } = null!;
     internal DbSet<Achievement> Achievement { get; set; } = null!;
@@ -67,6 +68,7 @@ public sealed class Ms2Context : DbContext {
         modelBuilder.Entity<SystemBanner>(Maple2.Database.Model.SystemBanner.Configure);
         modelBuilder.Entity<PremiumMarketItem>(Maple2.Database.Model.PremiumMarketItem.Configure);
         modelBuilder.Entity<UgcMarketItem>(Maple2.Database.Model.UgcMarketItem.Configure);
+        modelBuilder.Entity<SoldUgcMarketItem>(Maple2.Database.Model.SoldUgcMarketItem.Configure);
         modelBuilder.Entity<Achievement>(Maple2.Database.Model.Achievement.Configure);
         modelBuilder.Entity<Quest>(Maple2.Database.Model.Quest.Configure);
 

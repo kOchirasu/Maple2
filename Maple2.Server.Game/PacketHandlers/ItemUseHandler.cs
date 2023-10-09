@@ -109,6 +109,7 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             return;
         }
 
+        session.ConditionUpdate(ConditionType.openStoryBook, codeLong: storyBookId);
         session.Send(StoryBookPacket.Load(storyBookId));
     }
 

@@ -20,7 +20,6 @@ public class TableMetadataStorage {
     private readonly Lazy<FishingRewardTable> fishingRewardTable;
     private readonly Lazy<InstrumentTable> instrumentTable;
     private readonly Lazy<InteractObjectTable> interactObjectTable;
-    private readonly Lazy<InteractObjectTable> interactMasteryTable;
     private readonly Lazy<LapenshardUpgradeTable> lapenshardUpgradeTable;
     private readonly Lazy<ItemSocketTable> itemSocketTable;
     private readonly Lazy<GuildTable> guildTable;
@@ -33,6 +32,7 @@ public class TableMetadataStorage {
     private readonly Lazy<InsigniaTable> insigniaTable;
     private readonly Lazy<ExpTable> expTable;
     private readonly Lazy<CommonExpTable> commonExpTable;
+    private readonly Lazy<UgcDesignTable> ugcDesignTable;
 
     private readonly Lazy<EnchantScrollTable> enchantScrollTable;
     private readonly Lazy<ItemRemakeScrollTable> itemRemakeScrollTable;
@@ -65,7 +65,6 @@ public class TableMetadataStorage {
     public FishingRewardTable FishingRewardTable => fishingRewardTable.Value;
     public InstrumentTable InstrumentTable => instrumentTable.Value;
     public InteractObjectTable InteractObjectTable => interactObjectTable.Value;
-    public InteractObjectTable InteractMasteryTable => interactMasteryTable.Value;
     public LapenshardUpgradeTable LapenshardUpgradeTable => lapenshardUpgradeTable.Value;
     public ItemSocketTable ItemSocketTable => itemSocketTable.Value;
     public GuildTable GuildTable => guildTable.Value;
@@ -78,6 +77,7 @@ public class TableMetadataStorage {
     public InsigniaTable InsigniaTable => insigniaTable.Value;
     public ExpTable ExpTable => expTable.Value;
     public CommonExpTable CommonExpTable => commonExpTable.Value;
+    public UgcDesignTable UgcDesignTable => ugcDesignTable.Value;
 
     public EnchantScrollTable EnchantScrollTable => enchantScrollTable.Value;
     public ItemRemakeScrollTable ItemRemakeScrollTable => itemRemakeScrollTable.Value;
@@ -110,8 +110,7 @@ public class TableMetadataStorage {
         fishingSpotTable = Retrieve<FishingSpotTable>(context, "fishingspot.xml");
         fishingRewardTable = Retrieve<FishingRewardTable>(context, "fishingreward.json");
         instrumentTable = Retrieve<InstrumentTable>(context, "instrumentcategoryinfo.xml");
-        interactObjectTable = Retrieve<InteractObjectTable>(context, "interactobject.xml");
-        interactMasteryTable = Retrieve<InteractObjectTable>(context, "interactobject_mastery.xml");
+        interactObjectTable = Retrieve<InteractObjectTable>(context, "interactobject*.xml");
         lapenshardUpgradeTable = Retrieve<LapenshardUpgradeTable>(context, "itemlapenshardupgrade.xml");
         itemSocketTable = Retrieve<ItemSocketTable>(context, "itemsocket.xml");
         guildTable = Retrieve<GuildTable>(context, "guild*.xml");
@@ -124,6 +123,7 @@ public class TableMetadataStorage {
         insigniaTable = Retrieve<InsigniaTable>(context, "nametagsymbol.xml");
         expTable = Retrieve<ExpTable>(context, "exp*.xml");
         commonExpTable = Retrieve<CommonExpTable>(context, "commonexp.xml");
+        ugcDesignTable = Retrieve<UgcDesignTable>(context, "ugcdesign.xml");
         enchantScrollTable = Retrieve<EnchantScrollTable>(context, "enchantscroll.xml");
         itemRemakeScrollTable = Retrieve<ItemRemakeScrollTable>(context, "itemremakescroll.xml");
         itemRepackingScrollTable = Retrieve<ItemRepackingScrollTable>(context, "itemrepackingscroll.xml");

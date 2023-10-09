@@ -35,6 +35,7 @@ internal class PremiumMarketItem {
     public short RequireMinLevel { get; set; }
     public short RequireMaxLevel { get; set; }
     public bool PcCafe { get; set; }
+    public bool Giftable { get; set; }
     public bool ShowSaleTime { get; set; }
     public DateTime CreationTime { get; set; }
 
@@ -65,6 +66,7 @@ internal class PremiumMarketItem {
             RequireMinLevel = other.RequireMinLevel,
             RequireMaxLevel = other.RequireMaxLevel,
             PcCafe = other.PcCafe,
+            Giftable = other.Giftable,
             ShowSaleTime = other.ShowSaleTime,
             CreationTime = other.CreationTime.FromEpochSeconds(),
         };
@@ -96,6 +98,7 @@ internal class PremiumMarketItem {
             RequireMinLevel = RequireMinLevel,
             RequireMaxLevel = RequireMaxLevel,
             PcCafe = PcCafe,
+            Giftable = Giftable,
             ShowSaleTime = ShowSaleTime,
             CreationTime = CreationTime.ToEpochSeconds(),
         };

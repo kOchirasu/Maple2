@@ -148,6 +148,16 @@ public partial class FieldManager {
         return fieldItem;
     }
 
+    public FieldItem SpawnItem(FieldInteract interact, Item item) {
+        var fieldItem = new FieldItem(this, NextLocalId(), item) {
+            Position = interact.Position,
+            Rotation = interact.Rotation,
+        };
+        fieldItems[fieldItem.ObjectId] = fieldItem;
+
+        return fieldItem;
+    }
+
     public FieldBreakable? AddBreakable(string entityId, BreakableActor breakable) {
         if (fieldBreakables.ContainsKey(entityId)) {
             return null;

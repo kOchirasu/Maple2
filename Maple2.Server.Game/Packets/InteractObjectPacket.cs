@@ -33,14 +33,14 @@ public static class InteractObjectPacket {
         return pWriter;
     }
 
-    public static ByteWriter Interact(FieldInteract interact, short gatherResult = 0, int decreaseAmount = 0) {
+    public static ByteWriter Interact(FieldInteract interact, GatherResult result = GatherResult.Success, int decreaseAmount = 0) {
         var pWriter = Packet.Of(SendOp.InteractObject);
         pWriter.Write<Command>(Command.Interact);
         pWriter.WriteString(interact.EntityId);
         pWriter.Write<InteractType>(interact.Type);
 
         if (interact.Type == InteractType.Gathering) {
-            pWriter.WriteShort(gatherResult);
+            pWriter.Write<GatherResult>(result);
             pWriter.WriteInt(decreaseAmount);
         }
 

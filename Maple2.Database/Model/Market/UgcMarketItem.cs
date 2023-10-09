@@ -14,6 +14,7 @@ internal class UgcMarketItem {
     public int ItemId { get; set; }
     public long Price { get; set; }
     public int SalesCount { get; set; }
+    public int TabId { get; set; }
     public UgcMarketListingStatus Status { get; set; }
     public DateTime ListingEndTime { get; set; }
     public DateTime PromotionEndTime { get; set; }
@@ -32,12 +33,17 @@ internal class UgcMarketItem {
             Id = other.Id,
             ItemId = other.ItemMetadata.Id,
             Price = other.Price,
+            SalesCount = other.SalesCount,
+            TabId = other.TabId,
             Status = other.Status,
             ListingEndTime = other.ListingEndTime.FromEpochSeconds(),
             PromotionEndTime = other.PromotionEndTime.FromEpochSeconds(),
             AccountId = other.SellerAccountId,
             CharacterId = other.SellerCharacterId,
             CharacterName = other.SellerCharacterName,
+            Description = other.Description,
+            Tags = other.Tags,
+            Look = other.Look,
             CreationTime = other.CreationTime.FromEpochSeconds(),
         };
     }
@@ -46,6 +52,8 @@ internal class UgcMarketItem {
         var entry = new Maple2.Model.Game.UgcMarketItem(metadata) {
             Id = Id,
             Price = Price,
+            SalesCount = SalesCount,
+            TabId = TabId,
             Status = Status,
             ListingEndTime = ListingEndTime.ToEpochSeconds(),
             PromotionEndTime = PromotionEndTime.ToEpochSeconds(),

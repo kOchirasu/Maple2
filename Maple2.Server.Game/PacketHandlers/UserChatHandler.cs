@@ -117,7 +117,9 @@ public class UserChatHandler : PacketHandler<GameSession> {
             CharacterId = session.CharacterId,
             Name = session.PlayerName,
             Message = message,
-            Party = new ChatRequest.Types.Party {PartyId = 0},
+            Party = new ChatRequest.Types.Party {
+                PartyId = session.Party.Id,
+            },
         };
 
         try {

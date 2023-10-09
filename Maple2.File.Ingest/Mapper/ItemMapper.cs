@@ -162,6 +162,7 @@ public class ItemMapper : TypeMapper<ItemMetadata> {
                     SlotMax: data.property.slotMax,
                     Type: data.property.type,
                     SubType: data.property.subtype,
+                    Category: data.property.category,
                     Tag: string.IsNullOrWhiteSpace(data.basic.stringTag) ? ItemTag.None : Enum.Parse<ItemTag>(data.basic.stringTag),
                     Group: data.property.itemGroup,
                     Collection: data.property.collection,

@@ -18,7 +18,9 @@ internal class CharacterConfig {
     public IDictionary<BasicAttribute, int>? StatAllocation { get; set; }
     public SkillBook? SkillBook { get; set; }
     public IList<int>? FavoriteStickers { get; set; }
+    public IList<long>? FavoriteDesigners { get; set; }
     public IDictionary<LapenshardSlot, int>? Lapenshards { get; set; }
+    public IDictionary<int, int>? GatheringCounts { get; set; } // TODO: Needs to wipe values on daily reset
 
     public DateTime LastModified { get; set; }
 
@@ -42,7 +44,9 @@ internal class CharacterConfig {
             .HasPrincipalKey<SkillTab>(skillTab => skillTab.Id)
             .HasForeignKey<SkillBook>(skillBook => skillBook.ActiveSkillTabId);
         builder.Property(config => config.FavoriteStickers).HasJsonConversion();
+        builder.Property(config => config.FavoriteDesigners).HasJsonConversion();
         builder.Property(config => config.Lapenshards).HasJsonConversion();
+        builder.Property(config => config.GatheringCounts).HasJsonConversion();
 
         builder.Property(unlock => unlock.LastModified).IsRowVersion();
     }
