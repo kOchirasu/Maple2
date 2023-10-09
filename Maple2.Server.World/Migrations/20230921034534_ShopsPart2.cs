@@ -64,7 +64,8 @@ namespace Maple2.Server.World.Migrations
                 name: "RestrictedBuyData",
                 table: "shop-item",
                 type: "json",
-                nullable: true)
+                nullable: true,
+                defaultValue: "")
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.AlterColumn<DateTime>(
@@ -79,7 +80,8 @@ namespace Maple2.Server.World.Migrations
                 name: "RestockData",
                 table: "shop",
                 type: "json",
-                nullable: true)
+                nullable: true,
+                defaultValue: "{}")
                 .Annotation("MySql:CharSet", "utf8mb4");
 
             migrationBuilder.CreateTable(

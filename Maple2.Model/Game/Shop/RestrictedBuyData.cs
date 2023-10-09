@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.Json.Serialization;
 using Maple2.Model.Enum;
@@ -17,6 +18,15 @@ public class RestrictedBuyData : IByteSerializable {
     public RestrictedBuyData() {
         TimeRanges = new List<BuyTimeOfDay>();
         Days = new List<ShopBuyDay>();
+    }
+
+    public RestrictedBuyData Clone() {
+        return new RestrictedBuyData() {
+            StartTime = StartTime,
+            EndTime = EndTime,
+            TimeRanges = TimeRanges.Select(time => time.Clone()).ToList(),
+            Days = Days.Select(day => day).ToList(),
+        };
     }
 
     public void WriteTo(IByteWriter writer) {
@@ -38,12 +48,16 @@ public class RestrictedBuyData : IByteSerializable {
 
 [StructLayout(LayoutKind.Sequential, Size = 8)]
 public readonly struct BuyTimeOfDay {
-    public int StartTimeOfDay { get; }
-    public int EndTimeOfDay { get; }
+    public int StartTimeOfDay { get; } // time begin in seconds. ex 1200 = 12:20 AM
+    public int EndTimeOfDay { get; } // time end in seconds. ex 10600 = 2:56 AM
 
     [JsonConstructor]
     public BuyTimeOfDay(int startTime, int endTime) {
         StartTimeOfDay = startTime;
         EndTimeOfDay = endTime;
+    }
+
+    public BuyTimeOfDay Clone() {
+        return new BuyTimeOfDay(StartTimeOfDay, EndTimeOfDay);
     }
 }

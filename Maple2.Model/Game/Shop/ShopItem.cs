@@ -55,7 +55,7 @@ public class ShopItem : IByteSerializable {
             RequireQuestAllianceId = RequireQuestAllianceId,
             StockCount = StockCount,
             StockPurchased = StockPurchased,
-            RestrictedBuyData = RestrictedBuyData ?? null,
+            RestrictedBuyData = RestrictedBuyData?.Clone(),
         };
     }
 

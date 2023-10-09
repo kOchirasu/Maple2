@@ -37,7 +37,7 @@ public static class Shop {
             8 => (restockData.ExcessCurrencyType, 40),
             9 => (restockData.ExcessCurrencyType, 60),
             10 => (restockData.ExcessCurrencyType, 80),
-            <= 15 => (restockData.ExcessCurrencyType, 100),
+            > 10 and <= 15 => (restockData.ExcessCurrencyType, 100),
             _ => (restockData.ExcessCurrencyType, 150),
         };
     }
