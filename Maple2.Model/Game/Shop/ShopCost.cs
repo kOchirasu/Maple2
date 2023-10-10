@@ -17,6 +17,11 @@ public class ShopCost : IByteSerializable {
     public int Amount { get; init; }
     public int SaleAmount { get; init; }
 
+    public ShopCost() {
+        ItemId = 0;
+        SaleAmount = 0;
+    }
+
     public void WriteTo(IByteWriter writer) {
         writer.Write<ShopCurrencyType>(Type);
         writer.WriteInt(ItemId);

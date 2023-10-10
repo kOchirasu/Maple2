@@ -29,10 +29,7 @@ public class Shop : IByteSerializable {
     /// <summary>
     /// Clones shops for instanced player shops.
     /// </summary>
-    public Shop? Clone() {
-        if (RestockData == null) {
-            return null;
-        }
+    public Shop Clone() {
         return new Shop(Id) {
             CategoryId = CategoryId,
             Name = Name,
