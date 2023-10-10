@@ -438,7 +438,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             return;
         }
 
-        session.Item.Inventory.Consume(item.Uid, 1);
+        if (!session.Item.Inventory.Consume(item.Uid, 1)) {
+            throw new InvalidOperationException($"Failed to consume item: {item.Uid}");
+        }
         session.Send(PlayerHostPacket.StartMiniGame(session.PlayerName, fieldId));
         FieldPortal portal = session.Field.SpawnEventPortal(session.Player, fieldId, portalDurationTick, password);
         session.Field.UsePortal(session, portal.Value.Id, password);
