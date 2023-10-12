@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Caching;
 using Maple2.Database.Context;
+using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Microsoft.EntityFrameworkCore;
 
@@ -56,6 +57,13 @@ public class MapMetadataStorage : MetadataStorage<int, MapMetadata>, ISearchable
 
         UgcCache.AddReplace(id, map);
         return true;
+    }
+
+    public IList<MapMetadata> GetMapsByType(Continent continent, MapType mapType) {
+        lock (Context) {
+            return Context.MapMetadata.FromSqlRaw($"SELECT * FROM `map` WHERE JSON_EXTRACT(Property, '$.Type')={(int) mapType} AND JSON_EXTRACT(Property, '$.Continent')={(int) continent}")
+                .ToList();
+        }
     }
 
     public IEnumerable<UgcMapMetadata> GetAllUgc() {

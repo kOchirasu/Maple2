@@ -72,6 +72,8 @@ public static class Constant {
     public const ItemTag BeautySkinVoucherTag = ItemTag.beauty_skin;
     public const ItemTag BeautyItemColorVoucherTag = ItemTag.beauty_itemcolor;
     public const int HairPaletteId = 2;
+    public const int PartyMaxCapacity = 10;
+    public const int PartyMinCapacity = 4;
 
 
     public const long FurnishingBaseId = 2870000000000000000;
@@ -101,6 +103,8 @@ public static class Constant {
     public const int MapleopolyTicketCostCount = 2;
     public const int MapleopolyTicketRarity = 1;
     public const short HairSlotCount = 30;
+    public const float UGCShopProfitFee = 0.25f;
+    public const int UGCShopProfitDelayDays = 10;
     #endregion
 
     #region table/constants.xml

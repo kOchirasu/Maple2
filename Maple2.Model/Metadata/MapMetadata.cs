@@ -38,7 +38,7 @@ public record MapMetadata(
     MapEntranceBuff[] EntranceBuffs) : ISearchResult;
 
 public record MapMetadataProperty(
-    int Continent,
+    Continent Continent,
     MapRegion Region,
     int Category,
     MapType Type,

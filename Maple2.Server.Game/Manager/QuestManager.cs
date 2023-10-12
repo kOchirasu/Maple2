@@ -158,6 +158,7 @@ public sealed class QuestManager {
             }
         }
 
+        session.ConditionUpdate(ConditionType.quest_accept, codeLong: quest.Id);
         session.Send(QuestPacket.Start(quest));
     }
 
@@ -318,6 +319,7 @@ public sealed class QuestManager {
 
         // TODO: Guild rewards, mission points?
 
+        session.ConditionUpdate(ConditionType.quest_clear_by_chapter, codeLong: quest.Metadata.Basic.ChapterId);
         session.ConditionUpdate(ConditionType.quest, codeLong: quest.Metadata.Id);
 
         quest.EndTime = DateTime.Now.ToEpochSeconds();

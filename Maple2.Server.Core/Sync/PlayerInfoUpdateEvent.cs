@@ -20,6 +20,7 @@ public enum UpdateField {
     // Presets
     Buddy = Profile | Job | Level | Map | Channel | Home | Trophy,
     Guild = Profile | Job | Level | GearScore | Map | Channel | Home | Trophy,
+    Party = Profile | Job | Level | GearScore | Health | Map | Channel | Home,
     All = int.MaxValue,
 }
 

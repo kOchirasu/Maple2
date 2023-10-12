@@ -44,6 +44,7 @@ public class Character {
     public string Motto = string.Empty;
     public string GuildName = string.Empty;
     public long GuildId;
+    public int PartyId;
     public required Mastery Mastery;
     public AchievementInfo AchievementInfo;
 }
