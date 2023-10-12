@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -26,18 +27,18 @@ public static class PortalPacket {
         pWriter.Write<Vector3>(fieldPortal.Position);
         pWriter.Write<Vector3>(fieldPortal.Rotation);
         pWriter.Write<Vector3>(portal.Dimension);
-        pWriter.WriteUnicodeString(); // Model: Eff_Com_Portal_E
+        pWriter.WriteUnicodeString(fieldPortal.Model);
         pWriter.WriteInt(portal.TargetMapId);
         pWriter.WriteInt(fieldPortal.ObjectId);
-        pWriter.WriteInt();
+        pWriter.Write<PortalActionType>(portal.ActionType);
         pWriter.WriteBool(fieldPortal.MinimapVisible);
-        pWriter.WriteLong();
-        pWriter.WriteByte(portal.Type);
-        pWriter.WriteInt(); // StartTick
+        pWriter.WriteLong(fieldPortal.HomeId);
+        pWriter.Write<PortalType>(portal.Type);
+        pWriter.WriteInt(fieldPortal.EndTick);
         pWriter.WriteShort();
-        pWriter.WriteInt(); // EndTick
-        pWriter.WriteBool(false); // locked?
-        pWriter.WriteUnicodeString(); // Owner name
+        pWriter.WriteInt(); // unknown
+        pWriter.WriteBool(!string.IsNullOrEmpty(fieldPortal.Password));
+        pWriter.WriteUnicodeString(fieldPortal.OwnerName);
         pWriter.WriteUnicodeString();
         pWriter.WriteUnicodeString();
 
