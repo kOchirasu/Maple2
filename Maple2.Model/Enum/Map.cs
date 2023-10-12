@@ -40,3 +40,12 @@ public enum MapType {
     SurvivalTeam = 16,
     FieldWar = 17,
 }
+
+public enum Continent {
+    MapleIsland = 101,
+    VictoriaIsland = 102,
+    KarkarIsland = 103,
+    Calibre = 104,
+    Kritias = 105,
+    ShadowWorld = 202,
+}
