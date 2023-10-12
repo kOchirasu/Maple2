@@ -1224,6 +1224,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
             return expType;
         }
         return ExpType.none;
+    }
 
     private UgcDesignTable ParseUgcDesignTable() {
         var results = new Dictionary<int, UgcDesignTable.Entry>();
