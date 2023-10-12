@@ -10,6 +10,10 @@ public static class XmlParseUtil {
             return parameters;
         }
 
+        if (xmlString[1] == ' ') {
+            xmlString = xmlString.Remove(1, 1);
+        }
+
         XmlDocument xmlParameter = new();
         xmlParameter.LoadXml(xmlString);
         foreach (XmlNode node in xmlParameter) {

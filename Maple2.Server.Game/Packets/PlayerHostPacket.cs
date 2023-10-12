@@ -17,6 +17,15 @@ public static class PlayerHostPacket {
         AdBalloonWindow = 6,
     }
 
+    public static ByteWriter StartMiniGame(string hostName, int mapId) {
+        var pWriter = Packet.Of(SendOp.PlayerHost);
+        pWriter.Write<Command>(Command.StartMiniGame);
+        pWriter.WriteUnicodeString(hostName);
+        pWriter.WriteInt(mapId);
+
+        return pWriter;
+    }
+
     public static ByteWriter AdBalloonWindow(InteractBillBoardObject billboard) {
         var pWriter = Packet.Of(SendOp.PlayerHost);
         pWriter.Write<Command>(Command.AdBalloonWindow);

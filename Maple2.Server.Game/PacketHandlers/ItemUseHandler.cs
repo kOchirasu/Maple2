@@ -98,6 +98,9 @@ public class ItemUseHandler : PacketHandler<GameSession> {
             case ItemFunction.InstallBillBoard:
                 HandleInstallBillBoard(session, packet, item);
                 break;
+            case ItemFunction.OpenMassive:
+                HandleOpenMassive(session, packet, item);
+                break;
             default:
                 Logger.Warning("Unhandled item function: {Name}", item.Metadata.Function?.Type);
                 return;
@@ -421,5 +424,26 @@ public class ItemUseHandler : PacketHandler<GameSession> {
         }
         session.Field.Broadcast(InteractObjectPacket.Add(fieldInteract.Object));
         session.Item.Inventory.Consume(item.Uid, 1);
+    }
+
+    private static void HandleOpenMassive(GameSession session, IByteReader packet, Item item) {
+        if (session.Field == null) {
+            return;
+        }
+        string password = packet.ReadUnicodeString();
+        Dictionary<string, string> parameters = XmlParseUtil.GetParameters(item.Metadata.Function?.Parameters);
+
+        // TODO: Handle maxCount and weddingParty
+        if (!parameters.ContainsKey("fieldID") || !int.TryParse(parameters["fieldID"], out int fieldId) ||
+            !parameters.ContainsKey("portalDurationTick") || !int.TryParse(parameters["portalDurationTick"], out int portalDurationTick)) {
+            return;
+        }
+
+        if (!session.Item.Inventory.Consume(item.Uid, 1)) {
+            throw new InvalidOperationException($"Failed to consume item: {item.Uid}");
+        }
+        session.Send(PlayerHostPacket.StartMiniGame(session.PlayerName, fieldId));
+        FieldPortal portal = session.Field.SpawnEventPortal(session.Player, fieldId, portalDurationTick, password);
+        session.Field.UsePortal(session, portal.Value.Id, password);
     }
 }
