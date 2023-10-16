@@ -1,5 +1,6 @@
 ﻿// ReSharper disable InconsistentNaming
 
+using System;
 using Maple2.Model.Enum;
 
 namespace Maple2.Model.Metadata;
@@ -72,6 +73,10 @@ public static class Constant {
     public const ItemTag BeautySkinVoucherTag = ItemTag.beauty_skin;
     public const ItemTag BeautyItemColorVoucherTag = ItemTag.beauty_itemcolor;
     public const int HairPaletteId = 2;
+    public const int MaxBuyBackItems = 12;
+    public const DayOfWeek ResetDay = DayOfWeek.Thursday;
+    public const int PvpArenaNpcId = 11001562;
+    public const int FishingNpcId = 11001609;
     public const int PartyMaxCapacity = 10;
     public const int PartyMinCapacity = 4;
 
@@ -103,6 +108,7 @@ public static class Constant {
     public const int MapleopolyTicketCostCount = 2;
     public const int MapleopolyTicketRarity = 1;
     public const short HairSlotCount = 30;
+    public const ShopCurrencyType InitialTierExcessRestockCurrency = ShopCurrencyType.Meso;
     public const float UGCShopProfitFee = 0.25f;
     public const int UGCShopProfitDelayDays = 10;
     #endregion
