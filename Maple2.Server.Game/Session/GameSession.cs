@@ -82,8 +82,10 @@ public sealed partial class GameSession : Core.Network.Session {
     public ExperienceManager Exp { get; set; }
     public AchievementManager Achievement { get; set; }
     public QuestManager Quest { get; set; }
+    public UgcMarketManager UgcMarket { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
+    public PartyManager Party { get; set; }
 
     public GameSession(TcpClient tcpClient, GameServer server, IComponentContext context) : base(tcpClient) {
         this.server = server;
@@ -120,7 +122,7 @@ public sealed partial class GameSession : Core.Network.Session {
 
         Player = new FieldPlayer(this, player);
         Currency = new CurrencyManager(this);
-        Mastery = new MasteryManager(this);
+        Mastery = new MasteryManager(this, Lua);
         Stats = new StatsManager(this);
         Housing = new HousingManager(this);
         Mail = new MailManager(this);
@@ -135,6 +137,8 @@ public sealed partial class GameSession : Core.Network.Session {
         Config = new ConfigManager(db, this);
         Buddy = new BuddyManager(db, this);
         Item = new ItemManager(db, this, ItemStatsCalc);
+        UgcMarket = new UgcMarketManager(this);
+        Party = new PartyManager(World, this);
 
         if (!PrepareField(player.Character.MapId)) {
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
@@ -147,6 +151,10 @@ public sealed partial class GameSession : Core.Network.Session {
             CharacterId = characterId,
         };
         playerUpdate.SetFields(UpdateField.All, player);
+        playerUpdate.Health = new HealthInfo {
+            CurrentHp = Player.Stats[BasicAttribute.Health].Current,
+            TotalHp = Player.Stats[BasicAttribute.Health].Total,
+        };
         PlayerInfo.SendUpdate(playerUpdate);
 
         //session.Send(Packet.Of(SendOp.REQUEST_SYSTEM_INFO));
@@ -159,6 +167,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Guild.Load();
         // Club
         Buddy.Load();
+        Party.Load();
 
         Send(TimeSyncPacket.Reset(DateTimeOffset.UtcNow));
         Send(TimeSyncPacket.Set(DateTimeOffset.UtcNow));
@@ -196,6 +205,7 @@ public sealed partial class GameSession : Core.Network.Session {
         // UserEnv
         Send(UserEnvPacket.LoadTitles(Player.Value.Unlock.Titles));
         Send(UserEnvPacket.InteractedObjects(Player.Value.Unlock.InteractedObjects));
+        Send(UserEnvPacket.GatheringCounts(Config.GatheringCounts));
         Send(UserEnvPacket.LoadClaimedRewards(Player.Value.Unlock.MasteryRewardsClaimed));
         Send(FishingPacket.LoadAlbum(Player.Value.Unlock.FishAlbum.Values));
         Pet?.Load();
@@ -276,11 +286,11 @@ public sealed partial class GameSession : Core.Network.Session {
         }
 
         //if (!Player.Value.Unlock.Maps.Contains(Player.Value.Character.MapId)) {
-            // Figure out what maps give exp. MapType >= 1 < 5 || 11 ?
-            //Exp.AddExp(ExpType.mapCommon);
+        // Figure out what maps give exp. MapType >= 1 < 5 || 11 ?
+        //Exp.AddExp(ExpType.mapCommon);
         //}
         Player.Value.Unlock.Maps.Add(Player.Value.Character.MapId);
-
+        Config.LoadHotBars();
         Field.OnAddPlayer(Player);
         Scheduler.Start();
         State = SessionState.Connected;
@@ -421,10 +431,12 @@ public sealed partial class GameSession : Core.Network.Session {
 #endif
             Guild.Dispose();
             Buddy.Dispose();
+            Party.Dispose();
 
             using (GameStorage.Request db = GameStorage.Context()) {
                 db.BeginTransaction();
                 db.SavePlayer(Player);
+                UgcMarket.Save(db);
                 Config.Save(db);
                 Item.Save(db);
                 Housing.Save(db);

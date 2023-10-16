@@ -25,9 +25,11 @@ public class ConfigManager {
     private IList<SkillMacro> skillMacros;
     private IList<Wardrobe> wardrobes;
     private IList<int> favoriteStickers;
+    private readonly IList<long> favoriteDesigners;
     private readonly IDictionary<LapenshardSlot, int> lapenshards;
     private readonly IDictionary<int, SkillCooldown> skillCooldowns;
     private readonly StatAttributes statAttributes;
+    public IDictionary<int, int> GatheringCounts;
 
     public readonly SkillManager Skill;
 
@@ -45,23 +47,34 @@ public class ConfigManager {
             IList<SkillMacro>? Macros,
             IList<Wardrobe>? Wardrobes,
             IList<int>? FavoriteStickers,
+            IList<long>? FavoriteDesigners,
             IDictionary<LapenshardSlot, int>? Lapenshards,
             IList<SkillCooldown>? SkillCooldowns,
             IDictionary<BasicAttribute, int>? Allocation,
-            SkillBook? SkillBook
+            IDictionary<int, int>? GatheringCounts,
+        SkillBook? SkillBook
             ) load = db.LoadCharacterConfig(session.CharacterId);
         if (load.KeyBinds != null) {
             foreach (KeyBind keyBind in load.KeyBinds) {
                 SetKeyBind(keyBind);
             }
         }
+        Skill = new SkillManager(session, load.SkillBook ?? new SkillBook());
+
         for (int i = 0; i < TOTAL_HOT_BARS; i++) {
             hotBars.Add(new HotBar(load.HotBars?.ElementAtOrDefault(i)));
         }
+
+        if (load.HotBars == null) {
+            UpdateHotbarSkills();
+        }
+
         skillMacros = load.Macros ?? new List<SkillMacro>();
         wardrobes = load.Wardrobes ?? new List<Wardrobe>();
         favoriteStickers = load.FavoriteStickers ?? new List<int>();
+        favoriteDesigners = load.FavoriteDesigners ?? new List<long>();
         lapenshards = load.Lapenshards ?? new Dictionary<LapenshardSlot, int>();
+        GatheringCounts = load.GatheringCounts ?? new Dictionary<int, int>();
 
         if (load.SkillCooldowns != null) {
             foreach (SkillCooldown cooldown in load.SkillCooldowns) {
@@ -80,7 +93,25 @@ public class ConfigManager {
             }
         }
 
-        Skill = new SkillManager(session, load.SkillBook ?? new SkillBook());
+    }
+
+    public void UpdateHotbarSkills() {
+        SortedDictionary<int, SkillInfo.Skill> skills = Skill.SkillInfo.GetMainLearnedJobSkills(SkillType.Active, SkillRank.Both);
+
+        foreach (HotBar hotBar in hotBars) {
+            foreach (QuickSlot quickSlot in hotBar.Slots) {
+                if (quickSlot.SkillId > 0 && !skills.ContainsKey(quickSlot.SkillId)) {
+                    hotBar.RemoveQuickSlot(quickSlot.SkillId, 0);
+                }
+            }
+        }
+
+        foreach ((int skillId, SkillInfo.Skill skill) in skills) {
+            if (hotBars[activeHotBar].FindQuickSlotIndex(skillId) == -1) {
+                hotBars[activeHotBar].MoveQuickSlot(-1, new QuickSlot(skillId), false);
+            }
+        }
+        session.Send(KeyTablePacket.LoadHotBar(activeHotBar, hotBars));
     }
 
     public void LoadKeyTable() {
@@ -189,6 +220,18 @@ public class ConfigManager {
     public void LoadStatAttributes() {
         session.Send(AttributePointPacket.Sources(statAttributes));
         session.Send(AttributePointPacket.Allocation(statAttributes));
+    }
+
+    public IList<long> GetFavoriteDesigners() {
+        return favoriteDesigners;
+    }
+
+    public void AddFavoriteDesigner(long designer) {
+        favoriteDesigners.Add(designer);
+    }
+
+    public void RemoveFavoriteDesigner(long designer) {
+        favoriteDesigners.Remove(designer);
     }
 
     #region KeyBind
@@ -404,9 +447,11 @@ public class ConfigManager {
             skillMacros,
             wardrobes,
             favoriteStickers,
+            favoriteDesigners,
             lapenshards,
             skillCooldowns.Values.ToList(),
             statAttributes.Allocation,
+            GatheringCounts,
             Skill.SkillBook
         );
     }

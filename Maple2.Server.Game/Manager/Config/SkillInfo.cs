@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Maple2.Database.Storage;
 using Maple2.Model;
 using Maple2.Model.Enum;
@@ -136,6 +137,18 @@ public class SkillInfo : IByteSerializable {
                 yield return skill;
             }
         }
+    }
+
+    /// <summary>
+    /// Returns <b>Main</b> job-specific skills with specified filtering.
+    /// </summary>
+    /// <param name="type">Type of main skills to return.</param>
+    /// <param name="rank">Rank of main skills to return.</param>
+    /// <returns>Enumerable of skills that match the filter.</returns>
+    public SortedDictionary<int, Skill> GetMainLearnedJobSkills(SkillType type, SkillRank rank) {
+        return new SortedDictionary<int, Skill>(GetMainSkills(type, rank)
+            .Where(skill => skill is {Level: > 0, Id: < 20000000})
+            .ToDictionary(skill => skill.Id, skill => skill));
     }
 
     /// <summary>

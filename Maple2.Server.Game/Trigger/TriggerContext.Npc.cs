@@ -112,7 +112,7 @@ public partial class TriggerContext {
     public void SetConversation(byte type, int spawnId, string script, int delay, byte arg5, Align align) {
         ErrorLog("[SetConversation] type:{Type}, spawnId:{SpawnId}, script:{Script}, delay:{Delay}, arg5:{Arg5}, align:{Align}",
             type, spawnId, script, delay, arg5, align);
-        CinematicPacket.Talk(spawnId, spawnId.ToString(), script, delay * 1000, align);
+        Broadcast(CinematicPacket.Talk(spawnId, spawnId.ToString(), script, delay * 1000, align));
     }
 
     public void SetNpcDuelHpBar(bool isOpen, int spawnId, int durationTick, int npcHpStep) {

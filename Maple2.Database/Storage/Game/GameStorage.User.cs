@@ -224,10 +224,10 @@ public partial class GameStorage {
             return Context.TrySaveChanges();
         }
 
-        public (IList<KeyBind>? KeyBinds, IList<QuickSlot[]>? HotBars, List<SkillMacro>?, List<Wardrobe>?, List<int>? FavoriteStickers, IDictionary<LapenshardSlot, int>? Lapenshards, IList<SkillCooldown>? SkillCooldowns, IDictionary<BasicAttribute, int>?, SkillBook?) LoadCharacterConfig(long characterId) {
+        public (IList<KeyBind>? KeyBinds, IList<QuickSlot[]>? HotBars, List<SkillMacro>?, List<Wardrobe>?, List<int>? FavoriteStickers, List<long>? FavoriteDesigners, IDictionary<LapenshardSlot, int>? Lapenshards, IList<SkillCooldown>? SkillCooldowns, IDictionary<BasicAttribute, int>?, IDictionary<int, int>? GatheringCounts, SkillBook?) LoadCharacterConfig(long characterId) {
             CharacterConfig? config = Context.CharacterConfig.Find(characterId);
             if (config == null) {
-                return (null, null, null, null, null, null, null, null, null);
+                return (null, null, null, null, null, null, null, null, null, null, null);
             }
 
             SkillBook? skillBook = config.SkillBook == null ? null : new SkillBook {
@@ -248,9 +248,11 @@ public partial class GameStorage {
                 config.SkillMacros?.Select<Model.SkillMacro, SkillMacro>(macro => macro).ToList(),
                 config.Wardrobes?.Select<Model.Wardrobe, Wardrobe>(wardrobe => wardrobe).ToList(),
                 config.FavoriteStickers?.Select(stickers => stickers).ToList(),
+                config.FavoriteDesigners?.Select(designer => designer).ToList(),
                 config.Lapenshards,
                 config.SkillCooldowns?.Select<Model.SkillCooldown, SkillCooldown>(cooldown => cooldown).ToList(),
                 config.StatAllocation,
+                config.GatheringCounts,
                 skillBook
             );
         }
@@ -262,9 +264,11 @@ public partial class GameStorage {
                 IEnumerable<SkillMacro> skillMacros,
                 IEnumerable<Wardrobe> wardrobes,
                 IList<int> favoriteStickers,
+                IList<long> favoriteDesigners,
                 IDictionary<LapenshardSlot, int> lapenshards,
                 IList<SkillCooldown> skillCooldowns,
                 StatAttributes.PointAllocation allocation,
+                IDictionary<int, int> gatheringCounts,
                 SkillBook skillBook) {
             Context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.TrackAll;
 
@@ -278,6 +282,7 @@ public partial class GameStorage {
             config.SkillMacros = skillMacros.Select<SkillMacro, Model.SkillMacro>(macro => macro).ToList();
             config.Wardrobes = wardrobes.Select<Wardrobe, Model.Wardrobe>(wardrobe => wardrobe).ToList();
             config.FavoriteStickers = favoriteStickers;
+            config.FavoriteDesigners = favoriteDesigners;
             config.Lapenshards = lapenshards;
             config.SkillCooldowns = skillCooldowns.Where(cooldown => cooldown.EndTick > Environment.TickCount64).
                 Select<SkillCooldown, Model.SkillCooldown>(cooldown => cooldown)
@@ -285,6 +290,7 @@ public partial class GameStorage {
             config.StatAllocation = allocation.Attributes.ToDictionary(
                 attribute => attribute,
                 attribute => allocation[attribute]);
+            config.GatheringCounts = gatheringCounts;
             config.SkillBook = new Model.SkillBook {
                 MaxSkillTabs = skillBook.MaxSkillTabs,
                 ActiveSkillTabId = skillBook.ActiveSkillTabId,

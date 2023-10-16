@@ -71,7 +71,7 @@ public class MoveFieldHandler : PacketHandler<GameSession> {
         packet.ReadUnicodeString();
         string password = packet.ReadUnicodeString(); // Password for locked portals
 
-        session.Field.UsePortal(session, portalId);
+        session.Field.UsePortal(session, portalId, password);
     }
 
     private void HandleVisitHome(GameSession session, IByteReader packet) {

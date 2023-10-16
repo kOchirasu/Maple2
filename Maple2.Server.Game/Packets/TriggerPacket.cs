@@ -54,7 +54,7 @@ public static class TriggerPacket {
     public static ByteWriter CameraStart(ICollection<int> pathIds, bool unknown = false) {
         var pWriter = Packet.Of(SendOp.Trigger);
         pWriter.Write<Command>(Command.CameraStart);
-        pWriter.WriteInt(pathIds.Count);
+        pWriter.WriteByte((byte)pathIds.Count);
         foreach (int pathId in pathIds) {
             pWriter.WriteInt(pathId);
         }
@@ -211,8 +211,8 @@ public static class TriggerPacket {
         HideSummary = 3,
         StartMovie = 4,
         SkipMovie = 5,
-        EmotionSequence = 6,
-        EmotionLoop = 7,
+        EmotionSequence = 7,
+        EmotionLoop = 8,
         FaceEmotion = 9,
         PlayerRotation = 10,
         Unknown = 11,

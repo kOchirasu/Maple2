@@ -33,6 +33,7 @@ public sealed partial class FieldManager : IDisposable {
     // ReSharper disable MemberCanBePrivate.Global
     public GameStorage GameStorage { get; init; } = null!;
     public ItemMetadataStorage ItemMetadata { get; init; } = null!;
+    public MapMetadataStorage MapMetadata { get; init; } = null!;
     public NpcMetadataStorage NpcMetadata { get; init; } = null!;
     public SkillMetadataStorage SkillMetadata { get; init; } = null!;
     public TableMetadataStorage TableMetadata { get; init; } = null!;
@@ -127,6 +128,7 @@ public sealed partial class FieldManager : IDisposable {
             }
         }
 
+        IList<MapMetadata> bonusMaps = MapMetadata.GetMapsByType(Metadata.Property.Continent, MapType.PocketRealm);
         foreach (MapMetadataSpawn spawn in Metadata.Spawns) {
             if (!Entities.RegionSpawns.TryGetValue(spawn.Id, out Ms2RegionSpawn? regionSpawn)) {
                 continue;
@@ -143,6 +145,13 @@ public sealed partial class FieldManager : IDisposable {
 
             if (npcIds.Count > 0 && spawn.Population > 0) {
                 AddMobSpawn(spawn, regionSpawn, npcIds);
+                continue;
+            }
+
+            if (spawn.Tags.Contains("보너스맵")) { // Bonus Map
+                // Spawn a hat within a random range of 5 min to 8 hours
+                int delay = Random.Shared.Next(1, 97) * (int) TimeSpan.FromMinutes(5).TotalMilliseconds;
+                Scheduler.Schedule(() => SetBonusMapPortal(bonusMaps, regionSpawn), delay);
             }
         }
 
@@ -194,6 +203,7 @@ public sealed partial class FieldManager : IDisposable {
             foreach (FieldItem item in fieldItems.Values) item.Update(tickCount);
             foreach (FieldMobSpawn mobSpawn in fieldMobSpawns.Values) mobSpawn.Update(tickCount);
             foreach (FieldSkill skill in fieldSkills.Values) skill.Update(tickCount);
+            foreach (FieldPortal portal in fieldPortals.Values) portal.Update(tickCount);
 
             // Environment.TickCount has ~16ms precision so sleep until next update
             Thread.Sleep(15);
@@ -259,7 +269,7 @@ public sealed partial class FieldManager : IDisposable {
         return true;
     }
 
-    public bool UsePortal(GameSession session, int portalId) {
+    public bool UsePortal(GameSession session, int portalId, string password) {
         if (!TryGetPortal(portalId, out FieldPortal? fieldPortal)) {
             return false;
         }
@@ -268,6 +278,17 @@ public sealed partial class FieldManager : IDisposable {
             session.Send(NoticePacket.MessageBox(new InterfaceText($"Cannot use disabled portal: {portalId}")));
             return false;
         }
+
+        if (!string.IsNullOrEmpty(fieldPortal.Password) && password != fieldPortal.Password) {
+            session.Send(NoticePacket.Message(StringCode.s_home_password_mismatch, NoticePacket.Flags.Alert));
+            return false;
+        }
+
+        /* TODO: Remove portal once capacity is reached for Event portals
+        if (fieldPortal.Value.Type == PortalType.Event) {
+            RemovePortal(fieldPortal.ObjectId);
+        }
+        */
 
         // MoveByPortal (same map)
         Portal srcPortal = fieldPortal;
