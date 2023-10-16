@@ -124,6 +124,7 @@ public class BuffManager : IUpdatable {
             return;
         }
 
+        // Set Reflect if applicable
         SetReflect(buff);
         SetInvoke(buff);
         SetCompulsionEvent(buff);
@@ -148,6 +149,9 @@ public class BuffManager : IUpdatable {
 
         logger.Information("{Id} AddBuff to {ObjectId}: {SkillId},{Level} for {Tick}ms", buff.ObjectId, owner.ObjectId, id, level, buff.EndTick - buff.StartTick);
         // Logger.Information("> {Data}", additionalEffect.Property);
+        if (owner is FieldPlayer player) {
+            player.Session.ConditionUpdate(ConditionType.buff, codeLong: buff.Id);
+        }
         if (notifyField) {
             owner.Field.Broadcast(BuffPacket.Add(buff));
         }

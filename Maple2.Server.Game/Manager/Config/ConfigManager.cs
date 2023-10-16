@@ -27,6 +27,7 @@ public class ConfigManager {
     private IList<int> favoriteStickers;
     private readonly IDictionary<LapenshardSlot, int> lapenshards;
     private readonly StatAttributes statAttributes;
+    public IDictionary<int, int> GatheringCounts;
 
     public readonly SkillManager Skill;
 
@@ -45,7 +46,8 @@ public class ConfigManager {
             IList<int>? FavoriteStickers,
             IDictionary<LapenshardSlot, int>? Lapenshards,
             IDictionary<BasicAttribute, int>? Allocation,
-            SkillBook? SkillBook
+            IDictionary<int, int>? GatheringCounts,
+        SkillBook? SkillBook
             ) load = db.LoadCharacterConfig(session.CharacterId);
         if (load.KeyBinds != null) {
             foreach (KeyBind keyBind in load.KeyBinds) {
@@ -66,6 +68,7 @@ public class ConfigManager {
         wardrobes = load.Wardrobes ?? new List<Wardrobe>();
         favoriteStickers = load.FavoriteStickers ?? new List<int>();
         lapenshards = load.Lapenshards ?? new Dictionary<LapenshardSlot, int>();
+        GatheringCounts = load.GatheringCounts ?? new Dictionary<int, int>();
 
         statAttributes = new StatAttributes();
         if (load.Allocation != null) {
@@ -386,6 +389,7 @@ public class ConfigManager {
             favoriteStickers,
             lapenshards,
             statAttributes.Allocation,
+            GatheringCounts,
             Skill.SkillBook
         );
     }
