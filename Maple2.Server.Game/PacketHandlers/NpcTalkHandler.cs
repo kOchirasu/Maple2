@@ -73,6 +73,7 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
 
     private void HandleClose(GameSession session) {
         session.NpcScript = null;
+        session.Shop.ClearActiveShop();
     }
 
     private void HandleTalk(GameSession session, IByteReader packet) {
@@ -87,8 +88,7 @@ public class NpcTalkHandler : PacketHandler<GameSession> {
         }
 
         if (npc.Value.Metadata.Basic.ShopId > 0) {
-            // TODO: Load NPC Shop
-            Logger.Warning("Shop {Id} not loaded", npc.Value.Metadata.Basic.ShopId);
+            session.Shop.Load(npc.Value.Metadata.Basic.ShopId, npc.Value.Id);
         }
 
         if (!ScriptMetadata.TryGet(npc.Value.Id, out ScriptMetadata? metadata)) {

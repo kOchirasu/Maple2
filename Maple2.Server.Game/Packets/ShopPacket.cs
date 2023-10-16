@@ -15,22 +15,23 @@ public static class ShopPacket {
         Update = 2,
         Buy = 4,
         BuyBackItemCount = 6,
-        AddBuyBack = 7,
+        LoadBuyBack = 7,
         RemoveBuyBack = 8,
         InstantRestock = 9,
         LoadNew = 14,
         Error = 15,
     }
 
-    public static ByteWriter Open(Shop shop) {
+    public static ByteWriter Open(Shop shop, int npcId = 0) {
         var pWriter = Packet.Of(SendOp.Shop);
         pWriter.Write<Command>(Command.Open);
+        pWriter.WriteInt(npcId);
         pWriter.WriteClass<Shop>(shop);
 
         return pWriter;
     }
-    
-    public static ByteWriter LoadItems(IList<ShopItem> items) {
+
+    public static ByteWriter LoadItems(ICollection<ShopItem> items) {
         var pWriter = Packet.Of(SendOp.Shop);
         pWriter.Write<Command>(Command.LoadItems);
         pWriter.WriteByte((byte) items.Count);
@@ -40,7 +41,7 @@ public static class ShopPacket {
 
         return pWriter;
     }
-    
+
     public static ByteWriter Update(int id, int totalQuantityPurchased) {
         var pWriter = Packet.Of(SendOp.Shop);
         pWriter.Write<Command>(Command.Update);
@@ -49,19 +50,19 @@ public static class ShopPacket {
 
         return pWriter;
     }
-    
-    public static ByteWriter Buy(int itemId, int quantity, int price, byte rarity, bool toGuildStorage = false) {
+
+    public static ByteWriter Buy(ShopItem shopItem, int quantity, int price, bool toGuildStorage = false) {
         var pWriter = Packet.Of(SendOp.Shop);
         pWriter.Write<Command>(Command.Buy);
-        pWriter.WriteInt(itemId);
+        pWriter.WriteInt(shopItem.ItemId);
         pWriter.WriteInt(quantity);
         pWriter.WriteInt(price * quantity);
-        pWriter.WriteByte(rarity);
+        pWriter.WriteByte(shopItem.Rarity);
         pWriter.WriteBool(toGuildStorage);
 
         return pWriter;
     }
-    
+
     public static ByteWriter BuyBackItemCount(short itemCount) {
         var pWriter = Packet.Of(SendOp.Shop);
         pWriter.Write<Command>(Command.BuyBackItemCount);
@@ -69,10 +70,29 @@ public static class ShopPacket {
 
         return pWriter;
     }
-    
+
+    public static ByteWriter LoadBuyBackItem(params BuyBackItem[] buyBackItems) {
+        var pWriter = Packet.Of(SendOp.Shop);
+        pWriter.Write<Command>(Command.LoadBuyBack);
+        pWriter.WriteShort((short) buyBackItems.Length);
+        foreach (BuyBackItem item in buyBackItems) {
+            pWriter.WriteClass<BuyBackItem>(item);
+        }
+
+        return pWriter;
+    }
+
+    public static ByteWriter RemoveBuyBackItem(int buyBackId) {
+        var pWriter = Packet.Of(SendOp.Shop);
+        pWriter.Write<Command>(Command.RemoveBuyBack);
+        pWriter.WriteInt(buyBackId);
+
+        return pWriter;
+    }
+
     public static ByteWriter InstantRestock(bool unknown = false) {
         var pWriter = Packet.Of(SendOp.Shop);
-        pWriter.Write<Command>(Command.BuyBackItemCount);
+        pWriter.Write<Command>(Command.InstantRestock);
         pWriter.WriteBool(unknown);
         if (unknown) {
             pWriter.WriteInt();
@@ -81,7 +101,7 @@ public static class ShopPacket {
 
         return pWriter;
     }
-    
+
     public static ByteWriter Error(ShopError error, int stringId = 0) {
         var pWriter = Packet.Of(SendOp.Shop);
         pWriter.Write<Command>(Command.Error);

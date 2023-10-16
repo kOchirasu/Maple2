@@ -9,9 +9,9 @@ public class ShopRestockData : IByteSerializable {
     public ShopRestockInterval Interval { get; init; }
     public ShopCurrencyType CurrencyType { get; init; }
     public ShopCurrencyType ExcessCurrencyType { get; init; }
-    public int RestockCost { get; init; }
-    public bool EnableRestockCostMultiplier { get; init; }
-    public int TotalRestockCount { get; init; }
+    public int Cost { get; init; }
+    public bool EnableCostMultiplier { get; init; }
+    public int RestockCount { get; set; }
     public bool DisableInstantRestock { get; init; }
     public bool PersistantInventory { get; init; }
 
@@ -19,9 +19,9 @@ public class ShopRestockData : IByteSerializable {
         writer.Write<ShopCurrencyType>(CurrencyType);
         writer.Write<ShopCurrencyType>(ExcessCurrencyType);
         writer.WriteInt();
-        writer.WriteInt(RestockCost);
-        writer.WriteBool(EnableRestockCostMultiplier);
-        writer.WriteInt(TotalRestockCount);
+        writer.WriteInt(Cost);
+        writer.WriteBool(EnableCostMultiplier);
+        writer.WriteInt(RestockCount);
         writer.Write<ShopRestockInterval>(Interval);
         writer.WriteBool(DisableInstantRestock);
         writer.WriteBool(PersistantInventory);
