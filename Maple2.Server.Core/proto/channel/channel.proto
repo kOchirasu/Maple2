@@ -105,3 +105,16 @@ message PartyRequest {
 message PartyResponse {
   int32 error = 1;
 }
+
+message GroupChatRequest {
+  message Invite {
+    string sender_name = 1;
+    string receiver_name = 2;
+  }
+
+  message Chat {
+    string message = 1;
+  }
+
+  int32 id = 1;
+}

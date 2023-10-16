@@ -7,31 +7,31 @@ using Maple2.Model.Game.Party;
 
 namespace Maple2.Server.World.Containers;
 
-public class PartyLookup : IDisposable {
+public class GroupChatLookup : IDisposable {
     private readonly ChannelClientLookup channelClients;
     private readonly PlayerInfoLookup playerLookup;
 
-    private readonly ConcurrentDictionary<int, PartyManager> parties;
-    private int nextPartyId = 1;
+    private readonly ConcurrentDictionary<int, GroupChatManager> groupChats;
+    private int nextGroupChatId = 1;
 
-    public PartyLookup(ChannelClientLookup channelClients, PlayerInfoLookup playerLookup) {
+    public GroupChatLookup(ChannelClientLookup channelClients, PlayerInfoLookup playerLookup) {
         this.channelClients = channelClients;
         this.playerLookup = playerLookup;
 
-        parties = new ConcurrentDictionary<int, PartyManager>();
+        groupChats = new ConcurrentDictionary<int, GroupChatManager>();
     }
 
     public void Dispose() {
-        foreach (PartyManager manager in parties.Values) {
+        foreach (GroupChatManager manager in groupChats.Values) {
             manager.Dispose();
         }
     }
 
-    public bool TryGet(int partyId, [NotNullWhen(true)] out PartyManager? party) {
-        return parties.TryGetValue(partyId, out party);
+    public bool TryGet(int groupChatId, [NotNullWhen(true)] out GroupChatManager? groupChat) {
+        return groupChats.TryGetValue(groupChatId, out groupChat);
     }
 
-    public bool TryGetByCharacter(long characterId, [NotNullWhen(true)] out PartyManager? party) {
+    /*public bool TryGetByCharacter(long characterId, [NotNullWhen(true)] out PartyManager? party) {
         party = null;
         foreach (PartyManager manager in parties.Values) {
             if (manager.Party.Members.TryGetValue(characterId, out PartyMember? member)) {
@@ -40,14 +40,14 @@ public class PartyLookup : IDisposable {
             }
         }
         return false;
-    }
+    }*/
 
-    public PartyError Create(long leaderId, out int partyId) {
-        partyId = nextPartyId++;
+    public GroupChatError Create(long requesterId, out int groupChatId) {
+        groupChatId = nextGroupChatId++;
 
-        PlayerInfo? leaderInfo = playerLookup.GetPlayerInfo(leaderId);
-        if (leaderInfo == null) {
-            return PartyError.s_party_err_not_found;
+        PlayerInfo? requesterInfo = playerLookup.GetPlayerInfo(requesterId);
+        if (requesterInfo == null) {
+            return GroupChatError.s_err_groupchat_null_target_user;
         }
 
         Party party = new Party(partyId, leaderInfo.AccountId, leaderInfo.CharacterId, leaderInfo.Name);

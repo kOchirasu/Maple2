@@ -5,30 +5,30 @@ using System.Linq;
 using Grpc.Core;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Game.GroupChat;
 using Maple2.Model.Game.Party;
 using Maple2.Server.Channel.Service;
 using ChannelClient = Maple2.Server.Channel.Service.Channel.ChannelClient;
 
 namespace Maple2.Server.World.Containers;
 
-public class PartyManager : IDisposable {
+public class GroupChatManager : IDisposable {
     public required ChannelClientLookup ChannelClients { get; init; }
-    public readonly Party Party;
-    private readonly ConcurrentDictionary<long, (string, DateTime)> pendingInvites;
+    public readonly GroupChat GroupChat;
 
-    public PartyManager(Party party) {
-        Party = party;
-        pendingInvites = new ConcurrentDictionary<long, (string, DateTime)>();
+    public GroupChatManager(GroupChat groupChat) {
+        GroupChat = groupChat;
     }
 
     public void Dispose() {
-        Broadcast(new PartyRequest {
+        // there really isn't a disband for this ?
+        /*Broadcast(new GroupChatRequest {
             Disband = new PartyRequest.Types.Disband { },
-        });
+        });*/
     }
 
-    public void Broadcast(PartyRequest request) {
-        if (request.PartyId > 0 && request.PartyId != Party.Id) {
+    public void Broadcast(GroupChatRequest request) {
+        if (request.GroupChatId > 0 && request.GroupChatId != GroupChat.Id) {
             throw new InvalidOperationException($"Broadcasting {request.PartyCase} for incorrect party: {request.PartyId} => {Party.Id}");
         }
 

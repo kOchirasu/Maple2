@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Game.GroupChat;
 using Maple2.Model.Game.Party;
 using Maple2.Server.Core.Sync;
 using Maple2.Server.Game.Packets;
@@ -10,32 +12,32 @@ using Maple2.Server.Game.Session;
 using Maple2.Server.Game.Util.Sync;
 using Maple2.Server.World.Service;
 using Maple2.Tools.Extensions;
+using Mono.Unix.Native;
 using Serilog;
 using WorldClient = Maple2.Server.World.Service.World.WorldClient;
 
 namespace Maple2.Server.Game.Manager;
 
-public class PartyManager : IDisposable {
+public class GroupChatManager : IDisposable {
     private readonly GameSession session;
     private readonly WorldClient world;
 
-    public Party? Party { get; private set; }
-    public int Id => Party?.Id ?? 0;
+    public GroupChat GroupChat;
 
     private readonly CancellationTokenSource tokenSource;
 
-    private readonly ILogger logger = Log.Logger.ForContext<PartyManager>();
+    private readonly ILogger logger = Log.Logger.ForContext<GroupChatManager>();
 
-    public PartyManager(WorldClient world, GameSession session) {
+    public GroupChatManager(WorldClient world, GameSession session) {
         this.session = session;
         this.world = world;
         tokenSource = new CancellationTokenSource();
 
-        PartyInfoResponse response = session.World.PartyInfo(new PartyInfoRequest {
+        GroupChatInfoResponse response = session.World.GroupChatInfo(new GroupChatInfoResponse {
             CharacterId = session.CharacterId,
         });
         if (response.Party != null) {
-            SetParty(response.Party);
+            SetGroupChat(response.Party);
         }
     }
 
@@ -43,65 +45,21 @@ public class PartyManager : IDisposable {
         session.Dispose();
         tokenSource.Dispose();
 
-        if (Party != null) {
-            foreach (PartyMember member in Party.Members.Values) {
+        foreach((int groupChatId, GroupChat groupChat) in GroupChats) {
+            foreach((long characterId, GroupChatMember member) in groupChat.Members) {
                 member.Dispose();
             }
         }
     }
 
     public void Load() {
-        if (Party == null) {
-            return;
+        foreach((int groupChatId, GroupChat groupChat) in GroupChats) {
+            session.Send(GroupChatPacket.Load(groupChat));
         }
-
-        session.Send(PartyPacket.Load(Party));
     }
 
-    public bool SetParty(PartyInfo info) {
-        if (Party != null) {
-            return false;
-        }
-
-        PartyMember[] members = info.Members.Select(member => {
-            if (!session.PlayerInfo.GetOrFetch(member.CharacterId, out PlayerInfo? playerInfo)) {
-                return null;
-            }
-
-            var result = new PartyMember {
-                PartyId = info.Id,
-                Info = playerInfo.Clone(),
-                JoinTime = member.JoinTime,
-                LoginTime = member.LoginTime,
-            };
-            return result;
-        }).WhereNotNull().ToArray();
-
-        PartyMember? leader = members.SingleOrDefault(member => member.CharacterId == info.LeaderCharacterId);
-        if (leader == null) {
-            logger.Error("Party {PartyId} does not have a valid leader", info.Id);
-            session.Send(PartyPacket.Error(PartyError.s_party_err_not_found));
-            return false;
-        }
-
-        var party = new Party(info.Id, leader) {
-            CreationTime = info.CreationTime,
-            DungeonId = info.DungeonId,
-            MatchPartyName = info.MatchPartyName,
-            MatchPartyId = info.MatchPartyId,
-            IsMatching = info.IsMatching,
-            RequireApproval = info.RequireApproval,
-        };
-        foreach (PartyMember member in members) {
-            if (party.Members.TryAdd(member.CharacterId, member)) {
-                BeginListen(member);
-            }
-        }
-
-        Party = party;
-
-        session.Player.Value.Character.PartyId = Party.Id;
-        session.Send(PartyPacket.Load(Party));
+    public bool SetGroupChat(PartyInfo info) {
+        if
         return true;
     }
 
@@ -174,7 +132,7 @@ public class PartyManager : IDisposable {
         return true;
     }
 
-    public PartyMember? GetMember(string name) {
+    public GroupChatMember? GetMember(string name) {
         return Party?.Members.Values.FirstOrDefault(member => member.Name == name);
     }
 
@@ -187,7 +145,7 @@ public class PartyManager : IDisposable {
     }
 
     #region PlayerInfo Events
-    private void BeginListen(PartyMember member) {
+    private void BeginListen(GroupChatMember member) {
         // Clean up previous token if necessary
         if (member.TokenSource != null) {
             logger.Warning("BeginListen called on Member {Id} that was already listening", member.CharacterId);
@@ -200,40 +158,26 @@ public class PartyManager : IDisposable {
         session.PlayerInfo.Listen(member.Info.CharacterId, listener);
     }
 
-    private void EndListen(PartyMember member) {
+    private void EndListen(GroupChatMember member) {
         member.TokenSource?.Cancel();
         member.TokenSource?.Dispose();
         member.TokenSource = null;
     }
 
-    private bool SyncUpdate(CancellationToken cancel, long id, UpdateField type, IPlayerInfo info) {
-        if (cancel.IsCancellationRequested || Party == null || !Party.Members.TryGetValue(id, out PartyMember? member)) {
+    private bool SyncUpdate(CancellationToken cancel, int groupChatId, long characterId, UpdateField type, IPlayerInfo info) {
+        if (cancel.IsCancellationRequested || !GroupChats.TryGetValue(groupChatId, out GroupChat? groupChat) || !groupChat.Members.TryGetValue(characterId, out GroupChatMember? member)) {
             return true;
         }
 
         bool wasOnline = member.Info.Online;
         member.Info.Update(type, info);
-        member.LoginTime = info.UpdateTime;
 
-        if (type == UpdateField.Health || type == UpdateField.Level) {
-            session.Send(PartyPacket.UpdateStats(member));
-        } else {
-            session.Send(PartyPacket.Update(member));
-        }
+        //session.Send(PartyPacket.Update(member));
 
         if (member.Info.Online != wasOnline) {
             session.Send(member.Info.Online
-                ? PartyPacket.NotifyLogin(member)
-                : PartyPacket.NotifyLogout(member.CharacterId));
-
-            if (!member.Info.Online && member.CharacterId == Party.LeaderCharacterId) {
-                world.Party(new PartyRequest {
-                    RequestorId = member.CharacterId,
-                    UpdateLeader = new PartyRequest.Types.UpdateLeader {
-                        PartyId = session.Party.Id,
-                    },
-                });
-            }
+                ? GroupChatPacket.LoginNotice(member.Name, groupChatId)
+                : GroupChatPacket.LogoutNotice(member.Name, groupChatId));
         }
         return false;
     }
