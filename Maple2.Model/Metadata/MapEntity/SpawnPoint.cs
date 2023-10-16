@@ -37,3 +37,14 @@ public record EventSpawnPointNPC(
     int LifeTime,
     string SpawnAnimation
 ) : SpawnPointNPC(Id, Position, Rotation, Visible, SpawnOnFieldCreate, SpawnRadius, NpcCount, NpcIds, RegenCheckTime);
+
+public record EventSpawnPointItem(
+    int Id,
+    Vector3 Position,
+    Vector3 Rotation,
+    float Lifetime,
+    int IndividualDropBoxId,
+    int GlobalDropBoxId,
+    int GlobalDropLevel,
+    bool Visible
+) : SpawnPoint(Id, Position, Rotation, Visible);

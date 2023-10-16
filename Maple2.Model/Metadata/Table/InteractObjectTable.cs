@@ -15,12 +15,15 @@ public record InteractObjectMetadata(
     int WeaponItemId,
     InteractObjectMetadataItem Item,
     InteractObjectMetadataTime Time,
+    InteractObjectMetadataDrop Drop,
     InteractObjectMetadataEffect AdditionalEffect,
     InteractObjectMetadataSpawn[] Spawn);
 
 public record InteractObjectMetadataItem(int Id, int Amount, int Rarity, int CheckAmount, int RecipeId);
 
 public record InteractObjectMetadataTime(int Reset, int React, int Hide);
+
+public record InteractObjectMetadataDrop(int Rarity, int[] GlobalDropBoxIds, int[] IndividualDropBoxIds, float DropHeight, float DropDistance);
 
 public record InteractObjectMetadataEffect(
     InteractObjectMetadataEffect.ConditionEffect[] Condition,
