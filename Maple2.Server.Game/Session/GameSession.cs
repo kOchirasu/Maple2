@@ -285,10 +285,13 @@ public sealed partial class GameSession : Core.Network.Session {
             return false;
         }
 
-        //if (!Player.Value.Unlock.Maps.Contains(Player.Value.Character.MapId)) {
-        // Figure out what maps give exp. MapType >= 1 < 5 || 11 ?
-        //Exp.AddExp(ExpType.mapCommon);
-        //}
+        if (!Player.Value.Unlock.Maps.Contains(Player.Value.Character.MapId)) {
+            ExpType expType = Field.Metadata.Property.IndoorType > 0 ?
+                ExpType.mapHidden :
+                ExpType.mapCommon;
+            Exp.AddExp(expType);
+        }
+
         Player.Value.Unlock.Maps.Add(Player.Value.Character.MapId);
         Config.LoadHotBars();
         Field.OnAddPlayer(Player);

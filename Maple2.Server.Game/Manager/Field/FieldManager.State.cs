@@ -148,6 +148,29 @@ public partial class FieldManager {
         return fieldItem;
     }
 
+    public FieldItem SpawnItem(Vector3 position, Vector3 rotation, Item item, bool fixedPosition) {
+        var fieldItem = new FieldItem(this, NextLocalId(), item) {
+            Position = position,
+            Rotation = rotation,
+            FixedPosition = fixedPosition,
+        };
+        fieldItems[fieldItem.ObjectId] = fieldItem;
+
+        return fieldItem;
+    }
+
+    public FieldItem SpawnItem(IFieldEntity owner, Vector3 position, Vector3 rotation, Item item, bool fixedPosition) {
+        var fieldItem = new FieldItem(this, NextLocalId(), item) {
+            Owner = owner,
+            Position = position,
+            Rotation = rotation,
+            FixedPosition = fixedPosition,
+        };
+        fieldItems[fieldItem.ObjectId] = fieldItem;
+
+        return fieldItem;
+    }
+
     public FieldItem SpawnItem(FieldInteract interact, Item item) {
         var fieldItem = new FieldItem(this, NextLocalId(), item) {
             Position = interact.Position,
