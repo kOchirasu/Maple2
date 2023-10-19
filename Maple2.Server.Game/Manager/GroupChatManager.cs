@@ -22,7 +22,7 @@ public class GroupChatManager : IDisposable {
     private readonly GameSession session;
     private readonly WorldClient world;
 
-    public GroupChat GroupChat;
+    public GroupChat? GroupChat;
 
     private readonly CancellationTokenSource tokenSource;
 
@@ -33,11 +33,9 @@ public class GroupChatManager : IDisposable {
         this.world = world;
         tokenSource = new CancellationTokenSource();
 
-        GroupChatInfoResponse response = session.World.GroupChatInfo(new GroupChatInfoResponse {
-            CharacterId = session.CharacterId,
-        });
-        if (response.Party != null) {
-            SetGroupChat(response.Party);
+        GroupChatInfoResponse response = session.World.GroupChatInfo(new GroupChatInfoRequest());
+        if (response.GroupChat != null) {
+            SetGroupChat(response.GroupChat);
         }
     }
 
@@ -45,99 +43,96 @@ public class GroupChatManager : IDisposable {
         session.Dispose();
         tokenSource.Dispose();
 
-        foreach((int groupChatId, GroupChat groupChat) in GroupChats) {
-            foreach((long characterId, GroupChatMember member) in groupChat.Members) {
+        if (GroupChat != null) {
+            foreach (GroupChatMember member in GroupChat.Members.Values) {
                 member.Dispose();
             }
         }
     }
 
     public void Load() {
-        foreach((int groupChatId, GroupChat groupChat) in GroupChats) {
-            session.Send(GroupChatPacket.Load(groupChat));
-        }
-    }
-
-    public bool SetGroupChat(PartyInfo info) {
-        if
-        return true;
-    }
-
-    public void RemoveParty() {
-        if (Party == null) {
+        if (GroupChat == null) {
             return;
         }
-
-        Party = null;
-        session.Player.Value.Character.PartyId = 0;
+        session.Send(GroupChatPacket.Load(GroupChat));
     }
 
-    public bool AddMember(PartyMember member) {
-        if (Party == null) {
-            return false;
-        }
-        if (!Party.Members.TryAdd(member.CharacterId, member)) {
+    public bool SetGroupChat(GroupChatInfo info) {
+        if (GroupChat != null) {
             return false;
         }
 
-        BeginListen(member);
-        session.Send(PartyPacket.Joined(member));
+        GroupChatMember[] members = info.Members.Select(member => {
+            if (!session.PlayerInfo.GetOrFetch(member.CharacterId, out PlayerInfo? playerInfo)) {
+                return null;
+            }
+
+            var result = new GroupChatMember {
+                Info = playerInfo.Clone(),
+            };
+            return result;
+        }).WhereNotNull().ToArray();
+
+        var groupChat = new GroupChat(info.Id);
+        foreach (GroupChatMember member in members) {
+            if (groupChat.Members.TryAdd(member.CharacterId, member)) {
+                BeginListen(member);
+            }
+        }
+
+        GroupChat = groupChat;
+
+        session.Send(GroupChatPacket.Load(GroupChat));
+        session.Send(GroupChatPacket.Create(GroupChat.Id));
         return true;
     }
 
-    public bool RemoveMember(long characterId, bool isKick, bool isSelf) {
-        if (Party == null) {
+    public bool AddMember(GroupChatMember sender, GroupChatMember receiver) {
+        if (GroupChat == null) {
             return false;
         }
-        if (!Party.Members.TryRemove(characterId, out PartyMember? member)) {
+        if (!GroupChat.Members.TryAdd(receiver.CharacterId, receiver)) {
+            return false;
+        }
+
+        BeginListen(receiver);
+        session.Send(GroupChatPacket.Join(sender.Name, receiver.Name, GroupChat.Id));
+        return true;
+    }
+
+    public bool RemoveMember(long characterId, bool isSelf) {
+        if (GroupChat == null) {
+            return false;
+        }
+        if (!GroupChat.Members.TryRemove(characterId, out GroupChatMember? member)) {
             return false;
         }
         EndListen(member);
 
-        session.Send(isKick ? PartyPacket.Kicked(member.CharacterId) : PartyPacket.Leave(member.CharacterId, isSelf));
+        session.Send(GroupChatPacket.LeaveNotice(member.Name, GroupChat.Id));
         return true;
     }
 
-    public bool UpdateLeader(long newLeaderCharacterId) {
-        if (Party == null) {
-            return false;
-        }
-
-        PartyMember? leader = Party.Members.Values.SingleOrDefault(member => member.CharacterId == newLeaderCharacterId);
-        if (leader == null) {
-            logger.Error("Party {PartyId} does not have a valid leader", Party.Id);
-            session.Send(PartyPacket.Error(PartyError.s_party_err_not_found));
-            return false;
-        }
-
-        Party.LeaderCharacterId = leader.CharacterId;
-        Party.LeaderAccountId = leader.Info.AccountId;
-        Party.LeaderName = leader.Info.Name;
-
-        session.Send(PartyPacket.NotifyUpdateLeader(newLeaderCharacterId));
-        return true;
-    }
 
     public bool Disband() {
-        if (Party == null) {
+        if (GroupChat == null) {
             return false;
         }
 
-        foreach (PartyMember member in Party.Members.Values) {
+        foreach (GroupChatMember member in GroupChat.Members.Values) {
             EndListen(member);
         }
 
-        session.Send(PartyPacket.Disband());
-        RemoveParty();
+        GroupChat = null;
         return true;
     }
 
     public GroupChatMember? GetMember(string name) {
-        return Party?.Members.Values.FirstOrDefault(member => member.Name == name);
+        return GroupChat?.Members.Values.FirstOrDefault(member => member.Name == name);
     }
 
-    public PartyMember? GetMember(long characterId) {
-        if (Party?.Members.TryGetValue(characterId, out PartyMember? member) == true) {
+    public GroupChatMember? GetMember(long characterId) {
+        if (GroupChat?.Members.TryGetValue(characterId, out GroupChatMember? member) == true) {
             return member;
         }
 
@@ -164,8 +159,8 @@ public class GroupChatManager : IDisposable {
         member.TokenSource = null;
     }
 
-    private bool SyncUpdate(CancellationToken cancel, int groupChatId, long characterId, UpdateField type, IPlayerInfo info) {
-        if (cancel.IsCancellationRequested || !GroupChats.TryGetValue(groupChatId, out GroupChat? groupChat) || !groupChat.Members.TryGetValue(characterId, out GroupChatMember? member)) {
+    private bool SyncUpdate(CancellationToken cancel, long characterId, UpdateField type, IPlayerInfo info) {
+        if (cancel.IsCancellationRequested || GroupChat == null || !GroupChat.Members.TryGetValue(characterId, out GroupChatMember? member)) {
             return true;
         }
 
@@ -176,8 +171,8 @@ public class GroupChatManager : IDisposable {
 
         if (member.Info.Online != wasOnline) {
             session.Send(member.Info.Online
-                ? GroupChatPacket.LoginNotice(member.Name, groupChatId)
-                : GroupChatPacket.LogoutNotice(member.Name, groupChatId));
+                ? GroupChatPacket.LoginNotice(member.Name, GroupChat.Id)
+                : GroupChatPacket.LogoutNotice(member.Name, GroupChat.Id));
         }
         return false;
     }

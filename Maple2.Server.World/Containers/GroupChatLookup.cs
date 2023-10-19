@@ -3,7 +3,10 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
+using Maple2.Model.Game.GroupChat;
 using Maple2.Model.Game.Party;
+using Serilog;
+using Serilog.Core;
 
 namespace Maple2.Server.World.Containers;
 
@@ -50,31 +53,28 @@ public class GroupChatLookup : IDisposable {
             return GroupChatError.s_err_groupchat_null_target_user;
         }
 
-        Party party = new Party(partyId, leaderInfo.AccountId, leaderInfo.CharacterId, leaderInfo.Name);
-        PartyManager manager = new PartyManager(party) {
+        var groupChat = new GroupChat(groupChatId);
+        var manager = new GroupChatManager(groupChat) {
             ChannelClients = channelClients,
         };
 
-        if (!parties.TryAdd(partyId, manager)) {
-            return PartyError.s_party_err_not_found;
+        if (!groupChats.TryAdd(groupChatId, manager)) {
+            return GroupChatError.s_err_groupchat_null_target_user;
         }
 
-        return manager.Join(leaderInfo);
+        return manager.Join(requesterInfo);
     }
 
-    public PartyError Disband(long requestorId, int partyId) {
-        if (!TryGet(partyId, out PartyManager? manager)) {
-            return PartyError.s_party_err_not_found;
+    public void Disband(int groupChatId) {
+        if (!TryGet(groupChatId, out GroupChatManager? manager)) {
+            Log.Error("Failed to disband group chat {GroupChatId} because it was not found", groupChatId);
+            return;
         }
-        if (requestorId != manager.Party.LeaderCharacterId) {
-            return PartyError.s_party_err_not_chief;
-        }
-        if (!parties.TryRemove(partyId, out manager)) {
-            // Failed to remove party after validating.
-            return PartyError.s_party_err_not_found;
+
+        if (!groupChats.TryRemove(groupChatId, out manager)) {
+            Log.Error("Unable to remove group chat {GroupChatId} in World", groupChatId);
+            return;
         }
         manager.Dispose();
-
-        return PartyError.none;
     }
 }

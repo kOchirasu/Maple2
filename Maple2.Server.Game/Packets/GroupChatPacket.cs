@@ -28,9 +28,9 @@ public static class GroupChatPacket {
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteInt(groupChat.Id);
         pWriter.WriteByte((byte) groupChat.Members.Count);
-        foreach ((long characterId, PlayerInfo member) in groupChat.Members) {
+        foreach ((long characterId, GroupChatMember member) in groupChat.Members) {
             pWriter.WriteByte(1); // Unknown
-            pWriter.WriteClass(member);
+            pWriter.WriteClass(member.Info);
         }
 
         return pWriter;
@@ -54,11 +54,11 @@ public static class GroupChatPacket {
         return pWriter;
     }
 
-    public static ByteWriter Join(string memberName, string targetName, int groupChatId) {
+    public static ByteWriter Join(string senderMemberName, string receiverTargetName, int groupChatId) {
         var pWriter = Packet.Of(SendOp.GroupChat);
         pWriter.Write<Command>(Command.Join);
-        pWriter.WriteUnicodeString(memberName);
-        pWriter.WriteUnicodeString(targetName);
+        pWriter.WriteUnicodeString(senderMemberName);
+        pWriter.WriteUnicodeString(receiverTargetName);
         pWriter.WriteInt(groupChatId);
 
         return pWriter;

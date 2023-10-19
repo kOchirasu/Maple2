@@ -7,7 +7,10 @@ using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Game.GroupChat;
 using Maple2.Model.Game.Party;
+using Maple2.Model.Metadata;
 using Maple2.Server.Channel.Service;
+using Serilog;
+using Serilog.Core;
 using ChannelClient = Maple2.Server.Channel.Service.Channel.ChannelClient;
 
 namespace Maple2.Server.World.Containers;
@@ -29,11 +32,11 @@ public class GroupChatManager : IDisposable {
 
     public void Broadcast(GroupChatRequest request) {
         if (request.GroupChatId > 0 && request.GroupChatId != GroupChat.Id) {
-            throw new InvalidOperationException($"Broadcasting {request.PartyCase} for incorrect party: {request.PartyId} => {Party.Id}");
+            throw new InvalidOperationException($"Broadcasting {request.GroupChatCase} for incorrect group chat: {request.GroupChatId} => {GroupChat.Id}");
         }
 
-        request.PartyId = Party.Id;
-        foreach (IGrouping<short, PartyMember> group in Party.Members.Values.GroupBy(member => member.Info.Channel)) {
+        request.GroupChatId = GroupChat.Id;
+        foreach (IGrouping<short, GroupChatMember> group in GroupChat.Members.Values.GroupBy(member => member.Info.Channel)) {
             if (!ChannelClients.TryGetClient(group.Key, out ChannelClient? client)) {
                 continue;
             }
@@ -42,177 +45,86 @@ public class GroupChatManager : IDisposable {
             request.ReceiverIds.AddRange(group.Select(member => member.Info.CharacterId));
 
             try {
-                client.Party(request);
+                client.GroupChat(request);
             } catch { }
         }
     }
 
-    public void FindNewLeader(long characterId) {
-        PartyMember? newLeader = Party.Members.Values.FirstOrDefault(m => m.CharacterId != characterId);
-        if (newLeader == null) {
-            CheckForDisband();
-            return;
-        }
-        UpdateLeader(characterId, newLeader.CharacterId);
-    }
-
     public bool CheckForDisband() {
-        if (Party.Members.Count <= 2) {
+        if (GroupChat.Members.Count <= 1) {
             Dispose();
             return true;
         }
         return false;
     }
 
-    public PartyError Invite(long requestorId, PlayerInfo player) {
-        if (!Party.Members.TryGetValue(requestorId, out PartyMember? requestor)) {
-            return PartyError.s_party_err_not_exist;
+    public GroupChatError Invite(long requestorId, PlayerInfo player) {
+        if (!GroupChat.Members.TryGetValue(requestorId, out GroupChatMember? requestor)) {
+            return GroupChatError.s_err_groupchat_null_target_user;
         }
-        bool isLeader = requestorId == Party.LeaderCharacterId;
-        if (!isLeader) {
-            return PartyError.s_party_err_not_chief;
+        if (GroupChat.Members.Count >= Constant.GroupChatMaxCapacity) {
+            return GroupChatError.s_err_groupchat_maxjoin;
         }
-        if (Party.Members.Count >= Party.Capacity) {
-            return PartyError.s_party_err_full;
-        }
-        if (Party.Members.ContainsKey(player.CharacterId)) {
-            return PartyError.s_party_err_cannot_invite;
+        if (GroupChat.Members.ContainsKey(player.CharacterId)) {
+            return GroupChatError.s_err_groupchat_add_member_target;
         }
         if (!ChannelClients.TryGetClient(player.Channel, out ChannelClient? client)) {
-            return PartyError.s_party_err_cannot_invite;
+            return GroupChatError.s_err_groupchat_add_member_target;
         }
 
         try {
-            pendingInvites[player.CharacterId] = (requestor.Name, DateTime.Now.AddSeconds(30));
-            var request = new PartyRequest {
-                PartyId = Party.Id,
+            var request = new GroupChatRequest {
+                GroupChatId = GroupChat.Id,
                 ReceiverIds = { player.CharacterId },
-                Invite = new PartyRequest.Types.Invite {
-                    SenderId = requestor.CharacterId,
+                Invite = new GroupChatRequest.Types.Invite {
                     SenderName = requestor.Name,
                 },
             };
 
-            PartyResponse response = client.Party(request);
-            return (PartyError) response.Error;
+            GroupChatResponse response = client.GroupChat(request);
+            return (GroupChatError) response.Error;
         } catch (RpcException) {
-            return PartyError.s_party_err_not_found;
+            return GroupChatError.s_err_groupchat_null_target_user;
         }
     }
 
-    public PartyError Join(PlayerInfo info) {
-        if (Party.Members.Count >= Party.Capacity) {
-            return PartyError.s_party_err_full_limit_player;
+    public GroupChatError Join(PlayerInfo info) {
+        if (GroupChat.Members.Count >= Constant.GroupChatMaxCapacity) {
+            return GroupChatError.s_err_groupchat_maxjoin;
         }
-        if (Party.Members.ContainsKey(info.CharacterId)) {
-            return PartyError.s_party_err_alreadyInvite;
+        if (GroupChat.Members.ContainsKey(info.CharacterId)) {
+            return GroupChatError.s_err_groupchat_add_member_target;
         }
 
-        PartyMember member = new PartyMember {
-            PartyId = Party.Id,
+        GroupChatMember member = new GroupChatMember {
             Info = info.Clone(),
-            JoinTime = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            LoginTime = info.UpdateTime,
         };
 
-        Broadcast(new PartyRequest {
-            AddMember = new PartyRequest.Types.AddMember {
+        Broadcast(new GroupChatRequest {
+            AddMember = new GroupChatRequest.Types.AddMember {
                 CharacterId = member.CharacterId,
-                JoinTime = member.JoinTime,
-                LoginTime = member.LoginTime,
             },
         });
-        Party.Members.TryAdd(info.CharacterId, member);
-        return PartyError.none;
+
+        GroupChat.Members.TryAdd(info.CharacterId, member);
+        return GroupChatError.none;
     }
 
-    public PartyError Kick(long requestorId, long characterId) {
-        if (!Party.Members.TryGetValue(requestorId, out PartyMember? _)) {
-            return PartyError.s_party_err_not_found;
-        }
-        if (requestorId != Party.LeaderCharacterId) {
-            return PartyError.s_party_err_not_chief;
-        }
-        if (characterId == Party.LeaderCharacterId) {
-            return PartyError.none;
-        }
-        if (!Party.Members.TryGetValue(characterId, out PartyMember? member)) {
-            return PartyError.s_party_err_not_exist;
-        }
-        if (CheckForDisband()) {
-            return PartyError.none;
-        }
-
-        Broadcast(new PartyRequest {
-            RemoveMember = new PartyRequest.Types.RemoveMember {
-                CharacterId = member.CharacterId,
-                IsKicked = true,
-            },
-        });
-        Party.Members.TryRemove(member.CharacterId, out _);
-        return PartyError.none;
-    }
-
-    public PartyError Leave(long characterId) {
-        if (!Party.Members.TryGetValue(characterId, out PartyMember? member)) {
-            return PartyError.s_party_err_not_found;
-        }
-
-        if (characterId == Party.LeaderCharacterId) {
-            FindNewLeader(characterId);
+    public void Leave(long characterId) {
+        if (!GroupChat.Members.TryGetValue(characterId, out GroupChatMember? member)) {
+            Log.Error("Failed to remove member {CharacterId} from group chat {GroupChatId} because they were not found", characterId, GroupChat.Id);
+            return;
         }
 
         if (CheckForDisband()) {
-            return PartyError.none;
+            return;
         }
 
-        Broadcast(new PartyRequest {
-            RemoveMember = new PartyRequest.Types.RemoveMember {
+        /*Broadcast(new GroupChatRequest {
+            RemoveMember = new GroupChatRequest.Types.RemoveMember {
                 CharacterId = member.CharacterId,
             },
-        });
-        Party.Members.TryRemove(member.CharacterId, out _);
-        return PartyError.none;
-    }
-
-    public PartyError UpdateLeader(long requestorId, long characterId) {
-        if (!Party.Members.TryGetValue(requestorId, out PartyMember? requestor)) {
-            return PartyError.s_party_err_not_found;
-        }
-        if (!Party.Members.TryGetValue(characterId, out PartyMember? member)) {
-            return PartyError.s_party_err_not_found;
-        }
-
-        if (requestorId != Party.LeaderCharacterId) {
-            return PartyError.s_party_err_not_chief;
-        }
-
-        Party.LeaderCharacterId = member.Info.CharacterId;
-        Party.LeaderAccountId = member.Info.AccountId;
-        Party.LeaderName = member.Info.Name;
-        Broadcast(new PartyRequest {
-            UpdateLeader = new PartyRequest.Types.UpdateLeader {
-                CharacterId = characterId,
-            },
-        });
-
-        return PartyError.none;
-    }
-
-    public string ConsumeInvite(long characterId) {
-        foreach ((long id, (string name, DateTime expiryTime)) in pendingInvites) {
-            // Remove any expired entries while iterating.
-            if (expiryTime < DateTime.Now) {
-                pendingInvites.Remove(id, out _);
-                continue;
-            }
-
-            if (id == characterId) {
-                pendingInvites.Remove(id, out _);
-                return name;
-            }
-        }
-
-        return string.Empty;
+        });*/
+        GroupChat.Members.TryRemove(member.CharacterId, out _);
     }
 }

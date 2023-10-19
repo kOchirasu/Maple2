@@ -17,6 +17,8 @@ service Channel {
   rpc Guild(GuildRequest) returns (GuildResponse);
   // Manage party.
   rpc Party(PartyRequest) returns (PartyResponse);
+  // Manage group chat.
+  rpc GroupChat(GroupChatRequest) returns (GroupChatResponse);
 
   // Notify character about new mail.
   rpc MailNotification(maple2.MailNotificationRequest) returns (maple2.MailNotificationResponse);
@@ -112,9 +114,28 @@ message GroupChatRequest {
     string receiver_name = 2;
   }
 
+  message RemoveMember {
+    int64 character_id = 1;
+  }
+
+  message AddMember {
+    int64 character_id = 1;
+  }
+
   message Chat {
     string message = 1;
   }
 
-  int32 id = 1;
+  int32 group_chat_id = 1;
+  repeated int64 receiver_ids = 2;
+  oneof GroupChat {
+    Invite invite = 3;
+    RemoveMember remove_member = 4;
+    AddMember add_member = 5;
+    Chat chat = 6;
+  }
+}
+
+message GroupChatResponse {
+  int32 error = 1;
 }

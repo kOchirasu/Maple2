@@ -12,55 +12,55 @@ namespace Maple2.Server.World.Service;
 
 public partial class WorldService {
     public override Task<GroupChatInfoResponse> GroupChatInfo(GroupChatInfoRequest request, ServerCallContext context) {
-        if (!(request.GroupChatId != 0 && partyLookup.TryGet(request.GroupChatId, out GroupChatManager? manager))) {
+        if (!(request.GroupChatId != 0 && groupChatLookup.TryGet(request.GroupChatId, out GroupChatManager? manager))) {
             return Task.FromResult(new GroupChatInfoResponse());
         }
 
         return Task.FromResult(new GroupChatInfoResponse { GroupChat = ToGroupChatInfo(manager.GroupChat) });
     }
 
-    public override Task<PartyResponse> GroupChat(GroupChatRequest request, ServerCallContext context) {
+    public override Task<GroupChatResponse> GroupChat(GroupChatRequest request, ServerCallContext context) {
         switch (request.GroupChatCase) {
             case GroupChatRequest.GroupChatOneofCase.Create:
                 return Task.FromResult(CreateGroupChat(request.RequestorId, request.Create));
             case GroupChatRequest.GroupChatOneofCase.Invite:
-                return Task.FromResult(DisbandParty(request.RequestorId, request.Disband));
+                return Task.FromResult(InviteGroupChat(request.RequestorId, request.Invite));
             case GroupChatRequest.GroupChatOneofCase.Leave:
-                return Task.FromResult(InviteParty(request.RequestorId, request.Invite));
+                return Task.FromResult(LeaveGroupChat(request.RequestorId, request.Leave));
             default:
                 return Task.FromResult(new GroupChatResponse { Error = (int) GroupChatError.none });
         }
     }
 
-    private PartyResponse CreateGroupChat(long requestorId, GroupChatRequest.Types.Create create) {
-        GroupChatError error = partyLookup.Create(requestorId, out int partyId);
-        if (error != PartyError.none) {
-            return new PartyResponse { Error = (int) error };
+    private GroupChatResponse CreateGroupChat(long requesterId, GroupChatRequest.Types.Create create) {
+        GroupChatError error = groupChatLookup.Create(requesterId, out int partyId);
+        if (error != GroupChatError.none) {
+            return new GroupChatResponse { Error = (int) error };
         }
-        if (!partyLookup.TryGet(partyId, out PartyManager? manager)) {
-            return new PartyResponse { Error = (int) PartyError.s_party_err_not_found };
+        if (!groupChatLookup.TryGet(partyId, out GroupChatManager? manager)) {
+            return new GroupChatResponse { Error = (int) GroupChatError.s_err_groupchat_null_target_user };
         }
 
-        return new PartyResponse { Party = ToPartyInfo(manager.Party) };
+        return new GroupChatResponse { GroupChat = ToGroupChatInfo(manager.GroupChat) };
     }
 
-    private PartyResponse InviteParty(long requestorId, PartyRequest.Types.Invite invite) {
-        if (!partyLookup.TryGet(invite.PartyId, out PartyManager? manager)) {
-            return new PartyResponse { Error = (int) PartyError.s_party_err_not_found };
+    private GroupChatResponse InviteGroupChat(long requestorId, GroupChatRequest.Types.Invite invite) {
+        if (!groupChatLookup.TryGet(invite.GroupChatId, out GroupChatManager? manager)) {
+            return new GroupChatResponse { Error = (int) GroupChatError.s_err_groupchat_null_target_user };
         }
         if (!playerLookup.TryGet(invite.ReceiverId, out PlayerInfo? info)) {
-            return new PartyResponse { Error = (int) PartyError.s_party_err_cannot_invite };
+            return new GroupChatResponse { Error = (int) GroupChatError.s_err_groupchat_null_target_user };
         }
 
-        PartyError error = manager.Invite(requestorId, info);
-        if (error != PartyError.none) {
+        GroupChatError error = manager.Invite(requestorId, info);
+        /*if (error != PartyError.none) {
             return new PartyResponse { Error = (int) error };
-        }
+        }*/
 
-        return new PartyResponse { PartyId = invite.PartyId };
+        return new GroupChatResponse { GroupChatId = invite.GroupChatId };
     }
 
-    private PartyResponse RespondInviteParty(long characterId, PartyRequest.Types.RespondInvite respond) {
+    private PartyResponse RespondInviteGroupChat(long characterId, PartyRequest.Types.RespondInvite respond) {
         if (!partyLookup.TryGet(respond.PartyId, out PartyManager? manager)) {
             return new PartyResponse { Error = (int) PartyError.s_party_err_not_found };
         }
@@ -91,17 +91,12 @@ public partial class WorldService {
         return new PartyResponse { PartyId = manager.Party.Id };
     }
 
-    private PartyResponse LeaveParty(long requestorId, PartyRequest.Types.Leave leave) {
-        if (!partyLookup.TryGet(leave.PartyId, out PartyManager? manager)) {
-            return new PartyResponse { Error = (int) PartyError.s_party_err_not_found };
+    private GroupChatResponse LeaveGroupChat(long requestorId, GroupChatRequest.Types.Leave leave) {
+        if (!groupChatLookup.TryGet(leave.GroupChatId, out GroupChatManager? manager)) {
+            return new GroupChatResponse { Error = (int) GroupChatError.s_err_groupchat_null_target_user };
         }
 
-        PartyError error = manager.Leave(requestorId);
-        if (error != PartyError.none) {
-            return new PartyResponse { Error = (int) error };
-        }
-
-        return new PartyResponse { PartyId = leave.PartyId };
+        return new GroupChatResponse { GroupChatId = leave.GroupChatId };
     }
 
     private static GroupChatInfo ToGroupChatInfo(GroupChat groupChat) {

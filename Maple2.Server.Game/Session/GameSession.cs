@@ -173,7 +173,9 @@ public sealed partial class GameSession : Core.Network.Session {
         // UserConditionEvent
         // PCBangBonus
         Guild.Load();
-        GroupChat.Load();
+        foreach ((int id, GroupChatManager groupChat) in GroupChats) {
+            groupChat.Load();
+        }
         // Club
         Buddy.Load();
         Party.Load();

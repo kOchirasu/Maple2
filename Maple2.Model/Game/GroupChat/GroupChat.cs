@@ -8,7 +8,7 @@ public class GroupChat {
     public readonly ConcurrentDictionary<long, GroupChatMember> Members;
 
     [SetsRequiredMembers]
-    public GroupChat(int id, long leaderAccountId, long leaderCharacterId, string leaderName) {
+    public GroupChat(int id) {
         Id = id;
         Members = new ConcurrentDictionary<long, GroupChatMember>();
     }
