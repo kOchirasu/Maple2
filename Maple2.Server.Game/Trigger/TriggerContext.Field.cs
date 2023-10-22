@@ -4,6 +4,7 @@ using System.Linq;
 using System.Numerics;
 using Maple2.Model.Enum;
 using Maple2.Model.Game;
+using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Packets;
 using Maple2.Tools.Extensions;
@@ -368,6 +369,34 @@ public partial class TriggerContext {
 
     public void CreateItem(int[] spawnIds, int triggerId, int itemId, int arg5) {
         ErrorLog("[CreateItem] spawnIds:{Ids}, triggerId:{TriggerId}, itemId:{ItemId}, arg5:{Arg5}", string.Join(", ", spawnIds), triggerId, itemId, arg5);
+
+        // Getting player to be able to create items. Should we move CreateItem elsewhere?
+        FieldPlayer player = Field.Players.First().Value;
+        foreach (int spawnId in spawnIds) {
+            ICollection<Item> items = new List<Item>();
+            if (itemId != 0) {
+                Item? item = player.Session.Item.CreateItem(itemId);
+                if (item != null) {
+                    items.Add(item);
+                }
+            }
+
+            if (!Field.Entities.EventItemSpawns.TryGetValue(spawnId, out EventSpawnPointItem? spawn)) {
+                continue;
+            }
+
+            if (spawn.IndividualDropBoxId > 0) {
+                items = items.Concat(player.Session.Item.GetIndividualDropBoxItems(spawn.IndividualDropBoxId)).ToList();
+            }
+
+            // TODO: Implement globalDropBoxId
+
+            foreach (Item item in items) {
+                FieldItem fieldItem = Field.SpawnItem(spawn.Position, spawn.Rotation, item, true);
+
+                Field.Broadcast(FieldPacket.DropItem(fieldItem));
+            }
+        }
     }
 
     public void SpawnItemRange(int[] rangeIds, int randomPickCount) {

@@ -46,7 +46,10 @@ public record ItemMetadataProperty(
     bool DisableDrop,
     int SocketId,
     bool IsFragment,
-    int[] SetOptionIds);
+    int[] SetOptionIds,
+    long[] SellPrices,
+    long[] CustomSellPrices,
+    int ShopId);
 
 public record ItemMetadataCustomize(
     int ColorPalette,

@@ -11,6 +11,7 @@ using Maple2.Model.Enum;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Game.Event;
+using Maple2.Model.Game.Shop;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -56,6 +57,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public required SkillMetadataStorage SkillMetadata { get; init; }
     public required TableMetadataStorage TableMetadata { get; init; }
     public required MapMetadataStorage MapMetadata { get; init; }
+    public required NpcMetadataStorage NpcMetadata { get; init; }
     public required AchievementMetadataStorage AchievementMetadata { get; init; }
     public required QuestMetadataStorage QuestMetadata { get; init; }
     public required ScriptMetadataStorage ScriptMetadata { get; init; }
@@ -82,6 +84,7 @@ public sealed partial class GameSession : Core.Network.Session {
     public ExperienceManager Exp { get; set; }
     public AchievementManager Achievement { get; set; }
     public QuestManager Quest { get; set; }
+    public ShopManager Shop { get; set; }
     public UgcMarketManager UgcMarket { get; set; }
     public FieldManager? Field { get; set; }
     public FieldPlayer Player { get; private set; }
@@ -133,6 +136,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Exp = new ExperienceManager(this, Lua);
         Achievement = new AchievementManager(this);
         Quest = new QuestManager(this);
+        Shop = new ShopManager(this);
         Guild = new GuildManager(this);
         Config = new ConfigManager(db, this);
         Buddy = new BuddyManager(db, this);
@@ -285,10 +289,13 @@ public sealed partial class GameSession : Core.Network.Session {
             return false;
         }
 
-        //if (!Player.Value.Unlock.Maps.Contains(Player.Value.Character.MapId)) {
-        // Figure out what maps give exp. MapType >= 1 < 5 || 11 ?
-        //Exp.AddExp(ExpType.mapCommon);
-        //}
+        if (!Player.Value.Unlock.Maps.Contains(Player.Value.Character.MapId)) {
+            ExpType expType = Field.Metadata.Property.IndoorType > 0 ?
+                ExpType.mapHidden :
+                ExpType.mapCommon;
+            Exp.AddExp(expType);
+        }
+
         Player.Value.Unlock.Maps.Add(Player.Value.Character.MapId);
         Config.LoadHotBars();
         Field.OnAddPlayer(Player);
@@ -370,6 +377,10 @@ public sealed partial class GameSession : Core.Network.Session {
         server.Broadcast(packet);
     }
 
+    public Shop? FindShop(int shopId) => server.FindShop(this, shopId);
+
+    public IList<ShopItem> FindShopItems(int shopId) => server.FindShopItems(shopId);
+
     public bool Temp() {
         // -> RequestMoveField
 
@@ -438,6 +449,7 @@ public sealed partial class GameSession : Core.Network.Session {
                 db.SavePlayer(Player);
                 UgcMarket.Save(db);
                 Config.Save(db);
+                Shop.Save(db);
                 Item.Save(db);
                 Housing.Save(db);
                 GameEventUserValue.Save(db);
