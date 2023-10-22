@@ -7,12 +7,14 @@ using Maple2.Server.Game.Packets;
 namespace Maple2.Server.Game.Model;
 
 public class FieldItem : FieldEntity<Item> {
-    public IActor? Owner { get; init; }
+    public IFieldEntity? Owner { get; init; }
 
     private readonly long despawnTick;
+    public bool FixedPosition { get; init; }
 
-    public FieldItem(FieldManager field, int objectId, Item value) : base(field, objectId, value) {
-        despawnTick = Environment.TickCount64 + (int) TimeSpan.FromMinutes(2).TotalMilliseconds;
+    public FieldItem(FieldManager field, int objectId, Item value, long msDuration = 0) : base(field, objectId, value) {
+        despawnTick = msDuration == 0 ? Environment.TickCount64 + (int) TimeSpan.FromMinutes(2).TotalMilliseconds :
+            Environment.TickCount64 + (int) msDuration;
     }
 
     public void Pickup(FieldPlayer looter) {

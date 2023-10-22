@@ -43,7 +43,7 @@ public class MapMapper : TypeMapper<MapMetadata> {
                 Name: name,
                 XBlock: data.xblock.name.ToLower(),
                 Property: new MapMetadataProperty(
-                    Continent: data.property.continentCode,
+                    Continent: (Continent) data.property.continentCode,
                     Region: (MapRegion) data.property.regionCode,
                     Category: data.property.mapCategoryCode,
                     Type: (MapType) data.property.mapType,
@@ -63,7 +63,8 @@ public class MapMapper : TypeMapper<MapMetadata> {
                     OnlyDarkTomb: data.property.onlyDarkTomb,
                     PkMode: data.property.pkMode,
                     CanFly: data.property.checkFly,
-                    CanClimb: data.property.checkClimb),
+                    CanClimb: data.property.checkClimb,
+                    IndoorType: data.indoor.type),
                 Limit: new MapMetadataLimit(
                     Capacity: data.property.capacity,
                     MinLevel: data.property.enterMinLevel,

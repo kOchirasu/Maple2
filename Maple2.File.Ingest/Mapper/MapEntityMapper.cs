@@ -5,6 +5,7 @@ using Maple2.File.Flat.standardmodellibrary;
 using Maple2.File.IO;
 using Maple2.File.Parser.Flat;
 using Maple2.File.Parser.MapXBlock;
+using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
 using Maple2.Tools.Extensions;
 using static M2dXmlGenerator.FeatureLocaleFilter;
@@ -27,6 +28,7 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
         foreach (IMapEntity entity in entities) {
             switch (entity) {
                 case IMS2InteractObject interactObject:
+
                     switch (interactObject) {
                         case IMS2InteractActor interactActor:
                             yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
@@ -65,7 +67,7 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
                 case IPortal portal:
                     if (!FeatureEnabled(portal.feature) || !HasLocale(portal.locale)) continue;
                     yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
-                        Block = new Portal(portal.PortalID, portal.TargetFieldSN, portal.TargetPortalID, (byte) portal.PortalType, portal.ActionType, portal.Position, portal.Rotation, portal.PortalDimension, portal.frontOffset, portal.IsVisible, portal.MinimapIconVisible, portal.PortalEnable)
+                        Block = new Portal(portal.PortalID, portal.TargetFieldSN, portal.TargetPortalID, (PortalType) portal.PortalType, (PortalActionType) portal.ActionType, portal.Position, portal.Rotation, portal.PortalDimension, portal.frontOffset, portal.IsVisible, portal.MinimapIconVisible, portal.PortalEnable)
                     };
                     continue;
                 case ISpawnPoint spawn:
@@ -94,6 +96,12 @@ public class MapEntityMapper : TypeMapper<MapEntity> {
                                     };
                                     continue;
                             }
+                            continue;
+                        case IEventSpawnPointItem itemSpawn:
+                            yield return new MapEntity(xblock, new Guid(entity.EntityId), entity.EntityName) {
+                                Block = new EventSpawnPointItem(itemSpawn.SpawnPointID, itemSpawn.Position, itemSpawn.Rotation, itemSpawn.LifeTime, int.TryParse(itemSpawn.individualDropBoxId, out int individualDropBoxId) ? individualDropBoxId : 0, int.TryParse(itemSpawn.globalDropBoxId, out int globalDropBoxId) ? globalDropBoxId : 0, (int) itemSpawn.globalDropLevel, itemSpawn.IsVisible)
+                            };
+                            continue;
                     }
                     continue;
                 case IMS2RegionSpawnBase spawn:

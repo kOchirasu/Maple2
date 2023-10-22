@@ -31,6 +31,7 @@ public record ItemMetadataProperty(
     int SlotMax,
     int Type,
     int SubType,
+    string Category,
     ItemTag Tag,
     int Group,
     int Collection,
@@ -45,7 +46,10 @@ public record ItemMetadataProperty(
     bool DisableDrop,
     int SocketId,
     bool IsFragment,
-    int[] SetOptionIds);
+    int[] SetOptionIds,
+    long[] SellPrices,
+    long[] CustomSellPrices,
+    int ShopId);
 
 public record ItemMetadataCustomize(
     int ColorPalette,

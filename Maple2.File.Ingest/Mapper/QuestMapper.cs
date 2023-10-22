@@ -2,9 +2,12 @@
 using M2dXmlGenerator;
 using Maple2.File.IO;
 using Maple2.File.Parser;
+using Maple2.File.Parser.Enum;
 using Maple2.File.Parser.Xml.Quest;
 using Maple2.Model.Enum;
 using Maple2.Model.Metadata;
+using ConditionType = Maple2.Model.Enum.ConditionType;
+using ExpType = Maple2.Model.Enum.ExpType;
 
 namespace Maple2.File.Ingest.Mapper;
 
@@ -85,7 +88,7 @@ public class QuestMapper : TypeMapper<QuestMetadata> {
         return new QuestMetadataReward(
             Meso: reward.money,
             Exp: reward.exp,
-            RelativeExp: (ExpType) reward.relativeExp,
+            RelativeExp: ToExpType(reward.relativeExp),
             GuildFund: reward.guildFund,
             GuildExp: reward.guildExp,
             GuildCoin: reward.guildCoin,
@@ -98,5 +101,12 @@ public class QuestMapper : TypeMapper<QuestMetadata> {
             EssentialJobItem: essentialJobItem.Select(item =>
                 new QuestMetadataReward.Item(item.code, item.rank, item.count)).ToList()
         );
+    }
+
+    private static ExpType ToExpType(RelativeExp commonExpType) {
+        if (Enum.TryParse(commonExpType.ToString(), out ExpType expType)) {
+            return expType;
+        }
+        return ExpType.none;
     }
 }

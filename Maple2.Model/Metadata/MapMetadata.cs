@@ -38,7 +38,7 @@ public record MapMetadata(
     MapEntranceBuff[] EntranceBuffs) : ISearchResult;
 
 public record MapMetadataProperty(
-    int Continent,
+    Continent Continent,
     MapRegion Region,
     int Category,
     MapType Type,
@@ -58,7 +58,8 @@ public record MapMetadataProperty(
     bool OnlyDarkTomb,
     bool PkMode,
     bool CanFly,
-    bool CanClimb);
+    bool CanClimb,
+    float IndoorType);
 
 public record MapMetadataDrop(
     int Level,

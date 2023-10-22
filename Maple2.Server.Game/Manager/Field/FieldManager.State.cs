@@ -71,7 +71,7 @@ public partial class FieldManager {
         if (Metadata.Property.RevivalReturnId != 0) {
             player.Character.ReviveMapId = Metadata.Property.RevivalReturnId;
         }
-        if (Metadata.Property.EnterReturnId != 0) {
+        if (Metadata.Property.EnterReturnId != 0 && Metadata.Limit.Capacity > 0) {
             player.Character.ReturnMapId = Metadata.Property.EnterReturnId;
         }
 
@@ -142,6 +142,29 @@ public partial class FieldManager {
             Owner = owner,
             Position = owner.Position,
             Rotation = owner.Rotation,
+        };
+        fieldItems[fieldItem.ObjectId] = fieldItem;
+
+        return fieldItem;
+    }
+
+    public FieldItem SpawnItem(Vector3 position, Vector3 rotation, Item item, bool fixedPosition) {
+        var fieldItem = new FieldItem(this, NextLocalId(), item) {
+            Position = position,
+            Rotation = rotation,
+            FixedPosition = fixedPosition,
+        };
+        fieldItems[fieldItem.ObjectId] = fieldItem;
+
+        return fieldItem;
+    }
+
+    public FieldItem SpawnItem(IFieldEntity owner, Vector3 position, Vector3 rotation, Item item, bool fixedPosition) {
+        var fieldItem = new FieldItem(this, NextLocalId(), item) {
+            Owner = owner,
+            Position = position,
+            Rotation = rotation,
+            FixedPosition = fixedPosition,
         };
         fieldItems[fieldItem.ObjectId] = fieldItem;
 
@@ -375,6 +398,24 @@ public partial class FieldManager {
         Broadcast(FieldPropertyPacket.Background(background));
     }
 
+    private void SetBonusMapPortal(IList<MapMetadata> bonusMaps, Ms2RegionSpawn spawn) {
+        // Spawn a hat within a random range of 5 min to 8 hours
+        int delay = Random.Shared.Next(1, 97) * (int) TimeSpan.FromMinutes(5).TotalMilliseconds;
+        var portal = new Portal(NextLocalId(), bonusMaps[Random.Shared.Next(bonusMaps.Count)].Id,  -1, PortalType.Event, PortalActionType.Interact, spawn.Position, spawn.Rotation,
+            new Vector3(200, 200, 250), 0, true, false, true);
+        FieldPortal fieldPortal = SpawnPortal(portal);
+        fieldPortal.Model = Metadata.Property.Continent switch {
+            Continent.VictoriaIsland => "Eff_event_portal_A01",
+            Continent.KarkarIsland => "Eff_kr_sandswirl_01",
+            Continent.ShadowWorld => "Eff_uw_potral_A01",
+            Continent.Kritias => "Eff_ks_magichole_portal_A01",
+            _ => "Eff_event_portal_A01",
+        };
+        fieldPortal.EndTick = (int) (Environment.TickCount64 + TimeSpan.FromSeconds(30).TotalMilliseconds);
+        Broadcast(PortalPacket.Add(fieldPortal));
+        Scheduler.Schedule(() => SetBonusMapPortal(bonusMaps, spawn), delay);
+    }
+
     #region Player Managed
     // GuideObject is not added to the field, it will be managed by |GameSession.State|
     public FieldGuideObject SpawnGuideObject(IActor<Player> owner, IGuideObject guideObject, Vector3 position = default) {
@@ -399,6 +440,18 @@ public partial class FieldManager {
 
         return fieldInstrument;
     }
+
+    public FieldPortal SpawnEventPortal(FieldPlayer player, int fieldId, int portalDurationTick, string password) {
+        var portal = new Portal(NextLocalId(), fieldId, -1, PortalType.Event, PortalActionType.Interact, player.Position, player.Rotation, new Vector3(200, 200, 250), 0, true, false, true);
+        FieldPortal fieldPortal = SpawnPortal(portal);
+        fieldPortal.Model = "Eff_Com_Portal_E";
+        fieldPortal.Password = password;
+        fieldPortal.OwnerName = player.Value.Character.Name;
+        fieldPortal.EndTick = (int) (Environment.TickCount64 + portalDurationTick);
+        Broadcast(PortalPacket.Add(fieldPortal));
+        return fieldPortal;
+    }
+
     #endregion
 
     #region Remove
@@ -476,6 +529,15 @@ public partial class FieldManager {
             Broadcast(ProxyObjectPacket.RemovePet(objectId));
             pet.Dispose();
         }, removeDelay);
+        return true;
+    }
+
+    public bool RemovePortal(int objectId) {
+        if (!fieldPortals.TryRemove(objectId, out FieldPortal? portal)) {
+            return false;
+        }
+
+        Broadcast(PortalPacket.Remove(portal.Value.Id));
         return true;
     }
     #endregion

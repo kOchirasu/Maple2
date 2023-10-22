@@ -62,6 +62,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
         yield return new TableMetadata {Name = "nametagsymbol.xml", Table = ParseInsigniaTable()};
         yield return new TableMetadata {Name = "exp*.xml", Table = ParseExpTable()};
         yield return new TableMetadata {Name = "commonexp.xml", Table = ParseCommonExpTable()};
+        yield return new TableMetadata {Name = "ugcdesign.xml", Table = ParseUgcDesignTable()};
         // Fishing
         yield return new TableMetadata {Name = "fishingspot.xml", Table = ParseFishingSpot()};
         yield return new TableMetadata {Name = "fish.xml", Table = ParseFish()};
@@ -291,6 +292,7 @@ public class TableMapper : TypeMapper<TableMetadata> {
                 WeaponItemId: info.weapon.weaponItemId,
                 Item: new InteractObjectMetadataItem(info.item.code, info.item.consume, info.item.rank, info.item.checkCount, info.gathering.receipeID),
                 Time: new InteractObjectMetadataTime(info.time.resetTime, info.time.reactTime, info.time.hideTime),
+                Drop: new InteractObjectMetadataDrop(info.drop.objectDropRank, info.drop.globalDropBoxId ?? Array.Empty<int>(), info.drop.individualDropBoxId ?? Array.Empty<int>(), info.drop.dropHeight, info.drop.dropDistance),
                 AdditionalEffect: new InteractObjectMetadataEffect(
                     Condition: ParseConditional(info.conditionAdditionalEffect),
                     Invoke: ParseInvoke(info.additionalEffect),
@@ -1212,8 +1214,28 @@ public class TableMapper : TypeMapper<TableMetadata> {
     private CommonExpTable ParseCommonExpTable() {
         var results = new Dictionary<ExpType, CommonExpTable.Entry>();
         foreach ((CommonExpType type, CommonExp exp) in parser.ParseCommonExp()) {
-            results.Add((ExpType) type, new CommonExpTable.Entry(ExpTableId: exp.expTableID, Factor: exp.factor));
+            results.Add(ToExpType(type), new CommonExpTable.Entry(ExpTableId: exp.expTableID, Factor: exp.factor));
         }
         return new CommonExpTable(results);
+    }
+
+    private static ExpType ToExpType(CommonExpType commonExpType) {
+        if (Enum.TryParse(commonExpType.ToString(), out ExpType expType)) {
+            return expType;
+        }
+        return ExpType.none;
+    }
+
+    private UgcDesignTable ParseUgcDesignTable() {
+        var results = new Dictionary<int, UgcDesignTable.Entry>();
+        foreach ((int id, UgcDesign design) in parser.ParseUgcDesign()) {
+            results.Add(id, new UgcDesignTable.Entry(
+                ItemRarity: design.itemGrade,
+                CurrencyType: (MeretMarketCurrencyType) design.priceType,
+                CreatePrice: design.salePrice < design.price ? design.salePrice : design.price,
+                MarketMinPrice: design.marketMinPrice,
+                MarketMaxPrice: design.marketMaxPrice));
+        }
+        return new UgcDesignTable(results);
     }
 }

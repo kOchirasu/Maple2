@@ -18,6 +18,8 @@ public partial class GameSession {
     public bool DismantleOpened = false;
     public readonly (long Uid, int Amount)[] DismantleStaging = new (long, int)[DISMANTLE_MAX_STAGED_ITEMS];
 
+    public Item? StagedUgcItem = null;
+
     public Item? ChangeAttributesItem = null;
 
     public TradeManager? Trade;
@@ -35,7 +37,6 @@ public partial class GameSession {
 
     public NpcScript? NpcScript;
 
-    public Shop? Shop;
     public BeautyShop? BeautyShop;
 
     public bool FishingMiniGameActive;

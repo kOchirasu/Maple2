@@ -7,8 +7,9 @@ namespace Maple2.Model.Game;
 public abstract class MarketItem : IByteSerializable {
     public readonly ItemMetadata ItemMetadata;
     protected string Name => ItemMetadata.Name ?? string.Empty;
-    public long Price { get; init; }
-    public int SalesCount { get; init; }
+    public long Price { get; set; }
+    public int SalesCount { get; set; }
+    public required int TabId { get; init; }
     public long CreationTime { get; init; }
 
     public MarketItem(ItemMetadata itemMetadata) {

@@ -27,8 +27,7 @@ public class MesoPickupHandler : PacketHandler<GameSession> {
 
             // If item is mesos, attempt to loot it
             if (session.Field.PickupItem(session.Player, objectId, out Item? item)) {
-                session.Item.Inventory.Discard(item);
-                session.Currency.Meso += item.Amount;
+                session.Item.Inventory.Add(item);
                 session.ConditionUpdate(ConditionType.meso, item.Amount);
             }
         }

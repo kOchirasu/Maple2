@@ -121,9 +121,12 @@ public class LoginSession : Core.Network.Session {
             unlock.Emotes.Add(emoteId);
         }
         character.AchievementInfo = db.GetAchievementInfo(AccountId, character.Id);
-        
+
         db.InitNewCharacter(character.Id, unlock);
 
+        foreach (Item item in createOutfits) {
+            item.Transfer?.Bind(character);
+        }
         List<Item>? outfits = db.CreateItems(character.Id, createOutfits.ToArray());
 
         if (outfits == null || !db.Commit()) {
