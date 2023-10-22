@@ -190,11 +190,9 @@ public class BuffManager : IUpdatable {
                 continue;
             }
 
-            if (!Invokes.TryAdd(buff.Metadata.InvokeEffect.Types[i], new ConcurrentDictionary<int, InvokeRecord> {
-                    [buff.Id] = record,
-                })) {
-                logger.Error("Could not add invoke record {Type} to {Object}", buff.Metadata.InvokeEffect.Types[i], actor.ObjectId);
-            }
+            Invokes.Add(buff.Metadata.InvokeEffect.Types[i], new ConcurrentDictionary<int, InvokeRecord> {
+                [buff.Id] = record,
+            });
         }
     }
 
@@ -213,11 +211,9 @@ public class BuffManager : IUpdatable {
             return;
         }
 
-        if (!Compulsions.TryAdd(eventType, new ConcurrentDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent> {
-                [buff.Id] = buff.Metadata.Status.Compulsion
-            })) {
-            logger.Error("Could not add compulsion event {Type} to {Object}", eventType, actor.ObjectId);
-        }
+        Compulsions.Add(eventType, new ConcurrentDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent> {
+            [buff.Id] = buff.Metadata.Status.Compulsion
+        });
     }
 
     public float TotalCompulsionRate(CompulsionEventType type, int skillId = 0) {
@@ -359,7 +355,7 @@ public class BuffManager : IUpdatable {
         Invokes.RemoveAll(id);
         Compulsions.RemoveAll(id);
 
-        if (buff.Metadata.Status.Values.Any() || buff.Metadata.Status.Rates.Any() || buff.Metadata.Status.SpecialValues.Any() || buff.Metadata.Status.SpecialRates.Any()) {
+        if (buff.Metadata.Status.Values.Count > 0 || buff.Metadata.Status.Rates.Count > 0 || buff.Metadata.Status.SpecialValues.Count > 0 || buff.Metadata.Status.SpecialRates.Count > 0) {
             if (actor is FieldPlayer player) {
                 player.Session.Stats.Refresh();
             }

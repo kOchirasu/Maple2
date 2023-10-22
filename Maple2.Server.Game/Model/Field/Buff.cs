@@ -279,7 +279,6 @@ public class Buff : IUpdatable, IByteSerializable {
         WriteShieldHealth(writer);
     }
 
-    // AdditionalEffect
     public void WriteAdditionalEffect(IByteWriter writer) {
         writer.WriteInt((int) StartTick);
         writer.WriteInt((int) EndTick);
@@ -289,7 +288,6 @@ public class Buff : IUpdatable, IByteSerializable {
         writer.WriteBool(Enabled);
     }
 
-    // Unknown, AdditionalEffect2
     public void WriteShieldHealth(IByteWriter writer) {
         writer.WriteLong(ShieldHealth);
     }
