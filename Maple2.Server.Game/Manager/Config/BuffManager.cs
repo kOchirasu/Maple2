@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -217,7 +217,10 @@ public class BuffManager : IUpdatable {
     }
 
     public float TotalCompulsionRate(CompulsionEventType type, int skillId = 0) {
-        if (!Compulsions.TryGetValue(type, out IDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent>? nestedCompulsionDic)) return 0;
+        if (!Compulsions.TryGetValue(type, out IDictionary<int, AdditionalEffectMetadataStatus.CompulsionEvent>? nestedCompulsionDic)) {
+            return 0;
+        }
+
         return skillId == 0 ? nestedCompulsionDic.Values.Sum(compulsion => compulsion.Rate) :
             nestedCompulsionDic.Values.Where(compulsion => compulsion.SkillIds.Contains(skillId)).Sum(compulsion => compulsion.Rate);
     }
@@ -226,6 +229,7 @@ public class BuffManager : IUpdatable {
         if (Resistances.TryGetValue(attribute, out float value)) {
             return value;
         }
+
         return 0;
     }
 
@@ -238,16 +242,19 @@ public class BuffManager : IUpdatable {
                 rate += invoke.Rate;
             }
         }
+
         return ((int, float)) (value, rate);
     }
 
     private void SetShield(Buff buff) {
-        if (buff.Metadata.Shield != null) {
-            if (buff.Metadata.Shield.HpValue > 0) {
-                buff.ShieldHealth = buff.Metadata.Shield.HpValue;
-            } else if (buff.Metadata.Shield.HpByTargetMaxHp > 0f) {
-                buff.ShieldHealth = (long) (actor.Stats[BasicAttribute.Health].Total * buff.Metadata.Shield.HpByTargetMaxHp);
-            }
+        if (buff.Metadata.Shield == null) {
+            return;
+        }
+
+        if (buff.Metadata.Shield.HpValue > 0) {
+            buff.ShieldHealth = buff.Metadata.Shield.HpValue;
+        } else if (buff.Metadata.Shield.HpByTargetMaxHp > 0f) {
+            buff.ShieldHealth = (long) (actor.Stats[BasicAttribute.Health].Total * buff.Metadata.Shield.HpByTargetMaxHp);
         }
     }
 
@@ -273,6 +280,7 @@ public class BuffManager : IUpdatable {
                         continue;
                     }
                 }
+
                 Remove(cancelId);
             }
         }
@@ -379,6 +387,7 @@ public class BuffManager : IUpdatable {
                 return false;
             }
         }
+
         return true;
     }
 }
