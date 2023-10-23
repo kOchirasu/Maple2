@@ -319,6 +319,7 @@ public sealed partial class GameSession : Core.Network.Session {
 
         Send(EmotePacket.Load(Player.Value.Unlock.Emotes.Select(id => new Emote(id)).ToList()));
         Config.LoadMacros();
+        Config.LoadSkillCooldowns();
 
         Send(CubePacket.UpdateProfile(Player, true));
         Send(CubePacket.ReturnMap(Player.Value.Character.ReturnMapId));
