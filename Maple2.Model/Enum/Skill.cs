@@ -148,3 +148,10 @@ public enum EventConditionType {
     UnknownWizardEvent = 102,
     UnknownStrikerEvent = 103, // owner
 }
+
+public enum CompulsionType {
+    None = 0,
+    Unknown1 = 1,
+    Critical = 2,
+    Unknown3 = 3,
+}
