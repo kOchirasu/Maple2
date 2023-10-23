@@ -43,7 +43,7 @@ public enum AttackType : byte {
     Physical = 1,
     [Description("s_word_magic: Magic")]
     Magic = 2,
-    Unknown = 3,
+    All = 3,
 }
 
 public enum Element : byte {

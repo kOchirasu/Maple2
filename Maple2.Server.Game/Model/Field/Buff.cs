@@ -31,6 +31,7 @@ public class Buff : IUpdatable, IByteSerializable {
     public long NextProcTick { get; protected set; }
     public int ProcCount { get; private set; }
     public int Stacks { get; private set; }
+    public long ShieldHealth { get; set; }
 
     public bool Enabled { get; private set; }
 
@@ -74,7 +75,7 @@ public class Buff : IUpdatable, IByteSerializable {
             Owner.Buffs.Remove(Id);
         }
     }
-    
+
     public virtual void Update(long tickCount) {
         if (!activated) {
             if (Metadata.Update.Cancel != null) {
@@ -98,7 +99,7 @@ public class Buff : IUpdatable, IByteSerializable {
         if (!UpdateEnabled()) {
             return;
         }
-        
+
         if (!canProc || tickCount < NextProcTick) {
             return;
         }
@@ -275,10 +276,9 @@ public class Buff : IUpdatable, IByteSerializable {
 
     public void WriteTo(IByteWriter writer) {
         WriteAdditionalEffect(writer);
-        WriteAdditionalEffect2(writer);
+        WriteShieldHealth(writer);
     }
 
-    // AdditionalEffect
     public void WriteAdditionalEffect(IByteWriter writer) {
         writer.WriteInt((int) StartTick);
         writer.WriteInt((int) EndTick);
@@ -288,8 +288,7 @@ public class Buff : IUpdatable, IByteSerializable {
         writer.WriteBool(Enabled);
     }
 
-    // Unknown, AdditionalEffect2
-    public void WriteAdditionalEffect2(IByteWriter writer) {
-        writer.WriteLong();
+    public void WriteShieldHealth(IByteWriter writer) {
+        writer.WriteLong(ShieldHealth);
     }
 }
