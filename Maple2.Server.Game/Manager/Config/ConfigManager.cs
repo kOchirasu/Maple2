@@ -187,6 +187,14 @@ public class ConfigManager {
 
         session.Send(PremiumCubPacket.Activate(session.Player.ObjectId, session.Player.Value.Account.PremiumTime));
     }
+
+    public void RefreshPremiumClubBuffs() {
+        if (session.Player.Value.Account.PremiumTime > DateTime.Now.ToEpochSeconds()) {
+            foreach ((int buffId, PremiumClubTable.Buff buff) in session.TableMetadata.PremiumClubTable.Buffs) {
+                session.Player.Buffs.AddBuff(session.Player, session.Player, buff.Id, buff.Level);
+            }
+        }
+    }
     #endregion
 
     #region ChatStickers
