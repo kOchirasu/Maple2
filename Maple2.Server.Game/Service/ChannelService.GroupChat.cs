@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Grpc.Core;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Game.GroupChat;
-using Maple2.Model.Game.Party;
 using Maple2.Server.Game.Manager;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using Maple2.Server.World.Service;
 using GroupChatRequest = Maple2.Server.Channel.Service.GroupChatRequest;
 using GroupChatResponse = Maple2.Server.Channel.Service.GroupChatResponse;
 
@@ -18,54 +17,40 @@ namespace Maple2.Server.Game.Service;
 public partial class ChannelService {
     public override Task<GroupChatResponse> GroupChat(GroupChatRequest request, ServerCallContext context) {
         switch (request.GroupChatCase) {
-            case GroupChatRequest.GroupChatOneofCase.Invite:
-                return Task.FromResult(GroupChatInvite(request.GroupChatId, request.ReceiverIds, request.Invite));
             case GroupChatRequest.GroupChatOneofCase.AddMember:
                 return Task.FromResult(AddGroupChatMember(request.GroupChatId, request.ReceiverIds, request.AddMember));
             case GroupChatRequest.GroupChatOneofCase.RemoveMember:
                 return Task.FromResult(RemoveGroupChatMember(request.GroupChatId, request.ReceiverIds, request.RemoveMember));
+            case GroupChatRequest.GroupChatOneofCase.Chat:
+                return Task.FromResult(ChatGroupChat(request.GroupChatId, request.ReceiverIds, request.Chat));
+            case GroupChatRequest.GroupChatOneofCase.Disband:
+                return Task.FromResult(DisbandGroupChat(request.GroupChatId, request.ReceiverIds, request.Disband));
             default:
                 return Task.FromResult(new GroupChatResponse { Error = (int) GroupChatError.s_err_groupchat_null_target_user });
         }
     }
 
-    private GroupChatResponse GroupChatInvite(int groupChatId, IEnumerable<long> receiverIds, GroupChatRequest.Types.Invite invite) {
-        foreach (long receiverId in receiverIds) {
-            if (!server.GetSession(receiverId, out GameSession? session)) {
-                return new GroupChatResponse { Error = (int) PartyError.s_party_err_alreadyInvite };
-            }
-
-            // Check if the receiver is already in a party, and if it has more than 1 member
-            if (session.Party.Party != null && session.Party.Party.Members.Count > 1) {
-                if (session.Party.Party.LeaderCharacterId == receiverId) {
-                    session.Send(PartyPacket.JoinRequest(invite.SenderName));
-                    return new GroupChatResponse { Error = (int) PartyError.s_party_request_invite };
-                }
-                return new GroupChatResponse { Error = (int) PartyError.s_party_err_cannot_invite };
-            }
-            // Remove any existing 1 person party
-            session.Party.RemoveParty();
-
-            session.Send(PartyPacket.Invite(groupChatId, invite.SenderName));
-        }
-
-        return new GroupChatResponse();
-    }
-
     private GroupChatResponse AddGroupChatMember(int groupChatId, IEnumerable<long> receiverIds, GroupChatRequest.Types.AddMember add) {
         if (!playerInfos.GetOrFetch(add.CharacterId, out PlayerInfo? info)) {
-            return new GroupChatResponse { Error = (int) PartyError.s_party_err_cannot_invite };
+            return new GroupChatResponse { Error = (int) GroupChatError.s_err_groupchat_null_target_user };
         }
 
-        foreach (long characterId in receiverIds) {
+        IEnumerable<long> characterIds = receiverIds.ToList();
+        foreach (long characterId in characterIds) {
             if (!server.GetSession(characterId, out GameSession? session)) {
+                continue;
+            }
+
+            if (characterId == add.CharacterId) {
+                JoinGroupChat(session, add.RequesterName, characterIds, ToGroupChatInfo(groupChatId, characterIds));
                 continue;
             }
 
             if (!session.GroupChats.TryGetValue(groupChatId, out GroupChatManager? manager)) {
                 continue;
             }
-            GroupChatMember? sender = manager.GetMember(characterId);
+
+            GroupChatMember? sender = manager.GetMember(add.RequesterId);
             if (sender == null) {
                 continue;
             }
@@ -75,6 +60,21 @@ public partial class ChannelService {
         }
 
         return new GroupChatResponse();
+    }
+
+    private void JoinGroupChat(GameSession session, string inviterName, IEnumerable<long> receiverIds, World.Service.GroupChatInfo groupChatInfo) {
+        GroupChat groupChat = new GroupChat(groupChatInfo.Id);
+        foreach (long receiverId in receiverIds) {
+            if (!session.PlayerInfo.GetOrFetch(receiverId, out PlayerInfo? playerInfo)) {
+                continue;
+            }
+            groupChat.Members.TryAdd(receiverId, new GroupChatMember {
+                Info = playerInfo.Clone(),
+            });
+        }
+
+        session.GroupChats.TryAdd(groupChatInfo.Id, new GroupChatManager(groupChatInfo, session));
+        session.Send(GroupChatPacket.Join(inviterName, session.PlayerName, groupChatInfo.Id));
     }
 
     private GroupChatResponse RemoveGroupChatMember(int groupChatId, IEnumerable<long> receiverIds, GroupChatRequest.Types.RemoveMember remove) {
@@ -87,14 +87,47 @@ public partial class ChannelService {
                 continue;
             }
 
-            bool isSelf = characterId == remove.CharacterId;
-            manager.RemoveMember(remove.CharacterId, isSelf);
-            if (isSelf) {
-                session.Party.RemoveParty();
+            manager.RemoveMember(remove.CharacterId);
+            if (characterId == remove.CharacterId) {
+                session.GroupChats.Remove(groupChatId, out _);
             }
         }
 
         return new GroupChatResponse();
+    }
+
+    private GroupChatResponse ChatGroupChat(int groupChatId, IEnumerable<long> receiverIds, GroupChatRequest.Types.Chat chat) {
+        foreach (long characterId in receiverIds) {
+            if (!server.GetSession(characterId, out GameSession? session)) {
+                continue;
+            }
+
+            session.Send(GroupChatPacket.Chat(chat.RequesterName, groupChatId, chat.Message));
+        }
+        return new GroupChatResponse();
+    }
+
+    private GroupChatResponse DisbandGroupChat(int groupChatId, IEnumerable<long> receiverIds, GroupChatRequest.Types.Disband disband) {
+        foreach (long characterId in receiverIds) {
+            if (!server.GetSession(characterId, out GameSession? session) || !session.GroupChats.TryGetValue(groupChatId, out GroupChatManager? manager)) {
+                continue;
+            }
+
+            manager.Disband();
+        }
+
+        return new GroupChatResponse();
+    }
+
+    private static World.Service.GroupChatInfo ToGroupChatInfo(int groupChatId, IEnumerable<long> receiverIds) {
+        return new World.Service.GroupChatInfo {
+            Id = groupChatId,
+            Members = {
+                receiverIds.Select(characterId => new World.Service.GroupChatInfo.Types.Member {
+                    CharacterId = characterId,
+                }),
+            },
+        };
     }
 }
 

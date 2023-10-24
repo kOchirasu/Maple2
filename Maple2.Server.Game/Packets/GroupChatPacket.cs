@@ -15,8 +15,8 @@ public static class GroupChatPacket {
         Invite = 2,
         Join = 3,
         Leave = 4,
-        UpdateGroupMember = 6,
-        LeaveNotice = 7,
+        AddMember = 6,
+        RemoveMember = 7,
         LoginNotice = 8,
         LogoutNotice = 9,
         Chat = 10,
@@ -29,7 +29,7 @@ public static class GroupChatPacket {
         pWriter.WriteInt(groupChat.Id);
         pWriter.WriteByte((byte) groupChat.Members.Count);
         foreach ((long characterId, GroupChatMember member) in groupChat.Members) {
-            pWriter.WriteByte(1); // Unknown
+            pWriter.WriteByte(1); // Login notification ?
             pWriter.WriteClass(member.Info);
         }
 
@@ -72,20 +72,20 @@ public static class GroupChatPacket {
         return pWriter;
     }
 
-    public static ByteWriter UpdateGroupMember(PlayerInfo targetCharacter, string memberName, int groupChatId) {
+    public static ByteWriter AddMember(PlayerInfo targetCharacter, string inviterName, int groupChatId) {
         var pWriter = Packet.Of(SendOp.GroupChat);
-        pWriter.Write<Command>(Command.UpdateGroupMember);
+        pWriter.Write<Command>(Command.AddMember);
         pWriter.WriteInt(groupChatId);
-        pWriter.WriteUnicodeString(memberName);
+        pWriter.WriteUnicodeString(inviterName);
         pWriter.WriteByte(1); // Unknown
         pWriter.WriteClass(targetCharacter);
 
         return pWriter;
     }
 
-    public static ByteWriter LeaveNotice(string memberName, int groupChatId) {
+    public static ByteWriter RemoveMember(string memberName, int groupChatId) {
         var pWriter = Packet.Of(SendOp.GroupChat);
-        pWriter.Write<Command>(Command.LeaveNotice);
+        pWriter.Write<Command>(Command.RemoveMember);
         pWriter.WriteInt(groupChatId);
         pWriter.WriteByte();
         pWriter.WriteUnicodeString(memberName);

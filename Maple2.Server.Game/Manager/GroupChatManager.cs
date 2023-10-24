@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Maple2.Model.Error;
@@ -20,45 +21,39 @@ namespace Maple2.Server.Game.Manager;
 
 public class GroupChatManager : IDisposable {
     private readonly GameSession session;
-    private readonly WorldClient world;
 
-    public GroupChat? GroupChat;
+    private GroupChat? groupChat;
 
     private readonly CancellationTokenSource tokenSource;
 
     private readonly ILogger logger = Log.Logger.ForContext<GroupChatManager>();
 
-    public GroupChatManager(WorldClient world, GameSession session) {
+    public GroupChatManager(GroupChatInfo info, GameSession session) {
         this.session = session;
-        this.world = world;
         tokenSource = new CancellationTokenSource();
-
-        GroupChatInfoResponse response = session.World.GroupChatInfo(new GroupChatInfoRequest());
-        if (response.GroupChat != null) {
-            SetGroupChat(response.GroupChat);
-        }
+        SetGroupChat(info);
     }
 
     public void Dispose() {
         session.Dispose();
         tokenSource.Dispose();
 
-        if (GroupChat != null) {
-            foreach (GroupChatMember member in GroupChat.Members.Values) {
+        if (groupChat != null) {
+            foreach (GroupChatMember member in groupChat.Members.Values) {
                 member.Dispose();
             }
         }
     }
 
     public void Load() {
-        if (GroupChat == null) {
+        if (groupChat == null) {
             return;
         }
-        session.Send(GroupChatPacket.Load(GroupChat));
+        session.Send(GroupChatPacket.Load(groupChat));
     }
 
     public bool SetGroupChat(GroupChatInfo info) {
-        if (GroupChat != null) {
+        if (this.groupChat != null) {
             return false;
         }
 
@@ -80,59 +75,71 @@ public class GroupChatManager : IDisposable {
             }
         }
 
-        GroupChat = groupChat;
+        this.groupChat = groupChat;
 
-        session.Send(GroupChatPacket.Load(GroupChat));
-        session.Send(GroupChatPacket.Create(GroupChat.Id));
+        session.Send(GroupChatPacket.Load(this.groupChat));
         return true;
     }
 
     public bool AddMember(GroupChatMember sender, GroupChatMember receiver) {
-        if (GroupChat == null) {
+        if (groupChat == null) {
             return false;
         }
-        if (!GroupChat.Members.TryAdd(receiver.CharacterId, receiver)) {
+        if (!groupChat.Members.TryAdd(receiver.CharacterId, receiver)) {
             return false;
         }
 
         BeginListen(receiver);
-        session.Send(GroupChatPacket.Join(sender.Name, receiver.Name, GroupChat.Id));
+        session.Send(GroupChatPacket.AddMember(receiver.Info, sender.Name, groupChat.Id));
         return true;
     }
 
-    public bool RemoveMember(long characterId, bool isSelf) {
-        if (GroupChat == null) {
+    public bool RemoveMember(long characterId) {
+        if (groupChat == null) {
             return false;
         }
-        if (!GroupChat.Members.TryRemove(characterId, out GroupChatMember? member)) {
+        if (!groupChat.Members.TryRemove(characterId, out GroupChatMember? member)) {
             return false;
         }
         EndListen(member);
 
-        session.Send(GroupChatPacket.LeaveNotice(member.Name, GroupChat.Id));
+        session.Send(characterId == session.CharacterId ? GroupChatPacket.Leave(groupChat.Id) :
+            GroupChatPacket.RemoveMember(member.Name, groupChat.Id));
         return true;
     }
 
 
     public bool Disband() {
-        if (GroupChat == null) {
+        if (groupChat == null) {
             return false;
         }
 
-        foreach (GroupChatMember member in GroupChat.Members.Values) {
+        foreach (GroupChatMember member in groupChat.Members.Values) {
             EndListen(member);
         }
 
-        GroupChat = null;
+        groupChat = null;
         return true;
     }
 
-    public GroupChatMember? GetMember(string name) {
-        return GroupChat?.Members.Values.FirstOrDefault(member => member.Name == name);
+    public void CheckDisband() {
+        if (groupChat == null) {
+            return;
+        }
+
+        // Checking less or equal to 1 because member logging off is still online at this point
+        if (groupChat.Members.Values.Count(member => member.Info.Online) <= 1) {
+            session.World.GroupChat(new GroupChatRequest {
+                Disband = new GroupChatRequest.Types.Disband {
+                    GroupChatId = groupChat.Id,
+                },
+                RequestorId = session.CharacterId,
+            });
+        }
     }
 
     public GroupChatMember? GetMember(long characterId) {
-        if (GroupChat?.Members.TryGetValue(characterId, out GroupChatMember? member) == true) {
+        if (groupChat?.Members.TryGetValue(characterId, out GroupChatMember? member) == true) {
             return member;
         }
 
@@ -160,7 +167,7 @@ public class GroupChatManager : IDisposable {
     }
 
     private bool SyncUpdate(CancellationToken cancel, long characterId, UpdateField type, IPlayerInfo info) {
-        if (cancel.IsCancellationRequested || GroupChat == null || !GroupChat.Members.TryGetValue(characterId, out GroupChatMember? member)) {
+        if (cancel.IsCancellationRequested || groupChat == null || !groupChat.Members.TryGetValue(characterId, out GroupChatMember? member)) {
             return true;
         }
 
@@ -171,8 +178,8 @@ public class GroupChatManager : IDisposable {
 
         if (member.Info.Online != wasOnline) {
             session.Send(member.Info.Online
-                ? GroupChatPacket.LoginNotice(member.Name, GroupChat.Id)
-                : GroupChatPacket.LogoutNotice(member.Name, GroupChat.Id));
+                ? GroupChatPacket.LoginNotice(member.Name, groupChat.Id)
+                : GroupChatPacket.LogoutNotice(member.Name, groupChat.Id));
         }
         return false;
     }

@@ -119,11 +119,18 @@ message GroupChatRequest {
   }
 
   message AddMember {
-    int64 character_id = 1;
+    int64 requester_id = 1;
+    string requester_name = 2;
+    int64 character_id = 3;
   }
 
   message Chat {
-    string message = 1;
+    string requester_name = 1;
+    string message = 2;
+  }
+
+  message Disband {
+    int64 requester_id = 1;
   }
 
   int32 group_chat_id = 1;
@@ -133,7 +140,17 @@ message GroupChatRequest {
     RemoveMember remove_member = 4;
     AddMember add_member = 5;
     Chat chat = 6;
+    Disband disband = 7;
   }
+}
+
+message GroupChatInfo {
+  message Member {
+    int64 character_id = 1;
+  }
+
+  int32 id = 1;
+  repeated Member members = 2;
 }
 
 message GroupChatResponse {

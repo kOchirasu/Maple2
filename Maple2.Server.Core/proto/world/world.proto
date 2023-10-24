@@ -191,6 +191,7 @@ message GroupChatInfo {
 
 message GroupChatInfoRequest {
   optional int32 group_chat_id = 1;
+  optional int64 character_id = 2;
 }
 
 message GroupChatRequest {
@@ -205,11 +206,22 @@ message GroupChatRequest {
     int32 group_chat_id = 1;
   }
 
+  message Chat {
+    int32 group_chat_id = 1;
+    string message = 2;
+  }
+
+  message Disband {
+    int32 group_chat_id = 1;
+  }
+
   int64 requestor_id = 1;
   oneof group_chat {
     Create create = 2;
     Invite invite = 3;
     Leave leave = 4;
+    Chat chat = 5;
+    Disband disband = 6;
   }
 }
 
@@ -223,7 +235,7 @@ message GroupChatResponse {
 }
 
 message GroupChatInfoResponse {
-  optional GroupChatInfo group_chat = 1;
+  repeated GroupChatInfo infos = 3;
 }
 
 message PartyInfo {

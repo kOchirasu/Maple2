@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
@@ -34,16 +35,13 @@ public class GroupChatLookup : IDisposable {
         return groupChats.TryGetValue(groupChatId, out groupChat);
     }
 
-    /*public bool TryGetByCharacter(long characterId, [NotNullWhen(true)] out PartyManager? party) {
-        party = null;
-        foreach (PartyManager manager in parties.Values) {
-            if (manager.Party.Members.TryGetValue(characterId, out PartyMember? member)) {
-                party = manager;
-                return true;
+    public IEnumerable<GroupChatManager> TryGetMany(long characterId) {
+        foreach (GroupChatManager manager in groupChats.Values) {
+            if (manager.GroupChat.Members.TryGetValue(characterId, out GroupChatMember? member)) {
+                yield return manager;
             }
         }
-        return false;
-    }*/
+    }
 
     public GroupChatError Create(long requesterId, out int groupChatId) {
         groupChatId = nextGroupChatId++;
@@ -62,7 +60,8 @@ public class GroupChatLookup : IDisposable {
             return GroupChatError.s_err_groupchat_null_target_user;
         }
 
-        return manager.Join(requesterInfo);
+        manager.Create(requesterInfo);
+        return GroupChatError.none;
     }
 
     public void Disband(int groupChatId) {

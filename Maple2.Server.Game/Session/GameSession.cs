@@ -101,6 +101,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Scheduler.ScheduleRepeated(() => Send(TimeSyncPacket.Request()), 1000);
 
         OnLoop += Scheduler.InvokeAll;
+        GroupChats = new ConcurrentDictionary<int, GroupChatManager>();
     }
 
     public bool FindSession(long characterId, [NotNullWhen(true)] out GameSession? other) {
@@ -147,6 +148,14 @@ public sealed partial class GameSession : Core.Network.Session {
         UgcMarket = new UgcMarketManager(this);
         Party = new PartyManager(World, this);
 
+        GroupChatInfoResponse groupChatInfoRequest = World.GroupChatInfo(new GroupChatInfoRequest {
+            CharacterId = CharacterId,
+        });
+
+        foreach(GroupChatInfo groupChatInfo in groupChatInfoRequest.Infos) {
+            GroupChatManager manager = new GroupChatManager(groupChatInfo, this);
+            GroupChats.TryAdd(groupChatInfo.Id, manager);
+        }
 
         if (!PrepareField(player.Character.MapId)) {
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
@@ -449,6 +458,9 @@ public sealed partial class GameSession : Core.Network.Session {
             Guild.Dispose();
             Buddy.Dispose();
             Party.Dispose();
+            foreach ((int groupChatId, GroupChatManager groupChat) in GroupChats) {
+                groupChat.CheckDisband();
+            }
 
             using (GameStorage.Request db = GameStorage.Context()) {
                 db.BeginTransaction();

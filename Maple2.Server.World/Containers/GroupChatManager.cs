@@ -24,10 +24,9 @@ public class GroupChatManager : IDisposable {
     }
 
     public void Dispose() {
-        // there really isn't a disband for this ?
-        /*Broadcast(new GroupChatRequest {
-            Disband = new PartyRequest.Types.Disband { },
-        });*/
+        Broadcast(new GroupChatRequest {
+            Disband = new GroupChatRequest.Types.Disband { },
+        });
     }
 
     public void Broadcast(GroupChatRequest request) {
@@ -55,59 +54,55 @@ public class GroupChatManager : IDisposable {
             Dispose();
             return true;
         }
+
+        bool anyOnline = false;
+        foreach ((long characterId, GroupChatMember member) in GroupChat.Members) {
+            if (member.Info.Online) {
+                anyOnline = true;
+                break;
+            }
+        }
         return false;
     }
 
-    public GroupChatError Invite(long requestorId, PlayerInfo player) {
+    public GroupChatError Invite(long requestorId, PlayerInfo info) {
         if (!GroupChat.Members.TryGetValue(requestorId, out GroupChatMember? requestor)) {
             return GroupChatError.s_err_groupchat_null_target_user;
         }
         if (GroupChat.Members.Count >= Constant.GroupChatMaxCapacity) {
             return GroupChatError.s_err_groupchat_maxjoin;
         }
-        if (GroupChat.Members.ContainsKey(player.CharacterId)) {
-            return GroupChatError.s_err_groupchat_add_member_target;
-        }
-        if (!ChannelClients.TryGetClient(player.Channel, out ChannelClient? client)) {
-            return GroupChatError.s_err_groupchat_add_member_target;
-        }
-
-        try {
-            var request = new GroupChatRequest {
-                GroupChatId = GroupChat.Id,
-                ReceiverIds = { player.CharacterId },
-                Invite = new GroupChatRequest.Types.Invite {
-                    SenderName = requestor.Name,
-                },
-            };
-
-            GroupChatResponse response = client.GroupChat(request);
-            return (GroupChatError) response.Error;
-        } catch (RpcException) {
-            return GroupChatError.s_err_groupchat_null_target_user;
-        }
-    }
-
-    public GroupChatError Join(PlayerInfo info) {
-        if (GroupChat.Members.Count >= Constant.GroupChatMaxCapacity) {
-            return GroupChatError.s_err_groupchat_maxjoin;
-        }
         if (GroupChat.Members.ContainsKey(info.CharacterId)) {
+            return GroupChatError.s_err_groupchat_add_member_target;
+        }
+        if (!ChannelClients.TryGetClient(info.Channel, out ChannelClient? client)) {
             return GroupChatError.s_err_groupchat_add_member_target;
         }
 
         GroupChatMember member = new GroupChatMember {
             Info = info.Clone(),
         };
+        GroupChat.Members.TryAdd(info.CharacterId, member);
 
         Broadcast(new GroupChatRequest {
             AddMember = new GroupChatRequest.Types.AddMember {
-                CharacterId = member.CharacterId,
+                CharacterId = info.CharacterId,
+                RequesterName = requestor.Name,
+                RequesterId = requestor.CharacterId,
             },
+            GroupChatId = GroupChat.Id,
         });
 
-        GroupChat.Members.TryAdd(info.CharacterId, member);
         return GroupChatError.none;
+    }
+
+    public bool Create(PlayerInfo info) {
+        GroupChatMember member = new GroupChatMember {
+            Info = info.Clone(),
+        };
+
+        GroupChat.Members.TryAdd(info.CharacterId, member);
+        return true;
     }
 
     public void Leave(long characterId) {
@@ -120,11 +115,29 @@ public class GroupChatManager : IDisposable {
             return;
         }
 
-        /*Broadcast(new GroupChatRequest {
+        Broadcast(new GroupChatRequest {
             RemoveMember = new GroupChatRequest.Types.RemoveMember {
                 CharacterId = member.CharacterId,
             },
-        });*/
+        });
         GroupChat.Members.TryRemove(member.CharacterId, out _);
+    }
+
+    public void Disband() {
+
+    }
+
+    public void Chat(long characterId, string message) {
+        if (!GroupChat.Members.TryGetValue(characterId, out GroupChatMember? member)) {
+            Log.Error("Failed to chat as member {CharacterId} in group chat {GroupChatId} because they were not found", characterId, GroupChat.Id);
+            return;
+        }
+
+        Broadcast(new GroupChatRequest {
+            Chat = new GroupChatRequest.Types.Chat {
+                Message = message,
+                RequesterName = member.Name,
+            },
+        });
     }
 }
