@@ -2,7 +2,6 @@
 using Grpc.Core;
 using Maple2.Database.Storage;
 using Maple2.Model.Error;
-using Maple2.Model.Game;
 using Maple2.Model.Metadata;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
@@ -28,7 +27,6 @@ public class GroupChatHandler : PacketHandler<GameSession> {
     #region Autofac Autowired
     // ReSharper disable MemberCanBePrivate.Global
     public required WorldClient World { private get; init; }
-    public required TableMetadataStorage TableMetadata { private get; init; }
     // ReSharper restore All
     #endregion
 

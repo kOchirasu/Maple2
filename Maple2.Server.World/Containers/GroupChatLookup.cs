@@ -5,9 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Game.GroupChat;
-using Maple2.Model.Game.Party;
 using Serilog;
-using Serilog.Core;
 
 namespace Maple2.Server.World.Containers;
 

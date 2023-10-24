@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
-using Grpc.Core;
 using Maple2.Model.Error;
 using Maple2.Model.Game;
 using Maple2.Model.Game.GroupChat;
-using Maple2.Model.Game.Party;
 using Maple2.Model.Metadata;
 using Maple2.Server.Channel.Service;
 using Serilog;
-using Serilog.Core;
 using ChannelClient = Maple2.Server.Channel.Service.Channel.ChannelClient;
 
 namespace Maple2.Server.World.Containers;
@@ -49,18 +44,11 @@ public class GroupChatManager : IDisposable {
         }
     }
 
-    public bool CheckForDisband() {
-        if (GroupChat.Members.Count <= 1) {
+    private bool CheckForDisband() {
+        if (GroupChat.Members.Count <= 1 ||
+            GroupChat.Members.Values.Count(member => member.Info.Online) <= 1) {
             Dispose();
             return true;
-        }
-
-        bool anyOnline = false;
-        foreach ((long characterId, GroupChatMember member) in GroupChat.Members) {
-            if (member.Info.Online) {
-                anyOnline = true;
-                break;
-            }
         }
         return false;
     }
@@ -97,7 +85,7 @@ public class GroupChatManager : IDisposable {
     }
 
     public bool Create(PlayerInfo info) {
-        GroupChatMember member = new GroupChatMember {
+        var member = new GroupChatMember {
             Info = info.Clone(),
         };
 
@@ -111,33 +99,13 @@ public class GroupChatManager : IDisposable {
             return;
         }
 
-        if (CheckForDisband()) {
-            return;
-        }
-
         Broadcast(new GroupChatRequest {
             RemoveMember = new GroupChatRequest.Types.RemoveMember {
                 CharacterId = member.CharacterId,
             },
         });
         GroupChat.Members.TryRemove(member.CharacterId, out _);
-    }
 
-    public void Disband() {
-
-    }
-
-    public void Chat(long characterId, string message) {
-        if (!GroupChat.Members.TryGetValue(characterId, out GroupChatMember? member)) {
-            Log.Error("Failed to chat as member {CharacterId} in group chat {GroupChatId} because they were not found", characterId, GroupChat.Id);
-            return;
-        }
-
-        Broadcast(new GroupChatRequest {
-            Chat = new GroupChatRequest.Types.Chat {
-                Message = message,
-                RequesterName = member.Name,
-            },
-        });
+        CheckForDisband();
     }
 }

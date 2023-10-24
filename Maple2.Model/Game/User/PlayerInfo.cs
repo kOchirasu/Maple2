@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Numerics;
 using Maple2.Model.Common;
 using Maple2.Model.Enum;
