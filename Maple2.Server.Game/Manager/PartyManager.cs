@@ -42,12 +42,25 @@ public class PartyManager : IDisposable {
         session.Dispose();
         tokenSource.Dispose();
 
-        if (Party != null) {
-            foreach (PartyMember member in Party.Members.Values) {
-                member.Dispose();
+        if (Party == null) {
+            return;
+        }
+
+        foreach (PartyMember member in Party.Members.Values) {
+            member.Dispose();
+        }
+
+        if (!CheckDisband(session.CharacterId)) {
+            // Find new leader
+            if (session.CharacterId == Party.LeaderCharacterId) {
+                world.Party(new PartyRequest {
+                    RequestorId = session.CharacterId,
+                    UpdateLeader = new PartyRequest.Types.UpdateLeader {
+                        PartyId = Party.Id,
+                    },
+                });
             }
         }
-        CheckDisband(session.CharacterId);
     }
 
     public void Load() {
@@ -175,19 +188,16 @@ public class PartyManager : IDisposable {
     }
 
     public bool CheckDisband(long characterId) {
-        if (Party == null) {
-            return false;
-        }
-
         // Check if any other player is online
-        if (!Party.Members.Values.Any(partyMember => partyMember.Info.Online && partyMember.CharacterId != characterId)) {
+        if (!Party!.Members.Values.Any(partyMember => partyMember.Info.Online && partyMember.CharacterId != characterId)) {
             world.Party(new PartyRequest {
                 Disband = new PartyRequest.Types.Disband {
                     PartyId = Id,
                 },
             });
+            return true;
         }
-        return true;
+        return false;
     }
 
     public PartyMember? GetMember(string name) {
@@ -241,15 +251,6 @@ public class PartyManager : IDisposable {
             session.Send(member.Info.Online
                 ? PartyPacket.NotifyLogin(member)
                 : PartyPacket.NotifyLogout(member.CharacterId));
-
-            if (!member.Info.Online && member.CharacterId == Party.LeaderCharacterId) {
-                world.Party(new PartyRequest {
-                    RequestorId = member.CharacterId,
-                    UpdateLeader = new PartyRequest.Types.UpdateLeader {
-                        PartyId = session.Party.Id,
-                    },
-                });
-            }
         }
         return false;
     }
