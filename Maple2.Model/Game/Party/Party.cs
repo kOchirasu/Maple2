@@ -59,26 +59,5 @@ public class Party : IByteSerializable {
         writer.WriteBool(false); // unk bool
         writer.WriteInt(DungeonId);
         writer.WriteBool(false); // unk bool
-        writer.WriteByte();
-
-        //TODO: Listed Party
-        bool listedParty = false;
-        writer.WriteBool(listedParty);
-        if (listedParty) {
-            /*
-            writer.WriteLong(PartyFinderId);
-            writer.WriteInt(Id);
-            writer.WriteInt();
-            writer.WriteInt();
-            writer.WriteUnicodeString(Name);
-            writer.WriteBool(Approval);
-            writer.WriteInt(party.Members.Count);
-            writer.WriteInt(party.RecruitMemberCount);
-            writer.WriteLong(party.Leader.AccountId);
-            writer.WriteLong(party.Leader.CharacterId);
-            writer.WriteUnicodeString(party.Leader.Name);
-            writer.WriteLong(party.CreationTimestamp);
-            */
-        }
     }
 }
