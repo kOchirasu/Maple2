@@ -49,8 +49,7 @@ public class Party : IByteSerializable {
         writer.WriteInt(Id);
         writer.WriteLong(LeaderCharacterId);
 
-        byte memberCount = (byte) Members.Count;
-        writer.WriteByte(memberCount);
+        writer.WriteByte((byte) Members.Count);
         foreach (PartyMember member in Members.Values) {
             writer.WriteBool(!member.Info.Online);
             writer.WriteClass<PartyMember>(member);
