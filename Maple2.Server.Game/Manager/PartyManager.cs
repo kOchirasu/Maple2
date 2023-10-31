@@ -173,6 +173,25 @@ public class PartyManager : IDisposable {
         return true;
     }
 
+    public bool CheckDisband(long characterId) {
+        if (Party == null) {
+            return false;
+        }
+
+        // Check if any other player is online
+        foreach (PartyMember member in Party.Members.Values) {
+            Console.WriteLine($"{member.Name}: {member.Info.Online}");
+        }
+        if (!Party.Members.Values.Any(partyMember => partyMember.Info.Online && partyMember.CharacterId != characterId)) {
+            world.Party(new PartyRequest {
+                Disband = new PartyRequest.Types.Disband {
+                    PartyId = Id,
+                },
+            });
+        }
+        return true;
+    }
+
     public PartyMember? GetMember(string name) {
         return Party?.Members.Values.FirstOrDefault(member => member.Name == name);
     }

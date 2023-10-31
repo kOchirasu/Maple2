@@ -99,7 +99,7 @@ public class InstrumentHandler : PacketHandler<GameSession> {
         }
 
         long itemUid = packet.ReadLong();
-        if (!TryUseInstrument(session, itemUid, out session.Instrument)) {
+        if (!TryUseInstrument(session, itemUid, Environment.TickCount64, false, out session.Instrument)) {
             return;
         }
 
@@ -135,7 +135,7 @@ public class InstrumentHandler : PacketHandler<GameSession> {
         if (!TryGetScore(session, scoreUid, out Item? score)) {
             return;
         }
-        if (!TryUseInstrument(session, itemUid, out session.Instrument)) {
+        if (!TryUseInstrument(session, itemUid, Environment.TickCount64, false, out session.Instrument)) {
             return;
         }
 
@@ -172,9 +172,58 @@ public class InstrumentHandler : PacketHandler<GameSession> {
         session.Instrument = null;
     }
 
-    private void HandleJoinEnsemble(GameSession session, IByteReader packet) { }
+    private void HandleJoinEnsemble(GameSession session, IByteReader packet) {
+        if (session.Field == null || session.Instrument != null || session.Party.Party == null) {
+            return;
+        }
 
-    private void HandleLeaveEnsemble(GameSession session) { }
+        long itemUid = packet.ReadLong();
+        long scoreUid = packet.ReadLong();
+        if (!TryGetScore(session, scoreUid, out Item? score)) {
+            return;
+        }
+
+        session.EnsembleReady = true;
+        session.StagedInstrumentItem = session.Item.Inventory.Get(itemUid, InventoryType.FishingMusic);
+        session.StagedScoreItem = score;
+
+        if (session.Party.Party.LeaderCharacterId != session.CharacterId) {
+            return;
+        }
+
+        // Store tick to ensure all members instruments have the same start tick
+        long startTick = Environment.TickCount64;
+        foreach ((long characterId, PartyMember member) in session.Party.Party.Members) {
+            if (!session.FindSession(characterId, out GameSession? memberSession) ||
+                memberSession.Field == null ||
+                !memberSession.EnsembleReady ||
+                memberSession.StagedInstrumentItem == null ||
+                memberSession.StagedScoreItem == null ||
+                memberSession.Player.Value.Character.MapId != session.Player.Value.Character.MapId ||
+                memberSession.Player.Value.Character.InstanceId != session.Player.Value.Character.InstanceId) {
+                continue;
+            }
+
+            if (!TryUseInstrument(memberSession, memberSession.StagedInstrumentItem.Uid, startTick, true, out memberSession.Instrument)) {
+                continue;
+            }
+
+            memberSession.StagedScoreItem.RemainUses--;
+            memberSession.Field.Broadcast(InstrumentPacket.StartScore(memberSession.Instrument, memberSession.StagedScoreItem));
+            memberSession.Send(InstrumentPacket.RemainUses(memberSession.StagedScoreItem.Uid, memberSession.StagedScoreItem.RemainUses));
+        }
+    }
+
+    private void HandleLeaveEnsemble(GameSession session) {
+        if (session.Field == null) {
+            return;
+        }
+
+        session.EnsembleReady = false;
+        session.StagedInstrumentItem = null;
+        session.StagedScoreItem = null;
+        session.Send(InstrumentPacket.LeaveEnsemble());
+    }
 
     private void HandleComposeScore(GameSession session, IByteReader packet) {
         long scoreUid = packet.ReadLong();
@@ -266,7 +315,7 @@ public class InstrumentHandler : PacketHandler<GameSession> {
         }
     }
 
-    private bool TryUseInstrument(GameSession session, long itemUid, [NotNullWhen(true)] out FieldInstrument? fieldInstrument) {
+    private bool TryUseInstrument(GameSession session, long itemUid, long startTick, bool ensemble, [NotNullWhen(true)] out FieldInstrument? fieldInstrument) {
         Item? instrument = session.Item.Inventory.Get(itemUid, InventoryType.FishingMusic);
         if (instrument == null || instrument.Metadata.Function?.Type != ItemFunction.OpenInstrument) {
             fieldInstrument = null;
@@ -285,7 +334,8 @@ public class InstrumentHandler : PacketHandler<GameSession> {
         }
 
         fieldInstrument = session.Field!.SpawnInstrument(session.Player, metadata);
-        fieldInstrument.StartTick = Environment.TickCount64;
+        fieldInstrument.StartTick = startTick;
+        fieldInstrument.Ensemble = ensemble;
         return true;
     }
 

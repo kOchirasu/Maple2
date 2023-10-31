@@ -441,7 +441,9 @@ public sealed partial class GameSession : Core.Network.Session {
 #endif
             Guild.Dispose();
             Buddy.Dispose();
-            Party.Dispose();
+            if (!Party.CheckDisband(CharacterId)) {
+                Party.Dispose();
+            }
 
             using (GameStorage.Request db = GameStorage.Context()) {
                 db.BeginTransaction();
