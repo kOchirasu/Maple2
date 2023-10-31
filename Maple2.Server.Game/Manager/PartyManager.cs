@@ -47,6 +47,7 @@ public class PartyManager : IDisposable {
                 member.Dispose();
             }
         }
+        CheckDisband(session.CharacterId);
     }
 
     public void Load() {
