@@ -63,10 +63,10 @@ public static class InstrumentPacket {
         pWriter.WriteInt(instrument.ObjectId);
         pWriter.WriteInt(instrument.OwnerId);
         pWriter.Write<Vector3>(instrument.Position);
-        pWriter.WriteInt(Environment.TickCount);
+        pWriter.WriteInt((int) instrument.StartTick);
         pWriter.WriteInt(instrument.Value.MidiId);
         pWriter.WriteInt(instrument.Value.PercussionId);
-        pWriter.WriteBool(false);
+        pWriter.WriteBool(instrument.Ensemble);
 
         if (score.Music != null) {
             pWriter.WriteString(score.Music.Mml);
