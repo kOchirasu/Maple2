@@ -22,7 +22,7 @@ public class PartyMember : IByteSerializable, IDisposable {
     public CancellationTokenSource? TokenSource;
 
     public void WriteTo(IByteWriter writer) {
-        writer.WriteClass(Info);
+        writer.WriteClass<PlayerInfo>(Info);
     }
 
     public void WriteDungeonEligibility(IByteWriter writer) {

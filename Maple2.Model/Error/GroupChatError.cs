@@ -12,12 +12,6 @@ public enum GroupChatError {
     s_err_groupchat_add_member_target = 8,
     [Description("{0} is already participating in 3 group chats.")]
     s_err_groupchat_maxgroup = 10,
-
-    // Unknown values
-    [Description("Group chats can include up to 20 people.")]
-    s_err_groupchat_maxjoin,
-    [Description("You are already participating in the chat.")]
-    s_err_groupchat_join_exist,
-    [Description("There is a group chat with the same name.")]
-    s_err_groupchat_name_exist,
+    [Description("\"{0}\" contains inappropriate words.\\nPlease enter another name.")]
+    s_change_charname_err_bad_words = 13,
 }

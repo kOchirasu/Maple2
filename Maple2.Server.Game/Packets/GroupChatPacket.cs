@@ -30,7 +30,7 @@ public static class GroupChatPacket {
         pWriter.WriteByte((byte) groupChat.Members.Count);
         foreach ((long characterId, GroupChatMember member) in groupChat.Members) {
             pWriter.WriteByte(1); // Login notification ?
-            pWriter.WriteClass(member.Info);
+            pWriter.WriteClass<PlayerInfo>(member.Info);
         }
 
         return pWriter;
@@ -78,7 +78,7 @@ public static class GroupChatPacket {
         pWriter.WriteInt(groupChatId);
         pWriter.WriteUnicodeString(inviterName);
         pWriter.WriteByte(1); // Unknown
-        pWriter.WriteClass(targetCharacter);
+        pWriter.WriteClass<PlayerInfo>(targetCharacter);
 
         return pWriter;
     }

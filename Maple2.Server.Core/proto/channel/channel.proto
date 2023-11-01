@@ -108,7 +108,7 @@ message PartyResponse {
   int32 error = 1;
 }
 
-message GroupChatRequest {
+/*message GroupChatRequest {
   message Invite {
     string sender_name = 1;
     string receiver_name = 2;
@@ -144,15 +144,6 @@ message GroupChatRequest {
   }
 }
 
-message GroupChatInfo {
-  message Member {
-    int64 character_id = 1;
-  }
-
-  int32 id = 1;
-  repeated Member members = 2;
-}
-
 message GroupChatResponse {
   int32 error = 1;
-}
+}*/

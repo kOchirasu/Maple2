@@ -54,11 +54,8 @@ public class GroupChatManager : IDisposable {
     }
 
     public GroupChatError Invite(long requestorId, PlayerInfo info) {
-        if (!GroupChat.Members.TryGetValue(requestorId, out GroupChatMember? requestor)) {
+        if (!GroupChat.Members.TryGetValue(requestorId, out GroupChatMember? requester)) {
             return GroupChatError.s_err_groupchat_null_target_user;
-        }
-        if (GroupChat.Members.Count >= Constant.GroupChatMaxCapacity) {
-            return GroupChatError.s_err_groupchat_maxjoin;
         }
         if (GroupChat.Members.ContainsKey(info.CharacterId)) {
             return GroupChatError.s_err_groupchat_add_member_target;
@@ -75,8 +72,8 @@ public class GroupChatManager : IDisposable {
         Broadcast(new GroupChatRequest {
             AddMember = new GroupChatRequest.Types.AddMember {
                 CharacterId = info.CharacterId,
-                RequesterName = requestor.Name,
-                RequesterId = requestor.CharacterId,
+                RequesterName = requester.Name,
+                RequesterId = requester.CharacterId,
             },
             GroupChatId = GroupChat.Id,
         });

@@ -8,8 +8,6 @@ using Maple2.Model.Game.GroupChat;
 using Maple2.Server.Game.Manager;
 using Maple2.Server.Game.Packets;
 using Maple2.Server.Game.Session;
-using GroupChatRequest = Maple2.Server.Channel.Service.GroupChatRequest;
-using GroupChatResponse = Maple2.Server.Channel.Service.GroupChatResponse;
 
 namespace Maple2.Server.Game.Service;
 
@@ -61,7 +59,7 @@ public partial class ChannelService {
         return new GroupChatResponse();
     }
 
-    private void JoinGroupChat(GameSession session, string inviterName, IEnumerable<long> receiverIds, World.Service.GroupChatInfo groupChatInfo) {
+    private void JoinGroupChat(GameSession session, string inviterName, IEnumerable<long> receiverIds, GroupChatInfo groupChatInfo) {
         GroupChat groupChat = new GroupChat(groupChatInfo.Id);
         foreach (long receiverId in receiverIds) {
             if (!session.PlayerInfo.GetOrFetch(receiverId, out PlayerInfo? playerInfo)) {
@@ -118,11 +116,11 @@ public partial class ChannelService {
         return new GroupChatResponse();
     }
 
-    private static World.Service.GroupChatInfo ToGroupChatInfo(int groupChatId, IEnumerable<long> receiverIds) {
-        return new World.Service.GroupChatInfo {
+    private static GroupChatInfo ToGroupChatInfo(int groupChatId, IEnumerable<long> receiverIds) {
+        return new GroupChatInfo {
             Id = groupChatId,
             Members = {
-                receiverIds.Select(characterId => new World.Service.GroupChatInfo.Types.Member {
+                receiverIds.Select(characterId => new GroupChatInfo.Types.Member {
                     CharacterId = characterId,
                 }),
             },

@@ -56,7 +56,7 @@ public class GroupChatHandler : PacketHandler<GameSession> {
 
         GroupChatResponse response = World.GroupChat(new GroupChatRequest {
             Create = new GroupChatRequest.Types.Create(),
-            RequestorId = session.CharacterId,
+            RequesterId = session.CharacterId,
         });
 
         var error = (GroupChatError) response.Error;
@@ -96,10 +96,10 @@ public class GroupChatHandler : PacketHandler<GameSession> {
             session.Send(GroupChatPacket.Invite(session.PlayerName, targetPlayerName, groupChatId));
             var request = new GroupChatRequest {
                 Invite = new GroupChatRequest.Types.Invite {
-                    GroupChatId = groupChatId,
                     ReceiverId = characterId,
                 },
-                RequestorId = session.CharacterId,
+                GroupChatId = groupChatId,
+                RequesterId = session.CharacterId,
             };
 
             GroupChatResponse response = World.GroupChat(request);
@@ -122,10 +122,9 @@ public class GroupChatHandler : PacketHandler<GameSession> {
 
         try {
             World.GroupChat(new GroupChatRequest {
-                Leave = new GroupChatRequest.Types.Leave {
-                    GroupChatId = groupChatId,
-                },
-                RequestorId = session.CharacterId,
+                Leave = new GroupChatRequest.Types.Leave(),
+                GroupChatId = groupChatId,
+                RequesterId = session.CharacterId,
             });
         } catch (RpcException ex) {
             Logger.Error(ex, "Failed to leave group chat {GroupChatId}", groupChatId);
@@ -143,9 +142,9 @@ public class GroupChatHandler : PacketHandler<GameSession> {
         World.GroupChat(new GroupChatRequest {
             Chat = new GroupChatRequest.Types.Chat {
                 Message = message,
-                GroupChatId = groupChatId,
             },
-            RequestorId = session.CharacterId,
+            GroupChatId = groupChatId,
+            RequesterId = session.CharacterId,
         });
     }
 }

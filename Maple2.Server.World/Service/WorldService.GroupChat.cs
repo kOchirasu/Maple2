@@ -28,18 +28,18 @@ public partial class WorldService {
     public override Task<GroupChatResponse> GroupChat(GroupChatRequest request, ServerCallContext context) {
         switch (request.GroupChatCase) {
             case GroupChatRequest.GroupChatOneofCase.Create:
-                return Task.FromResult(CreateGroupChat(request.RequestorId, request.Create));
+                return Task.FromResult(CreateGroupChat(request.RequesterId, request.Create));
             case GroupChatRequest.GroupChatOneofCase.Invite:
-                return Task.FromResult(InviteGroupChat(request.RequestorId, request.Invite));
+                return Task.FromResult(InviteGroupChat(request.GroupChatId, request.RequesterId, request.Invite));
             case GroupChatRequest.GroupChatOneofCase.Leave:
-                return Task.FromResult(LeaveGroupChat(request.RequestorId, request.Leave));
+                return Task.FromResult(LeaveGroupChat(request.GroupChatId, request.RequesterId, request.Leave));
             case GroupChatRequest.GroupChatOneofCase.Chat:
-                return Task.FromResult(ChatGroupChat(request.RequestorId, request.Chat));
+                return Task.FromResult(ChatGroupChat(request.GroupChatId, request.RequesterId, request.Chat));
             case GroupChatRequest.GroupChatOneofCase.Disband:
-                return Task.FromResult(DisbandGroupChat(request.Disband));
+                return Task.FromResult(DisbandGroupChat(request.GroupChatId, request.Disband));
             default:
                 return Task.FromResult(new GroupChatResponse {
-                    Error = (int) GroupChatError.none
+                    Error = (int) GroupChatError.none,
                 });
         }
     }
@@ -48,18 +48,18 @@ public partial class WorldService {
         GroupChatError error = groupChatLookup.Create(requesterId, out int groupChatId);
         if (error != GroupChatError.none) {
             return new GroupChatResponse {
-                Error = (int) error
+                Error = (int) error,
             };
         }
         if (!groupChatLookup.TryGet(groupChatId, out GroupChatManager? manager)) {
             return new GroupChatResponse {
-                Error = (int) GroupChatError.s_err_groupchat_null_target_user
+                Error = (int) GroupChatError.s_err_groupchat_null_target_user,
             };
         }
 
         if (!playerLookup.TryGet(requesterId, out PlayerInfo? info)) {
             return new GroupChatResponse {
-                Error = (int) GroupChatError.s_err_groupchat_null_target_user
+                Error = (int) GroupChatError.s_err_groupchat_null_target_user,
             };
         }
 
@@ -68,15 +68,15 @@ public partial class WorldService {
         };
     }
 
-    private GroupChatResponse InviteGroupChat(long requestorId, GroupChatRequest.Types.Invite invite) {
-        if (!groupChatLookup.TryGet(invite.GroupChatId, out GroupChatManager? manager)) {
+    private GroupChatResponse InviteGroupChat(int groupChatId, long requestorId, GroupChatRequest.Types.Invite invite) {
+        if (!groupChatLookup.TryGet(groupChatId, out GroupChatManager? manager)) {
             return new GroupChatResponse {
-                Error = (int) GroupChatError.s_err_groupchat_null_target_user
+                Error = (int) GroupChatError.s_err_groupchat_null_target_user,
             };
         }
         if (!playerLookup.TryGet(invite.ReceiverId, out PlayerInfo? info)) {
             return new GroupChatResponse {
-                Error = (int) GroupChatError.s_err_groupchat_null_target_user
+                Error = (int) GroupChatError.s_err_groupchat_null_target_user,
             };
         }
 
@@ -86,10 +86,10 @@ public partial class WorldService {
         };
     }
 
-    private GroupChatResponse LeaveGroupChat(long requestorId, GroupChatRequest.Types.Leave leave) {
-        if (!groupChatLookup.TryGet(leave.GroupChatId, out GroupChatManager? manager)) {
+    private GroupChatResponse LeaveGroupChat(int groupChatId, long requestorId, GroupChatRequest.Types.Leave leave) {
+        if (!groupChatLookup.TryGet(groupChatId, out GroupChatManager? manager)) {
             return new GroupChatResponse {
-                Error = (int) GroupChatError.s_err_groupchat_null_target_user
+                Error = (int) GroupChatError.s_err_groupchat_null_target_user,
             };
         }
 
@@ -97,31 +97,31 @@ public partial class WorldService {
         return new GroupChatResponse();
     }
 
-    private GroupChatResponse ChatGroupChat(long requestorId, GroupChatRequest.Types.Chat chat) {
-        if (!groupChatLookup.TryGet(chat.GroupChatId, out GroupChatManager? manager) || !manager.GroupChat.Members.TryGetValue(requestorId, out GroupChatMember? member)) {
+    private GroupChatResponse ChatGroupChat(int groupChatId, long requesterId, GroupChatRequest.Types.Chat chat) {
+        if (!groupChatLookup.TryGet(groupChatId, out GroupChatManager? manager) || !manager.GroupChat.Members.TryGetValue(requesterId, out GroupChatMember? member)) {
             return new GroupChatResponse {
-                Error = (int) GroupChatError.s_err_groupchat_null_target_user
+                Error = (int) GroupChatError.s_err_groupchat_null_target_user,
             };
         }
 
-        manager.Broadcast(new Channel.Service.GroupChatRequest {
-            Chat = new Channel.Service.GroupChatRequest.Types.Chat {
+        manager.Broadcast(new GroupChatRequest {
+            Chat = new GroupChatRequest.Types.Chat {
                 Message = chat.Message,
                 RequesterName = member.Name,
             },
         });
 
         return new GroupChatResponse {
-            GroupChatId = chat.GroupChatId
+            GroupChatId = groupChatId,
         };
     }
 
-    private GroupChatResponse DisbandGroupChat(GroupChatRequest.Types.Disband disband) {
-        if (!groupChatLookup.TryGet(disband.GroupChatId, out GroupChatManager? _)) {
+    private GroupChatResponse DisbandGroupChat(int groupChatId, GroupChatRequest.Types.Disband disband) {
+        if (!groupChatLookup.TryGet(groupChatId, out GroupChatManager? _)) {
             return new GroupChatResponse();
         }
 
-        groupChatLookup.Disband(disband.GroupChatId);
+        groupChatLookup.Disband(groupChatId);
         return new GroupChatResponse();
     }
 

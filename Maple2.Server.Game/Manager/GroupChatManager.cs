@@ -124,10 +124,9 @@ public class GroupChatManager : IDisposable {
         // Checking less or equal to 1 because member logging off is still online at this point
         if (groupChat.Members.Values.Count(member => member.Info.Online) <= 1) {
             session.World.GroupChat(new GroupChatRequest {
-                Disband = new GroupChatRequest.Types.Disband {
-                    GroupChatId = groupChat.Id,
-                },
-                RequestorId = session.CharacterId,
+                Disband = new GroupChatRequest.Types.Disband(),
+                GroupChatId = groupChat.Id,
+                RequesterId = session.CharacterId,
             });
         }
     }
@@ -150,7 +149,7 @@ public class GroupChatManager : IDisposable {
 
         member.TokenSource = CancellationTokenSource.CreateLinkedTokenSource(tokenSource.Token);
         CancellationToken token = member.TokenSource.Token;
-        var listener = new PlayerInfoListener(UpdateField.Party, (type, info) => SyncUpdate(token, member.CharacterId, type, info));
+        var listener = new PlayerInfoListener(UpdateField.GroupChat, (type, info) => SyncUpdate(token, member.CharacterId, type, info));
         session.PlayerInfo.Listen(member.Info.CharacterId, listener);
     }
 
@@ -167,8 +166,6 @@ public class GroupChatManager : IDisposable {
 
         bool wasOnline = member.Info.Online;
         member.Info.Update(type, info);
-
-        //session.Send(PartyPacket.Update(member));
 
         if (member.Info.Online != wasOnline) {
             session.Send(member.Info.Online
