@@ -42,10 +42,21 @@ public record SkillMetadataState;
 
 public record SkillMetadataLevel(
     BeginCondition Condition,
+    SkillMetadataChange? Change,
     SkillMetadataConsume Consume,
     SkillMetadataRecovery Recovery,
     SkillEffectMetadata[] Skills,
     SkillMetadataMotion[] Motions);
+
+public record SkillMetadataChange(
+    SkillMetadataChange.Skill Origin,
+    SkillMetadataChange.Effect[] Effects,
+    SkillMetadataChange.Skill[] Skills) {
+
+    public record Skill(int Id, int Level);
+
+    public record Effect(int Id, int Level, int OverlapCount);
+}
 
 public record SkillMetadataConsume(
     long Meso,
@@ -66,6 +77,7 @@ public record SkillMetadataAttack(
     int TargetCount,
     long MagicPathId,
     long CubeMagicPathId,
+    CompulsionType[] CompulsionTypes,
     SkillMetadataPet? Pet,
     SkillMetadataRange Range,
     SkillMetadataArrow Arrow,

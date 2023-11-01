@@ -113,6 +113,7 @@ public static class PartyPacket {
         var pWriter = Packet.Of(SendOp.Party);
         pWriter.Write<Command>(Command.Load);
         pWriter.WriteClass<Party>(party);
+        pWriter.WriteByte(); // Unknown
         pWriter.WriteMatchParty(party);
 
         return pWriter;

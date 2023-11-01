@@ -27,6 +27,7 @@ public class ConfigManager {
     private IList<int> favoriteStickers;
     private readonly IList<long> favoriteDesigners;
     private readonly IDictionary<LapenshardSlot, int> lapenshards;
+    private readonly IDictionary<int, SkillCooldown> skillCooldowns;
     private readonly StatAttributes statAttributes;
     public IDictionary<int, int> GatheringCounts;
 
@@ -38,6 +39,7 @@ public class ConfigManager {
         hotBars = new List<HotBar>();
         skillMacros = new List<SkillMacro>();
         lapenshards = new Dictionary<LapenshardSlot, int>();
+        skillCooldowns = new Dictionary<int, SkillCooldown>();
 
         (
             IList<KeyBind>? KeyBinds,
@@ -47,6 +49,7 @@ public class ConfigManager {
             IList<int>? FavoriteStickers,
             IList<long>? FavoriteDesigners,
             IDictionary<LapenshardSlot, int>? Lapenshards,
+            IList<SkillCooldown>? SkillCooldowns,
             IDictionary<BasicAttribute, int>? Allocation,
             IDictionary<int, int>? GatheringCounts,
         SkillBook? SkillBook
@@ -72,6 +75,15 @@ public class ConfigManager {
         favoriteDesigners = load.FavoriteDesigners ?? new List<long>();
         lapenshards = load.Lapenshards ?? new Dictionary<LapenshardSlot, int>();
         GatheringCounts = load.GatheringCounts ?? new Dictionary<int, int>();
+
+        if (load.SkillCooldowns != null) {
+            foreach (SkillCooldown cooldown in load.SkillCooldowns) {
+                if (Environment.TickCount64 > cooldown.EndTick) {
+                    continue;
+                }
+                skillCooldowns[cooldown.SkillId] = cooldown;
+            }
+        }
 
         statAttributes = new StatAttributes();
         if (load.Allocation != null) {
@@ -122,6 +134,47 @@ public class ConfigManager {
         }
     }
 
+    #region SkillCooldowns
+    public void SaveSkillCooldown(SkillMetadata skill) {
+        var cooldown = new SkillCooldown(skill.Id) {
+            EndTick = (long) (skill.Data.Condition.CooldownTime * TimeSpan.FromSeconds(1).TotalMilliseconds) + Environment.TickCount64,
+            OriginSkillId = skill.Data.Change?.Origin.Id ?? 0,
+        };
+        skillCooldowns[skill.Id] = cooldown;
+    }
+
+    public void SetSkillCooldown(int skillId, int endTick = 0) {
+        var cooldown = new SkillCooldown(skillId) {
+            EndTick = endTick,
+        };
+        skillCooldowns[skillId] = cooldown;
+
+        session.Send(SkillPacket.Cooldown(cooldown));
+    }
+
+    public void LoadSkillCooldowns() {
+        foreach ((int skillId, SkillCooldown cooldown) in skillCooldowns) {
+            if (Environment.TickCount64 > cooldown.EndTick) {
+                skillCooldowns.Remove(skillId);
+            }
+        }
+        if (skillCooldowns.Count > 0) {
+            session.Send(SkillPacket.Cooldown(skillCooldowns.Values.ToArray()));
+        }
+    }
+
+    public IList<SkillCooldown> GetCurrentSkillCooldowns() {
+        IList<SkillCooldown> cooldowns = new List<SkillCooldown>();
+        foreach ((int skillId, SkillCooldown cooldown) in skillCooldowns) {
+            if (Environment.TickCount64 > cooldown.EndTick) {
+                continue;
+            }
+            cooldowns.Add(cooldown);
+        }
+        return cooldowns;
+    }
+    #endregion
+
     #region PremiumClub
     public void UpdatePremiumTime(long hours) {
         if (session.Player.Value.Account.PremiumTime < DateTime.Now.ToEpochSeconds()) {
@@ -133,6 +186,14 @@ public class ConfigManager {
         }
 
         session.Send(PremiumCubPacket.Activate(session.Player.ObjectId, session.Player.Value.Account.PremiumTime));
+    }
+
+    public void RefreshPremiumClubBuffs() {
+        if (session.Player.Value.Account.PremiumTime > DateTime.Now.ToEpochSeconds()) {
+            foreach ((int buffId, PremiumClubTable.Buff buff) in session.TableMetadata.PremiumClubTable.Buffs) {
+                session.Player.Buffs.AddBuff(session.Player, session.Player, buff.Id, buff.Level);
+            }
+        }
     }
     #endregion
 
@@ -396,6 +457,7 @@ public class ConfigManager {
             favoriteStickers,
             favoriteDesigners,
             lapenshards,
+            skillCooldowns.Values.ToList(),
             statAttributes.Allocation,
             GatheringCounts,
             Skill.SkillBook

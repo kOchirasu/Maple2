@@ -57,7 +57,7 @@ public class PartyManager : IDisposable {
     }
 
     public bool CheckForDisband() {
-        if (Party.Members.Count <= 2) {
+        if (Party.Members.Count < 2) {
             Dispose();
             return true;
         }

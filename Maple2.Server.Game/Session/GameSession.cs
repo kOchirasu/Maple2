@@ -161,7 +161,6 @@ public sealed partial class GameSession : Core.Network.Session {
             Send(MigrationPacket.MoveResult(MigrationError.s_move_err_default));
             return false;
         }
-        Player.Buffs.Initialize();
 
         var playerUpdate = new PlayerUpdateRequest {
             AccountId = accountId,
@@ -273,7 +272,6 @@ public sealed partial class GameSession : Core.Network.Session {
         NpcScript = null;
 
         if (Field != null) {
-            Player.Buffs.LeaveField();
             Scheduler.Stop();
             Field.RemovePlayer(Player.ObjectId, out _);
         }
@@ -295,6 +293,7 @@ public sealed partial class GameSession : Core.Network.Session {
 
         Field = newField;
         Player = Field.SpawnPlayer(this, Player, portalId, position, rotation);
+        Config.Skill.UpdatePassiveBuffs();
         Player.Buffs.LoadFieldBuffs();
 
         return true;
@@ -335,6 +334,7 @@ public sealed partial class GameSession : Core.Network.Session {
 
         Send(EmotePacket.Load(Player.Value.Unlock.Emotes.Select(id => new Emote(id)).ToList()));
         Config.LoadMacros();
+        Config.LoadSkillCooldowns();
 
         Send(CubePacket.UpdateProfile(Player, true));
         Send(CubePacket.ReturnMap(Player.Value.Character.ReturnMapId));
@@ -342,7 +342,7 @@ public sealed partial class GameSession : Core.Network.Session {
         Send(RevivalPacket.Count(0)); // TODO: Consumed daily revivals?
         Send(RevivalPacket.Confirm(Player));
         Config.LoadStatAttributes();
-        Player.Buffs.Initialize();
+        Player.Buffs.LoadFieldBuffs();
         Send(PremiumCubPacket.Activate(Player.ObjectId, Player.Value.Account.PremiumTime));
         Send(PremiumCubPacket.LoadItems(Player.Value.Account.PremiumRewardsClaimed));
         ConditionUpdate(ConditionType.map, codeLong: Player.Value.Character.MapId);

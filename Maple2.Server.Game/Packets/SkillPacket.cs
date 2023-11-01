@@ -1,10 +1,12 @@
 ﻿using System.Numerics;
 using Maple2.Model.Common;
+using Maple2.Model.Game;
 using Maple2.PacketLib.Tools;
 using Maple2.Server.Core.Constants;
 using Maple2.Server.Core.Packets;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Model.Skill;
+using Maple2.Tools.Extensions;
 
 namespace Maple2.Server.Game.Packets;
 
@@ -85,12 +87,12 @@ public static class SkillPacket {
         return pWriter;
     }
 
-    public static ByteWriter Cooldown() {
+    public static ByteWriter Cooldown(params SkillCooldown[] cooldowns) {
         var pWriter = Packet.Of(SendOp.SkillCooldown);
-        pWriter.WriteByte(); // Count
-        // [4] SkillId
-        // [4] EndTick
-        // [4] CooldownUnk
+        pWriter.WriteByte((byte) cooldowns.Length);
+        foreach (SkillCooldown cooldown in cooldowns) {
+            pWriter.WriteClass<SkillCooldown>(cooldown);
+        }
 
         return pWriter;
     }

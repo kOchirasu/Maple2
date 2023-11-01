@@ -62,13 +62,11 @@ public class PartyLookup : IDisposable {
         return manager.Join(leaderInfo);
     }
 
-    public PartyError Disband(long requestorId, int partyId) {
+    public PartyError Disband(int partyId) {
         if (!TryGet(partyId, out PartyManager? manager)) {
             return PartyError.s_party_err_not_found;
         }
-        if (requestorId != manager.Party.LeaderCharacterId) {
-            return PartyError.s_party_err_not_chief;
-        }
+
         if (!parties.TryRemove(partyId, out manager)) {
             // Failed to remove party after validating.
             return PartyError.s_party_err_not_found;
