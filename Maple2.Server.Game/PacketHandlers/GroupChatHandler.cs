@@ -68,7 +68,7 @@ public class GroupChatHandler : PacketHandler<GameSession> {
         if (!session.GroupChats.TryAdd(response.GroupChat.Id, new GroupChatManager(response.GroupChat, session))) {
             throw new InvalidOperationException($"Failed to add group chat: {response.GroupChat.Id}");
         }
-        ;
+
         session.Send(GroupChatPacket.Create(response.GroupChat.Id));
     }
 

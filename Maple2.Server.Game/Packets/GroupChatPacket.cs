@@ -29,7 +29,7 @@ public static class GroupChatPacket {
         pWriter.WriteInt(groupChat.Id);
         pWriter.WriteByte((byte) groupChat.Members.Count);
         foreach ((long characterId, GroupChatMember member) in groupChat.Members) {
-            pWriter.WriteByte(1); // Login notification ?
+            pWriter.WriteBool(true); // is member?
             pWriter.WriteClass<PlayerInfo>(member.Info);
         }
 
@@ -77,7 +77,7 @@ public static class GroupChatPacket {
         pWriter.Write<Command>(Command.AddMember);
         pWriter.WriteInt(groupChatId);
         pWriter.WriteUnicodeString(inviterName);
-        pWriter.WriteByte(1); // Unknown
+        pWriter.WriteBool(true); // is member?
         pWriter.WriteClass<PlayerInfo>(targetCharacter);
 
         return pWriter;
@@ -87,7 +87,7 @@ public static class GroupChatPacket {
         var pWriter = Packet.Of(SendOp.GroupChat);
         pWriter.Write<Command>(Command.RemoveMember);
         pWriter.WriteInt(groupChatId);
-        pWriter.WriteByte();
+        pWriter.WriteBool(false); // is not member?
         pWriter.WriteUnicodeString(memberName);
 
         return pWriter;
