@@ -14,7 +14,9 @@ public static class Target {
     public static readonly ushort GamePort = 20002;
     public static readonly short GameChannel = 1;
 
-    public static readonly Uri WebUri = new('http://'+IPAddress.Loopback);
+    //修改WebUi的端口为81
+    public static readonly Uri WebUri = IPAddress.Loopback;
+    public static readonly ushort WebUriPort = 81;
 
     public static readonly ushort GrpcWorldPort = 21001;
     public static readonly ushort GrpcChannelPort = 21002;
@@ -43,9 +45,12 @@ public static class Target {
         if (ushort.TryParse(Environment.GetEnvironmentVariable("GRPC_CHANNEL_PORT"), out ushort grpcChannelPortOverride)) {
             GrpcChannelPort = grpcChannelPortOverride;
         }
-
+        //修改WebUi的相关配置
         if (Uri.TryCreate(Environment.GetEnvironmentVariable("WEB_URI"), UriKind.Absolute, out Uri? webUriOverride)) {
             WebUri = webUriOverride;
+        }
+        if (ushort.TryParse(Environment.GetEnvironmentVariable("WEB_PORT"), out ushort WEBPortOverride)) {
+            WebUriPort = WEBPortOverride;
         }
     }
 }
