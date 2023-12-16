@@ -14,7 +14,7 @@ public static class Target {
     public static readonly ushort GamePort = 20002;
     public static readonly short GameChannel = 1;
 
-    public static readonly Uri WebUri = new("'http://'+IPAddress.Loopback+'localhost'");
+    public static readonly Uri WebUri = new("'http://'+IPAddress.Loopback");
 
     public static readonly ushort GrpcWorldPort = 21001;
     public static readonly ushort GrpcChannelPort = 21002;
