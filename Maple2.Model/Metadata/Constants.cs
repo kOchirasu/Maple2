@@ -78,7 +78,7 @@ public static class Constant {
     public const int PvpArenaNpcId = 11001562;
     public const int FishingNpcId = 11001609;
     //最大组队玩家数量修改
-    public const int PartyMaxCapacity = 30;
+    public const int PartyMaxCapacity = 35;
     public const int PartyMinCapacity = 4;
 
 
