@@ -77,7 +77,7 @@ public static class Constant {
     public const DayOfWeek ResetDay = DayOfWeek.Thursday;
     public const int PvpArenaNpcId = 11001562;
     public const int FishingNpcId = 11001609;
-    //最大人物上限修改
+    //最大组队玩家数量修改
     public const int PartyMaxCapacity = 20;
     public const int PartyMinCapacity = 4;
 
