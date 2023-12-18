@@ -15,6 +15,8 @@ internal class Account {
     public long Id { get; set; }
     public required string Username { get; set; }
     public Guid MachineId { get; set; }
+    //添加了密码段
+    public Guid password_hash { get; set; }
     public int MaxCharacters { get; set; }
     public int PrestigeLevel { get; set; }
     public long PrestigeExp { get; set; }
@@ -41,6 +43,8 @@ internal class Account {
             Id = other.Id,
             Username = other.Username,
             MachineId = other.MachineId,
+            //添加了密码段
+            Password_hash =other.Password_hash,
             MaxCharacters = other.MaxCharacters,
             PrestigeLevel = other.PrestigeLevel,
             PrestigeExp = other.PrestigeExp,
@@ -66,6 +70,8 @@ internal class Account {
             Id = other.Id,
             Username = other.Username,
             MachineId = other.MachineId,
+            //添加了密码段
+            Password_hash =other.Password_hash,
             MaxCharacters = other.MaxCharacters,
             PrestigeLevel = other.PrestigeLevel,
             PrestigeExp = other.PrestigeExp,
