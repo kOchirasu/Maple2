@@ -27,7 +27,7 @@ public partial class GlobalService : Global.GlobalBase {
 
         // Normalize username
         string username = request.Username.Trim().ToLower();
-        var machineId = new Guid(request.MachineId);
+        var passwordHash = new Guid(request.PasswordHash);
 
         using GameStorage.Request db = gameStorage.Context();
         Account? account = db.GetAccount(username);
@@ -35,7 +35,7 @@ public partial class GlobalService : Global.GlobalBase {
         if (account == null) {
             account = new Account {
                 Username = username,
-                MachineId = machineId,
+                PasswordHash = passwordHash,
             };
 
             db.BeginTransaction();
@@ -46,13 +46,13 @@ public partial class GlobalService : Global.GlobalBase {
 
             db.Commit();
         } else {
-            if (account.MachineId == default) {
-                account.MachineId = machineId;
+            if (account.PasswordHash == default) {
+                account.PasswordHash = passwordHash;
                 db.UpdateAccount(account, true);
-            } else if (account.MachineId != machineId) {
+            } else if (account.PasswordHash != passwordHash) {
                 return Task.FromResult(new LoginResponse {
                     Code = LoginResponse.Types.Code.BlockNexonSn,
-                    Message = "MachineId mismatch",
+                    Message = "PasswordHash mismatch",
                 });
             }
         }
