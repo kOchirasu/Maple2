@@ -6,6 +6,7 @@ using IronPython.Hosting;
 using Maple2.Model.Metadata;
 using Maple2.Server.Game.Model;
 using Maple2.Server.Game.Session;
+using Maple2.Tools;
 using Microsoft.Scripting.Hosting;
 
 namespace Maple2.Server.Game.Scripting.Npc;
@@ -17,7 +18,12 @@ public class NpcScriptLoader {
     public NpcScriptLoader() {
         engine = Python.CreateEngine();
         ICollection<string> paths = engine.GetSearchPaths();
-        foreach (string dir in Directory.GetDirectories("Scripts/")) {
+
+        if (!Directory.Exists(Paths.GAME_SCRIPTS_DIR)) {
+            Directory.CreateDirectory(Paths.GAME_SCRIPTS_DIR);
+        }
+
+        foreach (string dir in Directory.GetDirectories(Paths.GAME_SCRIPTS_DIR)) {
             paths.Add(dir);
         }
         engine.SetSearchPaths(paths);
@@ -28,11 +34,11 @@ public class NpcScriptLoader {
     public NpcScript? GetNpc(GameSession session, NpcScriptContext context, FieldNpc npc, ScriptMetadata metadata) {
         Console.WriteLine($"Load script for: {npc.Value.Metadata.Id}");
         if (!scriptSources.TryGetValue(npc.Value.Metadata.Id, out ScriptSource? script)) {
-            script = engine.CreateScriptSourceFromFile($"Scripts/Npc/{npc.Value.Metadata.Id}.py");
+            script = engine.CreateScriptSourceFromFile(Path.Combine(Paths.GAME_SCRIPTS_DIR,$"Npc/{npc.Value.Metadata.Id}.py"));
             scriptSources[npc.Value.Metadata.Id] = script;
         }
 
-        if (!File.Exists($"Scripts/Npc/{npc.Value.Metadata.Id}.py")) {
+        if (!File.Exists(Path.Combine(Paths.GAME_SCRIPTS_DIR, $"Npc/{npc.Value.Metadata.Id}.py"))) {
             return new NpcScript(session, npc, metadata, null);
         }
 
@@ -50,11 +56,11 @@ public class NpcScriptLoader {
     public NpcScript? GetQuest(GameSession session, NpcScriptContext context, FieldNpc npc, ScriptMetadata metadata) {
         Console.WriteLine($"Load script for: {metadata.Id}");
         if (!scriptSources.TryGetValue(npc.Value.Metadata.Id, out ScriptSource? script)) {
-            script = engine.CreateScriptSourceFromFile($"Scripts/Quest/{metadata.Id}.py");
+            script = engine.CreateScriptSourceFromFile(Path.Combine(Paths.GAME_SCRIPTS_DIR, $"Quest/{metadata.Id}.py"));
             scriptSources[npc.Value.Metadata.Id] = script;
         }
 
-        if (!File.Exists($"Scripts/Quest/{metadata.Id}.py")) {
+        if (!File.Exists(Path.Combine(Paths.GAME_SCRIPTS_DIR, $"Quest/{metadata.Id}.py"))) {
             return new NpcScript(session, npc, metadata, null);
         }
 
