@@ -20,6 +20,7 @@ using Maple2.Server.Game.Service;
 using Maple2.Server.Game.Session;
 using Maple2.Server.Game.Util;
 using Maple2.Server.Game.Util.Sync;
+using Maple2.Tools;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -32,6 +33,8 @@ using Serilog;
 
 // Force Globalization to en-US because we use periods instead of commas for decimals
 CultureInfo.CurrentCulture = new("en-US");
+
+DotEnv.Load();
 
 IConfigurationRoot configRoot = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
