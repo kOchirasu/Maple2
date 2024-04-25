@@ -11,10 +11,17 @@ public class DataDbModule : Module {
     private readonly DbContextOptions options;
 
     public DataDbModule() {
-        string? dataDbConnection = Environment.GetEnvironmentVariable("DATA_DB_CONNECTION");
-        if (dataDbConnection == null) {
-            throw new ArgumentException("DATA_DB_CONNECTION environment variable was not set");
+        string? server = Environment.GetEnvironmentVariable("DB_IP");
+        string? port = Environment.GetEnvironmentVariable("DB_PORT");
+        string? database = Environment.GetEnvironmentVariable("DATA_DB_NAME");
+        string? user = Environment.GetEnvironmentVariable("DB_USER");
+        string? password = Environment.GetEnvironmentVariable("DB_PASSWORD");
+
+        if (server == null || port == null || database == null || user == null || password == null) {
+            throw new ArgumentException("Database connection information was not set");
         }
+
+        string dataDbConnection = $"Server={server};Port={port};Database={database};User={user};Password={password};oldguids=true";
 
         options = new DbContextOptionsBuilder()
             .UseMySql(dataDbConnection, ServerVersion.AutoDetect(dataDbConnection))

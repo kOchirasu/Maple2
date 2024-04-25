@@ -13,9 +13,12 @@ using Maple2.Server.Core.Network;
 using Maple2.Server.Core.PacketHandlers;
 using Maple2.Server.Login.Session;
 using Microsoft.Extensions.DependencyInjection;
+using Maple2.Tools;
 
 // Force Globalization to en-US because we use periods instead of commas for decimals
 CultureInfo.CurrentCulture = new("en-US");
+
+DotEnv.Load();
 
 IConfigurationRoot configRoot = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
