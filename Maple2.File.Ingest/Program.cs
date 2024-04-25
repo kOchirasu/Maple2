@@ -7,7 +7,9 @@ using Maple2.File.Ingest.Generator;
 using Maple2.File.Ingest.Mapper;
 using Maple2.File.IO;
 using Maple2.File.Parser.Tools;
+using Maple2.Tools;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Update;
 
 const string locale = "NA";
 const string env = "Live";
@@ -17,19 +19,32 @@ Console.OutputEncoding = System.Text.Encoding.UTF8;
 // Force Globalization to en-US because we use periods instead of commas for decimals
 CultureInfo.CurrentCulture = new("en-US");
 
-string? ms2Root = Environment.GetEnvironmentVariable("MS2_ROOT");
+DotEnv.Load();
+
+string? ms2Root = Environment.GetEnvironmentVariable("MS2_DATA_FOLDER");
 if (ms2Root == null) {
-    throw new ArgumentException("MS2_ROOT environment variable was not set");
+    throw new ArgumentException("MS2_DATA_FOLDER environment variable was not set");
 }
 
-string xmlPath = Path.Combine(ms2Root, "appdata/Data/Xml.m2d");
-string exportedPath = Path.Combine(ms2Root, @"appdata/Data/Resource/Exported.m2d");
-string terrainPath = Path.Combine(ms2Root, @"appdata/Data/Resource/PrecomputedTerrain.m2d");
+string xmlPath = Path.Combine(ms2Root, "Xml.m2d");
+string exportedPath = Path.Combine(ms2Root, "Resource/Exported.m2d");
+string terrainPath = Path.Combine(ms2Root, "Resource/PrecomputedTerrain.m2d");
 
-string? dataDbConnection = Environment.GetEnvironmentVariable("DATA_DB_CONNECTION");
-if (dataDbConnection == null) {
-    throw new ArgumentException("DATA_DB_CONNECTION environment variable was not set");
+if (!File.Exists(xmlPath) || !File.Exists(exportedPath) || !File.Exists(terrainPath)) {
+    throw new FileNotFoundException("Could not find MapleStory 2 xmls");
 }
+
+string? server = Environment.GetEnvironmentVariable("DB_IP");
+string? port = Environment.GetEnvironmentVariable("DB_PORT");
+string? database = Environment.GetEnvironmentVariable("DATA_DB_NAME");
+string? user = Environment.GetEnvironmentVariable("DB_USER");
+string? password = Environment.GetEnvironmentVariable("DB_PASSWORD");
+
+if (server == null || port == null || database == null || user == null || password == null) { 
+    throw new ArgumentException("Database connection information was not set");
+}
+
+string dataDbConnection = $"Server={server};Port={port};Database={database};User={user};Password={password};oldguids=true";
 
 using var xmlReader = new M2dReader(xmlPath);
 using var exportedReader = new M2dReader(exportedPath);
