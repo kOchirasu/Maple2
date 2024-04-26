@@ -13,10 +13,17 @@ public class GameDbModule : Module {
     private readonly DbContextOptions options;
 
     public GameDbModule() {
-        string? gameDbConnection = Environment.GetEnvironmentVariable("GAME_DB_CONNECTION");
-        if (gameDbConnection == null) {
-            throw new ArgumentException("GAME_DB_CONNECTION environment variable was not set");
+        string? server = Environment.GetEnvironmentVariable("DB_IP");
+        string? port = Environment.GetEnvironmentVariable("DB_PORT");
+        string? database = Environment.GetEnvironmentVariable("GAME_DB_NAME");
+        string? user = Environment.GetEnvironmentVariable("DB_USER");
+        string? password = Environment.GetEnvironmentVariable("DB_PASSWORD");
+
+        if (server == null || port == null || database == null || user == null || password == null) {
+            throw new ArgumentException("Database connection information was not set");
         }
+
+        string gameDbConnection = $"Server={server};Port={port};Database={database};User={user};Password={password};oldguids=true";
 
         options = new DbContextOptionsBuilder()
             .UseMySql(gameDbConnection, ServerVersion.AutoDetect(gameDbConnection))

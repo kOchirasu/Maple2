@@ -9,6 +9,7 @@ using Maple2.Server.Core.Modules;
 using Maple2.Server.Global.Service;
 using Maple2.Server.World.Containers;
 using Maple2.Server.World.Service;
+using Maple2.Tools;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -20,6 +21,8 @@ using Serilog;
 
 // Force Globalization to en-US because we use periods instead of commas for decimals
 CultureInfo.CurrentCulture = new("en-US");
+
+DotEnv.Load();
 
 IConfigurationRoot configRoot = new ConfigurationBuilder()
     .SetBasePath(Directory.GetCurrentDirectory())
@@ -55,6 +58,8 @@ builder.Host.ConfigureContainer<ContainerBuilder>(autofac => {
     autofac.RegisterType<GuildLookup>()
         .SingleInstance();
     autofac.RegisterType<PartyLookup>()
+        .SingleInstance();
+    autofac.RegisterType<GroupChatLookup>()
         .SingleInstance();
 });
 
