@@ -18,8 +18,9 @@
 
     <ItemGroup>
         <PackageReference Include="Crc32.NET" Version="1.2.0" />
+        <PackageReference Include="CsvHelper" Version="32.0.2" />
         <PackageReference Include="DotNetZip" Version="1.16.0" />
-        <PackageReference Include="Maple2.File.Parser" Version="2.0.23" />
+        <PackageReference Include="Maple2.File.Parser" Version="2.1.7" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="7.0.0" />
     </ItemGroup>
 
@@ -34,6 +35,9 @@
       <None Update="Generator\npc_api.py">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
         <TargetPath>Scripts\Npc\npc_api.py</TargetPath>
+      </None>
+      <None Update="Utils\ai_translate.csv">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </None>
     </ItemGroup>
 

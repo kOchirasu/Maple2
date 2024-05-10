@@ -4,7 +4,8 @@ _state_pattern = re.compile(r"_.+__(\d+)")
 
 
 class Script:
-    def __init__(self):
+    def __init__(self, ctx ...):
+        self.ctx = ctx
         self.states = {}
 
         for d in dir(self):

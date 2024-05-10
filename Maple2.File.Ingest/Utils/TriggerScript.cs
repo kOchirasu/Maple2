@@ -180,8 +180,8 @@ internal class TriggerScript {
 }
 
 internal class TriggerScriptCommon {
-    public readonly SortedDictionary<string, Function> Actions = new();
-    public readonly SortedDictionary<string, Function> Conditions = new();
+    public readonly SortedDictionary<string, PythonFunction> Actions = new();
+    public readonly SortedDictionary<string, PythonFunction> Conditions = new();
 
     public void WriteTo(IndentedTextWriter writer) {
         writer.WriteLine("from typing import List");
@@ -215,14 +215,14 @@ internal class TriggerScriptCommon {
 
         TriggerScript.WriteBlankLine(writer);
         writer.WriteLine(@""""""" Actions """"""");
-        foreach (Function action in Actions.Values) {
+        foreach (PythonFunction action in Actions.Values) {
             action.WriteTo(writer);
             TriggerScript.WriteBlankLine(writer);
         }
 
         TriggerScript.WriteBlankLine(writer);
         writer.WriteLine(@""""""" Conditions """"""");
-        foreach (Function condition in Conditions.Values) {
+        foreach (PythonFunction condition in Conditions.Values) {
             condition.WriteTo(writer);
             TriggerScript.WriteBlankLine(writer);
         }
@@ -230,119 +230,5 @@ internal class TriggerScriptCommon {
         writer.Indent--;
     }
 
-    internal class Function : IComparable<Function> {
-        public string? Description = null;
-        public readonly string Name;
-        public ScriptType ReturnType { get; init; }
-        private readonly List<Parameter> parameters = new();
 
-        private readonly Dictionary<string, (ScriptType, string?)> typeOverrides;
-        private readonly Dictionary<string, string> nameOverrides;
-
-        public Function(string name, bool isCondition) {
-            Name = name;
-            if (isCondition) {
-                nameOverrides = TriggerDefinitionOverride.ConditionNameOverride.GetValueOrDefault(name, new Dictionary<string, string>());
-                typeOverrides = TriggerDefinitionOverride.ConditionTypeOverride.GetValueOrDefault(name, new Dictionary<string, (ScriptType, string?)>());
-            } else {
-                nameOverrides = TriggerDefinitionOverride.ActionNameOverride.GetValueOrDefault(name, new Dictionary<string, string>());
-                typeOverrides = TriggerDefinitionOverride.ActionTypeOverride.GetValueOrDefault(name, new Dictionary<string, (ScriptType, string?)>());
-            }
-        }
-
-        public int CompareTo(Function? other) {
-            if (ReferenceEquals(this, other)) return 0;
-            if (ReferenceEquals(null, other)) return 1;
-
-            int nameComparison = string.Compare(Name, other.Name, StringComparison.Ordinal);
-            if (nameComparison != 0) return nameComparison;
-
-            return ReturnType.CompareTo(other.ReturnType);
-        }
-
-        // Returns normalized parameter name
-        public (ScriptType, string) AddParameter(ScriptType type, string name, string? defaultValue = null) {
-            if (nameOverrides.ContainsKey(name)) {
-                name = nameOverrides[name];
-            }
-
-            Parameter? existing = parameters.FirstOrDefault(param => param.Name == name);
-            if (existing != null) {
-                return (existing.Type, existing.Name);
-            }
-
-            if (typeOverrides.ContainsKey(name)) {
-                (ScriptType, string?) typeOverride = typeOverrides[name];
-                type = typeOverride.Item1;
-                defaultValue = typeOverride.Item2;
-            }
-
-            parameters.Add(new Parameter(type, name, defaultValue));
-            return (type, name);
-        }
-
-        public void WriteTo(IndentedTextWriter writer) {
-            writer.Write($"def {Name}(self");
-            foreach (Parameter parameter in parameters) {
-                if (parameter.Type == ScriptType.None) {
-                    continue;
-                }
-
-                writer.Write(", ");
-                writer.Write($"{parameter.Name}: ");
-                writer.Write(parameter.TypeStr());
-                writer.Write($"={parameter.DefaultStr()}");
-            }
-
-            writer.Write(")");
-            string returnTypeStr = ReturnType switch {
-                ScriptType.None => "",
-                ScriptType.Str => "str",
-                ScriptType.Int => "int",
-                ScriptType.Float => "float",
-                ScriptType.Bool => "bool",
-                _ => throw new ArgumentException($"Invalid return type: {ReturnType}")
-            };
-            if (!string.IsNullOrWhiteSpace(returnTypeStr)) {
-                writer.Write($" -> {returnTypeStr}");
-            }
-            writer.WriteLine(":");
-            writer.Indent++;
-
-            // Write docstring
-            if (parameters.Count == 0 && string.IsNullOrWhiteSpace(returnTypeStr)) { // Single-line
-                writer.WriteLine($@"""""""{Description}""""""");
-            } else {
-                writer.WriteLine($@"""""""{Description}");
-                if (parameters.Count > 0) {
-                    TriggerScript.WriteBlankLine(writer);
-                    writer.WriteLine("Args:");
-                    writer.Indent++;
-                    foreach (Parameter parameter in parameters) {
-                        if (parameter.Type == ScriptType.None) {
-                            continue;
-                        }
-
-                        writer.WriteLine($"{parameter.Name} ({parameter.TypeStr()}): _description_. Defaults to {parameter.DefaultStr()}.");
-                    }
-                    writer.Indent--;
-                }
-                if (!string.IsNullOrWhiteSpace(returnTypeStr)) {
-                    TriggerScript.WriteBlankLine(writer);
-                    writer.WriteLine("Returns:");
-                    writer.Indent++;
-                    writer.WriteLine($"{returnTypeStr}: _description_");
-                    writer.Indent--;
-                }
-                writer.WriteLine(@"""""""");
-            }
-
-            if (ReturnType == ScriptType.Bool) {
-                writer.WriteLine("return False");
-            } else {
-                writer.WriteLine("pass");
-            }
-            writer.Indent--;
-        }
-    }
 }

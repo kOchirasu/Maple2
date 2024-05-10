@@ -25,6 +25,7 @@ if (ms2Root == null) {
 string xmlPath = Path.Combine(ms2Root, "appdata/Data/Xml.m2d");
 string exportedPath = Path.Combine(ms2Root, @"appdata/Data/Resource/Exported.m2d");
 string terrainPath = Path.Combine(ms2Root, @"appdata/Data/Resource/PrecomputedTerrain.m2d");
+string serverPath = Path.Combine(ms2Root, "appdata/Data/Server.m2d");
 
 string? dataDbConnection = Environment.GetEnvironmentVariable("DATA_DB_CONNECTION");
 if (dataDbConnection == null) {
@@ -34,6 +35,7 @@ if (dataDbConnection == null) {
 using var xmlReader = new M2dReader(xmlPath);
 using var exportedReader = new M2dReader(exportedPath);
 using var terrainReader = new M2dReader(terrainPath);
+using var serverReader = new M2dReader(serverPath);
 
 DbContextOptions options = new DbContextOptionsBuilder()
     .UseMySql(dataDbConnection, ServerVersion.AutoDetect(dataDbConnection)).Options;
@@ -45,9 +47,11 @@ metadataContext.Database.ExecuteSqlRaw(@"SET GLOBAL max_allowed_packet=268435456
 // Filter Xml results based on feature settings.
 Filter.Load(xmlReader, locale, env);
 
+new NpcAiGenerator(serverReader).Generate();
 // new NpcScriptGenerator(xmlReader).Generate();
 // new NpcScriptGenerator(xmlReader).GenerateEvent();
 // new TriggerGenerator(xmlReader).Generate();
+return;
 
 UpdateDatabase(metadataContext, new AdditionalEffectMapper(xmlReader));
 UpdateDatabase(metadataContext, new AnimationMapper(xmlReader));

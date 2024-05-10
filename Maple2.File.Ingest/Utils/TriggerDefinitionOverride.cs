@@ -362,7 +362,7 @@ internal static class TriggerDefinitionOverride {
         AddConditionNameOverride("check_npc_additional_effect", ("spawnPointID", "spawnId"), ("additionalEffectID", "additionalEffectId"));
         AddConditionTypeOverride("check_npc_additional_effect", ("spawnId", Int, null), ("additionalEffectId", Int, null), ("level", Int, null));
         AddConditionNameOverride("check_npc_damage", ("spawnPointID", "spawnId"));
-        AddConditionTypeOverride("check_npc_damage", ("spawnId", Int, null), ("damageRate", Float, null), ("operator", Str, "'GreaterEqual'"));
+        AddConditionTypeOverride("check_npc_damage", ("spawnId", Int, null), ("damageRate", Float, null), ("operator", Str, "GreaterEqual"));
         AddConditionNameOverride("check_npc_hp", ("spawnPointId", "spawnId"));
         AddConditionTypeOverride("check_npc_hp", ("value", Int, null), ("spawnId", Int, null), ("isRelative", Bool, null));
         AddConditionNameOverride("check_same_user_tag", ("triggerBoxID", "boxId"));
@@ -372,17 +372,17 @@ internal static class TriggerDefinitionOverride {
         // AddConditionNameOverride("check_user_count");
         AddConditionTypeOverride("check_user_count", ("checkCount", Int, null));
         AddConditionNameOverride("count_users", ("arg1", "boxId"), ("arg2", "boxId"), ("arg3", "operator"), ("userTagID", "userTagId"));
-        AddConditionTypeOverride("count_users", ("boxId", Int, null), ("arg2", Int, null), ("operator", Str, "'GreaterEqual'"), ("userTagId", Int, null));
+        AddConditionTypeOverride("count_users", ("boxId", Int, null), ("arg2", Int, null), ("operator", Str, "GreaterEqual"), ("userTagId", Int, null));
         // AddConditionNameOverride("day_of_week");
         AddConditionTypeOverride("day_of_week", ("dayOfWeeks", IntList, null));
         AddConditionNameOverride("detect_liftable_object", ("triggerBoxIDs", "boxIds"), ("itemID", "itemId"));
         AddConditionTypeOverride("detect_liftable_object", ("boxIds", IntList, null), ("itemId", Int, null));
         // AddConditionNameOverride("dungeon_check_play_time");
-        AddConditionTypeOverride("dungeon_check_play_time", ("playSeconds", Int, null), ("operator", Str, "'GreaterEqual'"));
+        AddConditionTypeOverride("dungeon_check_play_time", ("playSeconds", Int, null), ("operator", Str, "GreaterEqual"));
         // AddConditionNameOverride("dungeon_check_state");
         // AddConditionTypeOverride("dungeon_check_state");
         // AddConditionNameOverride("dungeon_first_user_mission_score");
-        AddConditionTypeOverride("dungeon_first_user_mission_score", ("score", Int, null), ("operator", Str, "'GreaterEqual'"));
+        AddConditionTypeOverride("dungeon_first_user_mission_score", ("score", Int, null), ("operator", Str, "GreaterEqual"));
         AddConditionNameOverride("dungeon_id", ("dungeonID", "dungeonId"));
         AddConditionTypeOverride("dungeon_id", ("dungeonId", Int, null));
         // AddConditionNameOverride("dungeon_level");
@@ -418,7 +418,7 @@ internal static class TriggerDefinitionOverride {
         AddConditionNameOverride("random_condition", ("arg1", "rate"));
         AddConditionTypeOverride("random_condition", ("rate", Float, null));
         AddConditionNameOverride("score_board_compare", ("compareOp", "operator"));
-        AddConditionTypeOverride("score_board_compare", ("operator", Str, "'GreaterEqual'"), ("score", Int, null));
+        AddConditionTypeOverride("score_board_compare", ("operator", Str, "GreaterEqual"), ("score", Int, null));
         // AddConditionNameOverride("shadow_expedition_reach_point");
         AddConditionTypeOverride("shadow_expedition_reach_point", ("point", Int, null));
         AddConditionNameOverride("time_expired", ("arg1", "timerId"));
@@ -428,7 +428,7 @@ internal static class TriggerDefinitionOverride {
         AddConditionNameOverride("user_detected", ("arg1", "boxIds"), ("arg2", "jobCode"));
         AddConditionTypeOverride("user_detected", ("boxIds", IntList, null), ("jobCode", Int, null));
         // AddConditionNameOverride("user_value");
-        AddConditionTypeOverride("user_value", ("value", Int, null), ("operator", Str, "'GreaterEqual'"));
+        AddConditionTypeOverride("user_value", ("value", Int, null), ("operator", Str, "GreaterEqual"));
         // AddConditionNameOverride("wait_and_reset_tick");
         AddConditionTypeOverride("wait_and_reset_tick", ("waitTick", Int, null));
         // AddConditionNameOverride("wait_seconds_user_value");

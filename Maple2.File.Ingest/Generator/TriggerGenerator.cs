@@ -11,7 +11,7 @@ using static System.Char;
 
 namespace Maple2.File.Ingest.Generator;
 
-public class TriggerGenerator {
+internal class TriggerGenerator {
     private readonly M2dReader reader;
     private readonly Dictionary<string, string> checkUserCountStates = new();
     private readonly Dictionary<string, string> checkUser10States = new();
@@ -180,8 +180,8 @@ public class TriggerGenerator {
 
         // IndexStrings(name, isAction: true);
         string name = Translate(origName, TriggerTranslate.TranslateAction);
-        if (!ApiScript.Actions.TryGetValue(name, out TriggerScriptCommon.Function? function)) {
-            function = new TriggerScriptCommon.Function(name, false) {
+        if (!ApiScript.Actions.TryGetValue(name, out PythonFunction? function)) {
+            function = new PythonFunction(name, TriggerDefinitionOverride.ActionNameOverride, TriggerDefinitionOverride.ActionTypeOverride) {
                 Description = origName,
             };
             ApiScript.Actions.Add(name, function);
@@ -237,8 +237,8 @@ public class TriggerGenerator {
         origName = origName.TrimStart('!');
         // IndexStrings(name, isCondition: true);
         string name = Translate(origName, TriggerTranslate.TranslateCondition);
-        if (!ApiScript.Conditions.TryGetValue(name, out TriggerScriptCommon.Function? function)) {
-            function = new TriggerScriptCommon.Function(name, true) {
+        if (!ApiScript.Conditions.TryGetValue(name, out PythonFunction? function)) {
+            function = new PythonFunction(name, TriggerDefinitionOverride.ConditionNameOverride, TriggerDefinitionOverride.ConditionTypeOverride) {
                 Description = origName,
                 ReturnType = ScriptType.Bool,
             };

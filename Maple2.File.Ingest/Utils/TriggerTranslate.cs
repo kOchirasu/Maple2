@@ -108,7 +108,7 @@ public static class TriggerTranslate {
                 sb.Append(c);
             }
         }
-        return sb.ToString();
+        return sb.Replace("__", "_").ToString();
     }
 
     public static string TranslateAction(string input) {
